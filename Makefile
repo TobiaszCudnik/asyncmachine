@@ -1,6 +1,19 @@
+all:
+	make build
+
 build:
-	tsc --declarations src/multistatemachine.ts
-	tsc --declarations test/test.ts
+	tsc --declarations -c src/multistatemachine.ts
+	tsc --declarations -c test/test.ts
+	./node_modules/browserify/bin/cmd.js \
+		test/test.js \
+		-o build/browser-test/bundle.js 
+
+browser-test:
+	make build
+	make server
+
+server:
+	http-server
 
 test:
 	make build

@@ -8,8 +8,13 @@ import chai = module('chai')
 var expect = chai.expect
 
 class FooMachine extends multistatemachine.MultiStateMachine {
-    state_A = {};
-    state_B = {};
+	constructor(state, config?) {
+	    this.state_A = {};
+	    this.state_B = {};
+		super(state, config)
+	}
+    state_A;
+    state_B;
     B_enter() {}
     A_exit() {}
     A_B() {}
@@ -17,7 +22,7 @@ class FooMachine extends multistatemachine.MultiStateMachine {
     B_Any() {}
 }
 
-describe('MutliStateMachine', () => {
+describe('MultiStateMachine', () => {
 	describe("basics", () => {
 		var machine
 		beforeEach( () => {

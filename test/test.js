@@ -3,18 +3,21 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 }
+///<reference path="../headers/mocha.d.ts" />
+///<reference path="../headers/expect.d.ts" />
+///<reference path="../headers/chai.d.ts" />
+///<reference path="../src/multistatemachine.d.ts" />
 var multistatemachine = require('../src/multistatemachine')
 var chai = require('chai')
 var expect = chai.expect;
 var FooMachine = (function (_super) {
     __extends(FooMachine, _super);
-    function FooMachine() {
-        _super.apply(this, arguments);
-
+    function FooMachine(state, config) {
         this.state_A = {
         };
         this.state_B = {
         };
+        _super.call(this, state, config);
     }
     FooMachine.prototype.B_enter = function () {
     };
@@ -28,7 +31,7 @@ var FooMachine = (function (_super) {
     };
     return FooMachine;
 })(multistatemachine.MultiStateMachine);
-describe('MutliStateMachine', function () {
+describe('MultiStateMachine', function () {
     describe("basics", function () {
         var machine;
         beforeEach(function () {

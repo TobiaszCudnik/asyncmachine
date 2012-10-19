@@ -3,20 +3,20 @@
 
 //import EventEmitter2 = module('eventemitter2')
 
-interface IState {
+export interface IState {
   // v1
-  active: bool;
+  active?: bool;
   // will change the order of transitions placing dependant states in the front
-  depends: string[];
+  depends?: string[];
   // will set these states along with this one
-  implies: string[];
+  implies?: string[];
   // TODO v2
   // wont be set if dependant states aren't set (or going to be)
-  requires: string[];
+  requires?: string[];
   // will prevent setting these state
-  blocks: string[];
+  blocks?: string[];
   // will drop these states?
-  drops: string[];
+  drops?: string[];
 }
 
 interface IConfig {
@@ -26,23 +26,24 @@ interface IConfig {
 //export class MultiStateMachine extends EventEmitter2.EventEmitter2 {
 export class MultiStateMachine {
     disabled: bool = false;
-    private states: IState[];
+    private states: string[];
     private trasitions: string[];
     constructor (state: string, config?: IConfig);
     constructor (state: string[], config?: IConfig);
     constructor (state: any, public config?: IConfig) {
       // super()
+      debugger
       state = Array.isArray(state) ? state : [ state ]
       this.prepareStates()
       this.setState( state )
     }
     prepareStates() {
       var states = []
-      Object.keys(this).forEach( (key: string) => {
-        var match
-        if ( match = key.match(/^state_/) )
+      for (var name in this ) {
+        var match = name.match(/^state_(.+)/)
+        if ( match )
           states.push( match[1] )
-      })
+      }
       this.states = states
     }
     // Tells if a state is active now.
@@ -52,9 +53,12 @@ export class MultiStateMachine {
     state(name?: any): any {
       if (name)
         return ~this.states.indexOf(name)
-      return this.states.map( (state) => {
-        return state.active
+      return this.states.filter( (state) => {
+        return this[ 'state_' + state ].active
       })
+    }
+    private getState(name) {
+      return this[ 'state_' + name ]
     }
     setState(states: string[]);
     setState(states: string);
@@ -62,12 +66,16 @@ export class MultiStateMachine {
       var states = Array.isArray( states ) ? states : [ states ]
       var current_states = this.state()
       // Remove duplicate states.
-      states = states.map( (state: string) => {
-        return ~current_states.indexOf( state )
+      states = states.filter( (state: string) => {
+        return !~current_states.indexOf( state )
       })
       // TODO honor dependant states
       // TODO honor implied states
       this.transition_( current_states, states )
+      // Mark new states as active
+      states.forEach( (name: string) => {
+        this.getState( name ).active = true
+      })
     }
     transition_(from: string[], to: string[]) {
       // var wait = <Function[]>[]
