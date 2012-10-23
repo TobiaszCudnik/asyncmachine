@@ -391,20 +391,13 @@ process.binding = function (name) {
 
 });
 
-require.define("/src/multistatemachine.js",function(require,module,exports,__dirname,__filename,process,global){var __extends = this.__extends || function (d, b) {
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-}
-//autostart: bool;
+require.define("/src/multistatemachine.js",function(require,module,exports,__dirname,__filename,process,global){//autostart: bool;
 //export class MultiStateMachine extends EventEmitter2.EventEmitter2 {
 var MultiStateMachine = (function () {
     function MultiStateMachine(state, config) {
         this.config = config;
         this.disabled = false;
         // super()
-        debugger;
-
         state = Array.isArray(state) ? state : [
             state
         ];
@@ -498,133 +491,6 @@ var MultiStateMachine = (function () {
     return MultiStateMachine;
 })();
 exports.MultiStateMachine = MultiStateMachine;
-var Foo = (function (_super) {
-    __extends(Foo, _super);
-    function Foo() {
-        _super.apply(this, arguments);
-
-        this.state_A = {
-            depends: [],
-            implies: [
-                'B'
-            ]
-        };
-    }
-    Foo.prototype.B_enter = function () {
-    };
-    Foo.prototype.A_exit = function () {
-    };
-    Foo.prototype.A_B = function () {
-    };
-    Foo.prototype.Any_B = function () {
-    };
-    Foo.prototype.B_Any = function () {
-    };
-    return Foo;
-})(MultiStateMachine);
-/**
-EventEmitter2 = require('eventemitter2').EventEmitter2
-
-class NodeState
-constructor: (@config = {}) ->
-@_notifier = new EventEmitter2(wildcard: true)
-@disabled = false
-
-@current_state_name =
-@config.initial_state ?
-(state_name for state_name of @states)[0]
-@current_state = @states[@current_state_name]
-@current_data = @config.initial_data
-@_current_timeout = null
-
-@config.autostart ?= false
-@config.sync_goto ?= false
-
-# setup default events
-for state_name, events of @states
-@states[state_name]['Enter'] ?= (data) ->
-@current_data = data
-if @config.autostart
-@goto @current_state_name
-
-goto: (state_name, data) ->
-return if @disabled
-
-@current_data = data ? @current_data
-previous_state_name = @current_state_name
-
-clearTimeout @_current_timeout if @_current_timeout
-for event_name, callback of @current_state
-@_notifier.removeListener event_name, callback
-
-# enter the new state
-@current_state_name = state_name
-@current_state = @states[@current_state_name]
-
-# register events for active state
-for event_name, callback of @current_state
-@_notifier.on event_name, callback
-
-callback = (data) =>
-@current_data = data
-@_notifier.emit 'Enter', @current_data
-
-transition = (data, cb) =>
-cb data
-
-transition =
-@transitions[previous_state_name]?[state_name] ?
-@transitions['*']?[state_name] ?
-@transitions[previous_state_name]?['*'] ?
-@transitions['*']?['*'] ?
-(data, cb) => cb data
-
-if @config.sync_goto
-transition @current_data, callback
-else
-process.nextTick =>
-transition @current_data, callback
-
-raise: (event_name, data) ->
-@_notifier.emit event_name, data
-
-wait: (milliseconds) ->
-@_current_timeout = setTimeout(
-=> @_notifier.emit 'WaitTimeout', milliseconds, @current_data
-milliseconds
-)
-
-unwait: ->
-clearTimeout @_current_timeout if @_current_timeout
-
-start: (data) ->
-@current_data = data if data?
-@goto @current_state_name
-
-stop: ->
-@_notifier.removeAllListeners()
-@unwait
-
-disable: ->
-return if @disabled
-@stop()
-@disabled = true
-
-enable: (state, data) ->
-return unless @disabled
-@disabled = false
-@goto state, data if state?
-
-wrapCb: (fn) ->
-(args...) =>
-return if @disabled
-fn args...
-
-states: {}
-transitions: {}
-
-module.exports = NodeState
-*/
 
 
 });
@@ -6523,12 +6389,12 @@ describe('MultiStateMachine', function () {
         beforeEach(function () {
             machine = new FooMachine('A');
         });
-        it('should accept the starting state option', function () {
-            expect(machine.state()).to.equal([
+        it('should accept the starting state', function () {
+            expect(machine.state()).to.eql([
                 'A'
             ]);
         });
-        it('should accept the autostart option');
+        //it('should accept the autostart option')
         it('should return the current state');
         it('should return a new state after a change');
     });

@@ -5,6 +5,7 @@ all:
 build:
 	tsc --declarations -c src/multistatemachine.ts
 	mv src/multistatemachine.js build
+	mv src/multistatemachine.d.ts build
 
 build-test:
 	tsc --declarations -c test/test.ts
@@ -12,6 +13,7 @@ build-test:
 		test/test.js \
 		-o build/browser-test/bundle.js 
 	mv src/multistatemachine.js build
+	mv src/multistatemachine.d.ts build
 
 browser-test:
 	make build

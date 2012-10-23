@@ -26,12 +26,3 @@ export class MultiStateMachine {
     public transitionExit_(from: string, to: string[]): void;
     public transitionExec_(method: string): void;
 }
-class Foo extends MultiStateMachine {
-    public state_A: { depends: any[]; implies: string[]; };
-    public state_B: {};
-    public B_enter(): void;
-    public A_exit(): void;
-    public A_B(): void;
-    public Any_B(): void;
-    public B_Any(): void;
-}

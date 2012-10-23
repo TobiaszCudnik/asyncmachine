@@ -4,8 +4,6 @@
 //import EventEmitter2 = module('eventemitter2')
 
 export interface IState {
-  // v1
-  active?: bool;
   // will change the order of transitions placing dependant states in the front
   depends?: string[];
   // will set these states along with this one
@@ -27,7 +25,9 @@ interface IConfig {
 export class MultiStateMachine {
     disabled: bool = false;
     private states: string[];
+    private states_active: string[];
     private trasitions: string[];
+
     constructor (state: string, config?: IConfig);
     constructor (state: string[], config?: IConfig);
     constructor (state: any, public config?: IConfig) {
@@ -36,6 +36,7 @@ export class MultiStateMachine {
       this.prepareStates()
       this.setState( state )
     }
+
     prepareStates() {
       var states = []
       for (var name in this ) {
@@ -45,20 +46,21 @@ export class MultiStateMachine {
       }
       this.states = states
     }
+
     // Tells if a state is active now.
-    // Returns all active states.
     state(name: string): bool;
+    // Returns all active states.
     state(): string[];
     state(name?: any): any {
       if (name)
         return ~this.states.indexOf(name)
-      return this.states.filter( (state) => {
-        return this[ 'state_' + state ].active
-      })
+      return this.states_active
     }
+
     private getState(name) {
       return this[ 'state_' + name ]
     }
+
     setState(states: string[]);
     setState(states: string);
     setState(states: any) {
@@ -73,9 +75,10 @@ export class MultiStateMachine {
       this.transition_( current_states, states )
       // Mark new states as active
       states.forEach( (name: string) => {
-        this.getState( name ).active = true
+        this.states_active.push( name )
       })
     }
+
     transition_(from: string[], to: string[]) {
       // var wait = <Function[]>[]
       from.forEach( (state: string) => {
@@ -84,7 +87,10 @@ export class MultiStateMachine {
       to.forEach( (state: string) => {
         this.transitionEnter_( from, state )
       })
+      // set new states as active ones
+      this.states_active = to
     }
+
     transitionEnter_(from: string[], to: string) {
       var method, callbacks = []
       from.forEach( (state: string) => {
@@ -95,6 +101,7 @@ export class MultiStateMachine {
       // transitions (any_ etc)
       this.transitionExec_( to + 'enter' )
     }
+
     transitionExit_(from: string, to: string[]) {
       var method, callbacks = []
       this.transitionExec_( from + '_exit' )
@@ -111,3 +118,18 @@ export class MultiStateMachine {
         this[ method ]();
     }
 }
+
+/*
+class Foo extends MultiStateMachine {
+    state_A = {
+        depends: [],
+        implies: ['B']
+    };
+    state_B: { };
+    B_enter() { };
+    A_exit() { };
+    A_B() { };
+    Any_B() { };
+    B_Any() { };
+}
+*/
