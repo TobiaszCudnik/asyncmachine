@@ -1,5 +1,4 @@
 export interface IState {
-    active?: bool;
     depends?: string[];
     implies?: string[];
     requires?: string[];
@@ -12,6 +11,7 @@ export class MultiStateMachine {
     public config: IConfig;
     public disabled: bool;
     private states: string[];
+    private states_active: string[];
     private trasitions: string[];
     constructor (state: string, config?: IConfig);
     constructor (state: string[], config?: IConfig);

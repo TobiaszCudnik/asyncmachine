@@ -21,16 +21,12 @@ var MultiStateMachine = (function () {
         }
         this.states = states;
     }// Tells if a state is active now.
-    // Returns all active states.
     ;
     MultiStateMachine.prototype.state = function (name) {
-        var _this = this;
         if(name) {
             return ~this.states.indexOf(name);
         }
-        return this.states.filter(function (state) {
-            return _this['state_' + state].active;
-        });
+        return this.states_active;
     };
     MultiStateMachine.prototype.getState = function (name) {
         return this['state_' + name];
@@ -50,7 +46,7 @@ var MultiStateMachine = (function () {
         this.transition_(current_states, states);
         // Mark new states as active
         states.forEach(function (name) {
-            _this.getState(name).active = true;
+            _this.states_active.push(name);
         });
     };
     MultiStateMachine.prototype.transition_ = function (from, to) {
@@ -62,6 +58,8 @@ var MultiStateMachine = (function () {
         to.forEach(function (state) {
             _this.transitionEnter_(from, state);
         });
+        // set new states as active ones
+        this.states_active = to;
     };
     MultiStateMachine.prototype.transitionEnter_ = function (from, to) {
         var _this = this;
@@ -98,4 +96,19 @@ var MultiStateMachine = (function () {
     return MultiStateMachine;
 })();
 exports.MultiStateMachine = MultiStateMachine;
+/*
+class Foo extends MultiStateMachine {
+state_A = {
+depends: [],
+implies: ['B']
+};
+state_B: { };
+B_enter() { };
+A_exit() { };
+A_B() { };
+Any_B() { };
+B_Any() { };
+}
+*/
 
+//@ sourceMappingURL=multistatemachine.js.map

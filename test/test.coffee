@@ -1,4 +1,4 @@
-multistatemachine = require('../src/multistatemachine')
+multistatemachine = require('multistatemachine')
 expect = require('chai').expect
 
 class FooMachine extends multistatemachine.MultiStateMachine
@@ -8,8 +8,8 @@ class FooMachine extends multistatemachine.MultiStateMachine
   state_C: {}
   state_D: {}
 
-  constructor(state, config)
-    super(state, config)
+  constructor: (state, config) ->
+    super state, config
 
 describe "MultiStateMachine", ->
   machine = undefined

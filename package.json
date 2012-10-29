@@ -2,13 +2,9 @@
   "name": "multistatemachine",
   "version": "0.0.1",
   "description": "Multi State Machine for declarative async logic.",
-  "keywords": ['async', 'statemachine'],
+  "keywords": ["async", "statemachine"],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
   "dependencies": {},
-  "devDependencies": {
-    "mocha": "*",
-    "chai": "*",
-	"browserify": "*"
-  },
+  "devDependencies": {},
   "main": "build/multistatemachine.js"
 }
