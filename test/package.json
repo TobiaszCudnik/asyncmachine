@@ -6,7 +6,8 @@
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
   "dependencies": {
     "chai": "*",
-    "multistatemachine": "*"
+    "multistatemachine": "*",
+	  "sinon": "*"
   },
   "devDependencies": {
     "mocha": "*"

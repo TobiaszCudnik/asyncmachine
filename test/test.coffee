@@ -1,5 +1,6 @@
 multistatemachine = require('multistatemachine')
 expect = require('chai').expect
+sinon = require('sinon')
 
 class FooMachine extends multistatemachine.MultiStateMachine
 
