@@ -5,6 +5,8 @@
   "keywords": ["async", "statemachine"],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
   "dependencies": {},
-  "devDependencies": {},
-  "main": "build/multistatemachine.js"
+  "devDependencies": {
+    "onejs": "*"
+  },
+  "main": "build/lib/multistatemachine.js"
 }

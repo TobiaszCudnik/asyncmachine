@@ -1,37 +1,42 @@
+ASSETS = buid/test/assets
+
 all:
 	#make build
 	make build-test
 
 build:
-	#tsc --declarations -sourcemap -c --module AMD src/multistatemachine.ts
 	tsc --declarations -sourcemap -c src/multistatemachine.ts
-	mv src/multistatemachine.js build
-	mv src/multistatemachine.d.ts build
-	mv src/multistatemachine.js.map build
-	onejs build package.json build/lib/build.js --verbose 
+	mv src/multistatemachine.js build/lib/
+	mv src/multistatemachine.d.ts build/lib/
+	mv src/multistatemachine.js.map build/lib/
+	onejs build package.json build/pkg/build.js 
 
 build-test:
-	#	-c -o build/test \
+	make build
 	./test/node_modules/coffee-script/bin/coffee \
 		-c test/test.coffee
-	onejs build test/package.json build/test/build.js --verbose 
-	rm test/test.js
-	#tsc --declarations -c test/test.ts
-	#./node_modules/browserify/bin/cmd.js \
-	#	test/test.coffee \
-	#	-o build/browser-test/bundle.js 
-	#mv src/multistatemachine.js build
-	#mv src/multistatemachine.d.ts build
+	onejs build test/package.json build/test/build.js
+	mv test/test.js build/test/assets
+	cat test/bootstrap.js >> build/test/build.js
 
 browser-test:
-	make build
+	make build-test
 	make server
+	echo "Open http://localhost:8080/build/test.html"
+	# TODO open URL
 
 server:
 	http-server
+	
+test-env-prepare:
+	ln -s . test/node_modules/multistatemachine
 
 test:
-	make build
-	./node_modules/mocha/bin/mocha test/test.js
+	make build-test
+	make test-exec
+
+test-exec:
+	./test/node_modules/mocha/bin/mocha \
+		build/test/build.js
 
 .PHONY: build test

@@ -3574,14 +3574,14 @@ multistatemachineTest.pkg(1, function(parents){
     'id':3,
     'name':'multistatemachine',
     'main':undefined,
-    'mainModuleId':'build/multistatemachine',
+    'mainModuleId':'build/lib/multistatemachine',
     'modules':[],
     'parents':parents
   };
 });
 multistatemachineTest.module(3, function(/* parent */){
   return {
-    'id': 'build/multistatemachine',
+    'id': 'build/lib/multistatemachine',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process,require, undefined){
       //autostart: bool;
@@ -3612,7 +3612,9 @@ var MultiStateMachine = (function () {
         if(name) {
             return ~this.states.indexOf(name);
         }
-        return this.states_active;
+        return this.states_active || [
+            ''
+        ];
     };
     MultiStateMachine.prototype.getState = function (name) {
         return this['state_' + name];
@@ -3869,4 +3871,4 @@ if(typeof module != 'undefined' && module.exports ){
   if( !module.parent ){
     multistatemachineTest.main();
   }
-}
+}multistatemachineTest.main()

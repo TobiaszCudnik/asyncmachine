@@ -54,7 +54,7 @@ export class MultiStateMachine {
     state(name?: any): any {
       if (name)
         return ~this.states.indexOf(name)
-      return this.states_active
+      return this.states_active || [ '' ]
     }
 
     private getState(name) {

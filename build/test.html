@@ -10,13 +10,9 @@
 <body>
 	<div id='mocha'></div>
 	<script>
-		function run() {
-			multistatemachineTest.main()
-			mocha
-				.globals([ 'script*' ])
-				.run()
-		}
-		run()
+		mocha
+			.globals([ 'script*' ])
+			.run()
 	</script>
 </body>
 </html>
