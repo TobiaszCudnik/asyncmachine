@@ -6,7 +6,8 @@
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
   "dependencies": {},
   "devDependencies": {
-    "onejs": "*"
+    "one": "*",
+    "typescript": "*"
   },
   "main": "build/lib/multistatemachine.js"
 }
