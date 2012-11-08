@@ -7,10 +7,11 @@
   "dependencies": {
     "chai": "*",
     "multistatemachine": "*",
-	  "sinon": "*"
+    "sinon": "*"
   },
   "devDependencies": {
-    "mocha": "*"
+    "mocha": "*",
+    "coffee-script": "*"
   },
   "main": "test.js"
 }

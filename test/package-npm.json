@@ -1,0 +1,16 @@
+{
+  "name": "multistatemachine-test",
+  "version": "0.0.1",
+  "description": "Tests for Multi State Machine.",
+  "keywords": ["test", "async", "statemachine"],
+  "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
+  "dependencies": {
+    "chai": "*",
+    "sinon": "*"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "coffee-script": "*"
+  },
+  "main": "test.js"
+}

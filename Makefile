@@ -1,7 +1,7 @@
 ASSETS = buid/test/assets
 
 all:
-	#make build
+	make build
 	make build-test
 
 build:
@@ -28,8 +28,15 @@ browser-test:
 server:
 	http-server
 	
-test-env-prepare:
+setup:
+	npm install
+	rm test/node_modules/multistatemachine
 	ln -s . test/node_modules/multistatemachine
+	mv test/package.json test/package-one.json
+	mv test/package-npm.json test/package.json
+	cd test && npm install
+	mv test/package.json test/package-npm.json
+	mv test/package-one.json test/package.json
 
 test:
 	make build-test
