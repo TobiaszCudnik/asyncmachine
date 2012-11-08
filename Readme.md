@@ -2,6 +2,23 @@
 # Multi State Machine
 
   Multi State Machine for declarative async logic.
+  
+```javascript
+class Foo extends MultiStateMachine {
+    state_A = {
+        depends: [],
+        implies: ['B']
+        // requires: []
+        // blocks: []
+    };
+    state_B: { };
+    B_enter() { };
+    A_exit() { };
+    A_B() { };
+    Any_B() { };
+    B_Any() { };
+}
+```
 
 ## License 
 
