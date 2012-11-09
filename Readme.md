@@ -1,24 +1,61 @@
 
 # Multi State Machine
 
-  Multi State Machine for declarative async logic.
+  Multi state machine for declarative async logic.
+  
+# Disclaimer
+
+Motivation behind MultiStateMachine was to make creating async evented systems 
+easier, more predictable and to reduce code redundancy. It's loosely based on 
+finite state machine and isn't backed up with any formalized theory. 
+
+Target of this project is to extend and/or replace such patterns as promise, 
+event emitter and callback passing style. 
+  
+# Example
   
 ```javascript
 class Foo extends MultiStateMachine {
     state_A = {
+        // Decides about the order of activations (transitions).
         depends: [],
-        implies: ['B']
-        // requires: []
-        // blocks: []
+        // Activates also following states.
+        implies: ['B'],
+        // Will be activated only if following are met.
+        requires: [],
+        // When active, blocks activation (or deactivates) of following states.
+        blocks: []
     };
-    state_B: { };
-    B_enter() { };
+    state_B = {}
+    A_enter() { };
     A_exit() { };
     A_B() { };
-    Any_B() { };
-    B_Any() { };
+    any_A() { };
+    A_any() { };
 }
 ```
+
+## Order of a transition:
+- STATE1_exit
+- STATE1_STATE2
+- STATE1_any
+- any_STATE2
+- STATE2_enter
+
+# TODO / Ideas
+- use an es5 compatibility lib
+- state() should return boolean
+- method for generating all possible transitions
+- transition as a state
+- cancel state transition during enter/exit
+- customizable naming convention
+  STATE_STATE to StateState or state_)
+- event emitter api
+- mixin api (traits.js?)
+- transition piping (lucid.js event pipes?)
+- async support ( state(next:Function) )
+  - promise exports
+  - async event emitter
 
 ## License 
 

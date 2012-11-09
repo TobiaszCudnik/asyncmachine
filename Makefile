@@ -9,7 +9,7 @@ build:
 	mv src/multistatemachine.js build/lib/
 	mv src/multistatemachine.d.ts build/lib/
 	mv src/multistatemachine.js.map build/lib/
-	onejs build package.json build/pkg/build.js 
+	onejs build package.json build/pkg/build.js
 
 build-test:
 	make build
@@ -44,6 +44,7 @@ test:
 
 test-exec:
 	./test/node_modules/mocha/bin/mocha \
+		--reporter spec \
 		build/test/build.js
 
 .PHONY: build test

@@ -1,41 +1,6 @@
 ///<reference path="../headers/node.d.ts" />
 ///<reference path="../headers/eventemitter2.d.ts" />
 
-//import EventEmitter2 = module('eventemitter2')
-
-/*
-EXAMPLE
-class Foo extends MultiStateMachine {
-    state_A = {
-        depends: [],
-        implies: ['B']
-    };
-    state_B: { };
-    B_enter() { };
-    A_exit() { };
-    A_B() { };
-    Any_B() { };
-    B_Any() { };
-}
-
-Order of transition:
-- exit
-  - STATE_exit
-  - STATE_STATE
-  - STATE_any
-- enter
-  - any_STATE
-  - STATE_enter
-
-IDEAS:
-- customizable naming convention (STATE_STATE to StateState or state_)
-- event emitter api
-- mixin api
-- async support
-  - promise exports
-  - async event emitter
-*/
-
 // TODO FIXNE
 //declare function require(name:string);
 //require('./es5')
