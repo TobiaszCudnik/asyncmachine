@@ -54,6 +54,15 @@ export class MultiStateMachine {
       states = this.setupTargetStates_( states )
       this.transition_( states )
     }
+	
+		// Curried version of setState.
+    setStateLater(states: string[]);
+    setStateLater(states: string);
+    setStateLater(states: any) {
+      return () => {
+	      this.setState.apply( this, attributes )
+      }
+    }
 
     // Deactivate certain states.
     // TODO
@@ -71,13 +80,23 @@ export class MultiStateMachine {
 
     // Activate certain states and keem the current ones.
     // TODO Maybe avoid double concat of states_active
-    addState(states: string[]);
-    addState(states: string);
-    addState(states: any) {
+    pushState(states: string[]);
+    pushState(states: string);
+    pushState(states: any) {
       var states = Array.isArray( states ) ? states : [ states ]
       // Filter non existing states.
       states = this.setupTargetStates_( this.states_active.concat( states ) )
       this.transition_( states )
+    }
+	
+		// Curried version of pushState
+	
+    pushStateLater(states: string[]);
+    pushStateLater(states: string);
+    pushStateLater(states: any) {
+      return () => {
+	      this.pushState.apply( this, attributes )
+      }
     }
 
     private prepareStates() {

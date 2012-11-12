@@ -43,7 +43,7 @@ describe "multistatemachine", ->
 		expect( @machine.state() ).to.eql [ "B" ]
 
 	it "should allow to add a state", ->
-		@machine.addState "B"
+		@machine.pushState "B"
 		expect( @machine.state() ).to.eql [ "A", "B" ]
 
 	it "should allow to drop a state", ->
@@ -283,7 +283,7 @@ describe "multistatemachine", ->
 				
 		describe 'and blocking one is added', ->
 			it 'should unset the blocked one', ->
-				@machine.addState [ 'C' ]
+				@machine.pushState [ 'C' ]
 				expect( @machine.state() ).to.eql [ 'C' ]
 		
 
@@ -327,3 +327,7 @@ describe "multistatemachine", ->
 		describe 'and any transition is async', ->
 			it 'should return null'
 		it 'should return true'
+		
+	describe 'when state is changed', ->
+		it 'should provide previous state information'
+		it 'should provide target state information'
