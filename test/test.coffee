@@ -331,3 +331,5 @@ describe "multistatemachine", ->
 	describe 'when state is changed', ->
 		it 'should provide previous state information'
 		it 'should provide target state information'
+		
+	describe 'when transition is async'
