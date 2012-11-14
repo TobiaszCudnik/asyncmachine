@@ -35,6 +35,17 @@ class Foo extends MultiStateMachine {
 }
 ```
 
+# Features
+
+- always synchronous state
+-- transition can cancel a change of the state
+- states definitions (relations) in OO manner
+-- blocks, implies, requires, depends
+- transitions definitions in OO manner
+-- ::A_enter, ::A_B, ::any_A, etc
+- promises for deferred state changes
+- lots of tests
+
 ## Order of a transition:
 - STATE1_exit
 - STATE1_STATE2
@@ -43,21 +54,12 @@ class Foo extends MultiStateMachine {
 - STATE2_enter
 
 # TODO / Ideas
-- how to pass params to a multi state change request?
-- state relation wildcards (eg A blocks "opened*" to block all such states)
+- event emitter api, with piping
+- mixin api (traits.js?)
 - use an es5 compatibility lib
-- state() should return boolean
 - method for generating all possible transitions
-- transition as a state
-- cancel state transition during enter/exit
 - customizable naming convention
   STATE_STATE to StateState or state_)
-- event emitter api
-- mixin api (traits.js?)
-- transition piping (lucid.js event pipes?)
-- async support ( state(next:Function) )
-  - promise exports
-  - async event emitter
 
 ## License 
 
@@ -82,4 +84,4 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
