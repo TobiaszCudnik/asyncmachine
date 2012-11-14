@@ -1,3 +1,11 @@
+// TimeAddress
+///<reference path="../headers/node.d.ts" />
+///<reference path="../headers/eventemitter2.d.ts" />
+///<reference path="../headers/rsvp.d.ts" />
+///<reference path="../headers/es5-shim.d.ts" />
+var rsvp = require('rsvp')
+var Promise = rsvp.Promise;
+require('es5-shim');
 //autostart: bool;
 //export class MultiStateMachine extends EventEmitter2.EventEmitter2 {
 var MultiStateMachine = (function () {
@@ -20,15 +28,48 @@ var MultiStateMachine = (function () {
     }// Activate certain states and deactivate the current ones.
     ;
     MultiStateMachine.prototype.setState = function (states) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
         var states = Array.isArray(states) ? states : [
             states
         ];
         states = this.setupTargetStates_(states);
-        this.transition_(states);
+        var ret = this.transition_(states, args);
+        return ret === false ? false : this.allStatesSet(states);
+    };
+    MultiStateMachine.prototype.allStatesSet = function (states) {
+        var _this = this;
+        return !states.reduce(function (ret, state) {
+            return ret || !_this.state(state);
+        }, false);
+    };
+    MultiStateMachine.prototype.allStatesNotSet = function (states) {
+        var _this = this;
+        return !states.reduce(function (ret, state) {
+            return ret || _this.state(state);
+        }, false);
+    }// Curried version of setState.
+    ;
+    MultiStateMachine.prototype.setStateLater = function (states) {
+        var _this = this;
+        var rest = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            rest[_i] = arguments[_i + 1];
+        }
+        var promise = new Promise();
+        promise.then(function () {
+            _this.setState.apply(_this, rest);
+        });
+        return promise;
     }// Deactivate certain states.
-    // TODO
     ;
     MultiStateMachine.prototype.dropState = function (states) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
         var states_to_drop = Array.isArray(states) ? states : [
             states
         ];
@@ -37,17 +78,50 @@ var MultiStateMachine = (function () {
             return !~states_to_drop.indexOf(state);
         });
         states = this.setupTargetStates_(states);
-        this.transition_(states);
+        this.transition_(states, args);
+        return this.allStatesNotSet(states);
+    }// Deactivate certain states.
+    ;
+    MultiStateMachine.prototype.dropStateLater = function (states) {
+        var _this = this;
+        var rest = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            rest[_i] = arguments[_i + 1];
+        }
+        var promise = new Promise();
+        promise.then(function () {
+            _this.dropState.apply(_this, rest);
+        });
+        return promise;
     }// Activate certain states and keem the current ones.
     // TODO Maybe avoid double concat of states_active
     ;
-    MultiStateMachine.prototype.addState = function (states) {
+    MultiStateMachine.prototype.pushState = function (states) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
         var states = Array.isArray(states) ? states : [
             states
         ];
         // Filter non existing states.
         states = this.setupTargetStates_(this.states_active.concat(states));
-        this.transition_(states);
+        var ret = this.transition_(states, args);
+        return ret === false ? false : this.allStatesSet(states);
+    }// Curried version of pushState
+    ;
+    MultiStateMachine.prototype.pushStateLater = function (states) {
+        var _this = this;
+        var rest = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            rest[_i] = arguments[_i + 1];
+        }
+        var args = arguments;
+        var promise = new Promise();
+        promise.then(function () {
+            _this.pushState.apply(_this, args);
+        });
+        return promise;
     };
     MultiStateMachine.prototype.prepareStates = function () {
         var states = [];
@@ -128,10 +202,11 @@ var MultiStateMachine = (function () {
         });
         return blocked;
     };
-    MultiStateMachine.prototype.transition_ = function (to) {
+    MultiStateMachine.prototype.transition_ = function (to, args) {
         var _this = this;
+        // TODO handle args
         if(!to.length) {
-            return;
+            return true;
         }
         // Collect states to drop, based on the target states.
         var from = this.states_active.filter(function (state) {
@@ -140,17 +215,24 @@ var MultiStateMachine = (function () {
         this.orderStates_(to);
         this.orderStates_(from);
         // var wait = <Function[]>[]
-        from.forEach(function (state) {
-            _this.transitionExit_(state, to);
+        var ret = from.some(function (state) {
+            return _this.transitionExit_(state, to) === false;
         });
-        to.forEach(function (state) {
+        if(ret === true) {
+            return false;
+        }
+        ret = to.some(function (state) {
             // Skip transition if state is already active.
             if(~_this.states_active.indexOf(state)) {
-                return;
+                return false;
             }
-            _this.transitionEnter_(state);
+            return _this.transitionEnter_(state, to) === false;
         });
+        if(ret === true) {
+            return false;
+        }
         this.states_active = to;
+        return true;
     }// Exit transition handles state-to-state methods.
     ;
     MultiStateMachine.prototype.transitionExit_ = function (from, to) {
@@ -158,30 +240,39 @@ var MultiStateMachine = (function () {
         var method;
         var callbacks = [];
 
-        this.transitionExec_(from + '_exit');
-        to.forEach(function (state) {
-            _this.transitionExec_(from + '_' + state);
+        if(this.transitionExec_(from + '_exit', to) === false) {
+            return false;
+        }
+        var ret = to.some(function (state) {
+            return _this.transitionExec_(from + '_' + state, to) === false;
         });
+        if(ret === true) {
+            return false;
+        }
         // TODO trigger the exit transitions (all of them) after all other middle
         // transitions (_any etc)
-        this.transitionExec_(from + '_any');
+        ret = this.transitionExec_(from + '_any', to) === false;
+        return ret === true ? false : true;
     };
-    MultiStateMachine.prototype.transitionEnter_ = function (to) {
+    MultiStateMachine.prototype.transitionEnter_ = function (to, target_states) {
         var method;
         var callbacks = [];
 
         //      from.forEach( (state: string) => {
         //        this.transitionExec_( state + '_' + to )
         //      })
-        this.transitionExec_('any_' + to);
+        if(this.transitionExec_('any_' + to, target_states) === false) {
+            return false;
+        }
         // TODO trigger the enter transitions (all of them) after all other middle
         // transitions (any_ etc)
-        this.transitionExec_(to + '_enter');
+        var ret = this.transitionExec_(to + '_enter', target_states) === false;
+        return ret === true ? false : true;
     };
-    MultiStateMachine.prototype.transitionExec_ = function (method) {
+    MultiStateMachine.prototype.transitionExec_ = function (method, target_states) {
         // TODO refactor to event, return async callback
         if(this[method] instanceof Function) {
-            this[method]();
+            return this[method].call(this, target_states);
         }
     }// is_exit tells that the order is exit transitions
     ;

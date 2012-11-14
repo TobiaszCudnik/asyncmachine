@@ -1124,7 +1124,15 @@ multistatemachine.module(1, function(/* parent */){
     'id': 'build/lib/multistatemachine',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process,require, undefined){
-      //autostart: bool;
+      // TimeAddress
+///<reference path="../headers/node.d.ts" />
+///<reference path="../headers/eventemitter2.d.ts" />
+///<reference path="../headers/rsvp.d.ts" />
+///<reference path="../headers/es5-shim.d.ts" />
+var rsvp = require('rsvp')
+var Promise = rsvp.Promise;
+require('es5-shim');
+//autostart: bool;
 //export class MultiStateMachine extends EventEmitter2.EventEmitter2 {
 var MultiStateMachine = (function () {
     function MultiStateMachine(state, config) {
@@ -1146,15 +1154,48 @@ var MultiStateMachine = (function () {
     }// Activate certain states and deactivate the current ones.
     ;
     MultiStateMachine.prototype.setState = function (states) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
         var states = Array.isArray(states) ? states : [
             states
         ];
         states = this.setupTargetStates_(states);
-        this.transition_(states);
+        var ret = this.transition_(states, args);
+        return ret === false ? false : this.allStatesSet(states);
+    };
+    MultiStateMachine.prototype.allStatesSet = function (states) {
+        var _this = this;
+        return !states.reduce(function (ret, state) {
+            return ret || !_this.state(state);
+        }, false);
+    };
+    MultiStateMachine.prototype.allStatesNotSet = function (states) {
+        var _this = this;
+        return !states.reduce(function (ret, state) {
+            return ret || _this.state(state);
+        }, false);
+    }// Curried version of setState.
+    ;
+    MultiStateMachine.prototype.setStateLater = function (states) {
+        var _this = this;
+        var rest = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            rest[_i] = arguments[_i + 1];
+        }
+        var promise = new Promise();
+        promise.then(function () {
+            _this.setState.apply(_this, rest);
+        });
+        return promise;
     }// Deactivate certain states.
-    // TODO
     ;
     MultiStateMachine.prototype.dropState = function (states) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
         var states_to_drop = Array.isArray(states) ? states : [
             states
         ];
@@ -1163,17 +1204,50 @@ var MultiStateMachine = (function () {
             return !~states_to_drop.indexOf(state);
         });
         states = this.setupTargetStates_(states);
-        this.transition_(states);
+        this.transition_(states, args);
+        return this.allStatesNotSet(states);
+    }// Deactivate certain states.
+    ;
+    MultiStateMachine.prototype.dropStateLater = function (states) {
+        var _this = this;
+        var rest = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            rest[_i] = arguments[_i + 1];
+        }
+        var promise = new Promise();
+        promise.then(function () {
+            _this.dropState.apply(_this, rest);
+        });
+        return promise;
     }// Activate certain states and keem the current ones.
     // TODO Maybe avoid double concat of states_active
     ;
-    MultiStateMachine.prototype.addState = function (states) {
+    MultiStateMachine.prototype.pushState = function (states) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
         var states = Array.isArray(states) ? states : [
             states
         ];
         // Filter non existing states.
         states = this.setupTargetStates_(this.states_active.concat(states));
-        this.transition_(states);
+        var ret = this.transition_(states, args);
+        return ret === false ? false : this.allStatesSet(states);
+    }// Curried version of pushState
+    ;
+    MultiStateMachine.prototype.pushStateLater = function (states) {
+        var _this = this;
+        var rest = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            rest[_i] = arguments[_i + 1];
+        }
+        var args = arguments;
+        var promise = new Promise();
+        promise.then(function () {
+            _this.pushState.apply(_this, args);
+        });
+        return promise;
     };
     MultiStateMachine.prototype.prepareStates = function () {
         var states = [];
@@ -1254,10 +1328,11 @@ var MultiStateMachine = (function () {
         });
         return blocked;
     };
-    MultiStateMachine.prototype.transition_ = function (to) {
+    MultiStateMachine.prototype.transition_ = function (to, args) {
         var _this = this;
+        // TODO handle args
         if(!to.length) {
-            return;
+            return true;
         }
         // Collect states to drop, based on the target states.
         var from = this.states_active.filter(function (state) {
@@ -1266,17 +1341,24 @@ var MultiStateMachine = (function () {
         this.orderStates_(to);
         this.orderStates_(from);
         // var wait = <Function[]>[]
-        from.forEach(function (state) {
-            _this.transitionExit_(state, to);
+        var ret = from.some(function (state) {
+            return _this.transitionExit_(state, to) === false;
         });
-        to.forEach(function (state) {
+        if(ret === true) {
+            return false;
+        }
+        ret = to.some(function (state) {
             // Skip transition if state is already active.
             if(~_this.states_active.indexOf(state)) {
-                return;
+                return false;
             }
-            _this.transitionEnter_(state);
+            return _this.transitionEnter_(state, to) === false;
         });
+        if(ret === true) {
+            return false;
+        }
         this.states_active = to;
+        return true;
     }// Exit transition handles state-to-state methods.
     ;
     MultiStateMachine.prototype.transitionExit_ = function (from, to) {
@@ -1284,30 +1366,39 @@ var MultiStateMachine = (function () {
         var method;
         var callbacks = [];
 
-        this.transitionExec_(from + '_exit');
-        to.forEach(function (state) {
-            _this.transitionExec_(from + '_' + state);
+        if(this.transitionExec_(from + '_exit', to) === false) {
+            return false;
+        }
+        var ret = to.some(function (state) {
+            return _this.transitionExec_(from + '_' + state, to) === false;
         });
+        if(ret === true) {
+            return false;
+        }
         // TODO trigger the exit transitions (all of them) after all other middle
         // transitions (_any etc)
-        this.transitionExec_(from + '_any');
+        ret = this.transitionExec_(from + '_any', to) === false;
+        return ret === true ? false : true;
     };
-    MultiStateMachine.prototype.transitionEnter_ = function (to) {
+    MultiStateMachine.prototype.transitionEnter_ = function (to, target_states) {
         var method;
         var callbacks = [];
 
         //      from.forEach( (state: string) => {
         //        this.transitionExec_( state + '_' + to )
         //      })
-        this.transitionExec_('any_' + to);
+        if(this.transitionExec_('any_' + to, target_states) === false) {
+            return false;
+        }
         // TODO trigger the enter transitions (all of them) after all other middle
         // transitions (any_ etc)
-        this.transitionExec_(to + '_enter');
+        var ret = this.transitionExec_(to + '_enter', target_states) === false;
+        return ret === true ? false : true;
     };
-    MultiStateMachine.prototype.transitionExec_ = function (method) {
+    MultiStateMachine.prototype.transitionExec_ = function (method, target_states) {
         // TODO refactor to event, return async callback
         if(this[method] instanceof Function) {
-            this[method]();
+            return this[method].call(this, target_states);
         }
     }// is_exit tells that the order is exit transitions
     ;
@@ -1332,6 +1423,186 @@ var MultiStateMachine = (function () {
 exports.MultiStateMachine = MultiStateMachine;
 
 //@ sourceMappingURL=multistatemachine.js.map
+    }
+  };
+});
+multistatemachine.pkg(1, function(parents){
+  return {
+    'id':3,
+    'name':'rsvp',
+    'main':undefined,
+    'mainModuleId':'rsvp',
+    'modules':[],
+    'parents':parents
+  };
+});
+multistatemachine.module(3, function(/* parent */){
+  return {
+    'id': 'rsvp',
+    'pkg': arguments[0],
+    'wrapper': function(module, exports, global, Buffer,process,require, undefined){
+      "use strict";
+var browserGlobal = (typeof window !== 'undefined') ? window : {};
+var MutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
+var async;
+if (typeof process !== 'undefined') {
+  async = function(callback, binding) {
+    process.nextTick(function() {
+      callback.call(binding);
+    });
+  };
+} else if (MutationObserver) {
+  var queue = [];
+  var observer = new MutationObserver(function() {
+    var toProcess = queue.slice();
+    queue = [];
+    toProcess.forEach(function(tuple) {
+      var callback = tuple[0], binding = tuple[1];
+      callback.call(binding);
+    });
+  });
+  var element = document.createElement('div');
+  observer.observe(element, { attributes: true });
+  async = function(callback, binding) {
+    queue.push([callback, binding]);
+    element.setAttribute('drainQueue', 'drainQueue');
+  };
+} else {
+  async = function(callback, binding) {
+    setTimeout(function() {
+      callback.call(binding);
+    }, 1);
+  };
+}
+exports.async = async;
+var Event = exports.Event = function(type, options) {
+  this.type = type;
+  for (var option in options) {
+    if (!options.hasOwnProperty(option)) { continue; }
+    this[option] = options[option];
+  }
+};
+var indexOf = function(callbacks, callback) {
+  for (var i=0, l=callbacks.length; i<l; i++) {
+    if (callbacks[i][0] === callback) { return i; }
+  }
+  return -1;
+};
+var callbacksFor = function(object) {
+  var callbacks = object._promiseCallbacks;
+  if (!callbacks) {
+    callbacks = object._promiseCallbacks = {};
+  }
+  return callbacks;
+};
+var EventTarget = exports.EventTarget = {
+  mixin: function(object) {
+    object.on = this.on;
+    object.off = this.off;
+    object.trigger = this.trigger;
+    return object;
+  },
+  on: function(eventName, callback, binding) {
+    var allCallbacks = callbacksFor(this), callbacks;
+    binding = binding || this;
+    callbacks = allCallbacks[eventName];
+    if (!callbacks) {
+      callbacks = allCallbacks[eventName] = [];
+    }
+    if (indexOf(callbacks, callback) === -1) {
+      callbacks.push([callback, binding]);
+    }
+  },
+  off: function(eventName, callback) {
+    var allCallbacks = callbacksFor(this), callbacks;
+    if (!callback) {
+      allCallbacks[eventName] = [];
+      return;
+    }
+    callbacks = allCallbacks[eventName];
+    var index = indexOf(callbacks, callback);
+    if (index !== -1) { callbacks.splice(index, 1); }
+  },
+  trigger: function(eventName, options) {
+    var allCallbacks = callbacksFor(this),
+        callbacks, callbackTuple, callback, binding, event;
+    if (callbacks = allCallbacks[eventName]) {
+      for (var i=0, l=callbacks.length; i<l; i++) {
+        callbackTuple = callbacks[i];
+        callback = callbackTuple[0];
+        binding = callbackTuple[1];
+        if (typeof options !== 'object') {
+          options = { detail: options };
+        }
+        event = new Event(eventName, options);
+        callback.call(binding, event);
+      }
+    }
+  }
+};
+var Promise = exports.Promise = function() {
+  this.on('promise:resolved', function(event) {
+    this.trigger('success', { detail: event.detail });
+  }, this);
+  this.on('promise:failed', function(event) {
+    this.trigger('error', { detail: event.detail });
+  }, this);
+};
+var noop = function() {};
+var invokeCallback = function(type, promise, callback, event) {
+  var value, error;
+  if (callback) {
+    try {
+      value = callback(event.detail);
+    } catch(e) {
+      error = e;
+    }
+  } else {
+    value = event.detail;
+  }
+  if (value instanceof Promise) {
+    value.then(function(value) {
+      promise.resolve(value);
+    }, function(error) {
+      promise.reject(error);
+    });
+  } else if (callback && value) {
+    promise.resolve(value);
+  } else if (error) {
+    promise.reject(error);
+  } else {
+    promise[type](value);
+  }
+};
+Promise.prototype = {
+  then: function(done, fail) {
+    var thenPromise = new Promise();
+    this.on('promise:resolved', function(event) {
+      invokeCallback('resolve', thenPromise, done, event);
+    });
+    this.on('promise:failed', function(event) {
+      invokeCallback('reject', thenPromise, fail, event);
+    });
+    return thenPromise;
+  },
+  resolve: function(value) {
+    exports.async(function() {
+      this.trigger('promise:resolved', { detail: value });
+      this.isResolved = value;
+    }, this);
+    this.resolve = noop;
+    this.reject = noop;
+  },
+  reject: function(value) {
+    exports.async(function() {
+      this.trigger('promise:failed', { detail: value });
+      this.isRejected = value;
+    }, this);
+    this.resolve = noop;
+    this.reject = noop;
+  }
+};
+EventTarget.mixin(Promise.prototype);
     }
   };
 });

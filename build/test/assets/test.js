@@ -82,7 +82,7 @@
       return expect(this.machine.state()).to.eql(["B"]);
     });
     it("should allow to add a state", function() {
-      this.machine.addState("B");
+      this.machine.pushState("B");
       return expect(this.machine.state()).to.eql(["A", "B"]);
     });
     it("should allow to drop a state", function() {
@@ -240,7 +240,7 @@
         expect(this.machine.A_any.called).not.to.be.ok;
         return expect(this.machine.any_A.called).not.to.be.ok;
       });
-      return it('shouldn\'t remain in the requested state', function() {
+      return it('should remain in the requested state', function() {
         return expect(this.machine.state()).to.eql(['A']);
       });
     });
@@ -292,7 +292,7 @@
       });
       return describe('and blocking one is added', function() {
         return it('should unset the blocked one', function() {
-          this.machine.addState(['C']);
+          this.machine.pushState(['C']);
           return expect(this.machine.state()).to.eql(['C']);
         });
       });
@@ -335,13 +335,39 @@
       });
     });
     return describe('when state is changed', function() {
+      beforeEach(function() {
+        this.machine = new FooMachine(['A']);
+        return mock_states(this.machine, ['A', 'B', 'C', 'D']);
+      });
       describe('and transition is canceled', function() {
-        return it('should return false');
+        beforeEach(function() {
+          return this.machine.D_enter = function() {
+            return false;
+          };
+        });
+        return it('should return false', function() {
+          return expect(this.machine.setState('D')).not.to.be.ok;
+        });
       });
-      describe('and any transition is async', function() {
-        return it('should return null');
+      describe('and transition is successful', function() {
+        return it('should return true', function() {
+          return expect(this.machine.setState('D')).to.be.ok;
+        });
       });
-      return it('should return true');
+      it('should provide previous state information', function(done) {
+        this.machine.D_enter = function() {
+          expect(this.state()).to.eql(['A']);
+          return done();
+        };
+        return this.machine.setState('D');
+      });
+      return it('should provide target state information', function(done) {
+        this.machine.D_enter = function(target) {
+          expect(target).to.eql(['D']);
+          return done();
+        };
+        return this.machine.setState('D');
+      });
     });
   });
 

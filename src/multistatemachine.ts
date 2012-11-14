@@ -1,9 +1,12 @@
 ///<reference path="../headers/node.d.ts" />
 ///<reference path="../headers/eventemitter2.d.ts" />
+///<reference path="../headers/rsvp.d.ts" />
+///<reference path="../headers/es5-shim.d.ts" />
 
-// TODO FIXNE
-//declare function require(name:string);
-//require('./es5')
+import rsvp = module('rsvp')
+var Promise = rsvp.Promise
+
+require('es5-shim')
 
 export interface IState {
   // will change the order of transitions placing dependant states in the front
@@ -25,6 +28,7 @@ export class MultiStateMachine {
     disabled: bool = false;
     private states: string[];
     private states_active: string[];
+		last_promise: rsvp.Promise;
 //    private trasitions: string[];
 
     constructor (state: string, config?: IConfig);
@@ -47,56 +51,86 @@ export class MultiStateMachine {
     }
 
     // Activate certain states and deactivate the current ones.
-    setState(states: string[]);
-    setState(states: string);
-    setState(states: any) {
+    setState(states: string[], ...args: any[]);
+    setState(states: string, ...args: any[]);
+    setState(states: any, ...args: any[]) {
       var states = Array.isArray( states ) ? states : [ states ]
       states = this.setupTargetStates_( states )
-      this.transition_( states )
+      var ret = this.transition_( states, args )
+      return ret === false ? false : this.allStatesSet( states )
     }
-	
-		// Curried version of setState.
-    setStateLater(states: string[]);
-    setStateLater(states: string);
-    setStateLater(states: any) {
-      return () => {
-	      this.setState.apply( this, attributes )
-      }
+
+    private allStatesSet( states ) {
+      return ! states.reduce( (ret, state) => {
+        return ret || ! this.state( state )
+      }, false)
+    }
+
+    private allStatesNotSet( states ) {
+      return ! states.reduce( (ret, state) => {
+        return ret || this.state( state )
+      }, false)
+    }
+  
+    // Curried version of setState.
+    setStateLater(states: string[], ...rest: any[]);
+    setStateLater(states: string, ...rest: any[]);
+    setStateLater(states: any, ...rest: any[]) {
+      var promise = new Promise
+      promise.then( () => {
+        this.setState.apply( this, rest )
+      } )
+      return promise
     }
 
     // Deactivate certain states.
-    // TODO
-    dropState(states: string[]);
-    dropState(states: string);
-    dropState(states: any) {
+    dropState(states: string[], ...args: any[]);
+    dropState(states: string, ...args: any[]);
+    dropState(states: any, ...args: any[]) {
       var states_to_drop = Array.isArray( states ) ? states : [ states ]
       // Remove duplicate states.
       states = this.states_active.filter( (state: string) => {
         return !~states_to_drop.indexOf( state )
       })
       states = this.setupTargetStates_( states )
-      this.transition_( states )
+      this.transition_( states, args )
+      return this.allStatesNotSet( states )
+    }
+
+    // Deactivate certain states.
+    dropStateLater(states: string[], ...rest: any[]);
+    dropStateLater(states: string, ...rest: any[]);
+    dropStateLater(states: any, ...rest: any[]) {
+      var promise = new Promise
+      promise.then( () => {
+        this.dropState.apply( this, rest )
+      } )
+      return promise
     }
 
     // Activate certain states and keem the current ones.
     // TODO Maybe avoid double concat of states_active
-    pushState(states: string[]);
-    pushState(states: string);
-    pushState(states: any) {
+    pushState(states: string[], ...args: any[]);
+    pushState(states: string, ...args: any[]);
+    pushState(states: any, ...args: any[]) {
       var states = Array.isArray( states ) ? states : [ states ]
       // Filter non existing states.
       states = this.setupTargetStates_( this.states_active.concat( states ) )
-      this.transition_( states )
+      var ret = this.transition_( states, args )
+      return ret === false ? false : this.allStatesSet( states )
     }
-	
-		// Curried version of pushState
-	
-    pushStateLater(states: string[]);
-    pushStateLater(states: string);
-    pushStateLater(states: any) {
-      return () => {
-	      this.pushState.apply( this, attributes )
-      }
+  
+    // Curried version of pushState
+  
+    pushStateLater(states: string[], ...rest: any[]);
+    pushStateLater(states: string, ...rest: any[]);
+    pushStateLater(states: any, ...rest: any[]) {
+      var args = arguments
+      var promise = new Promise
+      promise.then( () => {
+        this.pushState.apply( this, args )
+      } )
+      return promise
     }
 
     private prepareStates() {
@@ -176,9 +210,10 @@ export class MultiStateMachine {
       return blocked
     }
 
-    private transition_(to: string[]) {
+    private transition_(to: string[], args: any[]) {
+	    // TODO handle args
       if ( ! to.length )
-        return
+        return true
       // Collect states to drop, based on the target states.
       var from = this.states_active.filter( (state: string) => {
         return !~to.indexOf( state )
@@ -186,45 +221,56 @@ export class MultiStateMachine {
       this.orderStates_( to )
       this.orderStates_( from )
       // var wait = <Function[]>[]
-      from.forEach( (state: string) => {
-        this.transitionExit_( state, to )
+      var ret = from.some( (state: string) => {
+        return this.transitionExit_( state, to ) === false
       })
-      to.forEach( (state: string) => {
+      if ( ret === true )
+        return false
+      ret = to.some( (state: string) => {
         // Skip transition if state is already active.  
         if ( ~this.states_active.indexOf(state) )
-          return
-        this.transitionEnter_( state )
+          return false
+        return this.transitionEnter_( state, to ) === false
       })
+      if ( ret === true )
+        return false
       this.states_active = to
+      return true
     }
 
     // Exit transition handles state-to-state methods.
     private transitionExit_(from: string, to: string[]) {
       var method, callbacks = []
-      this.transitionExec_( from + '_exit' )
-      to.forEach( (state: string) => {
-        this.transitionExec_( from + '_' + state )
+      if ( this.transitionExec_( from + '_exit', to ) === false )
+        return false
+      var ret = to.some( (state: string) => {
+        return this.transitionExec_( from + '_' + state, to ) === false
       })
+      if ( ret === true )
+        return false
       // TODO trigger the exit transitions (all of them) after all other middle
       // transitions (_any etc)
-      this.transitionExec_( from + '_any' )
+      ret = this.transitionExec_( from + '_any', to ) === false
+      return ret === true ? false : true
     }
 
-    private transitionEnter_(to: string) {
+    private transitionEnter_(to: string, target_states: string[]) {
       var method, callbacks = []
 //      from.forEach( (state: string) => {
 //        this.transitionExec_( state + '_' + to )
 //      })
-      this.transitionExec_( 'any_' + to )
+      if ( this.transitionExec_( 'any_' + to, target_states ) === false )
+        return false
       // TODO trigger the enter transitions (all of them) after all other middle
       // transitions (any_ etc)
-      this.transitionExec_( to + '_enter' )
+      var ret = this.transitionExec_( to + '_enter', target_states ) === false
+      return ret === true ? false : true
     }
 
-    private transitionExec_(method: string) {
+    private transitionExec_(method: string, target_states: string[]): any {
       // TODO refactor to event, return async callback
       if ( this[ method ] instanceof Function )
-        this[ method ]();
+        return this[ method ].call( this, target_states )
     }
 
     // is_exit tells that the order is exit transitions

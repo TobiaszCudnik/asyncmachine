@@ -1,11 +1,12 @@
 {
   "name": "multistatemachine",
-  "version": "0.1.0 ",
+  "version": "0.1.1 ",
   "description": "Multi State Machine for declarative async logic.",
   "keywords": ["async", "statemachine"],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
   "dependencies": {
-      "es5-shim": "*"
+      "es5-shim": "*",
+      "rsvp": "*"
   },
   "devDependencies": {
     "one": "*",

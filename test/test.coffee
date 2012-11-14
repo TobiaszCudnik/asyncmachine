@@ -221,7 +221,7 @@ describe "multistatemachine", ->
 			expect( @machine.A_any.called ).not.to.be.ok
 			expect( @machine.any_A.called ).not.to.be.ok
 
-		it 'shouldn\'t remain in the requested state', ->
+		it 'should remain in the requested state', ->
 			expect( @machine.state() ).to.eql [ 'A' ]
 
 	describe 'when order is defined by the depends attr', ->
@@ -271,22 +271,21 @@ describe "multistatemachine", ->
 		describe 'and they are set simultaneously', ->
 			beforeEach ->
 				@ret = @machine.setState [ 'C', 'D' ]
-				
+				        
 			it 'should skip the second state', ->
 				expect( @machine.state() ).to.eql [ 'C' ]
-				
+				        
 			it 'should return false', ->
 				expect( @machine.state() ).to.eql [ 'C' ]
-				
+				        
 			afterEach ->
 				delete @ret
-				
+				        
 		describe 'and blocking one is added', ->
 			it 'should unset the blocked one', ->
 				@machine.pushState [ 'C' ]
 				expect( @machine.state() ).to.eql [ 'C' ]
-		
-
+		    
 	describe 'when state is implied', ->
 		beforeEach ->
 			@machine = new FooMachine [ 'A' ]
@@ -319,17 +318,107 @@ describe "multistatemachine", ->
 		it 'should\'t be set when required state isn\'t active', ->
 			@machine.setState [ 'C', 'A' ]
 			expect( @machine.state() ).to.eql [ 'A' ]
-					  
-	# TODO move to a correct context once implemented
+						            
 	describe 'when state is changed', ->
+		beforeEach ->
+			@machine = new FooMachine [ 'A' ]
+			# mock
+			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
 		describe 'and transition is canceled', ->
-			it 'should return false'
-		describe 'and any transition is async', ->
-			it 'should return null'
-		it 'should return true'
-		
-	describe 'when state is changed', ->
-		it 'should provide previous state information'
-		it 'should provide target state information'
-		
-	describe 'when transition is async'
+			beforeEach ->
+				@machine.D_enter = -> no
+			it 'should return false', ->
+				expect( @machine.setState 'D' ).not.to.be.ok
+		describe 'and transition is successful', ->
+			it 'should return true', ->
+				expect( @machine.setState 'D' ).to.be.ok
+		it 'should provide previous state information', (done) ->
+			@machine.D_enter = ->
+				expect( @state() ).to.eql [ 'A' ]
+				do done
+			@machine.setState 'D'
+		it 'should provide target state information', (done) ->
+			@machine.D_enter = (target) ->
+				expect( target ).to.eql [ 'D' ]
+				do done
+			@machine.setState 'D'
+		# it 'should allow to push another state during transition'
+		    
+	# describe 'when any transition is async', ->
+	#   it 'should accept optional continuation callback in any transition'
+
+	#   it 'should temporarily remain in the mixed source-target state', (done) ->
+	#     @machine = new FooMachine 'A'
+	#     @machine.B_enter = (next) -> 
+	#       finish = -> do next; do done
+	#       setTimeout finish, 0
+	#     @machine.setState 'B'
+	#     state = @machine.state()
+	#     expect( state ).to.be 'AB'
+
+		# it 'should trigger mixed source-target states\' methods', (done) ->
+		#   @machine = new FooMachine 'A'
+		#   @machine.B_enter = (next) -> 
+		#     finish = ->
+		#       assert_order order
+		#       do next
+		#       do done
+		#     setTimeout next, 0
+		#   mock_states @machine, [ 'A', 'B', 'AB' ]
+		#   order = [
+		#     @machine.A_exit
+		#     @machine.A_AB
+		#     @machine.A_any
+		#     @machine.any_AB
+		#     @machine.AB_enter
+		#     @machine.any_B
+		#     # B_enter is async
+		#     @machine.B_enter
+		#   ]
+		#   @machine.setState 'B'
+
+			# describe 'when changing from many to many states', ->
+			#   it 'should ....', ->
+			#     @machine = new FooMachine [ 'A', 'B' ]
+			#     mock_states @machine, [
+			#       'A', 'B', 'C', 'D'
+			#       'AC', 'AD', 'BC', 'BD'
+			#     ]
+			#     order = [
+			#       @machine.A_exit
+			#       @machine.A_AB
+			#       @machine.A_AD
+			#       @machine.A_any
+			#       @machine.B_exit
+			#       @machine.B_AB
+			#       @machine.B_AD
+			#       @machine.B_any
+			#       @machine.any_AB
+			#       @machine.A_B_enter
+			#       @machine.any_AD
+			#       @machine.A_D_enter
+			#       @machine.any_B
+			#       # B_enter is async
+			#       @machine.B_enter
+			#     ]
+			#     @machine.setState [ 'B', 'C' ]
+
+
+	# describe 'when a mixed source-target state is async', ->
+	#   it 'should mix the mixed state', ->
+	#     mock_states @machine, [ 'A', 'B', 'C', 'D', 'AB' ]
+	#     @machine.A_exit (next) ->
+	#       setTimeout next, 0
+	#     @machine.AB_exit (next) ->
+	#       setTimeout next, 0
+	#     @machine.C_enter (next) ->
+	#       setTimeout next, 0
+	#     @machine.D_enter (next) ->
+	#       setTimeout next, 0
+	#     # state is A
+	#     @machine.setState 'B'
+	#     # state is A_B
+	#     @machine.setState 'C'
+	#     # state is A_B_C
+	#     @machine.setState 'D'
+	#     # state is A_B_C_D

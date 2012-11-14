@@ -5400,8 +5400,27 @@ var MultiStateMachine = (function () {
         ];
         states = this.setupTargetStates_(states);
         this.transition_(states);
+        return this.allStatesSet(states);
+    };
+    MultiStateMachine.prototype.allStatesSet = function (states) {
+        var _this = this;
+        return !states.reduce(function (ret, state) {
+            return ret || !_this.state(state);
+        }, false);
+    };
+    MultiStateMachine.prototype.allStatesNotSet = function (states) {
+        var _this = this;
+        return !states.reduce(function (ret, state) {
+            return ret || _this.state(state);
+        }, false);
+    }// Curried version of setState.
+    ;
+    MultiStateMachine.prototype.setStateLater = function (states) {
+        var _this = this;
+        return function () {
+            _this.setState.apply(_this, arguments);
+        }
     }// Deactivate certain states.
-    // TODO
     ;
     MultiStateMachine.prototype.dropState = function (states) {
         var states_to_drop = Array.isArray(states) ? states : [
@@ -5413,16 +5432,25 @@ var MultiStateMachine = (function () {
         });
         states = this.setupTargetStates_(states);
         this.transition_(states);
+        return this.allStatesNotSet(states);
     }// Activate certain states and keem the current ones.
     // TODO Maybe avoid double concat of states_active
     ;
-    MultiStateMachine.prototype.addState = function (states) {
+    MultiStateMachine.prototype.pushState = function (states) {
         var states = Array.isArray(states) ? states : [
             states
         ];
         // Filter non existing states.
         states = this.setupTargetStates_(this.states_active.concat(states));
         this.transition_(states);
+        return this.allStatesSet(states);
+    }// Curried version of pushState
+    ;
+    MultiStateMachine.prototype.pushStateLater = function (states) {
+        var _this = this;
+        return function () {
+            _this.pushState.apply(_this, arguments);
+        }
     };
     MultiStateMachine.prototype.prepareStates = function () {
         var states = [];
@@ -5506,7 +5534,7 @@ var MultiStateMachine = (function () {
     MultiStateMachine.prototype.transition_ = function (to) {
         var _this = this;
         if(!to.length) {
-            return;
+            return true;
         }
         // Collect states to drop, based on the target states.
         var from = this.states_active.filter(function (state) {
@@ -5523,7 +5551,7 @@ var MultiStateMachine = (function () {
             if(~_this.states_active.indexOf(state)) {
                 return;
             }
-            _this.transitionEnter_(state);
+            _this.transitionEnter_(state, to);
         });
         this.states_active = to;
     }// Exit transition handles state-to-state methods.
@@ -5533,30 +5561,32 @@ var MultiStateMachine = (function () {
         var method;
         var callbacks = [];
 
-        this.transitionExec_(from + '_exit');
+        this.transitionExec_(from + '_exit', to);
         to.forEach(function (state) {
-            _this.transitionExec_(from + '_' + state);
+            _this.transitionExec_(from + '_' + state, to);
         });
         // TODO trigger the exit transitions (all of them) after all other middle
         // transitions (_any etc)
-        this.transitionExec_(from + '_any');
+        this.transitionExec_(from + '_any', to);
     };
-    MultiStateMachine.prototype.transitionEnter_ = function (to) {
+    MultiStateMachine.prototype.transitionEnter_ = function (to, target_states) {
         var method;
         var callbacks = [];
 
         //      from.forEach( (state: string) => {
         //        this.transitionExec_( state + '_' + to )
         //      })
-        this.transitionExec_('any_' + to);
+        if(!this.transitionExec_('any_' + to, target_states)) {
+            return false;
+        }
         // TODO trigger the enter transitions (all of them) after all other middle
         // transitions (any_ etc)
-        this.transitionExec_(to + '_enter');
+        this.transitionExec_(to + '_enter', target_states);
     };
-    MultiStateMachine.prototype.transitionExec_ = function (method) {
+    MultiStateMachine.prototype.transitionExec_ = function (method, target_states) {
         // TODO refactor to event, return async callback
         if(this[method] instanceof Function) {
-            this[method]();
+            return this[method].apply(this, arguments);
         }
     }// is_exit tells that the order is exit transitions
     ;
@@ -5671,7 +5701,7 @@ multistatemachineTest.module(1, function(/* parent */){
       return expect(this.machine.state()).to.eql(["B"]);
     });
     it("should allow to add a state", function() {
-      this.machine.addState("B");
+      this.machine.pushState("B");
       return expect(this.machine.state()).to.eql(["A", "B"]);
     });
     it("should allow to drop a state", function() {
@@ -5829,7 +5859,7 @@ multistatemachineTest.module(1, function(/* parent */){
         expect(this.machine.A_any.called).not.to.be.ok;
         return expect(this.machine.any_A.called).not.to.be.ok;
       });
-      return it('shouldn\'t remain in the requested state', function() {
+      return it('should remain in the requested state', function() {
         return expect(this.machine.state()).to.eql(['A']);
       });
     });
@@ -5881,7 +5911,7 @@ multistatemachineTest.module(1, function(/* parent */){
       });
       return describe('and blocking one is added', function() {
         return it('should unset the blocked one', function() {
-          this.machine.addState(['C']);
+          this.machine.pushState(['C']);
           return expect(this.machine.state()).to.eql(['C']);
         });
       });
@@ -5924,13 +5954,39 @@ multistatemachineTest.module(1, function(/* parent */){
       });
     });
     return describe('when state is changed', function() {
+      beforeEach(function() {
+        this.machine = new FooMachine(['A']);
+        return mock_states(this.machine, ['A', 'B', 'C', 'D']);
+      });
       describe('and transition is canceled', function() {
-        return it('should return false');
+        beforeEach(function() {
+          return this.machine.D_enter = function() {
+            return false;
+          };
+        });
+        return it('should return false', function() {
+          return expect(this.machine.setState('D')).not.to.be.ok;
+        });
       });
-      describe('and any transition is async', function() {
-        return it('should return null');
+      describe('and transition is successful', function() {
+        return it('should return true', function() {
+          return expect(this.machine.setState('D')).to.be.ok;
+        });
       });
-      return it('should return true');
+      it('should provide previous state information', function(done) {
+        this.machine.D_enter = function() {
+          expect(this.state()).to.eql(['A']);
+          return done();
+        };
+        return this.machine.setState('D');
+      });
+      return it('should provide target state information', function(done) {
+        this.machine.D_enter = function(target) {
+          expect(target).to.eql(['D']);
+          return done();
+        };
+        return this.machine.setState('D');
+      });
     });
   });
 }).call(this);

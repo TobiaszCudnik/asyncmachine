@@ -43,6 +43,8 @@ class Foo extends MultiStateMachine {
 - STATE2_enter
 
 # TODO / Ideas
+- how to pass params to a multi state change request?
+- state relation wildcards (eg A blocks "opened*" to block all such states)
 - use an es5 compatibility lib
 - state() should return boolean
 - method for generating all possible transitions

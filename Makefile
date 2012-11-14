@@ -7,9 +7,11 @@ all:
 build:
 	tsc --declarations -sourcemap -c src/multistatemachine.ts
 	mv src/multistatemachine.js build/lib/
-	mv src/multistatemachine.d.ts build/lib/
+	#mv src/multistatemachine.d.ts build/lib/
+	coffee Makefile.coffee build_fix
 	mv src/multistatemachine.js.map build/lib/
 	onejs build package.json build/pkg/build.js
+	cp headers/rsvp.d.ts build/lib/
 
 build-test:
 	make build
