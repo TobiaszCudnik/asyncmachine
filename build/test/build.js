@@ -228,9 +228,9 @@ exports.umask = notImplemented;
     'require'    : mainRequire
 });
 }(this));
-multistatemachineTest.pkg(6, function(parents){
+multistatemachineTest.pkg(7, function(parents){
   return {
-    'id':7,
+    'id':8,
     'name':'buster-core',
     'main':undefined,
     'mainModuleId':'lib/buster-core',
@@ -238,7 +238,7 @@ multistatemachineTest.pkg(6, function(parents){
     'parents':parents
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+multistatemachineTest.module(8, function(/* parent */){
   return {
     'id': 'lib/buster-core',
     'pkg': arguments[0],
@@ -442,7 +442,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+multistatemachineTest.module(8, function(/* parent */){
   return {
     'id': 'lib/buster-core',
     'pkg': arguments[0],
@@ -646,7 +646,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+multistatemachineTest.module(8, function(/* parent */){
   return {
     'id': 'lib/buster-event-emitter',
     'pkg': arguments[0],
@@ -780,7 +780,7 @@ if (typeof module != "undefined") {
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+multistatemachineTest.module(8, function(/* parent */){
   return {
     'id': 'lib/define-version-getter',
     'pkg': arguments[0],
@@ -802,9 +802,9 @@ module.exports = function defineVersionGetter(mod, dirname) {
     }
   };
 });
-multistatemachineTest.pkg(5, function(parents){
+multistatemachineTest.pkg(6, function(parents){
   return {
-    'id':6,
+    'id':7,
     'name':'buster-format',
     'main':undefined,
     'mainModuleId':'lib/buster-format',
@@ -812,7 +812,7 @@ multistatemachineTest.pkg(5, function(parents){
     'parents':parents
   };
 });
-multistatemachineTest.module(6, function(/* parent */){
+multistatemachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/buster-format',
     'pkg': arguments[0],
@@ -974,7 +974,7 @@ if (typeof module != "undefined") {
     }
   };
 });
-multistatemachineTest.module(6, function(/* parent */){
+multistatemachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/buster-format',
     'pkg': arguments[0],
@@ -5373,13 +5373,38 @@ multistatemachineTest.module(3, function(/* parent */){
     'id': 'build/lib/multistatemachine',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process,require, undefined){
-      //autostart: bool;
+      var __extends = this.__extends || function (d, b) {
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+}
+///<reference path="../headers/node.d.ts" />
+///<reference path="../headers/eventemitter2.d.ts" />
+///<reference path="../headers/rsvp.d.ts" />
+///<reference path="../headers/es5-shim.d.ts" />
+var rsvp = require('rsvp')
+var Promise = rsvp.Promise;
+require('es5-shim');
+var EventEmitter = (function () {
+    function EventEmitter() { }
+    EventEmitter.prototype.once = function (event_name, listener) {
+        // TODO
+            };
+    EventEmitter.prototype.on = function (event_name, listener) {
+    };
+    EventEmitter.prototype.trigger = function (event_name, event_data) {
+        return true;
+    };
+    return EventEmitter;
+})();
+rsvp.EventTarget.mixin(EventEmitter.prototype);
 //export class MultiStateMachine extends EventEmitter2.EventEmitter2 {
-var MultiStateMachine = (function () {
+var MultiStateMachine = (function (_super) {
+    __extends(MultiStateMachine, _super);
     function MultiStateMachine(state, config) {
+        _super.call(this);
         this.config = config;
         this.disabled = false;
-        // super()
         state = Array.isArray(state) ? state : [
             state
         ];
@@ -5395,12 +5420,19 @@ var MultiStateMachine = (function () {
     }// Activate certain states and deactivate the current ones.
     ;
     MultiStateMachine.prototype.setState = function (states) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
         var states = Array.isArray(states) ? states : [
             states
         ];
+        if(this.selfTransitionExec_(states, args) === false) {
+            return false;
+        }
         states = this.setupTargetStates_(states);
-        this.transition_(states);
-        return this.allStatesSet(states);
+        var ret = this.transition_(states, args);
+        return ret === false ? false : this.allStatesSet(states);
     };
     MultiStateMachine.prototype.allStatesSet = function (states) {
         var _this = this;
@@ -5417,12 +5449,22 @@ var MultiStateMachine = (function () {
     ;
     MultiStateMachine.prototype.setStateLater = function (states) {
         var _this = this;
-        return function () {
-            _this.setState.apply(_this, arguments);
+        var rest = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            rest[_i] = arguments[_i + 1];
         }
+        var promise = new Promise();
+        promise.then(function () {
+            _this.setState.apply(_this, [].concat(states, rest));
+        });
+        return this.last_promise = promise;
     }// Deactivate certain states.
     ;
     MultiStateMachine.prototype.dropState = function (states) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
         var states_to_drop = Array.isArray(states) ? states : [
             states
         ];
@@ -5431,26 +5473,51 @@ var MultiStateMachine = (function () {
             return !~states_to_drop.indexOf(state);
         });
         states = this.setupTargetStates_(states);
-        this.transition_(states);
+        this.transition_(states, args);
         return this.allStatesNotSet(states);
+    }// Deactivate certain states.
+    ;
+    MultiStateMachine.prototype.dropStateLater = function (states) {
+        var _this = this;
+        var rest = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            rest[_i] = arguments[_i + 1];
+        }
+        var promise = new Promise();
+        promise.then(function () {
+            _this.dropState.apply(_this, [].concat(states, rest));
+        });
+        return this.last_promise = promise;
     }// Activate certain states and keem the current ones.
     // TODO Maybe avoid double concat of states_active
     ;
     MultiStateMachine.prototype.pushState = function (states) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
         var states = Array.isArray(states) ? states : [
             states
         ];
-        // Filter non existing states.
+        if(this.selfTransitionExec_(states, args) === false) {
+            return false;
+        }
         states = this.setupTargetStates_(this.states_active.concat(states));
-        this.transition_(states);
-        return this.allStatesSet(states);
+        var ret = this.transition_(states, args);
+        return ret === false ? false : this.allStatesSet(states);
     }// Curried version of pushState
     ;
     MultiStateMachine.prototype.pushStateLater = function (states) {
         var _this = this;
-        return function () {
-            _this.pushState.apply(_this, arguments);
+        var rest = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            rest[_i] = arguments[_i + 1];
         }
+        var promise = new Promise();
+        promise.then(function () {
+            _this.pushState.apply(_this, [].concat(states, rest));
+        });
+        return this.last_promise = promise;
     };
     MultiStateMachine.prototype.prepareStates = function () {
         var states = [];
@@ -5465,6 +5532,24 @@ var MultiStateMachine = (function () {
     };
     MultiStateMachine.prototype.getState_ = function (name) {
         return this['state_' + name];
+    }// Executes self transitions (eg ::A_A) based on active states.
+    ;
+    MultiStateMachine.prototype.selfTransitionExec_ = function (states, args) {
+        var _this = this;
+        var ret = states.some(function (state) {
+            var ret;
+            var name = state + '_' + state;
+
+            var method = _this[name];
+            if(method && ~_this.states_active.indexOf(state)) {
+                ret = method();
+            }
+            if(ret === false) {
+                return true;
+            }
+            return _this.trigger(name, args) === false;
+        });
+        return ret === true ? false : true;
     };
     MultiStateMachine.prototype.setupTargetStates_ = function (states, exclude) {
         if (typeof exclude === "undefined") { exclude = []; }
@@ -5531,8 +5616,9 @@ var MultiStateMachine = (function () {
         });
         return blocked;
     };
-    MultiStateMachine.prototype.transition_ = function (to) {
+    MultiStateMachine.prototype.transition_ = function (to, args) {
         var _this = this;
+        // TODO handle args
         if(!to.length) {
             return true;
         }
@@ -5543,17 +5629,24 @@ var MultiStateMachine = (function () {
         this.orderStates_(to);
         this.orderStates_(from);
         // var wait = <Function[]>[]
-        from.forEach(function (state) {
-            _this.transitionExit_(state, to);
+        var ret = from.some(function (state) {
+            return _this.transitionExit_(state, to) === false;
         });
-        to.forEach(function (state) {
+        if(ret === true) {
+            return false;
+        }
+        ret = to.some(function (state) {
             // Skip transition if state is already active.
             if(~_this.states_active.indexOf(state)) {
-                return;
+                return false;
             }
-            _this.transitionEnter_(state, to);
+            return _this.transitionEnter_(state, to) === false;
         });
+        if(ret === true) {
+            return false;
+        }
         this.states_active = to;
+        return true;
     }// Exit transition handles state-to-state methods.
     ;
     MultiStateMachine.prototype.transitionExit_ = function (from, to) {
@@ -5561,13 +5654,19 @@ var MultiStateMachine = (function () {
         var method;
         var callbacks = [];
 
-        this.transitionExec_(from + '_exit', to);
-        to.forEach(function (state) {
-            _this.transitionExec_(from + '_' + state, to);
+        if(this.transitionExec_(from + '_exit', to) === false) {
+            return false;
+        }
+        var ret = to.some(function (state) {
+            return _this.transitionExec_(from + '_' + state, to) === false;
         });
+        if(ret === true) {
+            return false;
+        }
         // TODO trigger the exit transitions (all of them) after all other middle
         // transitions (_any etc)
-        this.transitionExec_(from + '_any', to);
+        ret = this.transitionExec_(from + '_any', to) === false;
+        return ret === true ? false : true;
     };
     MultiStateMachine.prototype.transitionEnter_ = function (to, target_states) {
         var method;
@@ -5576,17 +5675,26 @@ var MultiStateMachine = (function () {
         //      from.forEach( (state: string) => {
         //        this.transitionExec_( state + '_' + to )
         //      })
-        if(!this.transitionExec_('any_' + to, target_states)) {
+        if(this.transitionExec_('any_' + to, target_states) === false) {
             return false;
         }
         // TODO trigger the enter transitions (all of them) after all other middle
         // transitions (any_ etc)
-        this.transitionExec_(to + '_enter', target_states);
+        var ret = this.transitionExec_(to + '_enter', target_states) === false;
+        return ret === true ? false : true;
     };
-    MultiStateMachine.prototype.transitionExec_ = function (method, target_states) {
+    MultiStateMachine.prototype.transitionExec_ = function (method, target_states, args) {
+        if (typeof args === "undefined") { args = []; }
         // TODO refactor to event, return async callback
         if(this[method] instanceof Function) {
-            return this[method].apply(this, arguments);
+            args = [].concat([
+                target_states
+            ], args);
+            var ret = this[method].apply(this, args);
+            if(ret === false) {
+                return false;
+            }
+            return this.trigger(method, args);
         }
     }// is_exit tells that the order is exit transitions
     ;
@@ -5607,7 +5715,7 @@ var MultiStateMachine = (function () {
         });
     };
     return MultiStateMachine;
-})();
+})(EventEmitter);
 exports.MultiStateMachine = MultiStateMachine;
 
 //@ sourceMappingURL=multistatemachine.js.map
@@ -5631,13 +5739,14 @@ multistatemachineTest.module(1, function(/* parent */){
     'wrapper': function(module, exports, global, Buffer,process,require, undefined){
       // Generated by CoffeeScript 1.4.0
 (function() {
-  var expect, multistatemachine, sinon,
+  var Promise, expect, multistatemachine, sinon,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
   multistatemachine = require('multistatemachine');
   expect = require('chai').expect;
   sinon = require('sinon');
-  describe("multistatemachine", function() {
+  Promise = require('rsvp').Promise;
+  describe("MultiStateMachine", function() {
     var FooMachine, assert_order, mock_states;
     FooMachine = (function(_super) {
       __extends(FooMachine, _super);
@@ -5655,6 +5764,7 @@ multistatemachineTest.module(1, function(/* parent */){
       _results = [];
       for (_i = 0, _len = states.length; _i < _len; _i++) {
         state = states[_i];
+        instance["" + state + "_" + state] = sinon.spy();
         instance["" + state + "_enter"] = sinon.spy();
         instance["" + state + "_exit"] = sinon.spy();
         instance["" + state + "_any"] = sinon.spy();
@@ -5953,9 +6063,9 @@ multistatemachineTest.module(1, function(/* parent */){
         return expect(this.machine.state()).to.eql(['A']);
       });
     });
-    return describe('when state is changed', function() {
+    describe('when state is changed', function() {
       beforeEach(function() {
-        this.machine = new FooMachine(['A']);
+        this.machine = new FooMachine('A');
         return mock_states(this.machine, ['A', 'B', 'C', 'D']);
       });
       describe('and transition is canceled', function() {
@@ -5964,8 +6074,27 @@ multistatemachineTest.module(1, function(/* parent */){
             return false;
           };
         });
-        return it('should return false', function() {
-          return expect(this.machine.setState('D')).not.to.be.ok;
+        describe('when setting a new state', function() {
+          beforeEach(function() {
+            return this.ret = this.machine.setState('D');
+          });
+          it('should return false', function() {
+            return expect(this.machine.setState('D')).not.to.be.ok;
+          });
+          return it('should not change the previous state', function() {
+            return expect(this.machine.state()).to.eql(['A']);
+          });
+        });
+        return describe('when pushing an additional state', function() {
+          beforeEach(function() {
+            return this.ret = this.machine.pushState('D');
+          });
+          it('should return false', function() {
+            return expect(this.ret).not.to.be.ok;
+          });
+          return it('should not change the previous state', function() {
+            return expect(this.machine.state()).to.eql(['A']);
+          });
         });
       });
       describe('and transition is successful', function() {
@@ -5980,12 +6109,163 @@ multistatemachineTest.module(1, function(/* parent */){
         };
         return this.machine.setState('D');
       });
-      return it('should provide target state information', function(done) {
+      it('should provide target state information', function(done) {
         this.machine.D_enter = function(target) {
           expect(target).to.eql(['D']);
           return done();
         };
         return this.machine.setState('D');
+      });
+      describe('with arguments', function() {
+        beforeEach(function() {
+          return this.machine.state_D = {
+            implies: ['B'],
+            blocks: ['A']
+          };
+        });
+        describe('and synchronous', function() {
+          beforeEach(function() {
+            this.machine.setState('A', 'C');
+            this.machine.setState('D', 'foo', 2);
+            return this.machine.dropState('C', 'foo', 2);
+          });
+          describe('and is explicit', function() {
+            it('should forward arguments to exit states', function() {
+              return expect(this.machine.C_exit.calledWith('foo', 2)).to.be.ok;
+            });
+            return it('should forward arguments to enter states', function() {
+              return expect(this.machine.D_enter.calledWith('foo', 2)).to.be.ok;
+            });
+          });
+          return describe('and is non-explicit', function() {
+            it('should not forward arguments to exit states', function() {
+              return expect(this.machine.A_exit.calledWith('foo', 2)).not.to.be.ok;
+            });
+            return it('should not forward arguments to enter states', function() {
+              return expect(this.machine.B_enter.calledWith('foo', 2)).not.to.be.ok;
+            });
+          });
+        });
+        return describe('and delayed', function() {
+          beforeEach(function(done) {
+            var _this = this;
+            return setTimeout(function() {
+              _this.machine.setStateLater('A', 'C');
+              _this.machine.setStateLater('D', 'foo', 2);
+              _this.machine.dropStateLater('C', 'foo', 2);
+              return done();
+            }, 0);
+          });
+          describe('and is explicit', function() {
+            it('should forward arguments to exit states', function() {
+              return expect(this.machine.C_exit.calledWith('foo', 2)).to.be.ok;
+            });
+            return it('should forward arguments to enter states', function() {
+              return expect(this.machine.D_enter.calledWith('foo', 2)).to.be.ok;
+            });
+          });
+          return describe('and is non-explicit', function() {
+            it('should not forward arguments to exit states', function() {
+              return expect(this.machine.A_exit.calledWith('foo', 2)).not.to.be.ok;
+            });
+            return it('should not forward arguments to enter states', function() {
+              return expect(this.machine.B_enter.calledWith('foo', 2)).not.to.be.ok;
+            });
+          });
+        });
+      });
+      describe('and delayed', function() {
+        beforeEach(function() {
+          return this.ret = this.machine.setStateLater('D');
+        });
+        it('should return a promise', function() {
+          return expect(this.ret instanceof Promise).to.be.ok;
+        });
+        it('should execute the change', function(done) {
+          var _this = this;
+          this.ret.resolve();
+          return this.ret.then(function() {
+            expect(_this.machine.any_D.calledOnce).to.be.ok;
+            expect(_this.machine.D_enter.calledOnce).to.be.ok;
+            return done();
+          });
+        });
+        it('should expose a ref to the last promise', function() {
+          return expect(this.machine.last_promise).to.equal(this.ret);
+        });
+        return describe('and then canceled', function() {
+          beforeEach(function() {
+            return this.ret.reject();
+          });
+          return it('should not execute the change', function() {
+            expect(this.machine.any_D.called).not.to.be.ok;
+            return expect(this.machine.D_enter.called).not.to.be.ok;
+          });
+        });
+      });
+      describe('and active state is also the target one', function() {
+        it('should trigger self transition at the very beggining', function() {
+          var order;
+          this.machine.setState(['A', 'B']);
+          order = [this.machine.A_A, this.machine.any_B, this.machine.B_enter];
+          return assert_order(order);
+        });
+        it('should be executed only for explicitly called states');
+        return it('should be cancellable', function() {
+          this.machine.A_A = sinon.stub().returns(false);
+          this.machine.setState(['A', 'B']);
+          expect(this.machine.A_A.calledOnce).to.be.ok;
+          return expect(this.machine.any_B.called).not.to.be.ok;
+        });
+      });
+      return describe('should trigger events', function() {
+        beforeEach(function() {
+          this.machine.setState(['A', 'C']);
+          this.machine.on('A_A', this.A_A = sinon.spy());
+          this.machine.on('B_enter', this.B_enter = sinon.spy());
+          this.machine.on('C_exit', this.C_exit = sinon.spy());
+          this.machine.on('setState', this.setState = sinon.spy());
+          this.machine.on('cancelTransition', this.cancelTransition = sinon.spy());
+          this.machine.on('pushState', this.pushState = sinon.spy());
+          return this.machine.setState(['A', 'B']);
+        });
+        afterEach(function() {
+          delete this.C_exit;
+          delete this.A_A;
+          delete this.B_enter;
+          delete this.pushState;
+          delete this.setState;
+          return delete this.cancelTransition;
+        });
+        it('for self transitions', function() {
+          return expect(this.A_A.called).to.be.ok;
+        });
+        it('for enter transitions', function() {
+          return expect(this.B_enter.called).to.be.ok;
+        });
+        it('for exit transtions', function() {
+          return expect(this.C_exit.called).to.be.ok;
+        });
+        it('which can cancel the transition', function() {
+          this.machine.on('D_enter', sinon.stub().returns(false));
+          this.machine.setState('D');
+          return expect(this.machine.D_any.called).not.to.be.ok;
+        });
+        it('for setting a new state', function() {
+          return expect(this.setState.called).to.be.ok;
+        });
+        it('for pushing a new state', function() {
+          return expect(this.pushState.called).to.be.ok;
+        });
+        return it('for cancelling the transition', function() {
+          return expect(this.cancelTransition.called).to.be.ok;
+        });
+      });
+    });
+    return describe('Events', function() {
+      return describe('should pipe', function() {
+        it('transition events');
+        return it('machine events');
       });
     });
   });
@@ -5993,9 +6273,189 @@ multistatemachineTest.module(1, function(/* parent */){
     }
   };
 });
-multistatemachineTest.pkg(1, function(parents){
+multistatemachineTest.pkg(3, function(parents){
   return {
     'id':5,
+    'name':'rsvp',
+    'main':undefined,
+    'mainModuleId':'rsvp',
+    'modules':[],
+    'parents':parents
+  };
+});
+multistatemachineTest.module(5, function(/* parent */){
+  return {
+    'id': 'rsvp',
+    'pkg': arguments[0],
+    'wrapper': function(module, exports, global, Buffer,process,require, undefined){
+      "use strict";
+var browserGlobal = (typeof window !== 'undefined') ? window : {};
+var MutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
+var async;
+if (typeof process !== 'undefined') {
+  async = function(callback, binding) {
+    process.nextTick(function() {
+      callback.call(binding);
+    });
+  };
+} else if (MutationObserver) {
+  var queue = [];
+  var observer = new MutationObserver(function() {
+    var toProcess = queue.slice();
+    queue = [];
+    toProcess.forEach(function(tuple) {
+      var callback = tuple[0], binding = tuple[1];
+      callback.call(binding);
+    });
+  });
+  var element = document.createElement('div');
+  observer.observe(element, { attributes: true });
+  async = function(callback, binding) {
+    queue.push([callback, binding]);
+    element.setAttribute('drainQueue', 'drainQueue');
+  };
+} else {
+  async = function(callback, binding) {
+    setTimeout(function() {
+      callback.call(binding);
+    }, 1);
+  };
+}
+exports.async = async;
+var Event = exports.Event = function(type, options) {
+  this.type = type;
+  for (var option in options) {
+    if (!options.hasOwnProperty(option)) { continue; }
+    this[option] = options[option];
+  }
+};
+var indexOf = function(callbacks, callback) {
+  for (var i=0, l=callbacks.length; i<l; i++) {
+    if (callbacks[i][0] === callback) { return i; }
+  }
+  return -1;
+};
+var callbacksFor = function(object) {
+  var callbacks = object._promiseCallbacks;
+  if (!callbacks) {
+    callbacks = object._promiseCallbacks = {};
+  }
+  return callbacks;
+};
+var EventTarget = exports.EventTarget = {
+  mixin: function(object) {
+    object.on = this.on;
+    object.off = this.off;
+    object.trigger = this.trigger;
+    return object;
+  },
+  on: function(eventName, callback, binding) {
+    var allCallbacks = callbacksFor(this), callbacks;
+    binding = binding || this;
+    callbacks = allCallbacks[eventName];
+    if (!callbacks) {
+      callbacks = allCallbacks[eventName] = [];
+    }
+    if (indexOf(callbacks, callback) === -1) {
+      callbacks.push([callback, binding]);
+    }
+  },
+  off: function(eventName, callback) {
+    var allCallbacks = callbacksFor(this), callbacks;
+    if (!callback) {
+      allCallbacks[eventName] = [];
+      return;
+    }
+    callbacks = allCallbacks[eventName];
+    var index = indexOf(callbacks, callback);
+    if (index !== -1) { callbacks.splice(index, 1); }
+  },
+  trigger: function(eventName, options) {
+    var allCallbacks = callbacksFor(this),
+        callbacks, callbackTuple, callback, binding, event;
+    if (callbacks = allCallbacks[eventName]) {
+      for (var i=0, l=callbacks.length; i<l; i++) {
+        callbackTuple = callbacks[i];
+        callback = callbackTuple[0];
+        binding = callbackTuple[1];
+        if (typeof options !== 'object') {
+          options = { detail: options };
+        }
+        event = new Event(eventName, options);
+        callback.call(binding, event);
+      }
+    }
+  }
+};
+var Promise = exports.Promise = function() {
+  this.on('promise:resolved', function(event) {
+    this.trigger('success', { detail: event.detail });
+  }, this);
+  this.on('promise:failed', function(event) {
+    this.trigger('error', { detail: event.detail });
+  }, this);
+};
+var noop = function() {};
+var invokeCallback = function(type, promise, callback, event) {
+  var value, error;
+  if (callback) {
+    try {
+      value = callback(event.detail);
+    } catch(e) {
+      error = e;
+    }
+  } else {
+    value = event.detail;
+  }
+  if (value instanceof Promise) {
+    value.then(function(value) {
+      promise.resolve(value);
+    }, function(error) {
+      promise.reject(error);
+    });
+  } else if (callback && value) {
+    promise.resolve(value);
+  } else if (error) {
+    promise.reject(error);
+  } else {
+    promise[type](value);
+  }
+};
+Promise.prototype = {
+  then: function(done, fail) {
+    var thenPromise = new Promise();
+    this.on('promise:resolved', function(event) {
+      invokeCallback('resolve', thenPromise, done, event);
+    });
+    this.on('promise:failed', function(event) {
+      invokeCallback('reject', thenPromise, fail, event);
+    });
+    return thenPromise;
+  },
+  resolve: function(value) {
+    exports.async(function() {
+      this.trigger('promise:resolved', { detail: value });
+      this.isResolved = value;
+    }, this);
+    this.resolve = noop;
+    this.reject = noop;
+  },
+  reject: function(value) {
+    exports.async(function() {
+      this.trigger('promise:failed', { detail: value });
+      this.isRejected = value;
+    }, this);
+    this.resolve = noop;
+    this.reject = noop;
+  }
+};
+EventTarget.mixin(Promise.prototype);
+    }
+  };
+});
+multistatemachineTest.pkg(1, function(parents){
+  return {
+    'id':6,
     'name':'sinon',
     'main':undefined,
     'mainModuleId':'lib/sinon',
@@ -6003,7 +6463,7 @@ multistatemachineTest.pkg(1, function(parents){
     'parents':parents
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon',
     'pkg': arguments[0],
@@ -6281,7 +6741,7 @@ var sinon = (function (buster) {
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon',
     'pkg': arguments[0],
@@ -6559,7 +7019,7 @@ var sinon = (function (buster) {
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/assert',
     'pkg': arguments[0],
@@ -6713,7 +7173,7 @@ multistatemachineTest.module(5, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/collection',
     'pkg': arguments[0],
@@ -6844,7 +7304,7 @@ multistatemachineTest.module(5, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/match',
     'pkg': arguments[0],
@@ -7068,7 +7528,7 @@ multistatemachineTest.module(5, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/mock',
     'pkg': arguments[0],
@@ -7406,7 +7866,7 @@ multistatemachineTest.module(5, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/sandbox',
     'pkg': arguments[0],
@@ -7514,7 +7974,7 @@ if (typeof module == "object" && typeof require == "function") {
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/spy',
     'pkg': arguments[0],
@@ -7957,7 +8417,7 @@ multistatemachineTest.module(5, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/stub',
     'pkg': arguments[0],
@@ -8245,7 +8705,7 @@ multistatemachineTest.module(5, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/test',
     'pkg': arguments[0],
@@ -8317,7 +8777,7 @@ multistatemachineTest.module(5, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/test_case',
     'pkg': arguments[0],
@@ -8404,7 +8864,7 @@ multistatemachineTest.module(5, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/util/event',
     'pkg': arguments[0],
@@ -8474,7 +8934,7 @@ if (typeof sinon == "undefined") {
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/util/fake_server',
     'pkg': arguments[0],
@@ -8644,7 +9104,7 @@ if (typeof module == "object" && typeof require == "function") {
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/util/fake_server_with_clock',
     'pkg': arguments[0],
@@ -8720,7 +9180,7 @@ multistatemachineTest.module(5, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/util/fake_timers',
     'pkg': arguments[0],
@@ -9013,7 +9473,7 @@ if (typeof module == "object" && typeof require == "function") {
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/util/fake_xml_http_request',
     'pkg': arguments[0],
@@ -9428,7 +9888,7 @@ if (typeof module == "object" && typeof require == "function") {
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/util/timers_ie',
     'pkg': arguments[0],
@@ -9462,7 +9922,7 @@ Date = sinon.timers.Date;
     }
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+multistatemachineTest.module(6, function(/* parent */){
   return {
     'id': 'lib/sinon/util/xhr_ie',
     'pkg': arguments[0],

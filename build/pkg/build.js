@@ -1124,7 +1124,11 @@ multistatemachine.module(1, function(/* parent */){
     'id': 'build/lib/multistatemachine',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process,require, undefined){
-      // TimeAddress
+      var __extends = this.__extends || function (d, b) {
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+}
 ///<reference path="../headers/node.d.ts" />
 ///<reference path="../headers/eventemitter2.d.ts" />
 ///<reference path="../headers/rsvp.d.ts" />
@@ -1132,13 +1136,26 @@ multistatemachine.module(1, function(/* parent */){
 var rsvp = require('rsvp')
 var Promise = rsvp.Promise;
 require('es5-shim');
-//autostart: bool;
+var EventEmitter = (function () {
+    function EventEmitter() { }
+    EventEmitter.prototype.once = function (event_name, listener) {
+        // TODO
+            };
+    EventEmitter.prototype.on = function (event_name, listener) {
+    };
+    EventEmitter.prototype.trigger = function (event_name, event_data) {
+        return true;
+    };
+    return EventEmitter;
+})();
+rsvp.EventTarget.mixin(EventEmitter.prototype);
 //export class MultiStateMachine extends EventEmitter2.EventEmitter2 {
-var MultiStateMachine = (function () {
+var MultiStateMachine = (function (_super) {
+    __extends(MultiStateMachine, _super);
     function MultiStateMachine(state, config) {
+        _super.call(this);
         this.config = config;
         this.disabled = false;
-        // super()
         state = Array.isArray(state) ? state : [
             state
         ];
@@ -1161,6 +1178,9 @@ var MultiStateMachine = (function () {
         var states = Array.isArray(states) ? states : [
             states
         ];
+        if(this.selfTransitionExec_(states, args) === false) {
+            return false;
+        }
         states = this.setupTargetStates_(states);
         var ret = this.transition_(states, args);
         return ret === false ? false : this.allStatesSet(states);
@@ -1186,9 +1206,9 @@ var MultiStateMachine = (function () {
         }
         var promise = new Promise();
         promise.then(function () {
-            _this.setState.apply(_this, rest);
+            _this.setState.apply(_this, [].concat(states, rest));
         });
-        return promise;
+        return this.last_promise = promise;
     }// Deactivate certain states.
     ;
     MultiStateMachine.prototype.dropState = function (states) {
@@ -1216,9 +1236,9 @@ var MultiStateMachine = (function () {
         }
         var promise = new Promise();
         promise.then(function () {
-            _this.dropState.apply(_this, rest);
+            _this.dropState.apply(_this, [].concat(states, rest));
         });
-        return promise;
+        return this.last_promise = promise;
     }// Activate certain states and keem the current ones.
     // TODO Maybe avoid double concat of states_active
     ;
@@ -1230,7 +1250,9 @@ var MultiStateMachine = (function () {
         var states = Array.isArray(states) ? states : [
             states
         ];
-        // Filter non existing states.
+        if(this.selfTransitionExec_(states, args) === false) {
+            return false;
+        }
         states = this.setupTargetStates_(this.states_active.concat(states));
         var ret = this.transition_(states, args);
         return ret === false ? false : this.allStatesSet(states);
@@ -1242,12 +1264,11 @@ var MultiStateMachine = (function () {
         for (var _i = 0; _i < (arguments.length - 1); _i++) {
             rest[_i] = arguments[_i + 1];
         }
-        var args = arguments;
         var promise = new Promise();
         promise.then(function () {
-            _this.pushState.apply(_this, args);
+            _this.pushState.apply(_this, [].concat(states, rest));
         });
-        return promise;
+        return this.last_promise = promise;
     };
     MultiStateMachine.prototype.prepareStates = function () {
         var states = [];
@@ -1262,6 +1283,24 @@ var MultiStateMachine = (function () {
     };
     MultiStateMachine.prototype.getState_ = function (name) {
         return this['state_' + name];
+    }// Executes self transitions (eg ::A_A) based on active states.
+    ;
+    MultiStateMachine.prototype.selfTransitionExec_ = function (states, args) {
+        var _this = this;
+        var ret = states.some(function (state) {
+            var ret;
+            var name = state + '_' + state;
+
+            var method = _this[name];
+            if(method && ~_this.states_active.indexOf(state)) {
+                ret = method();
+            }
+            if(ret === false) {
+                return true;
+            }
+            return _this.trigger(name, args) === false;
+        });
+        return ret === true ? false : true;
     };
     MultiStateMachine.prototype.setupTargetStates_ = function (states, exclude) {
         if (typeof exclude === "undefined") { exclude = []; }
@@ -1395,10 +1434,18 @@ var MultiStateMachine = (function () {
         var ret = this.transitionExec_(to + '_enter', target_states) === false;
         return ret === true ? false : true;
     };
-    MultiStateMachine.prototype.transitionExec_ = function (method, target_states) {
+    MultiStateMachine.prototype.transitionExec_ = function (method, target_states, args) {
+        if (typeof args === "undefined") { args = []; }
         // TODO refactor to event, return async callback
         if(this[method] instanceof Function) {
-            return this[method].call(this, target_states);
+            args = [].concat([
+                target_states
+            ], args);
+            var ret = this[method].apply(this, args);
+            if(ret === false) {
+                return false;
+            }
+            return this.trigger(method, args);
         }
     }// is_exit tells that the order is exit transitions
     ;
@@ -1419,7 +1466,7 @@ var MultiStateMachine = (function () {
         });
     };
     return MultiStateMachine;
-})();
+})(EventEmitter);
 exports.MultiStateMachine = MultiStateMachine;
 
 //@ sourceMappingURL=multistatemachine.js.map

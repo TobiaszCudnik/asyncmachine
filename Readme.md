@@ -38,11 +38,11 @@ class Foo extends MultiStateMachine {
 # Features
 
 - always synchronous state
--- transition can cancel a change of the state
+- - transition can cancel a change of the state
 - states definitions (relations) in OO manner
--- blocks, implies, requires, depends
+- - blocks, implies, requires, depends
 - transitions definitions in OO manner
--- ::A_enter, ::A_B, ::any_A, etc
+- - ::A_enter, ::A_B, ::any_A, etc
 - promises for deferred state changes
 - lots of tests
 
@@ -54,6 +54,8 @@ class Foo extends MultiStateMachine {
 - STATE2_enter
 
 # TODO / Ideas
+- auto trigger an event if state is set
+- state name spaces for wildcards
 - event emitter api, with piping
 - mixin api (traits.js?)
 - use an es5 compatibility lib

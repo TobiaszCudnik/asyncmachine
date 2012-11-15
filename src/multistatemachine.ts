@@ -23,18 +23,35 @@ interface IConfig {
   //autostart: bool;
 }
 
+declare interface IListener {
+  (event_data: any): bool;
+}
+
+class EventEmitter {
+  once(event_name: string, listener: IListener): void {
+    // TODO
+  }
+  on(event_name: string, listener: IListener): void {
+
+  }
+  trigger(event_name: string, event_data: any): bool {
+    return true
+  }
+}
+rsvp.EventTarget.mixin( EventEmitter.prototype );
+
 //export class MultiStateMachine extends EventEmitter2.EventEmitter2 {
-export class MultiStateMachine {
+export class MultiStateMachine extends EventEmitter {
     disabled: bool = false;
     private states: string[];
     private states_active: string[];
-		last_promise: rsvp.Promise;
+    last_promise: rsvp.Promise;
 //    private trasitions: string[];
 
     constructor (state: string, config?: IConfig);
     constructor (state: string[], config?: IConfig);
     constructor (state: any, public config?: IConfig) {
-      // super()
+      super()
       state = Array.isArray(state) ? state : [ state ]
       this.prepareStates()
       this.setState( state )
@@ -55,6 +72,8 @@ export class MultiStateMachine {
     setState(states: string, ...args: any[]);
     setState(states: any, ...args: any[]) {
       var states = Array.isArray( states ) ? states : [ states ]
+      if ( this.selfTransitionExec_( states, args ) === false )
+        return false
       states = this.setupTargetStates_( states )
       var ret = this.transition_( states, args )
       return ret === false ? false : this.allStatesSet( states )
@@ -78,9 +97,9 @@ export class MultiStateMachine {
     setStateLater(states: any, ...rest: any[]) {
       var promise = new Promise
       promise.then( () => {
-        this.setState.apply( this, rest )
+        this.setState.apply( this, [].concat( states, rest ) )
       } )
-      return promise
+      return this.last_promise = promise
     }
 
     // Deactivate certain states.
@@ -103,9 +122,9 @@ export class MultiStateMachine {
     dropStateLater(states: any, ...rest: any[]) {
       var promise = new Promise
       promise.then( () => {
-        this.dropState.apply( this, rest )
+        this.dropState.apply( this, [].concat( states, rest ) )
       } )
-      return promise
+      return this.last_promise = promise
     }
 
     // Activate certain states and keem the current ones.
@@ -114,7 +133,8 @@ export class MultiStateMachine {
     pushState(states: string, ...args: any[]);
     pushState(states: any, ...args: any[]) {
       var states = Array.isArray( states ) ? states : [ states ]
-      // Filter non existing states.
+      if ( this.selfTransitionExec_( states, args ) === false )
+        return false
       states = this.setupTargetStates_( this.states_active.concat( states ) )
       var ret = this.transition_( states, args )
       return ret === false ? false : this.allStatesSet( states )
@@ -125,12 +145,11 @@ export class MultiStateMachine {
     pushStateLater(states: string[], ...rest: any[]);
     pushStateLater(states: string, ...rest: any[]);
     pushStateLater(states: any, ...rest: any[]) {
-      var args = arguments
       var promise = new Promise
       promise.then( () => {
-        this.pushState.apply( this, args )
+        this.pushState.apply( this, [].concat( states, rest ) )
       } )
-      return promise
+      return this.last_promise = promise
     }
 
     private prepareStates() {
@@ -146,6 +165,20 @@ export class MultiStateMachine {
 
     private getState_(name) {
       return this[ 'state_' + name ]
+    }
+
+    // Executes self transitions (eg ::A_A) based on active states.
+    private selfTransitionExec_(states: string[], args: any[]) {
+      var ret = states.some( (state) => {
+        var ret, name = state + '_' + state
+        var method: Function = this[ name ]
+        if ( method && ~this.states_active.indexOf( state ) )
+          ret = method()
+        if ( ret === false )
+          return true
+        return this.trigger( name, args ) === false
+      })
+      return ret === true ? false : true
     }
 
     private setupTargetStates_(states: string[], exclude: string[] = []) {
@@ -211,7 +244,7 @@ export class MultiStateMachine {
     }
 
     private transition_(to: string[], args: any[]) {
-	    // TODO handle args
+      // TODO handle args
       if ( ! to.length )
         return true
       // Collect states to drop, based on the target states.
@@ -267,10 +300,16 @@ export class MultiStateMachine {
       return ret === true ? false : true
     }
 
-    private transitionExec_(method: string, target_states: string[]): any {
+    private transitionExec_(method: string, target_states: string[],
+        args: any[] = []): bool {
       // TODO refactor to event, return async callback
-      if ( this[ method ] instanceof Function )
-        return this[ method ].call( this, target_states )
+      if ( this[ method ] instanceof Function ) {
+        args = [].concat( [ target_states ], args )
+        var ret = this[ method ].apply( this, args )
+        if ( ret === false )
+          return false
+        return this.trigger( method, args )
+      }
     }
 
     // is_exit tells that the order is exit transitions
