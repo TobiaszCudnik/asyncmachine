@@ -1,7 +1,5 @@
-/*.iml
 /node_modules
 /test/node_modules
-/.idea
 *~
 .c9revisions
 
