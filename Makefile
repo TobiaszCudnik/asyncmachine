@@ -7,6 +7,7 @@ all:
 build:
 	tsc --declarations -sourcemap -c src/multistatemachine.ts
 	mv src/multistatemachine.js build/lib/
+	rm build/lib/multistatemachine.js
 	#mv src/multistatemachine.d.ts build/lib/
 	rm src/multistatemachine.d.ts build/lib/
 	coffee Makefile.coffee build_fix

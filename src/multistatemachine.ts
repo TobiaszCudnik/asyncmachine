@@ -1,10 +1,11 @@
 ///<reference path="../headers/node.d.ts" />
-///<reference path="../headers/eventemitter2.d.ts" />
+///<reference path="../headers/lucidjs.d.ts" />
 ///<reference path="../headers/rsvp.d.ts" />
 ///<reference path="../headers/es5-shim.d.ts" />
 
 import rsvp = module('rsvp')
 var Promise = rsvp.Promise
+import LucidJS = module('lucidjs')
 
 require('es5-shim')
 
@@ -20,41 +21,50 @@ export interface IState {
 }
 
 interface IConfig {
+  debug: bool;
   //autostart: bool;
 }
 
-declare interface IListener {
-  (event_data: any): bool;
-}
-
-class EventEmitter {
-  once(event_name: string, listener: IListener): void {
-    // TODO
-  }
-  on(event_name: string, listener: IListener): void {
-
-  }
-  trigger(event_name: string, event_data: any): bool {
-    return true
-  }
-}
-rsvp.EventTarget.mixin( EventEmitter.prototype );
-
-//export class MultiStateMachine extends EventEmitter2.EventEmitter2 {
-export class MultiStateMachine extends EventEmitter {
+//export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
+export class MultiStateMachine {
+    private debug_: Function;
     disabled: bool = false;
     private states: string[];
     private states_active: string[];
     last_promise: rsvp.Promise;
-//    private trasitions: string[];
+
+    ////////////////////////////
+
+    // API
+    
+    ////////////////////////////
 
     constructor (state: string, config?: IConfig);
     constructor (state: string[], config?: IConfig);
     constructor (state: any, public config?: IConfig) {
-      super()
+      LucidJS.emitter(this)
+      if ( config && config.debug ) {
+        this.debug()
+      }
       state = Array.isArray(state) ? state : [ state ]
       this.prepareStates()
       this.setState( state )
+    }
+
+    debug( prefix?: string ) {
+      if ( this.debug_ ) {
+          // OFF
+        this.trigger = this.debug_
+        delete this.debug_
+      } else {
+        // ON
+        this.debug_ = this.trigger
+        this.trigger = function(event, ...args) {
+          prefix = prefix || ''
+          console.log(prefix + event )
+          this.debug_.apply( this, [].concat( [event], args ) )
+        }
+      }
     }
 
     // Tells if a state is active now.
@@ -77,18 +87,6 @@ export class MultiStateMachine extends EventEmitter {
       states = this.setupTargetStates_( states )
       var ret = this.transition_( states, args )
       return ret === false ? false : this.allStatesSet( states )
-    }
-
-    private allStatesSet( states ) {
-      return ! states.reduce( (ret, state) => {
-        return ret || ! this.state( state )
-      }, false)
-    }
-
-    private allStatesNotSet( states ) {
-      return ! states.reduce( (ret, state) => {
-        return ret || this.state( state )
-      }, false)
     }
   
     // Curried version of setState.
@@ -150,6 +148,89 @@ export class MultiStateMachine extends EventEmitter {
         this.pushState.apply( this, [].concat( states, rest ) )
       } )
       return this.last_promise = promise
+//    private trasitions: string[];
+    }
+
+    pipeForward(state: MultiStateMachine, machine?: string );
+    pipeForward(state: string, machine?: MultiStateMachine, target_state?: string );
+    pipeForward(state: any, machine?: any, target_state?: any ) {
+      if ( state instanceof MultiStateMachine ) {
+        target_state = machine
+        machine = state
+        state = this.states
+      }
+      [].concat(state).forEach( (state) => {
+        var new_state = target_state || state
+        state = this.namespaceStateName( state )
+        this.on( state + '.enter', () => {
+          return machine.pushState( new_state )
+        })
+        this.on( state + '.exit', () => {
+          return machine.dropState( new_state )
+        })
+      })
+    }
+
+    pipeInvert(state: string, machine: MultiStateMachine, target_state: string ) {
+      state = this.namespaceStateName( state )
+      this.on( state + '.enter', () => {
+        machine.dropState( target_state )
+      })
+      this.on( state + '.exit', () => {
+        machine.pushState( target_state )
+      })
+    }
+
+    pipeOff() {
+
+    }
+
+    // TODO use a regexp lib for IE8's 'g' flag compat?
+    namespaceStateName( state: string ): string {
+      // CamelCase to Camel.Case
+      return state.replace( /([a-zA-Z])([A-Z])/g, '$1.$2' )
+    }
+
+    /*
+    // Events as states feature
+    on(event_name: string, listener: Function) {
+
+    }
+
+    many(event_name: string, times_to_listen: number, listener: Function) {
+      
+    }
+
+    onAny(listener: Function) {
+      
+    }
+    */
+
+    ////////////////////////////
+
+    // PRIVATES
+
+    ////////////////////////////
+
+    private allStatesSet( states ) {
+      return ! states.reduce( (ret, state) => {
+        return ret || ! this.state( state )
+      }, false)
+    }
+
+    private allStatesNotSet( states ) {
+      return ! states.reduce( (ret, state) => {
+        return ret || this.state( state )
+      }, false)
+    }
+
+    private namespaceTransition_( transition: string ) {
+      // CamelCase to Camel.Case
+      return this.namespaceStateName( transition )
+        // A_exit -> A.exit
+        .replace( /_([a-z]+)$/, '.$1' )
+        // A_B -> A._.B
+        .replace( '_', '._.' )
     }
 
     private prepareStates() {
@@ -172,11 +253,13 @@ export class MultiStateMachine extends EventEmitter {
       var ret = states.some( (state) => {
         var ret, name = state + '_' + state
         var method: Function = this[ name ]
-        if ( method && ~this.states_active.indexOf( state ) )
+        if ( method && ~this.states_active.indexOf( state ) ) {
           ret = method()
-        if ( ret === false )
-          return true
-        return this.trigger( name, args ) === false
+          if ( ret === false )
+            return true
+          var event = this.namespaceTransition_( name )
+          return this.trigger( event, args ) === false
+        }
       })
       return ret === true ? false : true
     }
@@ -276,7 +359,11 @@ export class MultiStateMachine extends EventEmitter {
       var method, callbacks = []
       if ( this.transitionExec_( from + '_exit', to ) === false )
         return false
-      var ret = to.some( (state: string) => {
+      // Duplicate event for namespacing.
+      var ret = this.transitionExec_( 'exit.' + this.namespaceStateName( from ), to )
+      if ( ret === false )
+        return false
+      ret = to.some( (state: string) => {
         return this.transitionExec_( from + '_' + state, to ) === false
       })
       if ( ret === true )
@@ -296,20 +383,25 @@ export class MultiStateMachine extends EventEmitter {
         return false
       // TODO trigger the enter transitions (all of them) after all other middle
       // transitions (any_ etc)
-      var ret = this.transitionExec_( to + '_enter', target_states ) === false
-      return ret === true ? false : true
+      if ( ret = this.transitionExec_( to + '_enter', target_states ) === false )
+        return false
+      // Duplicate event for namespacing.
+      var ret = this.trigger(
+        'enter.' + this.namespaceStateName(to), target_states
+      )
+      return ret === false ? false : true
     }
 
     private transitionExec_(method: string, target_states: string[],
         args: any[] = []): bool {
-      // TODO refactor to event, return async callback
+      args = [].concat( [ target_states ], args )
+      var ret
       if ( this[ method ] instanceof Function ) {
-        args = [].concat( [ target_states ], args )
-        var ret = this[ method ].apply( this, args )
+        ret = this[ method ].apply( this, args )
         if ( ret === false )
           return false
-        return this.trigger( method, args )
       }
+      return this.trigger( this.namespaceTransition_( method ), args )
     }
 
     // is_exit tells that the order is exit transitions
