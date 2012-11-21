@@ -12,7 +12,7 @@
 
   Promise = require('rsvp').Promise;
 
-  describe("MultiStateMachine", function() {
+  describe("multistatemachine", function() {
     var FooMachine, assert_order, mock_states;
     FooMachine = (function(_super) {
 
@@ -485,19 +485,24 @@
           return assert_order(order);
         });
         it('should be executed only for explicitly called states');
-        return it('should be cancellable', function() {
+        it('should be cancellable', function() {
           this.machine.A_A = sinon.stub().returns(false);
           this.machine.setState(['A', 'B']);
           expect(this.machine.A_A.calledOnce).to.be.ok;
           return expect(this.machine.any_B.called).not.to.be.ok;
         });
+        return after(function() {
+          return delete this.machine.A_A;
+        });
       });
       return describe('should trigger events', function() {
         beforeEach(function() {
+          this.machine = new FooMachine('A');
+          mock_states(this.machine, ['A', 'B', 'C', 'D']);
           this.machine.setState(['A', 'C']);
-          this.machine.on('A_A', this.A_A = sinon.spy());
-          this.machine.on('B_enter', this.B_enter = sinon.spy());
-          this.machine.on('C_exit', this.C_exit = sinon.spy());
+          this.machine.on('A._.A', this.A_A = sinon.spy());
+          this.machine.on('B.enter', this.B_enter = sinon.spy());
+          this.machine.on('C.exit', this.C_exit = sinon.spy());
           this.machine.on('setState', this.setState = sinon.spy());
           this.machine.on('cancelTransition', this.cancelTransition = sinon.spy());
           this.machine.on('pushState', this.pushState = sinon.spy());
@@ -537,9 +542,95 @@
       });
     });
     return describe('Events', function() {
-      return describe('should pipe', function() {
-        it('transition events');
-        return it('machine events');
+      var EventMachine;
+      EventMachine = (function(_super) {
+
+        __extends(EventMachine, _super);
+
+        function EventMachine() {
+          return EventMachine.__super__.constructor.apply(this, arguments);
+        }
+
+        EventMachine.prototype.state_TestNamespace = {};
+
+        return EventMachine;
+
+      })(FooMachine);
+      beforeEach(function() {
+        return this.machine = new EventMachine('A');
+      });
+      describe('should support states', function() {
+        return it('by triggering the listener at once for active states', function() {
+          var l1;
+          l1 = sinon.stub();
+          this.machine.on('A', l1);
+          return expect(l1.calledOnce).to.be.ok;
+        });
+      });
+      describe('should support namespaces', function() {
+        describe('with wildcards', function() {
+          beforeEach(function() {
+            this.listeners = [];
+            this.listeners.push(sinon.stub());
+            this.listeners.push(sinon.stub());
+            this.listeners.push(sinon.stub());
+            this.machine.on('enter.Test', this.listeners[0]);
+            this.machine.on('enter', this.listeners[1]);
+            this.machine.on('A', this.listeners[2]);
+            return this.machine.setState(['TestNamespace', 'B']);
+          });
+          it('should handle "enter.Test" sub event', function() {
+            return expect(this.listeners[0].callCount).to.eql(1);
+          });
+          it('should handle "enter.*" sub event', function() {
+            return expect(this.listeners[1].calledTwice).to.be.ok;
+          });
+          return it('should handle "A" sub events', function() {
+            return expect(this.listeners[2].callCount).to.eql(4);
+          });
+        });
+        return it('for all transitions', function() {
+          var l1, l2;
+          l1 = sinon.stub();
+          l2 = sinon.stub();
+          this.machine.on('Test.Namespace.enter', l1);
+          this.machine.on('A._.Test.Namespace', l2);
+          this.machine.setState('TestNamespace');
+          expect(l1.calledOnce).to.be.ok;
+          return expect(l2.calledOnce).to.be.ok;
+        });
+      });
+      return describe('piping', function() {
+        it('should forward a specific state', function() {
+          var emitter;
+          emitter = new EventMachine('A');
+          this.machine.pipeForward('B', emitter);
+          this.machine.setState('B');
+          return expect(emitter.state()).to.eql(['B', 'A']);
+        });
+        it('should forward a specific state as a different one', function() {
+          var emitter;
+          emitter = new EventMachine('A');
+          this.machine.pipeForward('B', emitter, 'C');
+          this.machine.setState('B');
+          return expect(emitter.state()).to.eql(['A', 'C']);
+        });
+        it('should invert a specific state as a different one', function() {
+          var emitter;
+          emitter = new EventMachine('A');
+          this.machine.pipeInvert('A', emitter, 'C');
+          this.machine.setState('B');
+          return expect(emitter.state()).to.eql(['A', 'C']);
+        });
+        it('should forward a whole machine', function() {
+          var machine2;
+          machine2 = new EventMachine(['A', 'D']);
+          expect(machine2.state()).to.eql(['A', 'D']);
+          this.machine.pipeForward(machine2);
+          this.machine.setState(['B', 'C']);
+          return expect(machine2.state()).to.eql(['D', 'B', 'C']);
+        });
+        return it('can be turned off');
       });
     });
   });

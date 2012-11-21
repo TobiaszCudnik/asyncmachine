@@ -1,43 +1,50 @@
-var __extends = this.__extends || function (d, b) {
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-}
 ///<reference path="../headers/node.d.ts" />
-///<reference path="../headers/eventemitter2.d.ts" />
+///<reference path="../headers/lucidjs.d.ts" />
 ///<reference path="../headers/rsvp.d.ts" />
 ///<reference path="../headers/es5-shim.d.ts" />
 var rsvp = require('rsvp')
 var Promise = rsvp.Promise;
+var LucidJS = require('lucidjs')
 require('es5-shim');
-var EventEmitter = (function () {
-    function EventEmitter() { }
-    EventEmitter.prototype.once = function (event_name, listener) {
-        // TODO
-            };
-    EventEmitter.prototype.on = function (event_name, listener) {
-    };
-    EventEmitter.prototype.trigger = function (event_name, event_data) {
-        return true;
-    };
-    return EventEmitter;
-})();
-rsvp.EventTarget.mixin(EventEmitter.prototype);
-//export class MultiStateMachine extends EventEmitter2.EventEmitter2 {
-var MultiStateMachine = (function (_super) {
-    __extends(MultiStateMachine, _super);
+//autostart: bool;
+//export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
+var MultiStateMachine = (function () {
     function MultiStateMachine(state, config) {
-        _super.call(this);
         this.config = config;
         this.disabled = false;
+        LucidJS.emitter(this);
+        if(config && config.debug) {
+            this.debug();
+        }
         state = Array.isArray(state) ? state : [
             state
         ];
         this.prepareStates();
         this.setState(state);
     }
-    // Tells if a state is active now.
-        MultiStateMachine.prototype.state = function (name) {
+    MultiStateMachine.prototype.debug = function (prefix) {
+        if(this.debug_) {
+            // OFF
+            this.trigger = this.debug_;
+            delete this.debug_;
+        } else {
+            // ON
+            this.debug_ = this.trigger;
+            this.trigger = function (event) {
+                var args = [];
+                for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                    args[_i] = arguments[_i + 1];
+                }
+                prefix = prefix || '';
+                console.log(prefix + event);
+                this.debug_.apply(this, [].concat([
+                    event
+                ], args));
+            };
+        }
+    }// Tells if a state is active now.
+    ;
+    MultiStateMachine.prototype.state = function (name) {
         if(name) {
             return ~this.states.indexOf(name);
         }
@@ -58,18 +65,6 @@ var MultiStateMachine = (function (_super) {
         states = this.setupTargetStates_(states);
         var ret = this.transition_(states, args);
         return ret === false ? false : this.allStatesSet(states);
-    };
-    MultiStateMachine.prototype.allStatesSet = function (states) {
-        var _this = this;
-        return !states.reduce(function (ret, state) {
-            return ret || !_this.state(state);
-        }, false);
-    };
-    MultiStateMachine.prototype.allStatesNotSet = function (states) {
-        var _this = this;
-        return !states.reduce(function (ret, state) {
-            return ret || _this.state(state);
-        }, false);
     }// Curried version of setState.
     ;
     MultiStateMachine.prototype.setStateLater = function (states) {
@@ -143,6 +138,76 @@ var MultiStateMachine = (function (_super) {
             _this.pushState.apply(_this, [].concat(states, rest));
         });
         return this.last_promise = promise;
+        //    private trasitions: string[];
+            };
+    MultiStateMachine.prototype.pipeForward = function (state, machine, target_state) {
+        var _this = this;
+        if(state instanceof MultiStateMachine) {
+            target_state = machine;
+            machine = state;
+            state = this.states;
+        }
+        [].concat(state).forEach(function (state) {
+            var new_state = target_state || state;
+            state = _this.namespaceStateName(state);
+            _this.on(state + '.enter', function () {
+                return machine.pushState(new_state);
+            });
+            _this.on(state + '.exit', function () {
+                return machine.dropState(new_state);
+            });
+        });
+    };
+    MultiStateMachine.prototype.pipeInvert = function (state, machine, target_state) {
+        state = this.namespaceStateName(state);
+        this.on(state + '.enter', function () {
+            machine.dropState(target_state);
+        });
+        this.on(state + '.exit', function () {
+            machine.pushState(target_state);
+        });
+    };
+    MultiStateMachine.prototype.pipeOff = function () {
+    }// TODO use a regexp lib for IE8's 'g' flag compat?
+    ;
+    MultiStateMachine.prototype.namespaceStateName = function (state) {
+        // CamelCase to Camel.Case
+        return state.replace(/([a-zA-Z])([A-Z])/g, '$1.$2');
+    }/*
+    // Events as states feature
+    on(event_name: string, listener: Function) {
+    
+    }
+    
+    many(event_name: string, times_to_listen: number, listener: Function) {
+    
+    }
+    
+    onAny(listener: Function) {
+    
+    }
+    */
+    ////////////////////////////
+    // PRIVATES
+    ////////////////////////////
+    ;
+    MultiStateMachine.prototype.allStatesSet = function (states) {
+        var _this = this;
+        return !states.reduce(function (ret, state) {
+            return ret || !_this.state(state);
+        }, false);
+    };
+    MultiStateMachine.prototype.allStatesNotSet = function (states) {
+        var _this = this;
+        return !states.reduce(function (ret, state) {
+            return ret || _this.state(state);
+        }, false);
+    };
+    MultiStateMachine.prototype.namespaceTransition_ = function (transition) {
+        // CamelCase to Camel.Case
+        return this.namespaceStateName(transition).replace(// A_exit -> A.exit
+        /_([a-z]+)$/, '.$1').replace(// A_B -> A._.B
+        '_', '._.');
     };
     MultiStateMachine.prototype.prepareStates = function () {
         var states = [];
@@ -168,11 +233,12 @@ var MultiStateMachine = (function (_super) {
             var method = _this[name];
             if(method && ~_this.states_active.indexOf(state)) {
                 ret = method();
+                if(ret === false) {
+                    return true;
+                }
+                var event = _this.namespaceTransition_(name);
+                return _this.trigger(event, args) === false;
             }
-            if(ret === false) {
-                return true;
-            }
-            return _this.trigger(name, args) === false;
         });
         return ret === true ? false : true;
     };
@@ -282,7 +348,12 @@ var MultiStateMachine = (function (_super) {
         if(this.transitionExec_(from + '_exit', to) === false) {
             return false;
         }
-        var ret = to.some(function (state) {
+        // Duplicate event for namespacing.
+        var ret = this.transitionExec_('exit.' + this.namespaceStateName(from), to);
+        if(ret === false) {
+            return false;
+        }
+        ret = to.some(function (state) {
             return _this.transitionExec_(from + '_' + state, to) === false;
         });
         if(ret === true) {
@@ -305,22 +376,26 @@ var MultiStateMachine = (function (_super) {
         }
         // TODO trigger the enter transitions (all of them) after all other middle
         // transitions (any_ etc)
-        var ret = this.transitionExec_(to + '_enter', target_states) === false;
-        return ret === true ? false : true;
+        if(ret = this.transitionExec_(to + '_enter', target_states) === false) {
+            return false;
+        }
+        // Duplicate event for namespacing.
+        var ret = this.trigger('enter.' + this.namespaceStateName(to), target_states);
+        return ret === false ? false : true;
     };
     MultiStateMachine.prototype.transitionExec_ = function (method, target_states, args) {
         if (typeof args === "undefined") { args = []; }
-        // TODO refactor to event, return async callback
+        args = [].concat([
+            target_states
+        ], args);
+        var ret;
         if(this[method] instanceof Function) {
-            args = [].concat([
-                target_states
-            ], args);
-            var ret = this[method].apply(this, args);
+            ret = this[method].apply(this, args);
             if(ret === false) {
                 return false;
             }
-            return this.trigger(method, args);
         }
+        return this.trigger(this.namespaceTransition_(method), args);
     }// is_exit tells that the order is exit transitions
     ;
     MultiStateMachine.prototype.orderStates_ = function (states) {
@@ -338,9 +413,29 @@ var MultiStateMachine = (function (_super) {
             }
             return ret;
         });
+    }// Event Emitter interface
+    // TODO cover as mixin in the d.ts file
+    ;
+    MultiStateMachine.prototype.on = function (event, VarArgsBoolFn) {
+    };
+    MultiStateMachine.prototype.once = function (event, VarArgsBoolFn) {
+    };
+    MultiStateMachine.prototype.trigger = function (event) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
+        return true;
+    };
+    MultiStateMachine.prototype.set = function (event) {
+        var args = [];
+        for (var _i = 0; _i < (arguments.length - 1); _i++) {
+            args[_i] = arguments[_i + 1];
+        }
+        return true;
     };
     return MultiStateMachine;
-})(EventEmitter);
+})();
 exports.MultiStateMachine = MultiStateMachine;
 
 //@ sourceMappingURL=multistatemachine.js.map
