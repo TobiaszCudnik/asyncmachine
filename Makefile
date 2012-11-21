@@ -34,10 +34,12 @@ server:
 	
 setup:
 	npm install
-	rm test/node_modules/multistatemachine
+	rm -f test/node_modules/multistatemachine
+	mkdir -p test/node_modules
 	ln -s . test/node_modules/multistatemachine
 	mv test/package.json test/package-one.json
 	mv test/package-npm.json test/package.json
+
 	cd test && npm install
 	mv test/package.json test/package-npm.json
 	mv test/package-one.json test/package.json
