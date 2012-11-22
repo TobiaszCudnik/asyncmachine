@@ -43,6 +43,7 @@ class Foo extends MultiStateMachine {
 - - blocks, implies, requires, depends
 - transitions definitions in OO manner
 - - ::A_enter, ::A_B, ::any_A, etc
+- Event Emitter with namespaces
 - promises for deferred state changes
 - lots of tests
 
@@ -55,13 +56,12 @@ class Foo extends MultiStateMachine {
 
 # TODO / Ideas
 - auto trigger an event if state is set
-- state name spaces for wildcards
+- try to auto drop the implied state when dropping a state
 - event emitter api, with piping
 - mixin api (traits.js?)
-- use an es5 compatibility lib
 - method for generating all possible transitions
 - customizable naming convention
-  STATE_STATE to StateState or state_)
+- - STATE_STATE to StateState or state_
 
 ## License 
 

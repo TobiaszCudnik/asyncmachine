@@ -36,6 +36,7 @@ describe "multistatemachine", ->
   beforeEach ->
     @machine = new FooMachine 'A'
 
+  it 'should allow to check if single state is active'
   it "should allow for a delayed start"
   it "should accept the starting state", ->
     expect( @machine.state() ).to.eql [ "A" ]
@@ -565,7 +566,9 @@ describe "multistatemachine", ->
         expect( emitter.state() ).to.eql [ 'A', 'C' ]
 
       it 'should forward a whole machine', ->
+        #@machine.debug()
         machine2 = new EventMachine [ 'A', 'D' ]
+        #machine2.debug()
         expect( machine2.state() ).to.eql [ 'A', 'D' ]
         @machine.pipeForward machine2
         @machine.setState [ 'B', 'C' ]
