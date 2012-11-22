@@ -11,7 +11,9 @@
   },
   "devDependencies": {
     "one": "*",
-    "typescript": "*"
+    "typescript": "*",
+	  "shelljs": "*",
+	  "http-server": "*"
   },
   "main": "build/lib/multistatemachine.js"
 }

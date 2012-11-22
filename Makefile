@@ -10,8 +10,8 @@ build:
 	tsc --declarations -sourcemap -c src/multistatemachine.ts
 	mv src/multistatemachine.js build/lib/
 	# TODO use coffee makefile fix
-	#mv src/multistatemachine.d.ts build/lib/
-	rm src/multistatemachine.d.ts
+	mv src/multistatemachine.d.ts build/lib/
+	#rm src/multistatemachine.d.ts
 	coffee Makefile.coffee build_fix
 	mv src/multistatemachine.js.map build/lib/
 	$(ONEJS) build package.json build/pkg/build.js
@@ -33,7 +33,7 @@ browser-test:
 	# TODO open URL
 
 server:
-	http-server
+	node_modules/http-server/bin/http-server
 	
 setup:
 	npm install

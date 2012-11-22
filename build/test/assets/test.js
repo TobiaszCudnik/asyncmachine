@@ -294,11 +294,15 @@
           return delete this.ret;
         });
       });
-      return describe('and blocking one is added', function() {
+      describe('and blocking one is added', function() {
         return it('should unset the blocked one', function() {
           this.machine.pushState(['C']);
           return expect(this.machine.state()).to.eql(['C']);
         });
+      });
+      return describe('and cross bloking one is added', function() {
+        it('should unset the old one');
+        return it('should work in both ways');
       });
     });
     describe('when state is implied', function() {
