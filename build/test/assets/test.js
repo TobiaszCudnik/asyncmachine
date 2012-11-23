@@ -76,6 +76,7 @@
     beforeEach(function() {
       return this.machine = new FooMachine('A');
     });
+    it('should allow to check if single state is active');
     it("should allow for a delayed start");
     it("should accept the starting state", function() {
       return expect(this.machine.state()).to.eql(["A"]);

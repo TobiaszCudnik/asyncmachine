@@ -1565,7 +1565,7 @@ var MultiStateMachine = (function () {
                 }
                 prefix = prefix || '';
                 console.log(prefix + event);
-                this.debug_.apply(this, [].concat([
+                return this.debug_.apply(this, [].concat([
                     event
                 ], args));
             };
@@ -1574,7 +1574,7 @@ var MultiStateMachine = (function () {
     ;
     MultiStateMachine.prototype.state = function (name) {
         if(name) {
-            return ~this.states.indexOf(name);
+            return !!~this.states_active.indexOf(name);
         }
         return this.states_active;
     }// Activate certain states and deactivate the current ones.
@@ -1616,13 +1616,13 @@ var MultiStateMachine = (function () {
         var states_to_drop = Array.isArray(states) ? states : [
             states
         ];
-        // Remove duplicate states.
+        // Invert states to target ones.
         states = this.states_active.filter(function (state) {
             return !~states_to_drop.indexOf(state);
         });
         states = this.setupTargetStates_(states);
         this.transition_(states, args);
-        return this.allStatesNotSet(states);
+        return this.allStatesNotSet(states_to_drop);
     }// Deactivate certain states.
     ;
     MultiStateMachine.prototype.dropStateLater = function (states) {
@@ -1965,6 +1965,12 @@ var MultiStateMachine = (function () {
     return MultiStateMachine;
 })();
 exports.MultiStateMachine = MultiStateMachine;
+// Support LucidJS mixin
+// TODO make it sucks less
+delete MultiStateMachine.prototype.on;
+delete MultiStateMachine.prototype.once;
+delete MultiStateMachine.prototype.trigger;
+delete MultiStateMachine.prototype.set;
 
 //@ sourceMappingURL=multistatemachine.js.map
     }

@@ -233,7 +233,7 @@ export class MultiStateMachine {
       .replace( '_', '._.' )
   }
 
-  private prepareStates() {
+  public prepareStates() {
     var states = []
     for (var name in this ) {
       var match = name.match(/^state_(.+)/)

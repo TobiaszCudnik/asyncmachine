@@ -1151,9 +1151,7 @@ multistatemachineTest.module(2, function(/* parent */){
     'id': 'index',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process,require, undefined){
-      module.exports = (process && process.env && process.env.CHAI_COV)
-  ? require('./lib-cov/chai')
-  : require('./lib/chai');
+      module.exports = require('./lib/chai');
     }
   };
 });
@@ -5816,7 +5814,7 @@ var MultiStateMachine = (function () {
                 }
                 prefix = prefix || '';
                 console.log(prefix + event);
-                this.debug_.apply(this, [].concat([
+                return this.debug_.apply(this, [].concat([
                     event
                 ], args));
             };
@@ -5825,7 +5823,7 @@ var MultiStateMachine = (function () {
     ;
     MultiStateMachine.prototype.state = function (name) {
         if(name) {
-            return ~this.states.indexOf(name);
+            return !!~this.states_active.indexOf(name);
         }
         return this.states_active;
     }// Activate certain states and deactivate the current ones.
@@ -5867,13 +5865,13 @@ var MultiStateMachine = (function () {
         var states_to_drop = Array.isArray(states) ? states : [
             states
         ];
-        // Remove duplicate states.
+        // Invert states to target ones.
         states = this.states_active.filter(function (state) {
             return !~states_to_drop.indexOf(state);
         });
         states = this.setupTargetStates_(states);
         this.transition_(states, args);
-        return this.allStatesNotSet(states);
+        return this.allStatesNotSet(states_to_drop);
     }// Deactivate certain states.
     ;
     MultiStateMachine.prototype.dropStateLater = function (states) {
@@ -6216,6 +6214,12 @@ var MultiStateMachine = (function () {
     return MultiStateMachine;
 })();
 exports.MultiStateMachine = MultiStateMachine;
+// Support LucidJS mixin
+// TODO make it sucks less
+delete MultiStateMachine.prototype.on;
+delete MultiStateMachine.prototype.once;
+delete MultiStateMachine.prototype.trigger;
+delete MultiStateMachine.prototype.set;
 
 //@ sourceMappingURL=multistatemachine.js.map
     }
@@ -6301,6 +6305,7 @@ multistatemachineTest.module(1, function(/* parent */){
     beforeEach(function() {
       return this.machine = new FooMachine('A');
     });
+    it('should allow to check if single state is active');
     it("should allow for a delayed start");
     it("should accept the starting state", function() {
       return expect(this.machine.state()).to.eql(["A"]);

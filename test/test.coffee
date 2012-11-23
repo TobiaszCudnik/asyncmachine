@@ -291,6 +291,14 @@ describe "multistatemachine", ->
       it 'should unset the blocked one', ->
         @machine.pushState [ 'C' ]
         expect( @machine.state() ).to.eql [ 'C' ]
+	      
+    describe 'and cross bloking one is added', ->
+	    
+	    it 'should unset the old one'
+	      # TODO !!!
+	    
+	    it 'should work in both ways'
+	      # TODO !!!
         
   describe 'when state is implied', ->
     beforeEach ->

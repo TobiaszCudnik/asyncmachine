@@ -9,12 +9,14 @@ build:
 	rm -f build/lib/multistatemachine.js
 	tsc --declarations -sourcemap -c src/multistatemachine.ts
 	mv src/multistatemachine.js build/lib/
+	# TODO use coffee makefile fix
 	#mv src/multistatemachine.d.ts build/lib/
 	rm src/multistatemachine.d.ts
-	#coffee Makefile.coffee build_fix
+	coffee Makefile.coffee build_fix
 	mv src/multistatemachine.js.map build/lib/
 	$(ONEJS) build package.json build/pkg/build.js
 	cp headers/rsvp.d.ts build/lib/
+	cp headers/lucidjs.d.ts build/lib/
 
 build-test:
 	make build
