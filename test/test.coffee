@@ -45,9 +45,9 @@ describe "multistatemachine", ->
     @machine.setState "B"
     expect( @machine.state() ).to.eql [ "B" ]
 
-  it "should allow to add a state", ->
-    @machine.pushState "B"
-    expect( @machine.state() ).to.eql [ "A", "B" ]
+  it "should allow to add a new state", ->
+    @machine.addState "B"
+    expect( @machine.state() ).to.eql [ "B", "A" ]
 
   it "should allow to drop a state", ->
     @machine.setState [ "B", "C" ]
@@ -55,10 +55,10 @@ describe "multistatemachine", ->
     expect( @machine.state() ).to.eql [ "B" ]
 
 
-  # it "should throw when setting unknown state", ->
-  #   func = ->
-  #     @machine.setState "unknown"
-  #   expect( func ).to.throw()
+  it "should throw when setting unknown state", ->
+    func = =>
+      @machine.setState "unknown"
+    expect( func ).to.throw()
 
   it 'should allow to define a new state'
 
@@ -281,7 +281,7 @@ describe "multistatemachine", ->
         expect( @machine.state() ).to.eql [ 'C' ]
                 
       it 'should return false', ->
-        expect( @machine.state() ).to.eql [ 'C' ]
+        expect( @ret ).to.eql no
                 
       afterEach ->
         delete @ret
@@ -289,16 +289,36 @@ describe "multistatemachine", ->
     describe 'and blocking one is added', ->
 
       it 'should unset the blocked one', ->
-        @machine.pushState [ 'C' ]
+        @machine.addState [ 'C' ]
         expect( @machine.state() ).to.eql [ 'C' ]
-	      
-    describe 'and cross bloking one is added', ->
-	    
-	    it 'should unset the old one'
-	      # TODO !!!
-	    
-	    it 'should work in both ways'
-	      # TODO !!!
+        
+    describe 'and cross blocking one is added', ->
+      beforeEach ->
+        @machine.state_D = blocks: [ 'C' ]
+
+      describe 'using setState', ->
+      
+        it 'should unset the old one', ->
+          @machine.setState 'C'
+          expect( @machine.state() ).to.eql [ 'C' ]
+        
+        it 'should work in both ways', ->
+          @machine.setState 'C'
+          expect( @machine.state() ).to.eql [ 'C' ]
+          @machine.setState 'D'
+          expect( @machine.state() ).to.eql [ 'D' ]
+
+      describe 'using addState', ->
+      
+        it 'should unset the old one', ->
+          @machine.addState 'C'
+          expect( @machine.state() ).to.eql [ 'C' ]
+        
+        it 'should work in both ways', ->
+          @machine.addState 'C'
+          expect( @machine.state() ).to.eql [ 'C' ]
+          @machine.addState 'D'
+          expect( @machine.state() ).to.eql [ 'D' ]
         
   describe 'when state is implied', ->
     beforeEach ->
@@ -351,7 +371,7 @@ describe "multistatemachine", ->
 
       # TODO make this and the previous a main contexts
       describe 'when pushing an additional state', ->
-        beforeEach -> @ret = @machine.pushState 'D'
+        beforeEach -> @ret = @machine.addState 'D'
 
         it 'should return false', ->
           expect( @ret ).not.to.be.ok
@@ -481,13 +501,13 @@ describe "multistatemachine", ->
         @machine.on 'C.exit', @C_exit = sinon.spy()
         @machine.on 'setState', @setState = sinon.spy()
         @machine.on 'cancelTransition', @cancelTransition = sinon.spy()
-        @machine.on 'pushState', @pushState = sinon.spy()
+        @machine.on 'addState', @addState = sinon.spy()
         @machine.setState [ 'A', 'B' ]
       afterEach ->
         delete @C_exit
         delete @A_A
         delete @B_enter
-        delete @pushState
+        delete @addState
         delete @setState
         delete @cancelTransition
 
@@ -504,7 +524,7 @@ describe "multistatemachine", ->
       it 'for setting a new state', ->
         expect( @setState.called ).to.be.ok
       it 'for pushing a new state', ->
-        expect( @pushState.called ).to.be.ok
+        expect( @addState.called ).to.be.ok
       it 'for cancelling the transition', ->
         expect( @cancelTransition.called ).to.be.ok
 
@@ -565,13 +585,13 @@ describe "multistatemachine", ->
         emitter = new EventMachine 'A'
         @machine.pipeForward 'B', emitter, 'C'
         @machine.setState 'B'
-        expect( emitter.state() ).to.eql [ 'A', 'C' ] 
+        expect( emitter.state() ).to.eql [ 'C', 'A' ]
 
       it 'should invert a specific state as a different one', ->
         emitter = new EventMachine 'A'
         @machine.pipeInvert 'A', emitter, 'C'
         @machine.setState 'B'
-        expect( emitter.state() ).to.eql [ 'A', 'C' ]
+        expect( emitter.state() ).to.eql [ 'C', 'A' ]
 
       it 'should forward a whole machine', ->
         #@machine.debug()
@@ -580,7 +600,7 @@ describe "multistatemachine", ->
         expect( machine2.state() ).to.eql [ 'A', 'D' ]
         @machine.pipeForward machine2
         @machine.setState [ 'B', 'C' ]
-        expect( machine2.state() ).to.eql [ 'D', 'B', 'C' ]
+        expect( machine2.state() ).to.eql [ 'C', 'B', 'D' ]
 
       it 'can be turned off'
         # machine2 = new EventMachine [ 'A', 'D' ]
@@ -588,86 +608,3 @@ describe "multistatemachine", ->
         # @machine.pipeForward machine2
         # @machine.setState [ 'B', 'C' ]
         # expect( machine2.state() ).to.eql [ 'D', 'B', 'C' ]
-
-
-
-    # it 'should allow to push another state during transition'
-        
-  # describe 'when any transition is async', ->
-  #   it 'should accept optional continuation callback in any transition'
-
-  #   it 'should temporarily remain in the mixed source-target state', (done) ->
-  #     @machine = new FooMachine 'A'
-  #     @machine.B_enter = (next) -> 
-  #       finish = -> do next; do done
-  #       setTimeout finish, 0
-  #     @machine.setState 'B'
-  #     state = @machine.state()
-  #     expect( state ).to.be 'AB'
-
-    # it 'should trigger mixed source-target states\' methods', (done) ->
-    #   @machine = new FooMachine 'A'
-    #   @machine.B_enter = (next) -> 
-    #     finish = ->
-    #       assert_order order
-    #       do next
-    #       do done
-    #     setTimeout next, 0
-    #   mock_states @machine, [ 'A', 'B', 'AB' ]
-    #   order = [
-    #     @machine.A_exit
-    #     @machine.A_AB
-    #     @machine.A_any
-    #     @machine.any_AB
-    #     @machine.AB_enter
-    #     @machine.any_B
-    #     # B_enter is async
-    #     @machine.B_enter
-    #   ]
-    #   @machine.setState 'B'
-
-      # describe 'when changing from many to many states', ->
-      #   it 'should ....', ->
-      #     @machine = new FooMachine [ 'A', 'B' ]
-      #     mock_states @machine, [
-      #       'A', 'B', 'C', 'D'
-      #       'AC', 'AD', 'BC', 'BD'
-      #     ]
-      #     order = [
-      #       @machine.A_exit
-      #       @machine.A_AB
-      #       @machine.A_AD
-      #       @machine.A_any
-      #       @machine.B_exit
-      #       @machine.B_AB
-      #       @machine.B_AD
-      #       @machine.B_any
-      #       @machine.any_AB
-      #       @machine.A_B_enter
-      #       @machine.any_AD
-      #       @machine.A_D_enter
-      #       @machine.any_B
-      #       # B_enter is async
-      #       @machine.B_enter
-      #     ]
-      #     @machine.setState [ 'B', 'C' ]
-
-
-  # describe 'when a mixed source-target state is async', ->
-  #   it 'should mix the mixed state', ->
-  #     mock_states @machine, [ 'A', 'B', 'C', 'D', 'AB' ]
-  #     @machine.A_exit (next) ->
-  #       setTimeout next, 0
-  #     @machine.AB_exit (next) ->
-  #       setTimeout next, 0
-  #     @machine.C_enter (next) ->
-  #       setTimeout next, 0
-  #     @machine.D_enter (next) ->
-  #       setTimeout next, 0
-  #     # state is A
-  #     @machine.setState 'B'
-  #     # state is A_B
-  #     @machine.setState 'C'
-  #     # state is A_B_C
-  #     @machine.setState 'D'
-  #     # state is A_B_C_D

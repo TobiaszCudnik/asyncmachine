@@ -21,14 +21,14 @@ module multistatemachine {
 	  requires?: string[];
 	}
 
-	interface IConfig {
+	export interface IConfig {
 	  debug: bool;
 	  //autostart: bool;
 	}
 
 	//export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
 	export class MultiStateMachine {
-	  private debug_: Function;
+	  private debug_states_: Function;
 	  disabled: bool = false;
 	  private states: string[];
 	  private states_active: string[];
@@ -45,27 +45,25 @@ module multistatemachine {
 	  constructor (state: any, public config?: IConfig) {
 	    LucidJS.emitter(this)
 	    if ( config && config.debug ) {
-	      this.debug()
+	      this.debugStates()
 	    }
 	    state = Array.isArray(state) ? state : [ state ]
-	    this.prepareStates()
-	    this.setState( state )
+	    this.statesInit( state )
 	  }
 
-	  debug( prefix?: string ) {
-	    if ( this.debug_ ) {
-				// OFF
-	      this.trigger = <any>this.debug_
-	      delete this.debug_
-	    } else {
-	      // ON
-	      this.debug_ = this.trigger
-	      this.trigger = function(event, ...args) {
-	        prefix = prefix || ''
-	        console.log(prefix + event )
-	        return this.debug_.apply( this, [].concat( [event], args ) )
-	      }
+	  // Prepare class'es states. Required to be called manually for inheriting classes.
+	  statesInit( state: string );
+	  statesInit( state: string[] );
+	  statesInit( state: any ) {
+	    var states = []
+	    for (var name in this ) {
+	      var match = name.match(/^state_(.+)/)
+	      if ( match )
+	        states.push( match[1] )
 	    }
+	    this.states = states
+	    this.states_active = []
+	    this.setState( state )
 	  }
 
 	  // Tells if a state is active now.
@@ -82,12 +80,16 @@ module multistatemachine {
 	  setState(states: string[], ...args: any[]);
 	  setState(states: string, ...args: any[]);
 	  setState(states: any, ...args: any[]) {
-	    var states = Array.isArray( states ) ? states : [ states ]
-	    if ( this.selfTransitionExec_( states, args ) === false )
+	    var states_to_set = Array.isArray( states ) ? states : [ states ]
+	    if ( this.selfTransitionExec_( states_to_set, args ) === false )
 	      return false
-	    states = this.setupTargetStates_( states )
+	    states = this.setupTargetStates_( states_to_set )
+	    //console.log('setState1', states_to_set)
+      //console.log('current', this.states_active)
+	    //console.log('setState2', states)
 	    var ret = this.transition_( states, args )
-	    return ret === false ? false : this.allStatesSet( states )
+	    return ret === false 
+	    	? false : this.allStatesSet( states_to_set )
 	  }
 
 	  // Curried version of setState.
@@ -126,27 +128,32 @@ module multistatemachine {
 	    return this.last_promise = promise
 	  }
 
-	  // Activate certain states and keem the current ones.
+	  // Activate certain states and keep the current ones.
 	  // TODO Maybe avoid double concat of states_active
-	  pushState(states: string[], ...args: any[]);
-	  pushState(states: string, ...args: any[]);
-	  pushState(states: any, ...args: any[]) {
-	    var states = Array.isArray( states ) ? states : [ states ]
-	    if ( this.selfTransitionExec_( states, args ) === false )
+	  addState(states: string[], ...args: any[]);
+	  addState(states: string, ...args: any[]);
+	  addState(states: any, ...args: any[]) {
+	    var states_to_add = Array.isArray( states ) ? states : [ states ]
+	    if ( this.selfTransitionExec_( states_to_add, args ) === false )
 	      return false
-	    states = this.setupTargetStates_( this.states_active.concat( states ) )
+      states = states_to_add.concat( this.states_active )
+      //console.log('states1', states)
+      //console.log('current', this.states_active)
+	    states = this.setupTargetStates_( states )
+      //console.log('states2', states)
 	    var ret = this.transition_( states, args )
-	    return ret === false ? false : this.allStatesSet( states )
+	    return ret === false
+	    	? false : this.allStatesSet( states_to_add )
 	  }
 
-	  // Curried version of pushState
+	  // Curried version of addState
 
-	  pushStateLater(states: string[], ...rest: any[]);
-	  pushStateLater(states: string, ...rest: any[]);
-	  pushStateLater(states: any, ...rest: any[]) {
+	  addStateLater(states: string[], ...rest: any[]);
+	  addStateLater(states: string, ...rest: any[]);
+	  addStateLater(states: any, ...rest: any[]) {
 	    var promise = new Promise
 	    promise.then( () => {
-	      this.pushState.apply( this, [].concat( states, rest ) )
+	      this.addState.apply( this, [].concat( states, rest ) )
 	    } )
 	    return this.last_promise = promise
 	//    private trasitions: string[];
@@ -164,7 +171,7 @@ module multistatemachine {
 	      var new_state = target_state || state
 	      state = this.namespaceStateName( state )
 	      this.on( state + '.enter', () => {
-	        return machine.pushState( new_state )
+	        return machine.addState( new_state )
 	      })
 	      this.on( state + '.exit', () => {
 	        return machine.dropState( new_state )
@@ -178,7 +185,7 @@ module multistatemachine {
 	      machine.dropState( target_state )
 	    })
 	    this.on( state + '.exit', () => {
-	      machine.pushState( target_state )
+	      machine.addState( target_state )
 	    })
 	  }
 
@@ -192,20 +199,36 @@ module multistatemachine {
 	    return state.replace( /([a-zA-Z])([A-Z])/g, '$1.$2' )
 	  }
 
-	  /*
-	  // Events as states feature
-	  on(event_name: string, listener: Function) {
-
+	  defineState(name: string, config: IState) {
+	  	throw new Error('not implemented yet')
 	  }
 
-	  many(event_name: string, times_to_listen: number, listener: Function) {
-
+	  debugStates( prefix?: string ) {
+	    if ( this.debug_states_ ) {
+				// OFF
+	      this.trigger = <any>this.debug_states_
+	      delete this.debug_states_
+	    } else {
+	      // ON
+	      this.debug_states_ = this.trigger
+	      this.trigger = function(event, ...args) {
+	        prefix = prefix || ''
+	        console.log(prefix + event )
+	        return this.debug_states_.apply( this, [].concat( [event], args ) )
+	      }
+	    }
 	  }
 
-	  onAny(listener: Function) {
-
+	  initMSM(state: string, config?: IConfig) {
+	  	MultiStateMachine.apply( this, arguments )
 	  }
-	  */
+
+	  // Mixin multistatemachine into a prototype of another constructor.
+	  static mixin(prototype: Object) {
+	  	Object.keys( this.prototype ).forEach( (key: string) => {
+	  		prototype[ key ] = this.prototype[ key ]
+  		})
+	  }
 
 	  ////////////////////////////
 
@@ -232,17 +255,6 @@ module multistatemachine {
 	      .replace( /_([a-z]+)$/, '.$1' )
 	      // A_B -> A._.B
 	      .replace( '_', '._.' )
-	  }
-
-	  public prepareStates() {
-	    var states = []
-	    for (var name in this ) {
-	      var match = name.match(/^state_(.+)/)
-	      if ( match )
-	        states.push( match[1] )
-	    }
-	    this.states = states
-	    this.states_active = []
 	  }
 
 	  private getState_(name) {
@@ -273,10 +285,17 @@ module multistatemachine {
 	    states = this.parseImplies_(states)
 	    states = this.removeDuplicateStates_( states )
 	    // Check if state is blocked or excluded
-	    states = states.filter( (name: string) => {
-	      var blocked = this.isStateBlocked_( states, name )
-	      return !blocked && !~exclude.indexOf( name )
-	    })
+	    var already_blocked = []
+	    states = states.reverse().filter( (name: string) => {
+	      var blocked_by = this.isStateBlocked_( states, name )
+	      // Remove states already blocked.
+      	blocked_by = blocked_by.filter( ( blocker_name ) => {
+      		return !~already_blocked.indexOf( blocker_name )
+    		})
+      	if (blocked_by.length)
+	      	already_blocked.push( name )
+	      return !blocked_by.length && !~exclude.indexOf( name )
+	    }).reverse()
 	    return this.parseRequires_(states)
 	  }
 
@@ -317,14 +336,14 @@ module multistatemachine {
 	    return states2
 	  }
 
-	  private isStateBlocked_( states, name ) {
-	    var blocked = false
+	  private isStateBlocked_( states, name ): string[] {
+	    var blocked_by = []
 	    states.forEach( (name2) => {
 	      var state = this.getState_( name2 )
 	      if ( state.blocks && ~state.blocks.indexOf(name) )
-	        blocked = true
+	        blocked_by.push( name2 )
 	    })
-	    return blocked
+	    return blocked_by
 	  }
 
 	  private transition_(to: string[], args: any[]) {
