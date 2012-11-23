@@ -85,14 +85,22 @@
       this.machine.setState("B");
       return expect(this.machine.state()).to.eql(["B"]);
     });
-    it("should allow to add a state", function() {
-      this.machine.pushState("B");
-      return expect(this.machine.state()).to.eql(["A", "B"]);
+    it("should allow to add a new state", function() {
+      this.machine.addState("B");
+      return expect(this.machine.state()).to.eql(["B", "A"]);
     });
     it("should allow to drop a state", function() {
       this.machine.setState(["B", "C"]);
       this.machine.dropState('C');
       return expect(this.machine.state()).to.eql(["B"]);
+    });
+    it("should throw when setting unknown state", function() {
+      var func,
+        _this = this;
+      func = function() {
+        return _this.machine.setState("unknown");
+      };
+      return expect(func).to["throw"]();
     });
     it('should allow to define a new state');
     it("should skip non existing states", function() {
@@ -288,7 +296,7 @@
           return expect(this.machine.state()).to.eql(['C']);
         });
         it('should return false', function() {
-          return expect(this.machine.state()).to.eql(['C']);
+          return expect(this.ret).to.eql(false);
         });
         return afterEach(function() {
           return delete this.ret;
@@ -296,13 +304,40 @@
       });
       describe('and blocking one is added', function() {
         return it('should unset the blocked one', function() {
-          this.machine.pushState(['C']);
+          this.machine.addState(['C']);
           return expect(this.machine.state()).to.eql(['C']);
         });
       });
-      return describe('and cross bloking one is added', function() {
-        it('should unset the old one');
-        return it('should work in both ways');
+      return describe('and cross blocking one is added', function() {
+        beforeEach(function() {
+          return this.machine.state_D = {
+            blocks: ['C']
+          };
+        });
+        describe('using setState', function() {
+          it('should unset the old one', function() {
+            this.machine.setState('C');
+            return expect(this.machine.state()).to.eql(['C']);
+          });
+          return it('should work in both ways', function() {
+            this.machine.setState('C');
+            expect(this.machine.state()).to.eql(['C']);
+            this.machine.setState('D');
+            return expect(this.machine.state()).to.eql(['D']);
+          });
+        });
+        return describe('using addState', function() {
+          it('should unset the old one', function() {
+            this.machine.addState('C');
+            return expect(this.machine.state()).to.eql(['C']);
+          });
+          return it('should work in both ways', function() {
+            this.machine.addState('C');
+            expect(this.machine.state()).to.eql(['C']);
+            this.machine.addState('D');
+            return expect(this.machine.state()).to.eql(['D']);
+          });
+        });
       });
     });
     describe('when state is implied', function() {
@@ -366,7 +401,7 @@
         });
         return describe('when pushing an additional state', function() {
           beforeEach(function() {
-            return this.ret = this.machine.pushState('D');
+            return this.ret = this.machine.addState('D');
           });
           it('should return false', function() {
             return expect(this.ret).not.to.be.ok;
@@ -510,14 +545,14 @@
           this.machine.on('C.exit', this.C_exit = sinon.spy());
           this.machine.on('setState', this.setState = sinon.spy());
           this.machine.on('cancelTransition', this.cancelTransition = sinon.spy());
-          this.machine.on('pushState', this.pushState = sinon.spy());
+          this.machine.on('addState', this.addState = sinon.spy());
           return this.machine.setState(['A', 'B']);
         });
         afterEach(function() {
           delete this.C_exit;
           delete this.A_A;
           delete this.B_enter;
-          delete this.pushState;
+          delete this.addState;
           delete this.setState;
           return delete this.cancelTransition;
         });
@@ -539,7 +574,7 @@
           return expect(this.setState.called).to.be.ok;
         });
         it('for pushing a new state', function() {
-          return expect(this.pushState.called).to.be.ok;
+          return expect(this.addState.called).to.be.ok;
         });
         return it('for cancelling the transition', function() {
           return expect(this.cancelTransition.called).to.be.ok;
@@ -618,14 +653,14 @@
           emitter = new EventMachine('A');
           this.machine.pipeForward('B', emitter, 'C');
           this.machine.setState('B');
-          return expect(emitter.state()).to.eql(['A', 'C']);
+          return expect(emitter.state()).to.eql(['C', 'A']);
         });
         it('should invert a specific state as a different one', function() {
           var emitter;
           emitter = new EventMachine('A');
           this.machine.pipeInvert('A', emitter, 'C');
           this.machine.setState('B');
-          return expect(emitter.state()).to.eql(['A', 'C']);
+          return expect(emitter.state()).to.eql(['C', 'A']);
         });
         it('should forward a whole machine', function() {
           var machine2;
@@ -633,7 +668,7 @@
           expect(machine2.state()).to.eql(['A', 'D']);
           this.machine.pipeForward(machine2);
           this.machine.setState(['B', 'C']);
-          return expect(machine2.state()).to.eql(['D', 'B', 'C']);
+          return expect(machine2.state()).to.eql(['C', 'B', 'D']);
         });
         return it('can be turned off');
       });

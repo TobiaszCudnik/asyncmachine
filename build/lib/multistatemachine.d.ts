@@ -5,16 +5,20 @@ module multistatemachine {
         blocks?: string[];
         requires?: string[];
     }
+    export interface IConfig {
+        debug: bool;
+    }
     export class MultiStateMachine {
         public config: IConfig;
-        private debug_: Function;
+        private debug_states_: Function;
         public disabled: bool;
         private states: string[];
         private states_active: string[];
         public last_promise: rsvp.Promise;
-        constructor (state: string, config?);
-        constructor (state: string[], config?);
-        public debug(prefix?: string): void;
+        constructor (state: string, config?: IConfig);
+        constructor (state: string[], config?: IConfig);
+        public statesInit(state: string);
+        public statesInit(state: string[]);
         public state(name: string): bool;
         public state(): string[];
         public setState(states: string[], ...args: any[]);
@@ -25,26 +29,29 @@ module multistatemachine {
         public dropState(states: string, ...args: any[]);
         public dropStateLater(states: string[], ...rest: any[]);
         public dropStateLater(states: string, ...rest: any[]);
-        public pushState(states: string[], ...args: any[]);
-        public pushState(states: string, ...args: any[]);
-        public pushStateLater(states: string[], ...rest: any[]);
-        public pushStateLater(states: string, ...rest: any[]);
+        public addState(states: string[], ...args: any[]);
+        public addState(states: string, ...args: any[]);
+        public addStateLater(states: string[], ...rest: any[]);
+        public addStateLater(states: string, ...rest: any[]);
         public pipeForward(state: MultiStateMachine, machine?: string);
         public pipeForward(state: string, machine?: MultiStateMachine, target_state?: string);
         public pipeInvert(state: string, machine: MultiStateMachine, target_state: string): void;
         public pipeOff(): void;
         public namespaceStateName(state: string): string;
+        public defineState(name: string, config: IState): void;
+        public debugStates(prefix?: string): void;
+        public initMSM(state: string, config?: IConfig): void;
+        static mixin(prototype: Object): void;
         private allStatesSet(states): bool;
         private allStatesNotSet(states): bool;
         private namespaceTransition_(transition: string): string;
-        public prepareStates(): void;
         private getState_(name);
         private selfTransitionExec_(states: string[], args: any[]): bool;
         private setupTargetStates_(states: string[], exclude?: string[]): string[];
         private parseImplies_(states: string[]): string[];
         private parseRequires_(states: string[]): string[];
         private removeDuplicateStates_(states: string[]): string[];
-        private isStateBlocked_(states, name): bool;
+        private isStateBlocked_(states, name): string[];
         private transition_(to: string[], args: any[]): bool;
         private transitionExit_(from: string, to: string[]): bool;
         private transitionEnter_(to: string, target_states: string[]): bool;
@@ -56,4 +63,4 @@ module multistatemachine {
         public set(event: string, ...args: any[]): bool;
     }
 }
-export var MultiStateMachine: { new(state: string,config?: multistatemachine.IConfig): multistatemachine.MultiStateMachine; new(state: string[],config?: multistatemachine.IConfig): multistatemachine.MultiStateMachine; };
+export var MultiStateMachine: { mixin(prototype: Object): void; new(state: string,config?: multistatemachine.IConfig): multistatemachine.MultiStateMachine; new(state: string[],config?: multistatemachine.IConfig): multistatemachine.MultiStateMachine; };

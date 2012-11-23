@@ -1544,34 +1544,25 @@ var multistatemachine;
             this.disabled = false;
             LucidJS.emitter(this);
             if(config && config.debug) {
-                this.debug();
+                this.debugStates();
             }
             state = Array.isArray(state) ? state : [
                 state
             ];
-            this.prepareStates();
-            this.setState(state);
+            this.statesInit(state);
         }
-        MultiStateMachine.prototype.debug = function (prefix) {
-            if(this.debug_) {
-                // OFF
-                this.trigger = this.debug_;
-                delete this.debug_;
-            } else {
-                // ON
-                this.debug_ = this.trigger;
-                this.trigger = function (event) {
-                    var args = [];
-                    for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                        args[_i] = arguments[_i + 1];
-                    }
-                    prefix = prefix || '';
-                    console.log(prefix + event);
-                    return this.debug_.apply(this, [].concat([
-                        event
-                    ], args));
-                };
+        // Prepare class'es states. Required to be called manually for inheriting classes.
+                MultiStateMachine.prototype.statesInit = function (state) {
+            var states = [];
+            for(var name in this) {
+                var match = name.match(/^state_(.+)/);
+                if(match) {
+                    states.push(match[1]);
+                }
             }
+            this.states = states;
+            this.states_active = [];
+            this.setState(state);
         }// Tells if a state is active now.
         ;
         MultiStateMachine.prototype.state = function (name) {
@@ -1586,15 +1577,18 @@ var multistatemachine;
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 args[_i] = arguments[_i + 1];
             }
-            var states = Array.isArray(states) ? states : [
+            var states_to_set = Array.isArray(states) ? states : [
                 states
             ];
-            if(this.selfTransitionExec_(states, args) === false) {
+            if(this.selfTransitionExec_(states_to_set, args) === false) {
                 return false;
             }
-            states = this.setupTargetStates_(states);
+            states = this.setupTargetStates_(states_to_set);
+            //console.log('setState1', states_to_set)
+            //console.log('current', this.states_active)
+            //console.log('setState2', states)
             var ret = this.transition_(states, args);
-            return ret === false ? false : this.allStatesSet(states);
+            return ret === false ? false : this.allStatesSet(states_to_set);
         }// Curried version of setState.
         ;
         MultiStateMachine.prototype.setStateLater = function (states) {
@@ -1638,26 +1632,30 @@ var multistatemachine;
                 _this.dropState.apply(_this, [].concat(states, rest));
             });
             return this.last_promise = promise;
-        }// Activate certain states and keem the current ones.
+        }// Activate certain states and keep the current ones.
         // TODO Maybe avoid double concat of states_active
         ;
-        MultiStateMachine.prototype.pushState = function (states) {
+        MultiStateMachine.prototype.addState = function (states) {
             var args = [];
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 args[_i] = arguments[_i + 1];
             }
-            var states = Array.isArray(states) ? states : [
+            var states_to_add = Array.isArray(states) ? states : [
                 states
             ];
-            if(this.selfTransitionExec_(states, args) === false) {
+            if(this.selfTransitionExec_(states_to_add, args) === false) {
                 return false;
             }
-            states = this.setupTargetStates_(this.states_active.concat(states));
+            states = states_to_add.concat(this.states_active);
+            //console.log('states1', states)
+            //console.log('current', this.states_active)
+            states = this.setupTargetStates_(states);
+            //console.log('states2', states)
             var ret = this.transition_(states, args);
-            return ret === false ? false : this.allStatesSet(states);
-        }// Curried version of pushState
+            return ret === false ? false : this.allStatesSet(states_to_add);
+        }// Curried version of addState
         ;
-        MultiStateMachine.prototype.pushStateLater = function (states) {
+        MultiStateMachine.prototype.addStateLater = function (states) {
             var _this = this;
             var rest = [];
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
@@ -1665,7 +1663,7 @@ var multistatemachine;
             }
             var promise = new Promise();
             promise.then(function () {
-                _this.pushState.apply(_this, [].concat(states, rest));
+                _this.addState.apply(_this, [].concat(states, rest));
             });
             return this.last_promise = promise;
             //    private trasitions: string[];
@@ -1681,7 +1679,7 @@ var multistatemachine;
                 var new_state = target_state || state;
                 state = _this.namespaceStateName(state);
                 _this.on(state + '.enter', function () {
-                    return machine.pushState(new_state);
+                    return machine.addState(new_state);
                 });
                 _this.on(state + '.exit', function () {
                     return machine.dropState(new_state);
@@ -1694,7 +1692,7 @@ var multistatemachine;
                 machine.dropState(target_state);
             });
             this.on(state + '.exit', function () {
-                machine.pushState(target_state);
+                machine.addState(target_state);
             });
         };
         MultiStateMachine.prototype.pipeOff = function () {
@@ -1703,25 +1701,45 @@ var multistatemachine;
         MultiStateMachine.prototype.namespaceStateName = function (state) {
             // CamelCase to Camel.Case
             return state.replace(/([a-zA-Z])([A-Z])/g, '$1.$2');
-        }/*
-        // Events as states feature
-        on(event_name: string, listener: Function) {
-        
+        };
+        MultiStateMachine.prototype.defineState = function (name, config) {
+            throw new Error('not implemented yet');
+        };
+        MultiStateMachine.prototype.debugStates = function (prefix) {
+            if(this.debug_states_) {
+                // OFF
+                this.trigger = this.debug_states_;
+                delete this.debug_states_;
+            } else {
+                // ON
+                this.debug_states_ = this.trigger;
+                this.trigger = function (event) {
+                    var args = [];
+                    for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                        args[_i] = arguments[_i + 1];
+                    }
+                    prefix = prefix || '';
+                    console.log(prefix + event);
+                    return this.debug_states_.apply(this, [].concat([
+                        event
+                    ], args));
+                };
+            }
+        };
+        MultiStateMachine.prototype.initMSM = function (state, config) {
+            MultiStateMachine.apply(this, arguments);
+        }// Mixin multistatemachine into a prototype of another constructor.
+        ;
+        MultiStateMachine.mixin = function mixin(prototype) {
+            var _this = this;
+            Object.keys(this.prototype).forEach(function (key) {
+                prototype[key] = _this.prototype[key];
+            });
         }
-        
-        many(event_name: string, times_to_listen: number, listener: Function) {
-        
-        }
-        
-        onAny(listener: Function) {
-        
-        }
-        */
         ////////////////////////////
         // PRIVATES
         ////////////////////////////
-        ;
-        MultiStateMachine.prototype.allStatesSet = function (states) {
+                MultiStateMachine.prototype.allStatesSet = function (states) {
             var _this = this;
             return !states.reduce(function (ret, state) {
                 return ret || !_this.state(state);
@@ -1738,17 +1756,6 @@ var multistatemachine;
             return this.namespaceStateName(transition).replace(// A_exit -> A.exit
             /_([a-z]+)$/, '.$1').replace(// A_B -> A._.B
             '_', '._.');
-        };
-        MultiStateMachine.prototype.prepareStates = function () {
-            var states = [];
-            for(var name in this) {
-                var match = name.match(/^state_(.+)/);
-                if(match) {
-                    states.push(match[1]);
-                }
-            }
-            this.states = states;
-            this.states_active = [];
         };
         MultiStateMachine.prototype.getState_ = function (name) {
             return this['state_' + name];
@@ -1782,10 +1789,18 @@ var multistatemachine;
             states = this.parseImplies_(states);
             states = this.removeDuplicateStates_(states);
             // Check if state is blocked or excluded
-            states = states.filter(function (name) {
-                var blocked = _this.isStateBlocked_(states, name);
-                return !blocked && !~exclude.indexOf(name);
-            });
+            var already_blocked = [];
+            states = states.reverse().filter(function (name) {
+                var blocked_by = _this.isStateBlocked_(states, name);
+                // Remove states already blocked.
+                blocked_by = blocked_by.filter(function (blocker_name) {
+                    return !~already_blocked.indexOf(blocker_name);
+                });
+                if(blocked_by.length) {
+                    already_blocked.push(name);
+                }
+                return !blocked_by.length && !~exclude.indexOf(name);
+            }).reverse();
             return this.parseRequires_(states);
         }// Collect implied states
         ;
@@ -1828,14 +1843,14 @@ var multistatemachine;
         };
         MultiStateMachine.prototype.isStateBlocked_ = function (states, name) {
             var _this = this;
-            var blocked = false;
+            var blocked_by = [];
             states.forEach(function (name2) {
                 var state = _this.getState_(name2);
                 if(state.blocks && ~state.blocks.indexOf(name)) {
-                    blocked = true;
+                    blocked_by.push(name2);
                 }
             });
-            return blocked;
+            return blocked_by;
         };
         MultiStateMachine.prototype.transition_ = function (to, args) {
             var _this = this;
