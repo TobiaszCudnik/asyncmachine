@@ -1,12 +1,13 @@
-///<reference path="../headers/node.d.ts" />
-///<reference path="../headers/lucidjs.d.ts" />
-///<reference path="../headers/rsvp.d.ts" />
-///<reference path="../headers/es5-shim.d.ts" />
+///<reference path="headers/node.d.ts" />
+///<reference path="headers/lucidjs.d.ts" />
+///<reference path="headers/rsvp.d.ts" />
+///<reference path="headers/es5-shim.d.ts" />
 
-module multistatemachine {
-	import rsvp = module('rsvp')
-	var Promise = rsvp.Promise
-	import LucidJS = module('lucidjs')
+import LucidJS = module('lucidjs'); //; required!
+import rsvp = module('rsvp')
+var Promise = rsvp.Promise
+
+export module multistatemachine {
 
 	require('es5-shim')
 
@@ -48,13 +49,13 @@ module multistatemachine {
 	      this.debugStates()
 	    }
 	    state = Array.isArray(state) ? state : [ state ]
-	    this.statesInit( state )
+	    this.initStates( state )
 	  }
 
 	  // Prepare class'es states. Required to be called manually for inheriting classes.
-	  statesInit( state: string );
-	  statesInit( state: string[] );
-	  statesInit( state: any ) {
+	  initStates( state: string );
+	  initStates( state: string[] );
+	  initStates( state: any ) {
 	    var states = []
 	    for (var name in this ) {
 	      var match = name.match(/^state_(.+)/)
@@ -88,7 +89,7 @@ module multistatemachine {
       //console.log('current', this.states_active)
 	    //console.log('setState2', states)
 	    var ret = this.transition_( states, args )
-	    return ret === false 
+	    return ret === false
 	    	? false : this.allStatesSet( states_to_set )
 	  }
 
@@ -211,7 +212,7 @@ module multistatemachine {
 	    } else {
 	      // ON
 	      this.debug_states_ = this.trigger
-	      this.trigger = function(event, ...args) {
+	      this.trigger = function(event, ...args: any[]) {
 	        prefix = prefix || ''
 	        console.log(prefix + event )
 	        return this.debug_states_.apply( this, [].concat( [event], args ) )
@@ -459,4 +460,5 @@ module multistatemachine {
 	delete MultiStateMachine.prototype.set
 }
 
-export var MultiStateMachine = multistatemachine.MultiStateMachine
+// Fake class for sane export.
+export class MultiStateMachine extends multistatemachine.MultiStateMachine {}

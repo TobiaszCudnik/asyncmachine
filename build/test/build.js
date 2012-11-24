@@ -5777,15 +5777,20 @@ multistatemachineTest.module(3, function(/* parent */){
     'id': 'build/lib/multistatemachine',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process,require, undefined){
-      ///<reference path="../headers/node.d.ts" />
-///<reference path="../headers/lucidjs.d.ts" />
-///<reference path="../headers/rsvp.d.ts" />
-///<reference path="../headers/es5-shim.d.ts" />
-var multistatemachine;
+      var __extends = this.__extends || function (d, b) {
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+///<reference path="headers/node.d.ts" />
+///<reference path="headers/lucidjs.d.ts" />
+///<reference path="headers/rsvp.d.ts" />
+///<reference path="headers/es5-shim.d.ts" />
+var LucidJS = require('lucidjs')//; required!
+
+var rsvp = require('rsvp')
+var Promise = rsvp.Promise;
 (function (multistatemachine) {
-    var rsvp = require('rsvp')
-    var Promise = rsvp.Promise;
-    var LucidJS = require('lucidjs')
     require('es5-shim');
     //autostart: bool;
     //export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
@@ -5800,10 +5805,10 @@ var multistatemachine;
             state = Array.isArray(state) ? state : [
                 state
             ];
-            this.statesInit(state);
+            this.initStates(state);
         }
         // Prepare class'es states. Required to be called manually for inheriting classes.
-                MultiStateMachine.prototype.statesInit = function (state) {
+                MultiStateMachine.prototype.initStates = function (state) {
             var states = [];
             for(var name in this) {
                 var match = name.match(/^state_(.+)/);
@@ -6015,9 +6020,7 @@ var multistatemachine;
         MultiStateMachine.prototype.selfTransitionExec_ = function (states, args) {
             var _this = this;
             var ret = states.some(function (state) {
-                var ret;
-                var name = state + '_' + state;
-
+                var ret, name = state + '_' + state;
                 var method = _this[name];
                 if(method && ~_this.states_active.indexOf(state)) {
                     ret = method();
@@ -6138,9 +6141,7 @@ var multistatemachine;
         ;
         MultiStateMachine.prototype.transitionExit_ = function (from, to) {
             var _this = this;
-            var method;
-            var callbacks = [];
-
+            var method, callbacks = [];
             if(this.transitionExec_(from + '_exit', to) === false) {
                 return false;
             }
@@ -6161,9 +6162,7 @@ var multistatemachine;
             return ret === true ? false : true;
         };
         MultiStateMachine.prototype.transitionEnter_ = function (to, target_states) {
-            var method;
-            var callbacks = [];
-
+            var method, callbacks = [];
             //      from.forEach( (state: string) => {
             //        this.transitionExec_( state + '_' + to )
             //      })
@@ -6239,10 +6238,18 @@ var multistatemachine;
     delete MultiStateMachine.prototype.once;
     delete MultiStateMachine.prototype.trigger;
     delete MultiStateMachine.prototype.set;
-})(multistatemachine || (multistatemachine = {}));
+})(exports.multistatemachine || (exports.multistatemachine = {}));
+var multistatemachine = exports.multistatemachine;
+// Fake class for sane export.
+var MultiStateMachine = (function (_super) {
+    __extends(MultiStateMachine, _super);
+    function MultiStateMachine() {
+        _super.apply(this, arguments);
 
-exports.MultiStateMachine = multistatemachine.MultiStateMachine;
-
+    }
+    return MultiStateMachine;
+})(multistatemachine.MultiStateMachine);
+exports.MultiStateMachine = MultiStateMachine;
 //@ sourceMappingURL=multistatemachine.js.map
     }
   };

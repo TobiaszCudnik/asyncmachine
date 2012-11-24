@@ -1,24 +1,28 @@
-module multistatemachine {
-    export interface IState {
+/// <reference path="headers/node.d.ts" />
+/// <reference path="headers/lucidjs.d.ts" />
+/// <reference path="headers/rsvp.d.ts" />
+/// <reference path="headers/es5-shim.d.ts" />
+export module multistatemachine {
+    interface IState {
         depends?: string[];
         implies?: string[];
         blocks?: string[];
         requires?: string[];
     }
-    export interface IConfig {
+    interface IConfig {
         debug: bool;
     }
-    export class MultiStateMachine {
+    class MultiStateMachine {
         public config: IConfig;
-        private debug_states_: Function;
+        private debug_states_;
         public disabled: bool;
-        private states: string[];
-        private states_active: string[];
+        private states;
+        private states_active;
         public last_promise: rsvp.Promise;
         constructor (state: string, config?: IConfig);
         constructor (state: string[], config?: IConfig);
-        public statesInit(state: string);
-        public statesInit(state: string[]);
+        public initStates(state: string);
+        public initStates(state: string[]);
         public state(name: string): bool;
         public state(): string[];
         public setState(states: string[], ...args: any[]);
@@ -42,25 +46,26 @@ module multistatemachine {
         public debugStates(prefix?: string): void;
         public initMSM(state: string, config?: IConfig): void;
         static mixin(prototype: Object): void;
-        private allStatesSet(states): bool;
-        private allStatesNotSet(states): bool;
-        private namespaceTransition_(transition: string): string;
+        private allStatesSet(states);
+        private allStatesNotSet(states);
+        private namespaceTransition_(transition);
         private getState_(name);
-        private selfTransitionExec_(states: string[], args: any[]): bool;
-        private setupTargetStates_(states: string[], exclude?: string[]): string[];
-        private parseImplies_(states: string[]): string[];
-        private parseRequires_(states: string[]): string[];
-        private removeDuplicateStates_(states: string[]): string[];
-        private isStateBlocked_(states, name): string[];
-        private transition_(to: string[], args: any[]): bool;
-        private transitionExit_(from: string, to: string[]): bool;
-        private transitionEnter_(to: string, target_states: string[]): bool;
-        private transitionExec_(method: string, target_states: string[], args?: any[]): bool;
-        private orderStates_(states: string[]): void;
+        private selfTransitionExec_(states, args);
+        private setupTargetStates_(states, exclude?);
+        private parseImplies_(states);
+        private parseRequires_(states);
+        private removeDuplicateStates_(states);
+        private isStateBlocked_(states, name);
+        private transition_(to, args);
+        private transitionExit_(from, to);
+        private transitionEnter_(to, target_states);
+        private transitionExec_(method, target_states, args?);
+        private orderStates_(states);
         public on(event: string, VarArgsBoolFn): void;
         public once(event: string, VarArgsBoolFn): void;
         public trigger(event: string, ...args: any[]): bool;
         public set(event: string, ...args: any[]): bool;
     }
 }
-export var MultiStateMachine: { mixin(prototype: Object): void; new(state: string,config?: multistatemachine.IConfig): multistatemachine.MultiStateMachine; new(state: string[],config?: multistatemachine.IConfig): multistatemachine.MultiStateMachine; };
+export class MultiStateMachine extends multistatemachine.MultiStateMachine {
+}
