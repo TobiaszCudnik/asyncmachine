@@ -1,11 +1,10 @@
+# AsyncMachine
 
-# Multi State Machine
-
-  Multi state machine for declarative async logic.
+  Multi state machine for a declarative async logic.
   
 # Disclaimer
 
-Motivation behind MultiStateMachine was to make creating async evented systems 
+Motivation behind AsyncMachine was to make creating async evented systems 
 easier, more predictable and to reduce code redundancy. It's loosely based on 
 finite state machine and isn't backed up with any formalized theory. 
 
@@ -15,7 +14,7 @@ event emitter and callback passing style.
 # Example
   
 ```javascript
-class Foo extends MultiStateMachine {
+class Foo extends AsyncMachine {
     state_A = {
         // Decides about the order of activations (transitions).
         depends: [],
@@ -38,14 +37,17 @@ class Foo extends MultiStateMachine {
 # Features
 
 - always synchronous state
-- - transition can cancel a change of the state
-- states definitions (relations) in OO manner
-- - blocks, implies, requires, depends
-- transitions definitions in OO manner
-- - ::A_enter, ::A_B, ::any_A, etc
-- Event Emitter with namespaces
-- promises for deferred state changes
-- lots of tests
+-- transition can cancel a change of the state
+- states definitions in OO manner
+- state relations: blocks, implies, requires, depends
+- transitions transitions (mnethods) in OO manner (prototype-level)
+-- ::A_enter, ::A_B, ::any_A, etc
+- transitions exposed as an event emitter
+-- with sub events (superEvent.subEvent)
+- promises support for deferred state changes (multiplexing)
+- mixin support
+- written in TypeScript
+- lots of tests (in Coffee)
 
 ## Order of a transition:
 - STATE1_exit
@@ -57,11 +59,10 @@ class Foo extends MultiStateMachine {
 # TODO / Ideas
 - auto trigger an event if state is set
 - try to auto drop the implied state when dropping a state
-- event emitter api, with piping
 - mixin api (traits.js?)
-- method for generating all possible transitions
+- method for generating all possible transition permutations (honoring the relations)
 - customizable naming convention
-- - STATE_STATE to StateState or state_
+-- STATE_STATE to StateState or state_
 
 ## License 
 
