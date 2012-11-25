@@ -32,7 +32,7 @@
 */
 import msm = module('multistatemachine')
 
-class Query extends msm.MultiStateMachine {
+class Query extends msm.AsyncMachine {
 
 	state_FetchingTasklists = {};
 	state_TasklistsFetched = {
@@ -78,7 +78,7 @@ class Query extends msm.MultiStateMachine {
 	}
 }
 
-class QueryController extends msm.MultiStateMachine {
+class QueryController extends msm.AsyncMachine {
 
 	state_Fetching( states ) {
 

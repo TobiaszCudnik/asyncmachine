@@ -28,7 +28,7 @@ export module multistatemachine {
 	}
 
 	//export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
-	export class MultiStateMachine {
+	export class AsyncMachine {
 	  private debug_states_: Function;
 	  disabled: bool = false;
 	  private states: string[];
@@ -41,7 +41,7 @@ export module multistatemachine {
 
 	  ////////////////////////////
 
-	  constructor (state: string, config?: IConfig);
+	  AsyncMachine (state: string, config?: IConfig);
 	  constructor (state: string[], config?: IConfig);
 	  constructor (state: any, public config?: IConfig) {
 	    LucidJS.emitter(this)
@@ -160,10 +160,10 @@ export module multistatemachine {
 	//    private trasitions: string[];
 	  }
 
-	  pipeForward(state: MultiStateMachine, machine?: string );
-	  pipeForward(state: string, machine?: MultiStateMachine, target_state?: string );
+	  pipeForward(state: AsyncMachine, machine?: string );
+	  pipeForward(state: string, machine?: AsyncMachine, target_state?: string );
 	  pipeForward(state: any, machine?: any, target_state?: any ) {
-	    if ( state instanceof MultiStateMachine ) {
+	    if ( state instanceof AsyncMachine ) {
 	      target_state = machine
 	      machine = state
 	      state = this.states
@@ -180,7 +180,7 @@ export module multistatemachine {
 	    })
 	  }
 
-	  pipeInvert(state: string, machine: MultiStateMachine, target_state: string ) {
+	  pipeInvert(state: string, machine: AsyncMachine, target_state: string ) {
 	    state = this.namespaceStateName( state )
 	    this.on( state + '.enter', () => {
 	      machine.dropState( target_state )
@@ -221,7 +221,7 @@ export module multistatemachine {
 	  }
 
 	  initMSM(state: string, config?: IConfig) {
-	  	MultiStateMachine.apply( this, arguments )
+	  	AsyncMachine.apply( this, arguments )
 	  }
 
 	  // Mixin multistatemachine into a prototype of another constructor.
@@ -454,11 +454,11 @@ export module multistatemachine {
 
 	// Support LucidJS mixin
 	// TODO make it sucks less
-	delete MultiStateMachine.prototype.on
-	delete MultiStateMachine.prototype.once
-	delete MultiStateMachine.prototype.trigger
-	delete MultiStateMachine.prototype.set
+	delete AsyncMachine.prototype.on
+	delete AsyncMachine.prototype.once
+	delete AsyncMachine.prototype.trigger
+	delete AsyncMachine.prototype.set
 }
 
 // Fake class for sane export.
-export class MultiStateMachine extends multistatemachine.MultiStateMachine {}
+export class AsyncMachine extends multistatemachine.AsyncMachine {}

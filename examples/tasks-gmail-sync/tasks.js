@@ -53,7 +53,7 @@ var Query = (function (_super) {
         this.pipeInvert('Fetching.*', 'Idle');
     }
     return Query;
-})(msm.MultiStateMachine);
+})(msm.AsyncMachine);
 var QueryController = (function (_super) {
     __extends(QueryController, _super);
     function QueryController(task_lists) {
@@ -72,5 +72,5 @@ var QueryController = (function (_super) {
     QueryController.prototype.state_Fetching = function (states) {
     };
     return QueryController;
-})(msm.MultiStateMachine);
+})(msm.AsyncMachine);
 

@@ -4,7 +4,7 @@ sinon = require 'sinon'
 Promise = require('rsvp').Promise
 
 describe "multistatemachine", ->
-  class FooMachine extends multistatemachine.MultiStateMachine
+  class FooMachine extends multistatemachine.AsyncMachine
 
     state_A: {}
     state_B: {}
@@ -370,7 +370,7 @@ describe "multistatemachine", ->
           expect( @machine.state() ).to.eql [ 'A' ]
 
       # TODO make this and the previous a main contexts
-      describe 'when pushing an additional state', ->
+      describe 'when adding an additional state', ->
         beforeEach -> @ret = @machine.addState 'D'
 
         it 'should return false', ->
@@ -608,3 +608,6 @@ describe "multistatemachine", ->
         # @machine.pipeForward machine2
         # @machine.setState [ 'B', 'C' ]
         # expect( machine2.state() ).to.eql [ 'D', 'B', 'C' ]
+
+	describe 'bugs', ->
+		'it should trigger the enter state of a subclass'

@@ -955,7 +955,7 @@ buster.format.ascii = (function () {
         return res.replace(/ contentEditable="inherit"/, "");
     };
     ascii.constructorName = function (object) {
-        var name = buster.functionName(object && object.constructor);
+        var name = buster.functionName(object && object.AsyncMachine);
         var excludes = this.excludeConstructors || buster.format.excludeConstructors || [];
         for (var i = 0, l = excludes.length; i < l; ++i) {
             if (typeof excludes[i] == "string" && excludes[i] == name) {
@@ -1117,7 +1117,7 @@ buster.format.ascii = (function () {
         return res.replace(/ contentEditable="inherit"/, "");
     };
     ascii.constructorName = function (object) {
-        var name = buster.functionName(object && object.constructor);
+        var name = buster.functionName(object && object.AsyncMachine);
         var excludes = this.excludeConstructors || buster.format.excludeConstructors || [];
         for (var i = 0, l = excludes.length; i < l; ++i) {
             if (typeof excludes[i] == "string" && excludes[i] == name) {
@@ -4026,7 +4026,7 @@ function formatValue(ctx, value, recurseTimes) {
       // Filter out the util module, it's inspect function is special
       value.inspect !== exports.inspect &&
       // Also filter out any prototype objects using the circular check.
-      !(value.constructor && value.constructor.prototype === value)) {
+      !(value.AsyncMachine && value.AsyncMachine.prototype === value)) {
     return value.inspect(recurseTimes);
   }
   // Primitive types cannot have properties
@@ -4969,7 +4969,7 @@ if (!Object.keys) {
             "hasOwnProperty",
             "isPrototypeOf",
             "propertyIsEnumerable",
-            "constructor"
+            "AsyncMachine"
         ],
         dontEnumsLength = dontEnums.length;
     for (var key in {"toString": null}) {
@@ -6231,7 +6231,7 @@ var Promise = rsvp.Promise;
         };
         return MultiStateMachine;
     })();
-    multistatemachine.MultiStateMachine = MultiStateMachine;    
+    multistatemachine.AsyncMachine = MultiStateMachine;
     // Support LucidJS mixin
     // TODO make it sucks less
     delete MultiStateMachine.prototype.on;
@@ -6248,7 +6248,7 @@ var MultiStateMachine = (function (_super) {
 
     }
     return MultiStateMachine;
-})(multistatemachine.MultiStateMachine);
+})(multistatemachine.AsyncMachine);
 exports.MultiStateMachine = MultiStateMachine;
 //@ sourceMappingURL=multistatemachine.js.map
     }
@@ -7160,7 +7160,7 @@ var sinon = (function (buster) {
         return div && obj && obj.nodeType === 1 && isDOMNode(obj);
     }
     function isFunction(obj) {
-        return !!(obj && obj.constructor && obj.call && obj.apply);
+        return !!(obj && obj.AsyncMachine && obj.call && obj.apply);
     }
     function mirrorProperties(target, source) {
         for (var prop in source) {
@@ -7438,7 +7438,7 @@ var sinon = (function (buster) {
         return div && obj && obj.nodeType === 1 && isDOMNode(obj);
     }
     function isFunction(obj) {
-        return !!(obj && obj.constructor && obj.call && obj.apply);
+        return !!(obj && obj.AsyncMachine && obj.call && obj.apply);
     }
     function mirrorProperties(target, source) {
         for (var prop in source) {

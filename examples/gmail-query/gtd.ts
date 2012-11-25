@@ -109,7 +109,7 @@ class GmailSearch extends BaseClass {
 
 //class GmailManager extends BaseClass {
 
-class GmailManager extends multistatemachine.MultiStateMachine {
+class GmailManager extends multistatemachine.AsyncMachine {
 	
 	// STATES
 	

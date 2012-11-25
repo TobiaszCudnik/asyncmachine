@@ -280,7 +280,7 @@ var GmailManager = (function (_super) {
         console.log.apply(console, msgs);
     };
     return GmailManager;
-})(multistatemachine.MultiStateMachine);
+})(multistatemachine.AsyncMachine);
 var App = (function (_super) {
     __extends(App, _super);
     function App() {

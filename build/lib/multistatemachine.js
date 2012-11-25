@@ -452,7 +452,7 @@ var Promise = rsvp.Promise;
         };
         return MultiStateMachine;
     })();
-    multistatemachine.MultiStateMachine = MultiStateMachine;    
+    multistatemachine.AsyncMachine = MultiStateMachine;
     // Support LucidJS mixin
     // TODO make it sucks less
     delete MultiStateMachine.prototype.on;
@@ -469,6 +469,6 @@ var MultiStateMachine = (function (_super) {
 
     }
     return MultiStateMachine;
-})(multistatemachine.MultiStateMachine);
+})(multistatemachine.AsyncMachine);
 exports.MultiStateMachine = MultiStateMachine;
 //@ sourceMappingURL=multistatemachine.js.map
