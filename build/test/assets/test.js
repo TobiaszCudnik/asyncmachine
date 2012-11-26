@@ -679,9 +679,9 @@
     });
     return describe('bugs', function() {
       return it('should trigger the enter state of a subclass', function() {
-        var Sub, sub;
-        this.a_enter_spy = sinon.spy();
-        this.b_enter_spy = sinon.spy();
+        var Sub, a_enter_spy, b_enter_spy, sub;
+        a_enter_spy = sinon.spy();
+        b_enter_spy = sinon.spy();
         Sub = (function(_super) {
 
           __extends(Sub, _super);
@@ -694,21 +694,19 @@
 
           Sub.prototype.state_B = {};
 
-          Sub.prototype.A_enter = Sub.a_enter_spy;
+          Sub.prototype.A_enter = a_enter_spy;
 
-          Sub.prototype.B_enter = Sub.b_enter_spy;
+          Sub.prototype.B_enter = b_enter_spy;
 
           return Sub;
 
         })(asyncmachine.AsyncMachine);
-        mock_states(Sub.prototype, ['A', 'B']);
         sub = new Sub('A', {
           debug: true
         });
-        debugger;
         sub.setState('B');
-        expect(this.a_enter_spy.calledOnce).to.be.ok;
-        return expect(this.B_enter_spy.calledOnce).to.be.ok;
+        expect(a_enter_spy.called).to.be.ok;
+        return expect(b_enter_spy.called).to.be.ok;
       });
     });
   });

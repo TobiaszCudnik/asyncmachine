@@ -611,16 +611,19 @@ describe "asyncmachine", ->
 
 		describe 'bugs', ->
 			it 'should trigger the enter state of a subclass', ->
-				@a_enter_spy = sinon.spy()
-				@b_enter_spy = sinon.spy()
+				a_enter_spy = sinon.spy()
+				b_enter_spy = sinon.spy()
 				class Sub extends asyncmachine.AsyncMachine
 					state_A: {}
 					state_B: {}
-					A_enter: @a_enter_spy
-					B_enter: @b_enter_spy
-				mock_states Sub::, [ 'A', 'B' ]
-				sub = new Sub 'A', debug: yes
-				debugger
+					A_enter: a_enter_spy
+					B_enter: b_enter_spy
+				sub = new Sub 'A'
 				sub.setState 'B'
-				expect( @a_enter_spy.called ).to.be.ok
-				expect( @B_enter_spy.called ).to.be.ok
+				expect( a_enter_spy.called ).to.be.ok
+				expect( b_enter_spy.called ).to.be.ok
+
+		describe 'Promises', ->
+			it 'can be resolved'
+			it 'can be rejected'
+

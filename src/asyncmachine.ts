@@ -98,7 +98,8 @@ export module asyncmachine {
 	    promise.then( () => {
 	      this.setState.apply( this, [].concat( states, rest ) )
 	    } )
-	    return this.last_promise = promise
+	    this.last_promise = promise
+		  return promise.resolve.bind( this )
 	  }
 
 	  // Deactivate certain states.
@@ -123,7 +124,8 @@ export module asyncmachine {
 	    promise.then( () => {
 	      this.dropState.apply( this, [].concat( states, rest ) )
 	    } )
-	    return this.last_promise = promise
+	    this.last_promise = promise
+		  return promise.resolve.bind( this )
 	  }
 
 	  // Activate certain states and keep the current ones.
@@ -150,8 +152,8 @@ export module asyncmachine {
 	    promise.then( () => {
 	      this.addState.apply( this, [].concat( states, rest ) )
 	    } )
-	    return this.last_promise = promise
-	//    private trasitions: string[];
+	    this.last_promise = promise
+		  return promise.resolve.bind( this )
 	  }
 
 	  pipeForward(state: AsyncMachine, machine?: string );
