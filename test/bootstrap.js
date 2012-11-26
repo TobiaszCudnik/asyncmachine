@@ -1,1 +1,1 @@
-multistatemachineTest.main()
+asyncmachineTest.main()

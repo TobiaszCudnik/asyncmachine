@@ -6,14 +6,14 @@ all:
 	make build-test
 
 build:
-	rm -f build/lib/multistatemachine.js
-	tsc --declaration -sourcemap -c src/multistatemachine.ts
-	mv src/multistatemachine.js build/lib/
+	rm -f build/lib/asyncmachine.js
+	tsc --declaration -sourcemap -c src/asyncmachine.ts
+	mv src/asyncmachine.js build/lib/
 	# TODO use coffee makefile fix
-	mv src/multistatemachine.d.ts build/lib/
-	#rm src/multistatemachine.d.ts
+	mv src/asyncmachine.d.ts build/lib/
+	#rm src/asyncmachine.d.ts
 	coffee Makefile.coffee build_fix
-	mv src/multistatemachine.js.map build/lib/
+	mv src/asyncmachine.js.map build/lib/
 	$(ONEJS) build package.json build/pkg/build.js
 	cp headers/rsvp.d.ts build/lib/
 	cp headers/lucidjs.d.ts build/lib/
@@ -37,9 +37,9 @@ server:
 	
 setup:
 	npm install
-	rm -f test/node_modules/multistatemachine
+	rm -f test/node_modules/asyncmachine
 	mkdir -p test/node_modules
-	ln -s ../.. test/node_modules/multistatemachine
+	ln -s ../.. test/node_modules/asyncmachine
 	mv test/package.json test/package-one.json
 	mv test/package-npm.json test/package.json
 

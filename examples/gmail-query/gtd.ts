@@ -1,6 +1,6 @@
 ///<reference path="externs.d.ts"/>
 ///<reference path="node.d.ts"/>
-///<reference path="../../node_modules/multistatemachine/build/lib/multistatemachine.d.ts"/>
+///<reference path="../../node_modules/asyncmachine/build/lib/asyncmachine.d.ts"/>
 
 // require 'longjohn'
 import flow = module('flow')
@@ -15,7 +15,7 @@ import Promise = module( 'when')
 import jsprops = module('jsprops')
 var prop = jsprops.property
 import sugar = module('sugar')
-import multistatemachine = module('multistatemachine')
+import asyncmachine = module('asyncmachine')
 import rsvp = module('rsvp')
 
 // TODO add event emitter
@@ -109,7 +109,7 @@ class GmailSearch extends BaseClass {
 
 //class GmailManager extends BaseClass {
 
-class GmailManager extends multistatemachine.AsyncMachine {
+class GmailManager extends asyncmachine.AsyncMachine {
 	
 	// STATES
 	

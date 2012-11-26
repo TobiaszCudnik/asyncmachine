@@ -1,12 +1,12 @@
 {
-  "name": "multistatemachine-test",
+  "name": "asyncmachine-test",
   "version": "0.0.1",
   "description": "Tests for Multi State Machine.",
   "keywords": ["test", "async", "statemachine"],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
   "dependencies": {
     "chai": "*",
-    "multistatemachine": "*",
+    "asyncmachine": "*",
     "sinon": "*"
   },
   "devDependencies": {

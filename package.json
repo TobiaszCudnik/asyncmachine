@@ -1,5 +1,5 @@
 {
-  "name": "multistatemachine",
+  "name": "asyncmachine",
   "version": "0.1.2 ",
   "description": "Multi State Machine for declarative async logic.",
   "keywords": ["async", "statemachine", "eventemitter"],
@@ -15,5 +15,5 @@
 	  "shelljs": "*",
 	  "http-server": "*"
   },
-  "main": "build/lib/multistatemachine.js"
+  "main": "build/lib/asyncmachine.js"
 }

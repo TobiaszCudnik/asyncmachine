@@ -1,5 +1,5 @@
 /*global require:false, Buffer:false, process:false, module:false */
-var multistatemachineTest = (function(unused, undefined){
+var asyncmachineTest = (function(unused, undefined){
   var DEBUG         = false,
       pkgdefs       = {},
       pkgmap        = {},
@@ -218,7 +218,7 @@ exports.umask = notImplemented;
     'lib'        : lib,
     'findPkg'    : findPkg,
     'findModule' : findModule,
-    'name'       : 'multistatemachineTest',
+    'name'       : 'asyncmachineTest',
     'module'     : module,
     'pkg'        : pkg,
     'packages'   : pkgmap,
@@ -228,7 +228,1199 @@ exports.umask = notImplemented;
     'require'    : mainRequire
 });
 }(this));
-multistatemachineTest.pkg(8, function(parents){
+asyncmachineTest.pkg(1, function(parents){
+  return {
+    'id':3,
+    'name':'asyncmachine',
+    'main':undefined,
+    'mainModuleId':'build/lib/asyncmachine',
+    'modules':[],
+    'parents':parents
+  };
+});
+asyncmachineTest.module(3, function(/* parent */){
+  return {
+    'id': 'build/lib/asyncmachine',
+    'pkg': arguments[0],
+    'wrapper': function(module, exports, global, Buffer,process,require, undefined){
+      var __extends = this.__extends || function (d, b) {
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+///<reference path="headers/node.d.ts" />
+///<reference path="headers/lucidjs.d.ts" />
+///<reference path="headers/rsvp.d.ts" />
+///<reference path="headers/es5-shim.d.ts" />
+var LucidJS = require('lucidjs')//; required!
+
+var rsvp = require('rsvp')
+var Promise = rsvp.Promise;
+(function (asyncmachine) {
+    require('es5-shim');
+    //autostart: bool;
+    //export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
+    var AsyncMachine = (function () {
+        function AsyncMachine(state, config) {
+            this.config = config;
+            this.disabled = false;
+            LucidJS.emitter(this);
+            if(config && config.debug) {
+                this.debugStates();
+            }
+            state = Array.isArray(state) ? state : [
+                state
+            ];
+            this.initStates(state);
+        }
+        // Prepare class'es states. Required to be called manually for inheriting classes.
+                AsyncMachine.prototype.initStates = function (state) {
+            var states = [];
+            for(var name in this) {
+                var match = name.match(/^state_(.+)/);
+                if(match) {
+                    states.push(match[1]);
+                }
+            }
+            this.states = states;
+            this.states_active = [];
+            this.setState(state);
+        }// Tells if a state is active now.
+        ;
+        AsyncMachine.prototype.state = function (name) {
+            if(name) {
+                return !!~this.states_active.indexOf(name);
+            }
+            return this.states_active;
+        }// Activate certain states and deactivate the current ones.
+        ;
+        AsyncMachine.prototype.setState = function (states) {
+            var args = [];
+            for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                args[_i] = arguments[_i + 1];
+            }
+            var states_to_set = Array.isArray(states) ? states : [
+                states
+            ];
+            if(this.selfTransitionExec_(states_to_set, args) === false) {
+                return false;
+            }
+            states = this.setupTargetStates_(states_to_set);
+            var ret = this.transition_(states, args);
+            return ret === false ? false : this.allStatesSet(states_to_set);
+        }// Curried version of setState.
+        ;
+        AsyncMachine.prototype.setStateLater = function (states) {
+            var _this = this;
+            var rest = [];
+            for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                rest[_i] = arguments[_i + 1];
+            }
+            var promise = new Promise();
+            promise.then(function () {
+                _this.setState.apply(_this, [].concat(states, rest));
+            });
+            return this.last_promise = promise;
+        }// Deactivate certain states.
+        ;
+        AsyncMachine.prototype.dropState = function (states) {
+            var args = [];
+            for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                args[_i] = arguments[_i + 1];
+            }
+            var states_to_drop = Array.isArray(states) ? states : [
+                states
+            ];
+            // Invert states to target ones.
+            states = this.states_active.filter(function (state) {
+                return !~states_to_drop.indexOf(state);
+            });
+            states = this.setupTargetStates_(states);
+            this.transition_(states, args);
+            return this.allStatesNotSet(states_to_drop);
+        }// Deactivate certain states.
+        ;
+        AsyncMachine.prototype.dropStateLater = function (states) {
+            var _this = this;
+            var rest = [];
+            for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                rest[_i] = arguments[_i + 1];
+            }
+            var promise = new Promise();
+            promise.then(function () {
+                _this.dropState.apply(_this, [].concat(states, rest));
+            });
+            return this.last_promise = promise;
+        }// Activate certain states and keep the current ones.
+        // TODO Maybe avoid double concat of states_active
+        ;
+        AsyncMachine.prototype.addState = function (states) {
+            var args = [];
+            for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                args[_i] = arguments[_i + 1];
+            }
+            var states_to_add = Array.isArray(states) ? states : [
+                states
+            ];
+            if(this.selfTransitionExec_(states_to_add, args) === false) {
+                return false;
+            }
+            states = states_to_add.concat(this.states_active);
+            states = this.setupTargetStates_(states);
+            var ret = this.transition_(states, args);
+            return ret === false ? false : this.allStatesSet(states_to_add);
+        }// Curried version of addState
+        ;
+        AsyncMachine.prototype.addStateLater = function (states) {
+            var _this = this;
+            var rest = [];
+            for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                rest[_i] = arguments[_i + 1];
+            }
+            var promise = new Promise();
+            promise.then(function () {
+                _this.addState.apply(_this, [].concat(states, rest));
+            });
+            return this.last_promise = promise;
+            //    private trasitions: string[];
+                    };
+        AsyncMachine.prototype.pipeForward = function (state, machine, target_state) {
+            var _this = this;
+            if(state instanceof AsyncMachine) {
+                target_state = machine;
+                machine = state;
+                state = this.states;
+            }
+            [].concat(state).forEach(function (state) {
+                var new_state = target_state || state;
+                state = _this.namespaceStateName(state);
+                _this.on(state + '.enter', function () {
+                    return machine.addState(new_state);
+                });
+                _this.on(state + '.exit', function () {
+                    return machine.dropState(new_state);
+                });
+            });
+        };
+        AsyncMachine.prototype.pipeInvert = function (state, machine, target_state) {
+            state = this.namespaceStateName(state);
+            this.on(state + '.enter', function () {
+                machine.dropState(target_state);
+            });
+            this.on(state + '.exit', function () {
+                machine.addState(target_state);
+            });
+        };
+        AsyncMachine.prototype.pipeOff = function () {
+        }// TODO use a regexp lib for IE8's 'g' flag compat?
+        ;
+        AsyncMachine.prototype.namespaceStateName = function (state) {
+            // CamelCase to Camel.Case
+            return state.replace(/([a-zA-Z])([A-Z])/g, '$1.$2');
+        };
+        AsyncMachine.prototype.defineState = function (name, config) {
+            throw new Error('not implemented yet');
+        };
+        AsyncMachine.prototype.debugStates = function (prefix) {
+            if(this.debug_states_) {
+                // OFF
+                this.trigger = this.debug_states_;
+                delete this.debug_states_;
+            } else {
+                // ON
+                this.debug_states_ = this.trigger;
+                this.trigger = function (event) {
+                    var args = [];
+                    for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                        args[_i] = arguments[_i + 1];
+                    }
+                    prefix = prefix || '';
+                    console.log(prefix + event);
+                    return this.debug_states_.apply(this, [].concat([
+                        event
+                    ], args));
+                };
+            }
+        };
+        AsyncMachine.prototype.initMSM = function (state, config) {
+            AsyncMachine.apply(this, arguments);
+        }// Mixin asyncmachine into a prototype of another constructor.
+        ;
+        AsyncMachine.mixin = function mixin(prototype) {
+            var _this = this;
+            Object.keys(this.prototype).forEach(function (key) {
+                prototype[key] = _this.prototype[key];
+            });
+        }
+        ////////////////////////////
+        // PRIVATES
+        ////////////////////////////
+                AsyncMachine.prototype.allStatesSet = function (states) {
+            var _this = this;
+            return !states.reduce(function (ret, state) {
+                return ret || !_this.state(state);
+            }, false);
+        };
+        AsyncMachine.prototype.allStatesNotSet = function (states) {
+            var _this = this;
+            return !states.reduce(function (ret, state) {
+                return ret || _this.state(state);
+            }, false);
+        };
+        AsyncMachine.prototype.namespaceTransition_ = function (transition) {
+            // CamelCase to Camel.Case
+            return this.namespaceStateName(transition).replace(// A_exit -> A.exit
+            /_([a-z]+)$/, '.$1').replace(// A_B -> A._.B
+            '_', '._.');
+        };
+        AsyncMachine.prototype.getState_ = function (name) {
+            return this['state_' + name];
+        }// Executes self transitions (eg ::A_A) based on active states.
+        ;
+        AsyncMachine.prototype.selfTransitionExec_ = function (states, args) {
+            var _this = this;
+            var ret = states.some(function (state) {
+                var ret, name = state + '_' + state;
+                var method = _this[name];
+                if(method && ~_this.states_active.indexOf(state)) {
+                    ret = method();
+                    if(ret === false) {
+                        return true;
+                    }
+                    var event = _this.namespaceTransition_(name);
+                    return _this.trigger(event, args) === false;
+                }
+            });
+            return ret === true ? false : true;
+        };
+        AsyncMachine.prototype.setupTargetStates_ = function (states, exclude) {
+            if (typeof exclude === "undefined") { exclude = []; }
+            var _this = this;
+            // Remove non existing states
+            states = states.filter(function (name) {
+                return ~_this.states.indexOf(name);
+            });
+            states = this.parseImplies_(states);
+            states = this.removeDuplicateStates_(states);
+            // Check if state is blocked or excluded
+            var already_blocked = [];
+            states = states.reverse().filter(function (name) {
+                var blocked_by = _this.isStateBlocked_(states, name);
+                // Remove states already blocked.
+                blocked_by = blocked_by.filter(function (blocker_name) {
+                    return !~already_blocked.indexOf(blocker_name);
+                });
+                if(blocked_by.length) {
+                    already_blocked.push(name);
+                }
+                return !blocked_by.length && !~exclude.indexOf(name);
+            }).reverse();
+            return this.parseRequires_(states);
+        }// Collect implied states
+        ;
+        AsyncMachine.prototype.parseImplies_ = function (states) {
+            var _this = this;
+            states.forEach(function (name) {
+                var state = _this.getState_(name);
+                if(!state.implies) {
+                    return;
+                }
+                states = states.concat(state.implies);
+            });
+            return states;
+        }// Check required states (until no change happens)
+        ;
+        AsyncMachine.prototype.parseRequires_ = function (states) {
+            var _this = this;
+            var missing = true;
+            while(missing) {
+                missing = false;
+                states = states.filter(function (name) {
+                    var state = _this.getState_(name);
+                    missing = (state.requires || []).reduce(function (memo, req) {
+                        return memo || !~states.indexOf(req);
+                    }, false);
+                    return !missing;
+                });
+            }
+            return states;
+        };
+        AsyncMachine.prototype.removeDuplicateStates_ = function (states) {
+            // Remove duplicates.
+            var states2 = [];
+            states.forEach(function (name) {
+                if(!~states2.indexOf(name)) {
+                    states2.push(name);
+                }
+            });
+            return states2;
+        };
+        AsyncMachine.prototype.isStateBlocked_ = function (states, name) {
+            var _this = this;
+            var blocked_by = [];
+            states.forEach(function (name2) {
+                var state = _this.getState_(name2);
+                if(state.blocks && ~state.blocks.indexOf(name)) {
+                    blocked_by.push(name2);
+                }
+            });
+            return blocked_by;
+        };
+        AsyncMachine.prototype.transition_ = function (to, args) {
+            var _this = this;
+            // TODO handle args
+            if(!to.length) {
+                return true;
+            }
+            // Collect states to drop, based on the target states.
+            var from = this.states_active.filter(function (state) {
+                return !~to.indexOf(state);
+            });
+            this.orderStates_(to);
+            this.orderStates_(from);
+            // var wait = <Function[]>[]
+            var ret = from.some(function (state) {
+                return _this.transitionExit_(state, to) === false;
+            });
+            if(ret === true) {
+                return false;
+            }
+            ret = to.some(function (state) {
+                // Skip transition if state is already active.
+                if(~_this.states_active.indexOf(state)) {
+                    return false;
+                }
+                return _this.transitionEnter_(state, to) === false;
+            });
+            if(ret === true) {
+                return false;
+            }
+            this.states_active = to;
+            return true;
+        }// Exit transition handles state-to-state methods.
+        ;
+        AsyncMachine.prototype.transitionExit_ = function (from, to) {
+            var _this = this;
+            var method, callbacks = [];
+            if(this.transitionExec_(from + '_exit', to) === false) {
+                return false;
+            }
+            // Duplicate event for namespacing.
+            var ret = this.transitionExec_('exit.' + this.namespaceStateName(from), to);
+            if(ret === false) {
+                return false;
+            }
+            ret = to.some(function (state) {
+                return _this.transitionExec_(from + '_' + state, to) === false;
+            });
+            if(ret === true) {
+                return false;
+            }
+            // TODO trigger the exit transitions (all of them) after all other middle
+            // transitions (_any etc)
+            ret = this.transitionExec_(from + '_any', to) === false;
+            return ret === true ? false : true;
+        };
+        AsyncMachine.prototype.transitionEnter_ = function (to, target_states) {
+            var method, callbacks = [];
+            //      from.forEach( (state: string) => {
+            //        this.transitionExec_( state + '_' + to )
+            //      })
+            if(this.transitionExec_('any_' + to, target_states) === false) {
+                return false;
+            }
+            // TODO trigger the enter transitions (all of them) after all other middle
+            // transitions (any_ etc)
+            if(ret = this.transitionExec_(to + '_enter', target_states) === false) {
+                return false;
+            }
+            // Duplicate event for namespacing.
+            var ret = this.trigger('enter.' + this.namespaceStateName(to), target_states);
+            return ret === false ? false : true;
+        };
+        AsyncMachine.prototype.transitionExec_ = function (method, target_states, args) {
+            if (typeof args === "undefined") { args = []; }
+            args = [].concat([
+                target_states
+            ], args);
+            var ret;
+            if(this[method] instanceof Function) {
+                ret = this[method].apply(this, args);
+                if(ret === false) {
+                    return false;
+                }
+            }
+            return this.trigger(this.namespaceTransition_(method), args);
+        }// is_exit tells that the order is exit transitions
+        ;
+        AsyncMachine.prototype.orderStates_ = function (states) {
+            var _this = this;
+            states.sort(function (e1, e2) {
+                var state1 = _this.getState_(e1);
+                var state2 = _this.getState_(e2);
+                var ret = 0;
+                if(state1.depends && ~state1.depends.indexOf(e2)) {
+                    ret = 1;
+                } else {
+                    if(state2.depends && ~state2.depends.indexOf(e1)) {
+                        ret = -1;
+                    }
+                }
+                return ret;
+            });
+        }// Event Emitter interface
+        // TODO cover as mixin in the d.ts file
+        ;
+        AsyncMachine.prototype.on = function (event, VarArgsBoolFn) {
+        };
+        AsyncMachine.prototype.once = function (event, VarArgsBoolFn) {
+        };
+        AsyncMachine.prototype.trigger = function (event) {
+            var args = [];
+            for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                args[_i] = arguments[_i + 1];
+            }
+            return true;
+        };
+        AsyncMachine.prototype.set = function (event) {
+            var args = [];
+            for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                args[_i] = arguments[_i + 1];
+            }
+            return true;
+        };
+        return AsyncMachine;
+    })();
+    asyncmachine.AsyncMachine = AsyncMachine;    
+    // Support LucidJS mixin
+    // TODO make it sucks less
+    delete AsyncMachine.prototype.on;
+    delete AsyncMachine.prototype.once;
+    delete AsyncMachine.prototype.trigger;
+    delete AsyncMachine.prototype.set;
+})(exports.asyncmachine || (exports.asyncmachine = {}));
+var asyncmachine = exports.asyncmachine;
+// Fake class for sane export.
+var AsyncMachine = (function (_super) {
+    __extends(AsyncMachine, _super);
+    function AsyncMachine() {
+        _super.apply(this, arguments);
+
+    }
+    return AsyncMachine;
+})(asyncmachine.AsyncMachine);
+exports.AsyncMachine = AsyncMachine;
+//@ sourceMappingURL=asyncmachine.js.map
+    }
+  };
+});
+asyncmachineTest.pkg(function(parents){
+  return {
+    'id':1,
+    'name':'asyncmachine-test',
+    'main':undefined,
+    'mainModuleId':'test',
+    'modules':[],
+    'parents':parents
+  };
+});
+asyncmachineTest.module(1, function(/* parent */){
+  return {
+    'id': 'test',
+    'pkg': arguments[0],
+    'wrapper': function(module, exports, global, Buffer,process,require, undefined){
+      // Generated by CoffeeScript 1.4.0
+(function() {
+  var Promise, asyncmachine, expect, sinon,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  asyncmachine = require('asyncmachine');
+  expect = require('chai').expect;
+  sinon = require('sinon');
+  Promise = require('rsvp').Promise;
+  describe("asyncmachine", function() {
+    var FooMachine, assert_order, mock_states;
+    FooMachine = (function(_super) {
+      __extends(FooMachine, _super);
+      function FooMachine() {
+        return FooMachine.__super__.constructor.apply(this, arguments);
+      }
+      FooMachine.prototype.state_A = {};
+      FooMachine.prototype.state_B = {};
+      FooMachine.prototype.state_C = {};
+      FooMachine.prototype.state_D = {};
+      FooMachine.prototype.constructor = function(state, config) {
+        return FooMachine.__super__.constructor.call(this, state, config);
+      };
+      return FooMachine;
+    })(asyncmachine.AsyncMachine);
+    mock_states = function(instance, states) {
+      var inner, state, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = states.length; _i < _len; _i++) {
+        state = states[_i];
+        instance["" + state + "_" + state] = sinon.spy();
+        instance["" + state + "_enter"] = sinon.spy();
+        instance["" + state + "_exit"] = sinon.spy();
+        instance["" + state + "_any"] = sinon.spy();
+        instance["any_" + state] = sinon.spy();
+        _results.push((function() {
+          var _j, _len1, _results1;
+          _results1 = [];
+          for (_j = 0, _len1 = states.length; _j < _len1; _j++) {
+            inner = states[_j];
+            if (inner === state) {
+              continue;
+            }
+            _results1.push(instance["" + inner + "_" + state] = sinon.spy());
+          }
+          return _results1;
+        })());
+      }
+      return _results;
+    };
+    assert_order = function(order) {
+      var check, k, m, _i, _j, _len, _len1, _ref, _ref1, _results;
+      _ref = order.slice(0, -1);
+      for (k = _i = 0, _len = _ref.length; _i < _len; k = ++_i) {
+        m = _ref[k];
+        order[k] = m.calledBefore(order[k + 1]);
+      }
+      _ref1 = order.slice(0, -1);
+      _results = [];
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        check = _ref1[_j];
+        _results.push(expect(check).to.be.ok);
+      }
+      return _results;
+    };
+    beforeEach(function() {
+      return this.machine = new FooMachine('A');
+    });
+    it('should allow to check if single state is active');
+    it("should allow for a delayed start");
+    it("should accept the starting state", function() {
+      return expect(this.machine.state()).to.eql(["A"]);
+    });
+    it("should allow to set the state", function() {
+      this.machine.setState("B");
+      return expect(this.machine.state()).to.eql(["B"]);
+    });
+    it("should allow to add a new state", function() {
+      this.machine.addState("B");
+      return expect(this.machine.state()).to.eql(["B", "A"]);
+    });
+    it("should allow to drop a state", function() {
+      this.machine.setState(["B", "C"]);
+      this.machine.dropState('C');
+      return expect(this.machine.state()).to.eql(["B"]);
+    });
+    it("should throw when setting unknown state", function() {
+      var func,
+        _this = this;
+      func = function() {
+        return _this.machine.setState("unknown");
+      };
+      return expect(func).to["throw"]();
+    });
+    it('should allow to define a new state');
+    it("should skip non existing states", function() {
+      this.machine.A_exit = sinon.spy();
+      this.machine.setState("unknown");
+      return expect(this.machine.A_exit.calledOnce).not.to.be.ok;
+    });
+    describe("when single to single state transition", function() {
+      beforeEach(function() {
+        this.machine = new FooMachine('A');
+        mock_states(this.machine, ['A', 'B']);
+        return this.machine.setState('B');
+      });
+      it("should trigger the state to state transition", function() {
+        return expect(this.machine.A_B.calledOnce).to.be.ok;
+      });
+      it("should trigger the state exit transition", function() {
+        return expect(this.machine.A_exit.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition to the new state", function() {
+        return expect(this.machine.B_enter.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition to \"Any\" state", function() {
+        return expect(this.machine.A_any.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition from \"Any\" state", function() {
+        return expect(this.machine.any_B.calledOnce).to.be.ok;
+      });
+      it('should set the correct state', function() {
+        return expect(this.machine.state()).to.eql(['B']);
+      });
+      return it("should remain the correct order", function() {
+        var order;
+        order = [this.machine.A_exit, this.machine.A_B, this.machine.A_any, this.machine.any_B, this.machine.B_enter];
+        return assert_order(order);
+      });
+    });
+    describe("when single to multi state transition", function() {
+      beforeEach(function() {
+        this.machine = new FooMachine('A');
+        mock_states(this.machine, ['A', 'B', 'C']);
+        return this.machine.setState(['B', 'C']);
+      });
+      it("should trigger the state to state transitions", function() {
+        expect(this.machine.A_B.calledOnce).to.be.ok;
+        return expect(this.machine.A_C.calledOnce).to.be.ok;
+      });
+      it("should trigger the state exit transition", function() {
+        return expect(this.machine.A_exit.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition to new states", function() {
+        expect(this.machine.B_enter.calledOnce).to.be.ok;
+        return expect(this.machine.C_enter.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition to \"Any\" state", function() {
+        return expect(this.machine.A_any.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition from \"Any\" state", function() {
+        expect(this.machine.any_B.calledOnce).to.be.ok;
+        return expect(this.machine.any_C.calledOnce).to.be.ok;
+      });
+      it('should set the correct state', function() {
+        return expect(this.machine.state()).to.eql(['B', 'C']);
+      });
+      return it("should remain the correct order", function() {
+        var order;
+        order = [this.machine.A_exit, this.machine.A_B, this.machine.A_C, this.machine.A_any, this.machine.any_B, this.machine.B_enter, this.machine.any_C, this.machine.C_enter];
+        return assert_order(order);
+      });
+    });
+    describe("when multi to single state transition", function() {
+      beforeEach(function() {
+        this.machine = new FooMachine(['A', 'B']);
+        mock_states(this.machine, ['A', 'B', 'C']);
+        return this.machine.setState(['C']);
+      });
+      it("should trigger the state to state transitions", function() {
+        expect(this.machine.B_C.calledOnce).to.be.ok;
+        return expect(this.machine.A_C.calledOnce).to.be.ok;
+      });
+      it("should trigger the state exit transition", function() {
+        expect(this.machine.A_exit.calledOnce).to.be.ok;
+        return expect(this.machine.B_exit.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition to the new state", function() {
+        return expect(this.machine.C_enter.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition to \"Any\" state", function() {
+        expect(this.machine.A_any.calledOnce).to.be.ok;
+        return expect(this.machine.B_any.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition from \"Any\" state", function() {
+        return expect(this.machine.any_C.calledOnce).to.be.ok;
+      });
+      it('should set the correct state', function() {
+        return expect(this.machine.state()).to.eql(['C']);
+      });
+      return it("should remain the correct order", function() {
+        var order;
+        order = [this.machine.A_exit, this.machine.A_C, this.machine.A_any, this.machine.B_exit, this.machine.B_C, this.machine.B_any, this.machine.any_C, this.machine.C_enter];
+        return assert_order(order);
+      });
+    });
+    describe("when multi to multi state transition", function() {
+      beforeEach(function() {
+        this.machine = new FooMachine(['A', 'B']);
+        mock_states(this.machine, ['A', 'B', 'C', 'D']);
+        return this.machine.setState(['D', 'C']);
+      });
+      it("should trigger the state to state transitions", function() {
+        expect(this.machine.A_C.calledOnce).to.be.ok;
+        expect(this.machine.A_D.calledOnce).to.be.ok;
+        expect(this.machine.B_C.calledOnce).to.be.ok;
+        return expect(this.machine.B_D.calledOnce).to.be.ok;
+      });
+      it("should trigger the state exit transition", function() {
+        expect(this.machine.A_exit.calledOnce).to.be.ok;
+        return expect(this.machine.B_exit.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition to the new state", function() {
+        expect(this.machine.C_enter.calledOnce).to.be.ok;
+        return expect(this.machine.D_enter.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition to \"Any\" state", function() {
+        expect(this.machine.A_any.calledOnce).to.be.ok;
+        return expect(this.machine.B_any.calledOnce).to.be.ok;
+      });
+      it("should trigger the transition from \"Any\" state", function() {
+        expect(this.machine.any_C.calledOnce).to.be.ok;
+        return expect(this.machine.any_D.calledOnce).to.be.ok;
+      });
+      it('should set the correct state', function() {
+        return expect(this.machine.state()).to.eql(['D', 'C']);
+      });
+      return it("should remain the correct order", function() {
+        var order;
+        order = [this.machine.A_exit, this.machine.A_D, this.machine.A_C, this.machine.A_any, this.machine.B_exit, this.machine.B_D, this.machine.B_C, this.machine.B_any, this.machine.any_D, this.machine.D_enter, this.machine.any_C, this.machine.C_enter];
+        return assert_order(order);
+      });
+    });
+    describe("when transitioning to an active state", function() {
+      beforeEach(function() {
+        this.machine = new FooMachine(['A', 'B']);
+        mock_states(this.machine, ['A', 'B', 'C', 'D']);
+        return this.machine.setState(['A']);
+      });
+      it('shouldn\'t trigger transition methods', function() {
+        expect(this.machine.A_exit.called).not.to.be.ok;
+        expect(this.machine.A_any.called).not.to.be.ok;
+        return expect(this.machine.any_A.called).not.to.be.ok;
+      });
+      return it('should remain in the requested state', function() {
+        return expect(this.machine.state()).to.eql(['A']);
+      });
+    });
+    describe('when order is defined by the depends attr', function() {
+      beforeEach(function() {
+        this.machine = new FooMachine(['A', 'B']);
+        mock_states(this.machine, ['A', 'B', 'C', 'D']);
+        this.machine.state_C.depends = ['D'];
+        this.machine.state_A.depends = ['B'];
+        return this.machine.setState(['C', 'D']);
+      });
+      describe('when entering', function() {
+        return it('should handle dependand states first', function() {
+          var order;
+          order = [this.machine.A_D, this.machine.A_C, this.machine.any_D, this.machine.D_enter, this.machine.any_C, this.machine.C_enter];
+          return assert_order(order);
+        });
+      });
+      return describe('when exiting', function() {
+        return it('should handle dependand states last', function() {
+          var order;
+          order = [this.machine.B_exit, this.machine.B_D, this.machine.B_C, this.machine.B_any, this.machine.A_exit, this.machine.A_D, this.machine.A_C, this.machine.A_any];
+          return assert_order(order);
+        });
+      });
+    });
+    describe('when one state blocks another', function() {
+      beforeEach(function() {
+        this.machine = new FooMachine(['A', 'B']);
+        mock_states(this.machine, ['A', 'B', 'C', 'D']);
+        this.machine.state_C = {
+          blocks: ['D']
+        };
+        return this.machine.setState('D');
+      });
+      describe('and they are set simultaneously', function() {
+        beforeEach(function() {
+          return this.ret = this.machine.setState(['C', 'D']);
+        });
+        it('should skip the second state', function() {
+          return expect(this.machine.state()).to.eql(['C']);
+        });
+        it('should return false', function() {
+          return expect(this.ret).to.eql(false);
+        });
+        return afterEach(function() {
+          return delete this.ret;
+        });
+      });
+      describe('and blocking one is added', function() {
+        return it('should unset the blocked one', function() {
+          this.machine.addState(['C']);
+          return expect(this.machine.state()).to.eql(['C']);
+        });
+      });
+      return describe('and cross blocking one is added', function() {
+        beforeEach(function() {
+          return this.machine.state_D = {
+            blocks: ['C']
+          };
+        });
+        describe('using setState', function() {
+          it('should unset the old one', function() {
+            this.machine.setState('C');
+            return expect(this.machine.state()).to.eql(['C']);
+          });
+          return it('should work in both ways', function() {
+            this.machine.setState('C');
+            expect(this.machine.state()).to.eql(['C']);
+            this.machine.setState('D');
+            return expect(this.machine.state()).to.eql(['D']);
+          });
+        });
+        return describe('using addState', function() {
+          it('should unset the old one', function() {
+            this.machine.addState('C');
+            return expect(this.machine.state()).to.eql(['C']);
+          });
+          return it('should work in both ways', function() {
+            this.machine.addState('C');
+            expect(this.machine.state()).to.eql(['C']);
+            this.machine.addState('D');
+            return expect(this.machine.state()).to.eql(['D']);
+          });
+        });
+      });
+    });
+    describe('when state is implied', function() {
+      beforeEach(function() {
+        this.machine = new FooMachine(['A']);
+        mock_states(this.machine, ['A', 'B', 'C', 'D']);
+        this.machine.state_C = {
+          implies: ['D']
+        };
+        this.machine.state_A = {
+          blocks: ['D']
+        };
+        return this.machine.setState(['C']);
+      });
+      it('should be activated', function() {
+        return expect(this.machine.state()).to.eql(['C', 'D']);
+      });
+      return it('should be skipped if blocked at the same time', function() {
+        this.machine.setState(['A', 'D']);
+        return expect(this.machine.state()).to.eql(['A']);
+      });
+    });
+    describe('when state requires another one', function() {
+      beforeEach(function() {
+        this.machine = new FooMachine(['A']);
+        mock_states(this.machine, ['A', 'B', 'C', 'D']);
+        return this.machine.state_C = {
+          requires: ['D']
+        };
+      });
+      it('should be set when required state is active', function() {
+        this.machine.setState(['C', 'D']);
+        return expect(this.machine.state()).to.eql(['C', 'D']);
+      });
+      return it('should\'t be set when required state isn\'t active', function() {
+        this.machine.setState(['C', 'A']);
+        return expect(this.machine.state()).to.eql(['A']);
+      });
+    });
+    describe('when state is changed', function() {
+      beforeEach(function() {
+        this.machine = new FooMachine('A');
+        return mock_states(this.machine, ['A', 'B', 'C', 'D']);
+      });
+      describe('and transition is canceled', function() {
+        beforeEach(function() {
+          return this.machine.D_enter = function() {
+            return false;
+          };
+        });
+        describe('when setting a new state', function() {
+          beforeEach(function() {
+            return this.ret = this.machine.setState('D');
+          });
+          it('should return false', function() {
+            return expect(this.machine.setState('D')).not.to.be.ok;
+          });
+          return it('should not change the previous state', function() {
+            return expect(this.machine.state()).to.eql(['A']);
+          });
+        });
+        return describe('when adding an additional state', function() {
+          beforeEach(function() {
+            return this.ret = this.machine.addState('D');
+          });
+          it('should return false', function() {
+            return expect(this.ret).not.to.be.ok;
+          });
+          return it('should not change the previous state', function() {
+            return expect(this.machine.state()).to.eql(['A']);
+          });
+        });
+      });
+      describe('and transition is successful', function() {
+        return it('should return true', function() {
+          return expect(this.machine.setState('D')).to.be.ok;
+        });
+      });
+      it('should provide previous state information', function(done) {
+        this.machine.D_enter = function() {
+          expect(this.state()).to.eql(['A']);
+          return done();
+        };
+        return this.machine.setState('D');
+      });
+      it('should provide target state information', function(done) {
+        this.machine.D_enter = function(target) {
+          expect(target).to.eql(['D']);
+          return done();
+        };
+        return this.machine.setState('D');
+      });
+      describe('with arguments', function() {
+        beforeEach(function() {
+          return this.machine.state_D = {
+            implies: ['B'],
+            blocks: ['A']
+          };
+        });
+        describe('and synchronous', function() {
+          beforeEach(function() {
+            this.machine.setState('A', 'C');
+            this.machine.setState('D', 'foo', 2);
+            return this.machine.dropState('C', 'foo', 2);
+          });
+          describe('and is explicit', function() {
+            it('should forward arguments to exit states', function() {
+              return expect(this.machine.C_exit.calledWith('foo', 2)).to.be.ok;
+            });
+            return it('should forward arguments to enter states', function() {
+              return expect(this.machine.D_enter.calledWith('foo', 2)).to.be.ok;
+            });
+          });
+          return describe('and is non-explicit', function() {
+            it('should not forward arguments to exit states', function() {
+              return expect(this.machine.A_exit.calledWith('foo', 2)).not.to.be.ok;
+            });
+            return it('should not forward arguments to enter states', function() {
+              return expect(this.machine.B_enter.calledWith('foo', 2)).not.to.be.ok;
+            });
+          });
+        });
+        return describe('and delayed', function() {
+          beforeEach(function(done) {
+            var _this = this;
+            return setTimeout(function() {
+              _this.machine.setStateLater('A', 'C');
+              _this.machine.setStateLater('D', 'foo', 2);
+              _this.machine.dropStateLater('C', 'foo', 2);
+              return done();
+            }, 0);
+          });
+          describe('and is explicit', function() {
+            it('should forward arguments to exit states', function() {
+              return expect(this.machine.C_exit.calledWith('foo', 2)).to.be.ok;
+            });
+            return it('should forward arguments to enter states', function() {
+              return expect(this.machine.D_enter.calledWith('foo', 2)).to.be.ok;
+            });
+          });
+          return describe('and is non-explicit', function() {
+            it('should not forward arguments to exit states', function() {
+              return expect(this.machine.A_exit.calledWith('foo', 2)).not.to.be.ok;
+            });
+            return it('should not forward arguments to enter states', function() {
+              return expect(this.machine.B_enter.calledWith('foo', 2)).not.to.be.ok;
+            });
+          });
+        });
+      });
+      describe('and delayed', function() {
+        beforeEach(function() {
+          return this.ret = this.machine.setStateLater('D');
+        });
+        it('should return a promise', function() {
+          return expect(this.ret instanceof Promise).to.be.ok;
+        });
+        it('should execute the change', function(done) {
+          var _this = this;
+          this.ret.resolve();
+          return this.ret.then(function() {
+            expect(_this.machine.any_D.calledOnce).to.be.ok;
+            expect(_this.machine.D_enter.calledOnce).to.be.ok;
+            return done();
+          });
+        });
+        it('should expose a ref to the last promise', function() {
+          return expect(this.machine.last_promise).to.equal(this.ret);
+        });
+        return describe('and then canceled', function() {
+          beforeEach(function() {
+            return this.ret.reject();
+          });
+          return it('should not execute the change', function() {
+            expect(this.machine.any_D.called).not.to.be.ok;
+            return expect(this.machine.D_enter.called).not.to.be.ok;
+          });
+        });
+      });
+      describe('and active state is also the target one', function() {
+        it('should trigger self transition at the very beggining', function() {
+          var order;
+          this.machine.setState(['A', 'B']);
+          order = [this.machine.A_A, this.machine.any_B, this.machine.B_enter];
+          return assert_order(order);
+        });
+        it('should be executed only for explicitly called states');
+        it('should be cancellable', function() {
+          this.machine.A_A = sinon.stub().returns(false);
+          this.machine.setState(['A', 'B']);
+          expect(this.machine.A_A.calledOnce).to.be.ok;
+          return expect(this.machine.any_B.called).not.to.be.ok;
+        });
+        return after(function() {
+          return delete this.machine.A_A;
+        });
+      });
+      return describe('should trigger events', function() {
+        beforeEach(function() {
+          this.machine = new FooMachine('A');
+          mock_states(this.machine, ['A', 'B', 'C', 'D']);
+          this.machine.setState(['A', 'C']);
+          this.machine.on('A._.A', this.A_A = sinon.spy());
+          this.machine.on('B.enter', this.B_enter = sinon.spy());
+          this.machine.on('C.exit', this.C_exit = sinon.spy());
+          this.machine.on('setState', this.setState = sinon.spy());
+          this.machine.on('cancelTransition', this.cancelTransition = sinon.spy());
+          this.machine.on('addState', this.addState = sinon.spy());
+          return this.machine.setState(['A', 'B']);
+        });
+        afterEach(function() {
+          delete this.C_exit;
+          delete this.A_A;
+          delete this.B_enter;
+          delete this.addState;
+          delete this.setState;
+          return delete this.cancelTransition;
+        });
+        it('for self transitions', function() {
+          return expect(this.A_A.called).to.be.ok;
+        });
+        it('for enter transitions', function() {
+          return expect(this.B_enter.called).to.be.ok;
+        });
+        it('for exit transtions', function() {
+          return expect(this.C_exit.called).to.be.ok;
+        });
+        it('which can cancel the transition', function() {
+          this.machine.on('D_enter', sinon.stub().returns(false));
+          this.machine.setState('D');
+          return expect(this.machine.D_any.called).not.to.be.ok;
+        });
+        it('for setting a new state', function() {
+          return expect(this.setState.called).to.be.ok;
+        });
+        it('for pushing a new state', function() {
+          return expect(this.addState.called).to.be.ok;
+        });
+        return it('for cancelling the transition', function() {
+          return expect(this.cancelTransition.called).to.be.ok;
+        });
+      });
+    });
+    describe('Events', function() {
+      var EventMachine;
+      EventMachine = (function(_super) {
+        __extends(EventMachine, _super);
+        function EventMachine() {
+          return EventMachine.__super__.constructor.apply(this, arguments);
+        }
+        EventMachine.prototype.state_TestNamespace = {};
+        return EventMachine;
+      })(FooMachine);
+      beforeEach(function() {
+        return this.machine = new EventMachine('A');
+      });
+      describe('should support states', function() {
+        return it('by triggering the listener at once for active states', function() {
+          var l1;
+          l1 = sinon.stub();
+          this.machine.on('A', l1);
+          return expect(l1.calledOnce).to.be.ok;
+        });
+      });
+      describe('should support namespaces', function() {
+        describe('with wildcards', function() {
+          beforeEach(function() {
+            this.listeners = [];
+            this.listeners.push(sinon.stub());
+            this.listeners.push(sinon.stub());
+            this.listeners.push(sinon.stub());
+            this.machine.on('enter.Test', this.listeners[0]);
+            this.machine.on('enter', this.listeners[1]);
+            this.machine.on('A', this.listeners[2]);
+            return this.machine.setState(['TestNamespace', 'B']);
+          });
+          it('should handle "enter.Test" sub event', function() {
+            return expect(this.listeners[0].callCount).to.eql(1);
+          });
+          it('should handle "enter.*" sub event', function() {
+            return expect(this.listeners[1].calledTwice).to.be.ok;
+          });
+          return it('should handle "A" sub events', function() {
+            return expect(this.listeners[2].callCount).to.eql(4);
+          });
+        });
+        return it('for all transitions', function() {
+          var l1, l2;
+          l1 = sinon.stub();
+          l2 = sinon.stub();
+          this.machine.on('Test.Namespace.enter', l1);
+          this.machine.on('A._.Test.Namespace', l2);
+          this.machine.setState('TestNamespace');
+          expect(l1.calledOnce).to.be.ok;
+          return expect(l2.calledOnce).to.be.ok;
+        });
+      });
+      return describe('piping', function() {
+        it('should forward a specific state', function() {
+          var emitter;
+          emitter = new EventMachine('A');
+          this.machine.pipeForward('B', emitter);
+          this.machine.setState('B');
+          return expect(emitter.state()).to.eql(['B', 'A']);
+        });
+        it('should forward a specific state as a different one', function() {
+          var emitter;
+          emitter = new EventMachine('A');
+          this.machine.pipeForward('B', emitter, 'C');
+          this.machine.setState('B');
+          return expect(emitter.state()).to.eql(['C', 'A']);
+        });
+        it('should invert a specific state as a different one', function() {
+          var emitter;
+          emitter = new EventMachine('A');
+          this.machine.pipeInvert('A', emitter, 'C');
+          this.machine.setState('B');
+          return expect(emitter.state()).to.eql(['C', 'A']);
+        });
+        it('should forward a whole machine', function() {
+          var machine2;
+          machine2 = new EventMachine(['A', 'D']);
+          expect(machine2.state()).to.eql(['A', 'D']);
+          this.machine.pipeForward(machine2);
+          this.machine.setState(['B', 'C']);
+          return expect(machine2.state()).to.eql(['C', 'B', 'D']);
+        });
+        return it('can be turned off');
+      });
+    });
+    return describe('bugs', function() {
+      return it('should trigger the enter state of a subclass', function() {
+        var Sub, sub;
+        this.a_enter_spy = sinon.spy();
+        this.b_enter_spy = sinon.spy();
+        Sub = (function(_super) {
+          __extends(Sub, _super);
+          function Sub() {
+            return Sub.__super__.constructor.apply(this, arguments);
+          }
+          Sub.prototype.state_A = {};
+          Sub.prototype.state_B = {};
+          Sub.prototype.A_enter = Sub.a_enter_spy;
+          Sub.prototype.B_enter = Sub.b_enter_spy;
+          return Sub;
+        })(asyncmachine.AsyncMachine);
+        mock_states(Sub.prototype, ['A', 'B']);
+        sub = new Sub('A', {
+          debug: true
+        });
+        debugger;
+        sub.setState('B');
+        expect(this.a_enter_spy.calledOnce).to.be.ok;
+        return expect(this.B_enter_spy.calledOnce).to.be.ok;
+      });
+    });
+  });
+}).call(this);
+    }
+  };
+});
+asyncmachineTest.pkg(8, function(parents){
   return {
     'id':9,
     'name':'buster-core',
@@ -238,7 +1430,7 @@ multistatemachineTest.pkg(8, function(parents){
     'parents':parents
   };
 });
-multistatemachineTest.module(9, function(/* parent */){
+asyncmachineTest.module(9, function(/* parent */){
   return {
     'id': 'lib/buster-core',
     'pkg': arguments[0],
@@ -442,7 +1634,7 @@ multistatemachineTest.module(9, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(9, function(/* parent */){
+asyncmachineTest.module(9, function(/* parent */){
   return {
     'id': 'lib/buster-core',
     'pkg': arguments[0],
@@ -646,7 +1838,7 @@ multistatemachineTest.module(9, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(9, function(/* parent */){
+asyncmachineTest.module(9, function(/* parent */){
   return {
     'id': 'lib/buster-event-emitter',
     'pkg': arguments[0],
@@ -780,7 +1972,7 @@ if (typeof module != "undefined") {
     }
   };
 });
-multistatemachineTest.module(9, function(/* parent */){
+asyncmachineTest.module(9, function(/* parent */){
   return {
     'id': 'lib/define-version-getter',
     'pkg': arguments[0],
@@ -802,7 +1994,7 @@ module.exports = function defineVersionGetter(mod, dirname) {
     }
   };
 });
-multistatemachineTest.pkg(7, function(parents){
+asyncmachineTest.pkg(7, function(parents){
   return {
     'id':8,
     'name':'buster-format',
@@ -812,7 +2004,7 @@ multistatemachineTest.pkg(7, function(parents){
     'parents':parents
   };
 });
-multistatemachineTest.module(8, function(/* parent */){
+asyncmachineTest.module(8, function(/* parent */){
   return {
     'id': 'lib/buster-format',
     'pkg': arguments[0],
@@ -974,7 +2166,7 @@ if (typeof module != "undefined") {
     }
   };
 });
-multistatemachineTest.module(8, function(/* parent */){
+asyncmachineTest.module(8, function(/* parent */){
   return {
     'id': 'lib/buster-format',
     'pkg': arguments[0],
@@ -1136,7 +2328,7 @@ if (typeof module != "undefined") {
     }
   };
 });
-multistatemachineTest.pkg(1, function(parents){
+asyncmachineTest.pkg(1, function(parents){
   return {
     'id':2,
     'name':'chai',
@@ -1146,7 +2338,7 @@ multistatemachineTest.pkg(1, function(parents){
     'parents':parents
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'index',
     'pkg': arguments[0],
@@ -1157,7 +2349,7 @@ multistatemachineTest.module(2, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai',
     'pkg': arguments[0],
@@ -1224,7 +2416,7 @@ exports.use(assert);
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/assertion',
     'pkg': arguments[0],
@@ -1328,7 +2520,7 @@ Object.defineProperty(Assertion.prototype, '_obj',
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/browser/error',
     'pkg': arguments[0],
@@ -1359,7 +2551,7 @@ AssertionError.prototype.toString = function() {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/core/assertions',
     'pkg': arguments[0],
@@ -2358,7 +3550,7 @@ module.exports = function (chai, _) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/error',
     'pkg': arguments[0],
@@ -2416,7 +3608,7 @@ AssertionError.prototype.toString = function() {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/interface/assert',
     'pkg': arguments[0],
@@ -3298,7 +4490,7 @@ module.exports = function (chai, util) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/interface/expect',
     'pkg': arguments[0],
@@ -3316,7 +4508,7 @@ module.exports = function (chai, util) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/interface/should',
     'pkg': arguments[0],
@@ -3387,7 +4579,7 @@ module.exports = function (chai, util) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/addChainableMethod',
     'pkg': arguments[0],
@@ -3457,7 +4649,7 @@ module.exports = function (ctx, name, method, chainingBehavior) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/addMethod',
     'pkg': arguments[0],
@@ -3500,7 +4692,7 @@ module.exports = function (ctx, name, method) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/addProperty',
     'pkg': arguments[0],
@@ -3546,7 +4738,7 @@ module.exports = function (ctx, name, getter) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/eql',
     'pkg': arguments[0],
@@ -3642,7 +4834,7 @@ function objEquiv(a, b) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/flag',
     'pkg': arguments[0],
@@ -3680,7 +4872,7 @@ module.exports = function (obj, key, value) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/getActual',
     'pkg': arguments[0],
@@ -3705,7 +4897,7 @@ module.exports = function (obj, args) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/getMessage',
     'pkg': arguments[0],
@@ -3756,7 +4948,7 @@ module.exports = function (obj, args) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/getName',
     'pkg': arguments[0],
@@ -3781,7 +4973,7 @@ module.exports = function (func) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/getPathValue',
     'pkg': arguments[0],
@@ -3885,7 +5077,7 @@ function _getPathValue (parsed, obj) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/index',
     'pkg': arguments[0],
@@ -3962,7 +5154,7 @@ exports.addChainableMethod = require('./addChainableMethod');
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/inspect',
     'pkg': arguments[0],
@@ -4242,7 +5434,7 @@ function objectToString(o) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/objDisplay',
     'pkg': arguments[0],
@@ -4289,7 +5481,7 @@ module.exports = function (obj) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/overwriteMethod',
     'pkg': arguments[0],
@@ -4344,7 +5536,7 @@ module.exports = function (ctx, name, method) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/overwriteProperty',
     'pkg': arguments[0],
@@ -4402,7 +5594,7 @@ module.exports = function (ctx, name, getter) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/test',
     'pkg': arguments[0],
@@ -4432,7 +5624,7 @@ module.exports = function (obj, args) {
     }
   };
 });
-multistatemachineTest.module(2, function(/* parent */){
+asyncmachineTest.module(2, function(/* parent */){
   return {
     'id': 'lib/chai/utils/transferFlags',
     'pkg': arguments[0],
@@ -4479,7 +5671,7 @@ module.exports = function (assertion, object, includeAll) {
     }
   };
 });
-multistatemachineTest.pkg(3, function(parents){
+asyncmachineTest.pkg(3, function(parents){
   return {
     'id':4,
     'name':'es5-shim',
@@ -4489,7 +5681,7 @@ multistatemachineTest.pkg(3, function(parents){
     'parents':parents
   };
 });
-multistatemachineTest.module(4, function(/* parent */){
+asyncmachineTest.module(4, function(/* parent */){
   return {
     'id': 'es5-shim',
     'pkg': arguments[0],
@@ -5360,7 +6552,7 @@ var toObject = function (o) {
     }
   };
 });
-multistatemachineTest.pkg(3, function(parents){
+asyncmachineTest.pkg(3, function(parents){
   return {
     'id':6,
     'name':'lucidjs',
@@ -5370,7 +6562,7 @@ multistatemachineTest.pkg(3, function(parents){
     'parents':parents
   };
 });
-multistatemachineTest.module(6, function(/* parent */){
+asyncmachineTest.module(6, function(/* parent */){
   return {
     'id': 'lucid',
     'pkg': arguments[0],
@@ -5762,1176 +6954,7 @@ multistatemachineTest.module(6, function(/* parent */){
     }
   };
 });
-multistatemachineTest.pkg(1, function(parents){
-  return {
-    'id':3,
-    'name':'multistatemachine',
-    'main':undefined,
-    'mainModuleId':'build/lib/multistatemachine',
-    'modules':[],
-    'parents':parents
-  };
-});
-multistatemachineTest.module(3, function(/* parent */){
-  return {
-    'id': 'build/lib/multistatemachine',
-    'pkg': arguments[0],
-    'wrapper': function(module, exports, global, Buffer,process,require, undefined){
-      var __extends = this.__extends || function (d, b) {
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
-///<reference path="headers/node.d.ts" />
-///<reference path="headers/lucidjs.d.ts" />
-///<reference path="headers/rsvp.d.ts" />
-///<reference path="headers/es5-shim.d.ts" />
-var LucidJS = require('lucidjs')//; required!
-
-var rsvp = require('rsvp')
-var Promise = rsvp.Promise;
-(function (multistatemachine) {
-    require('es5-shim');
-    //autostart: bool;
-    //export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
-    var MultiStateMachine = (function () {
-        function MultiStateMachine(state, config) {
-            this.config = config;
-            this.disabled = false;
-            LucidJS.emitter(this);
-            if(config && config.debug) {
-                this.debugStates();
-            }
-            state = Array.isArray(state) ? state : [
-                state
-            ];
-            this.initStates(state);
-        }
-        // Prepare class'es states. Required to be called manually for inheriting classes.
-                MultiStateMachine.prototype.initStates = function (state) {
-            var states = [];
-            for(var name in this) {
-                var match = name.match(/^state_(.+)/);
-                if(match) {
-                    states.push(match[1]);
-                }
-            }
-            this.states = states;
-            this.states_active = [];
-            this.setState(state);
-        }// Tells if a state is active now.
-        ;
-        MultiStateMachine.prototype.state = function (name) {
-            if(name) {
-                return !!~this.states_active.indexOf(name);
-            }
-            return this.states_active;
-        }// Activate certain states and deactivate the current ones.
-        ;
-        MultiStateMachine.prototype.setState = function (states) {
-            var args = [];
-            for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                args[_i] = arguments[_i + 1];
-            }
-            var states_to_set = Array.isArray(states) ? states : [
-                states
-            ];
-            if(this.selfTransitionExec_(states_to_set, args) === false) {
-                return false;
-            }
-            states = this.setupTargetStates_(states_to_set);
-            //console.log('setState1', states_to_set)
-            //console.log('current', this.states_active)
-            //console.log('setState2', states)
-            var ret = this.transition_(states, args);
-            return ret === false ? false : this.allStatesSet(states_to_set);
-        }// Curried version of setState.
-        ;
-        MultiStateMachine.prototype.setStateLater = function (states) {
-            var _this = this;
-            var rest = [];
-            for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                rest[_i] = arguments[_i + 1];
-            }
-            var promise = new Promise();
-            promise.then(function () {
-                _this.setState.apply(_this, [].concat(states, rest));
-            });
-            return this.last_promise = promise;
-        }// Deactivate certain states.
-        ;
-        MultiStateMachine.prototype.dropState = function (states) {
-            var args = [];
-            for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                args[_i] = arguments[_i + 1];
-            }
-            var states_to_drop = Array.isArray(states) ? states : [
-                states
-            ];
-            // Invert states to target ones.
-            states = this.states_active.filter(function (state) {
-                return !~states_to_drop.indexOf(state);
-            });
-            states = this.setupTargetStates_(states);
-            this.transition_(states, args);
-            return this.allStatesNotSet(states_to_drop);
-        }// Deactivate certain states.
-        ;
-        MultiStateMachine.prototype.dropStateLater = function (states) {
-            var _this = this;
-            var rest = [];
-            for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                rest[_i] = arguments[_i + 1];
-            }
-            var promise = new Promise();
-            promise.then(function () {
-                _this.dropState.apply(_this, [].concat(states, rest));
-            });
-            return this.last_promise = promise;
-        }// Activate certain states and keep the current ones.
-        // TODO Maybe avoid double concat of states_active
-        ;
-        MultiStateMachine.prototype.addState = function (states) {
-            var args = [];
-            for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                args[_i] = arguments[_i + 1];
-            }
-            var states_to_add = Array.isArray(states) ? states : [
-                states
-            ];
-            if(this.selfTransitionExec_(states_to_add, args) === false) {
-                return false;
-            }
-            states = states_to_add.concat(this.states_active);
-            //console.log('states1', states)
-            //console.log('current', this.states_active)
-            states = this.setupTargetStates_(states);
-            //console.log('states2', states)
-            var ret = this.transition_(states, args);
-            return ret === false ? false : this.allStatesSet(states_to_add);
-        }// Curried version of addState
-        ;
-        MultiStateMachine.prototype.addStateLater = function (states) {
-            var _this = this;
-            var rest = [];
-            for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                rest[_i] = arguments[_i + 1];
-            }
-            var promise = new Promise();
-            promise.then(function () {
-                _this.addState.apply(_this, [].concat(states, rest));
-            });
-            return this.last_promise = promise;
-            //    private trasitions: string[];
-                    };
-        MultiStateMachine.prototype.pipeForward = function (state, machine, target_state) {
-            var _this = this;
-            if(state instanceof MultiStateMachine) {
-                target_state = machine;
-                machine = state;
-                state = this.states;
-            }
-            [].concat(state).forEach(function (state) {
-                var new_state = target_state || state;
-                state = _this.namespaceStateName(state);
-                _this.on(state + '.enter', function () {
-                    return machine.addState(new_state);
-                });
-                _this.on(state + '.exit', function () {
-                    return machine.dropState(new_state);
-                });
-            });
-        };
-        MultiStateMachine.prototype.pipeInvert = function (state, machine, target_state) {
-            state = this.namespaceStateName(state);
-            this.on(state + '.enter', function () {
-                machine.dropState(target_state);
-            });
-            this.on(state + '.exit', function () {
-                machine.addState(target_state);
-            });
-        };
-        MultiStateMachine.prototype.pipeOff = function () {
-        }// TODO use a regexp lib for IE8's 'g' flag compat?
-        ;
-        MultiStateMachine.prototype.namespaceStateName = function (state) {
-            // CamelCase to Camel.Case
-            return state.replace(/([a-zA-Z])([A-Z])/g, '$1.$2');
-        };
-        MultiStateMachine.prototype.defineState = function (name, config) {
-            throw new Error('not implemented yet');
-        };
-        MultiStateMachine.prototype.debugStates = function (prefix) {
-            if(this.debug_states_) {
-                // OFF
-                this.trigger = this.debug_states_;
-                delete this.debug_states_;
-            } else {
-                // ON
-                this.debug_states_ = this.trigger;
-                this.trigger = function (event) {
-                    var args = [];
-                    for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                        args[_i] = arguments[_i + 1];
-                    }
-                    prefix = prefix || '';
-                    console.log(prefix + event);
-                    return this.debug_states_.apply(this, [].concat([
-                        event
-                    ], args));
-                };
-            }
-        };
-        MultiStateMachine.prototype.initMSM = function (state, config) {
-            MultiStateMachine.apply(this, arguments);
-        }// Mixin multistatemachine into a prototype of another constructor.
-        ;
-        MultiStateMachine.mixin = function mixin(prototype) {
-            var _this = this;
-            Object.keys(this.prototype).forEach(function (key) {
-                prototype[key] = _this.prototype[key];
-            });
-        }
-        ////////////////////////////
-        // PRIVATES
-        ////////////////////////////
-                MultiStateMachine.prototype.allStatesSet = function (states) {
-            var _this = this;
-            return !states.reduce(function (ret, state) {
-                return ret || !_this.state(state);
-            }, false);
-        };
-        MultiStateMachine.prototype.allStatesNotSet = function (states) {
-            var _this = this;
-            return !states.reduce(function (ret, state) {
-                return ret || _this.state(state);
-            }, false);
-        };
-        MultiStateMachine.prototype.namespaceTransition_ = function (transition) {
-            // CamelCase to Camel.Case
-            return this.namespaceStateName(transition).replace(// A_exit -> A.exit
-            /_([a-z]+)$/, '.$1').replace(// A_B -> A._.B
-            '_', '._.');
-        };
-        MultiStateMachine.prototype.getState_ = function (name) {
-            return this['state_' + name];
-        }// Executes self transitions (eg ::A_A) based on active states.
-        ;
-        MultiStateMachine.prototype.selfTransitionExec_ = function (states, args) {
-            var _this = this;
-            var ret = states.some(function (state) {
-                var ret, name = state + '_' + state;
-                var method = _this[name];
-                if(method && ~_this.states_active.indexOf(state)) {
-                    ret = method();
-                    if(ret === false) {
-                        return true;
-                    }
-                    var event = _this.namespaceTransition_(name);
-                    return _this.trigger(event, args) === false;
-                }
-            });
-            return ret === true ? false : true;
-        };
-        MultiStateMachine.prototype.setupTargetStates_ = function (states, exclude) {
-            if (typeof exclude === "undefined") { exclude = []; }
-            var _this = this;
-            // Remove non existing states
-            states = states.filter(function (name) {
-                return ~_this.states.indexOf(name);
-            });
-            states = this.parseImplies_(states);
-            states = this.removeDuplicateStates_(states);
-            // Check if state is blocked or excluded
-            var already_blocked = [];
-            states = states.reverse().filter(function (name) {
-                var blocked_by = _this.isStateBlocked_(states, name);
-                // Remove states already blocked.
-                blocked_by = blocked_by.filter(function (blocker_name) {
-                    return !~already_blocked.indexOf(blocker_name);
-                });
-                if(blocked_by.length) {
-                    already_blocked.push(name);
-                }
-                return !blocked_by.length && !~exclude.indexOf(name);
-            }).reverse();
-            return this.parseRequires_(states);
-        }// Collect implied states
-        ;
-        MultiStateMachine.prototype.parseImplies_ = function (states) {
-            var _this = this;
-            states.forEach(function (name) {
-                var state = _this.getState_(name);
-                if(!state.implies) {
-                    return;
-                }
-                states = states.concat(state.implies);
-            });
-            return states;
-        }// Check required states (until no change happens)
-        ;
-        MultiStateMachine.prototype.parseRequires_ = function (states) {
-            var _this = this;
-            var missing = true;
-            while(missing) {
-                missing = false;
-                states = states.filter(function (name) {
-                    var state = _this.getState_(name);
-                    missing = (state.requires || []).reduce(function (memo, req) {
-                        return memo || !~states.indexOf(req);
-                    }, false);
-                    return !missing;
-                });
-            }
-            return states;
-        };
-        MultiStateMachine.prototype.removeDuplicateStates_ = function (states) {
-            // Remove duplicates.
-            var states2 = [];
-            states.forEach(function (name) {
-                if(!~states2.indexOf(name)) {
-                    states2.push(name);
-                }
-            });
-            return states2;
-        };
-        MultiStateMachine.prototype.isStateBlocked_ = function (states, name) {
-            var _this = this;
-            var blocked_by = [];
-            states.forEach(function (name2) {
-                var state = _this.getState_(name2);
-                if(state.blocks && ~state.blocks.indexOf(name)) {
-                    blocked_by.push(name2);
-                }
-            });
-            return blocked_by;
-        };
-        MultiStateMachine.prototype.transition_ = function (to, args) {
-            var _this = this;
-            // TODO handle args
-            if(!to.length) {
-                return true;
-            }
-            // Collect states to drop, based on the target states.
-            var from = this.states_active.filter(function (state) {
-                return !~to.indexOf(state);
-            });
-            this.orderStates_(to);
-            this.orderStates_(from);
-            // var wait = <Function[]>[]
-            var ret = from.some(function (state) {
-                return _this.transitionExit_(state, to) === false;
-            });
-            if(ret === true) {
-                return false;
-            }
-            ret = to.some(function (state) {
-                // Skip transition if state is already active.
-                if(~_this.states_active.indexOf(state)) {
-                    return false;
-                }
-                return _this.transitionEnter_(state, to) === false;
-            });
-            if(ret === true) {
-                return false;
-            }
-            this.states_active = to;
-            return true;
-        }// Exit transition handles state-to-state methods.
-        ;
-        MultiStateMachine.prototype.transitionExit_ = function (from, to) {
-            var _this = this;
-            var method, callbacks = [];
-            if(this.transitionExec_(from + '_exit', to) === false) {
-                return false;
-            }
-            // Duplicate event for namespacing.
-            var ret = this.transitionExec_('exit.' + this.namespaceStateName(from), to);
-            if(ret === false) {
-                return false;
-            }
-            ret = to.some(function (state) {
-                return _this.transitionExec_(from + '_' + state, to) === false;
-            });
-            if(ret === true) {
-                return false;
-            }
-            // TODO trigger the exit transitions (all of them) after all other middle
-            // transitions (_any etc)
-            ret = this.transitionExec_(from + '_any', to) === false;
-            return ret === true ? false : true;
-        };
-        MultiStateMachine.prototype.transitionEnter_ = function (to, target_states) {
-            var method, callbacks = [];
-            //      from.forEach( (state: string) => {
-            //        this.transitionExec_( state + '_' + to )
-            //      })
-            if(this.transitionExec_('any_' + to, target_states) === false) {
-                return false;
-            }
-            // TODO trigger the enter transitions (all of them) after all other middle
-            // transitions (any_ etc)
-            if(ret = this.transitionExec_(to + '_enter', target_states) === false) {
-                return false;
-            }
-            // Duplicate event for namespacing.
-            var ret = this.trigger('enter.' + this.namespaceStateName(to), target_states);
-            return ret === false ? false : true;
-        };
-        MultiStateMachine.prototype.transitionExec_ = function (method, target_states, args) {
-            if (typeof args === "undefined") { args = []; }
-            args = [].concat([
-                target_states
-            ], args);
-            var ret;
-            if(this[method] instanceof Function) {
-                ret = this[method].apply(this, args);
-                if(ret === false) {
-                    return false;
-                }
-            }
-            return this.trigger(this.namespaceTransition_(method), args);
-        }// is_exit tells that the order is exit transitions
-        ;
-        MultiStateMachine.prototype.orderStates_ = function (states) {
-            var _this = this;
-            states.sort(function (e1, e2) {
-                var state1 = _this.getState_(e1);
-                var state2 = _this.getState_(e2);
-                var ret = 0;
-                if(state1.depends && ~state1.depends.indexOf(e2)) {
-                    ret = 1;
-                } else {
-                    if(state2.depends && ~state2.depends.indexOf(e1)) {
-                        ret = -1;
-                    }
-                }
-                return ret;
-            });
-        }// Event Emitter interface
-        // TODO cover as mixin in the d.ts file
-        ;
-        MultiStateMachine.prototype.on = function (event, VarArgsBoolFn) {
-        };
-        MultiStateMachine.prototype.once = function (event, VarArgsBoolFn) {
-        };
-        MultiStateMachine.prototype.trigger = function (event) {
-            var args = [];
-            for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                args[_i] = arguments[_i + 1];
-            }
-            return true;
-        };
-        MultiStateMachine.prototype.set = function (event) {
-            var args = [];
-            for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                args[_i] = arguments[_i + 1];
-            }
-            return true;
-        };
-        return MultiStateMachine;
-    })();
-    multistatemachine.AsyncMachine = MultiStateMachine;
-    // Support LucidJS mixin
-    // TODO make it sucks less
-    delete MultiStateMachine.prototype.on;
-    delete MultiStateMachine.prototype.once;
-    delete MultiStateMachine.prototype.trigger;
-    delete MultiStateMachine.prototype.set;
-})(exports.multistatemachine || (exports.multistatemachine = {}));
-var multistatemachine = exports.multistatemachine;
-// Fake class for sane export.
-var MultiStateMachine = (function (_super) {
-    __extends(MultiStateMachine, _super);
-    function MultiStateMachine() {
-        _super.apply(this, arguments);
-
-    }
-    return MultiStateMachine;
-})(multistatemachine.AsyncMachine);
-exports.MultiStateMachine = MultiStateMachine;
-//@ sourceMappingURL=multistatemachine.js.map
-    }
-  };
-});
-multistatemachineTest.pkg(function(parents){
-  return {
-    'id':1,
-    'name':'multistatemachine-test',
-    'main':undefined,
-    'mainModuleId':'test',
-    'modules':[],
-    'parents':parents
-  };
-});
-multistatemachineTest.module(1, function(/* parent */){
-  return {
-    'id': 'test',
-    'pkg': arguments[0],
-    'wrapper': function(module, exports, global, Buffer,process,require, undefined){
-      // Generated by CoffeeScript 1.4.0
-(function() {
-  var Promise, expect, multistatemachine, sinon,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-  multistatemachine = require('multistatemachine');
-  expect = require('chai').expect;
-  sinon = require('sinon');
-  Promise = require('rsvp').Promise;
-  describe("multistatemachine", function() {
-    var FooMachine, assert_order, mock_states;
-    FooMachine = (function(_super) {
-      __extends(FooMachine, _super);
-      FooMachine.prototype.state_A = {};
-      FooMachine.prototype.state_B = {};
-      FooMachine.prototype.state_C = {};
-      FooMachine.prototype.state_D = {};
-      function FooMachine(state, config) {
-        FooMachine.__super__.constructor.call(this, state, config);
-      }
-      return FooMachine;
-    })(multistatemachine.MultiStateMachine);
-    mock_states = function(instance, states) {
-      var inner, state, _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = states.length; _i < _len; _i++) {
-        state = states[_i];
-        instance["" + state + "_" + state] = sinon.spy();
-        instance["" + state + "_enter"] = sinon.spy();
-        instance["" + state + "_exit"] = sinon.spy();
-        instance["" + state + "_any"] = sinon.spy();
-        instance["any_" + state] = sinon.spy();
-        _results.push((function() {
-          var _j, _len1, _results1;
-          _results1 = [];
-          for (_j = 0, _len1 = states.length; _j < _len1; _j++) {
-            inner = states[_j];
-            if (inner === state) {
-              continue;
-            }
-            _results1.push(instance["" + inner + "_" + state] = sinon.spy());
-          }
-          return _results1;
-        })());
-      }
-      return _results;
-    };
-    assert_order = function(order) {
-      var check, k, m, _i, _j, _len, _len1, _ref, _ref1, _results;
-      _ref = order.slice(0, -1);
-      for (k = _i = 0, _len = _ref.length; _i < _len; k = ++_i) {
-        m = _ref[k];
-        order[k] = m.calledBefore(order[k + 1]);
-      }
-      _ref1 = order.slice(0, -1);
-      _results = [];
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        check = _ref1[_j];
-        _results.push(expect(check).to.be.ok);
-      }
-      return _results;
-    };
-    beforeEach(function() {
-      return this.machine = new FooMachine('A');
-    });
-    it('should allow to check if single state is active');
-    it("should allow for a delayed start");
-    it("should accept the starting state", function() {
-      return expect(this.machine.state()).to.eql(["A"]);
-    });
-    it("should allow to set the state", function() {
-      this.machine.setState("B");
-      return expect(this.machine.state()).to.eql(["B"]);
-    });
-    it("should allow to add a new state", function() {
-      this.machine.addState("B");
-      return expect(this.machine.state()).to.eql(["B", "A"]);
-    });
-    it("should allow to drop a state", function() {
-      this.machine.setState(["B", "C"]);
-      this.machine.dropState('C');
-      return expect(this.machine.state()).to.eql(["B"]);
-    });
-    it("should throw when setting unknown state", function() {
-      var func,
-        _this = this;
-      func = function() {
-        return _this.machine.setState("unknown");
-      };
-      return expect(func).to["throw"]();
-    });
-    it('should allow to define a new state');
-    it("should skip non existing states", function() {
-      this.machine.A_exit = sinon.spy();
-      this.machine.setState("unknown");
-      return expect(this.machine.A_exit.calledOnce).not.to.be.ok;
-    });
-    describe("when single to single state transition", function() {
-      beforeEach(function() {
-        this.machine = new FooMachine('A');
-        mock_states(this.machine, ['A', 'B']);
-        return this.machine.setState('B');
-      });
-      it("should trigger the state to state transition", function() {
-        return expect(this.machine.A_B.calledOnce).to.be.ok;
-      });
-      it("should trigger the state exit transition", function() {
-        return expect(this.machine.A_exit.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition to the new state", function() {
-        return expect(this.machine.B_enter.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition to \"Any\" state", function() {
-        return expect(this.machine.A_any.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition from \"Any\" state", function() {
-        return expect(this.machine.any_B.calledOnce).to.be.ok;
-      });
-      it('should set the correct state', function() {
-        return expect(this.machine.state()).to.eql(['B']);
-      });
-      return it("should remain the correct order", function() {
-        var order;
-        order = [this.machine.A_exit, this.machine.A_B, this.machine.A_any, this.machine.any_B, this.machine.B_enter];
-        return assert_order(order);
-      });
-    });
-    describe("when single to multi state transition", function() {
-      beforeEach(function() {
-        this.machine = new FooMachine('A');
-        mock_states(this.machine, ['A', 'B', 'C']);
-        return this.machine.setState(['B', 'C']);
-      });
-      it("should trigger the state to state transitions", function() {
-        expect(this.machine.A_B.calledOnce).to.be.ok;
-        return expect(this.machine.A_C.calledOnce).to.be.ok;
-      });
-      it("should trigger the state exit transition", function() {
-        return expect(this.machine.A_exit.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition to new states", function() {
-        expect(this.machine.B_enter.calledOnce).to.be.ok;
-        return expect(this.machine.C_enter.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition to \"Any\" state", function() {
-        return expect(this.machine.A_any.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition from \"Any\" state", function() {
-        expect(this.machine.any_B.calledOnce).to.be.ok;
-        return expect(this.machine.any_C.calledOnce).to.be.ok;
-      });
-      it('should set the correct state', function() {
-        return expect(this.machine.state()).to.eql(['B', 'C']);
-      });
-      return it("should remain the correct order", function() {
-        var order;
-        order = [this.machine.A_exit, this.machine.A_B, this.machine.A_C, this.machine.A_any, this.machine.any_B, this.machine.B_enter, this.machine.any_C, this.machine.C_enter];
-        return assert_order(order);
-      });
-    });
-    describe("when multi to single state transition", function() {
-      beforeEach(function() {
-        this.machine = new FooMachine(['A', 'B']);
-        mock_states(this.machine, ['A', 'B', 'C']);
-        return this.machine.setState(['C']);
-      });
-      it("should trigger the state to state transitions", function() {
-        expect(this.machine.B_C.calledOnce).to.be.ok;
-        return expect(this.machine.A_C.calledOnce).to.be.ok;
-      });
-      it("should trigger the state exit transition", function() {
-        expect(this.machine.A_exit.calledOnce).to.be.ok;
-        return expect(this.machine.B_exit.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition to the new state", function() {
-        return expect(this.machine.C_enter.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition to \"Any\" state", function() {
-        expect(this.machine.A_any.calledOnce).to.be.ok;
-        return expect(this.machine.B_any.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition from \"Any\" state", function() {
-        return expect(this.machine.any_C.calledOnce).to.be.ok;
-      });
-      it('should set the correct state', function() {
-        return expect(this.machine.state()).to.eql(['C']);
-      });
-      return it("should remain the correct order", function() {
-        var order;
-        order = [this.machine.A_exit, this.machine.A_C, this.machine.A_any, this.machine.B_exit, this.machine.B_C, this.machine.B_any, this.machine.any_C, this.machine.C_enter];
-        return assert_order(order);
-      });
-    });
-    describe("when multi to multi state transition", function() {
-      beforeEach(function() {
-        this.machine = new FooMachine(['A', 'B']);
-        mock_states(this.machine, ['A', 'B', 'C', 'D']);
-        return this.machine.setState(['D', 'C']);
-      });
-      it("should trigger the state to state transitions", function() {
-        expect(this.machine.A_C.calledOnce).to.be.ok;
-        expect(this.machine.A_D.calledOnce).to.be.ok;
-        expect(this.machine.B_C.calledOnce).to.be.ok;
-        return expect(this.machine.B_D.calledOnce).to.be.ok;
-      });
-      it("should trigger the state exit transition", function() {
-        expect(this.machine.A_exit.calledOnce).to.be.ok;
-        return expect(this.machine.B_exit.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition to the new state", function() {
-        expect(this.machine.C_enter.calledOnce).to.be.ok;
-        return expect(this.machine.D_enter.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition to \"Any\" state", function() {
-        expect(this.machine.A_any.calledOnce).to.be.ok;
-        return expect(this.machine.B_any.calledOnce).to.be.ok;
-      });
-      it("should trigger the transition from \"Any\" state", function() {
-        expect(this.machine.any_C.calledOnce).to.be.ok;
-        return expect(this.machine.any_D.calledOnce).to.be.ok;
-      });
-      it('should set the correct state', function() {
-        return expect(this.machine.state()).to.eql(['D', 'C']);
-      });
-      return it("should remain the correct order", function() {
-        var order;
-        order = [this.machine.A_exit, this.machine.A_D, this.machine.A_C, this.machine.A_any, this.machine.B_exit, this.machine.B_D, this.machine.B_C, this.machine.B_any, this.machine.any_D, this.machine.D_enter, this.machine.any_C, this.machine.C_enter];
-        return assert_order(order);
-      });
-    });
-    describe("when transitioning to an active state", function() {
-      beforeEach(function() {
-        this.machine = new FooMachine(['A', 'B']);
-        mock_states(this.machine, ['A', 'B', 'C', 'D']);
-        return this.machine.setState(['A']);
-      });
-      it('shouldn\'t trigger transition methods', function() {
-        expect(this.machine.A_exit.called).not.to.be.ok;
-        expect(this.machine.A_any.called).not.to.be.ok;
-        return expect(this.machine.any_A.called).not.to.be.ok;
-      });
-      return it('should remain in the requested state', function() {
-        return expect(this.machine.state()).to.eql(['A']);
-      });
-    });
-    describe('when order is defined by the depends attr', function() {
-      beforeEach(function() {
-        this.machine = new FooMachine(['A', 'B']);
-        mock_states(this.machine, ['A', 'B', 'C', 'D']);
-        this.machine.state_C.depends = ['D'];
-        this.machine.state_A.depends = ['B'];
-        return this.machine.setState(['C', 'D']);
-      });
-      describe('when entering', function() {
-        return it('should handle dependand states first', function() {
-          var order;
-          order = [this.machine.A_D, this.machine.A_C, this.machine.any_D, this.machine.D_enter, this.machine.any_C, this.machine.C_enter];
-          return assert_order(order);
-        });
-      });
-      return describe('when exiting', function() {
-        return it('should handle dependand states last', function() {
-          var order;
-          order = [this.machine.B_exit, this.machine.B_D, this.machine.B_C, this.machine.B_any, this.machine.A_exit, this.machine.A_D, this.machine.A_C, this.machine.A_any];
-          return assert_order(order);
-        });
-      });
-    });
-    describe('when one state blocks another', function() {
-      beforeEach(function() {
-        this.machine = new FooMachine(['A', 'B']);
-        mock_states(this.machine, ['A', 'B', 'C', 'D']);
-        this.machine.state_C = {
-          blocks: ['D']
-        };
-        return this.machine.setState('D');
-      });
-      describe('and they are set simultaneously', function() {
-        beforeEach(function() {
-          return this.ret = this.machine.setState(['C', 'D']);
-        });
-        it('should skip the second state', function() {
-          return expect(this.machine.state()).to.eql(['C']);
-        });
-        it('should return false', function() {
-          return expect(this.ret).to.eql(false);
-        });
-        return afterEach(function() {
-          return delete this.ret;
-        });
-      });
-      describe('and blocking one is added', function() {
-        return it('should unset the blocked one', function() {
-          this.machine.addState(['C']);
-          return expect(this.machine.state()).to.eql(['C']);
-        });
-      });
-      return describe('and cross blocking one is added', function() {
-        beforeEach(function() {
-          return this.machine.state_D = {
-            blocks: ['C']
-          };
-        });
-        describe('using setState', function() {
-          it('should unset the old one', function() {
-            this.machine.setState('C');
-            return expect(this.machine.state()).to.eql(['C']);
-          });
-          return it('should work in both ways', function() {
-            this.machine.setState('C');
-            expect(this.machine.state()).to.eql(['C']);
-            this.machine.setState('D');
-            return expect(this.machine.state()).to.eql(['D']);
-          });
-        });
-        return describe('using addState', function() {
-          it('should unset the old one', function() {
-            this.machine.addState('C');
-            return expect(this.machine.state()).to.eql(['C']);
-          });
-          return it('should work in both ways', function() {
-            this.machine.addState('C');
-            expect(this.machine.state()).to.eql(['C']);
-            this.machine.addState('D');
-            return expect(this.machine.state()).to.eql(['D']);
-          });
-        });
-      });
-    });
-    describe('when state is implied', function() {
-      beforeEach(function() {
-        this.machine = new FooMachine(['A']);
-        mock_states(this.machine, ['A', 'B', 'C', 'D']);
-        this.machine.state_C = {
-          implies: ['D']
-        };
-        this.machine.state_A = {
-          blocks: ['D']
-        };
-        return this.machine.setState(['C']);
-      });
-      it('should be activated', function() {
-        return expect(this.machine.state()).to.eql(['C', 'D']);
-      });
-      return it('should be skipped if blocked at the same time', function() {
-        this.machine.setState(['A', 'D']);
-        return expect(this.machine.state()).to.eql(['A']);
-      });
-    });
-    describe('when state requires another one', function() {
-      beforeEach(function() {
-        this.machine = new FooMachine(['A']);
-        mock_states(this.machine, ['A', 'B', 'C', 'D']);
-        return this.machine.state_C = {
-          requires: ['D']
-        };
-      });
-      it('should be set when required state is active', function() {
-        this.machine.setState(['C', 'D']);
-        return expect(this.machine.state()).to.eql(['C', 'D']);
-      });
-      return it('should\'t be set when required state isn\'t active', function() {
-        this.machine.setState(['C', 'A']);
-        return expect(this.machine.state()).to.eql(['A']);
-      });
-    });
-    describe('when state is changed', function() {
-      beforeEach(function() {
-        this.machine = new FooMachine('A');
-        return mock_states(this.machine, ['A', 'B', 'C', 'D']);
-      });
-      describe('and transition is canceled', function() {
-        beforeEach(function() {
-          return this.machine.D_enter = function() {
-            return false;
-          };
-        });
-        describe('when setting a new state', function() {
-          beforeEach(function() {
-            return this.ret = this.machine.setState('D');
-          });
-          it('should return false', function() {
-            return expect(this.machine.setState('D')).not.to.be.ok;
-          });
-          return it('should not change the previous state', function() {
-            return expect(this.machine.state()).to.eql(['A']);
-          });
-        });
-        return describe('when pushing an additional state', function() {
-          beforeEach(function() {
-            return this.ret = this.machine.addState('D');
-          });
-          it('should return false', function() {
-            return expect(this.ret).not.to.be.ok;
-          });
-          return it('should not change the previous state', function() {
-            return expect(this.machine.state()).to.eql(['A']);
-          });
-        });
-      });
-      describe('and transition is successful', function() {
-        return it('should return true', function() {
-          return expect(this.machine.setState('D')).to.be.ok;
-        });
-      });
-      it('should provide previous state information', function(done) {
-        this.machine.D_enter = function() {
-          expect(this.state()).to.eql(['A']);
-          return done();
-        };
-        return this.machine.setState('D');
-      });
-      it('should provide target state information', function(done) {
-        this.machine.D_enter = function(target) {
-          expect(target).to.eql(['D']);
-          return done();
-        };
-        return this.machine.setState('D');
-      });
-      describe('with arguments', function() {
-        beforeEach(function() {
-          return this.machine.state_D = {
-            implies: ['B'],
-            blocks: ['A']
-          };
-        });
-        describe('and synchronous', function() {
-          beforeEach(function() {
-            this.machine.setState('A', 'C');
-            this.machine.setState('D', 'foo', 2);
-            return this.machine.dropState('C', 'foo', 2);
-          });
-          describe('and is explicit', function() {
-            it('should forward arguments to exit states', function() {
-              return expect(this.machine.C_exit.calledWith('foo', 2)).to.be.ok;
-            });
-            return it('should forward arguments to enter states', function() {
-              return expect(this.machine.D_enter.calledWith('foo', 2)).to.be.ok;
-            });
-          });
-          return describe('and is non-explicit', function() {
-            it('should not forward arguments to exit states', function() {
-              return expect(this.machine.A_exit.calledWith('foo', 2)).not.to.be.ok;
-            });
-            return it('should not forward arguments to enter states', function() {
-              return expect(this.machine.B_enter.calledWith('foo', 2)).not.to.be.ok;
-            });
-          });
-        });
-        return describe('and delayed', function() {
-          beforeEach(function(done) {
-            var _this = this;
-            return setTimeout(function() {
-              _this.machine.setStateLater('A', 'C');
-              _this.machine.setStateLater('D', 'foo', 2);
-              _this.machine.dropStateLater('C', 'foo', 2);
-              return done();
-            }, 0);
-          });
-          describe('and is explicit', function() {
-            it('should forward arguments to exit states', function() {
-              return expect(this.machine.C_exit.calledWith('foo', 2)).to.be.ok;
-            });
-            return it('should forward arguments to enter states', function() {
-              return expect(this.machine.D_enter.calledWith('foo', 2)).to.be.ok;
-            });
-          });
-          return describe('and is non-explicit', function() {
-            it('should not forward arguments to exit states', function() {
-              return expect(this.machine.A_exit.calledWith('foo', 2)).not.to.be.ok;
-            });
-            return it('should not forward arguments to enter states', function() {
-              return expect(this.machine.B_enter.calledWith('foo', 2)).not.to.be.ok;
-            });
-          });
-        });
-      });
-      describe('and delayed', function() {
-        beforeEach(function() {
-          return this.ret = this.machine.setStateLater('D');
-        });
-        it('should return a promise', function() {
-          return expect(this.ret instanceof Promise).to.be.ok;
-        });
-        it('should execute the change', function(done) {
-          var _this = this;
-          this.ret.resolve();
-          return this.ret.then(function() {
-            expect(_this.machine.any_D.calledOnce).to.be.ok;
-            expect(_this.machine.D_enter.calledOnce).to.be.ok;
-            return done();
-          });
-        });
-        it('should expose a ref to the last promise', function() {
-          return expect(this.machine.last_promise).to.equal(this.ret);
-        });
-        return describe('and then canceled', function() {
-          beforeEach(function() {
-            return this.ret.reject();
-          });
-          return it('should not execute the change', function() {
-            expect(this.machine.any_D.called).not.to.be.ok;
-            return expect(this.machine.D_enter.called).not.to.be.ok;
-          });
-        });
-      });
-      describe('and active state is also the target one', function() {
-        it('should trigger self transition at the very beggining', function() {
-          var order;
-          this.machine.setState(['A', 'B']);
-          order = [this.machine.A_A, this.machine.any_B, this.machine.B_enter];
-          return assert_order(order);
-        });
-        it('should be executed only for explicitly called states');
-        it('should be cancellable', function() {
-          this.machine.A_A = sinon.stub().returns(false);
-          this.machine.setState(['A', 'B']);
-          expect(this.machine.A_A.calledOnce).to.be.ok;
-          return expect(this.machine.any_B.called).not.to.be.ok;
-        });
-        return after(function() {
-          return delete this.machine.A_A;
-        });
-      });
-      return describe('should trigger events', function() {
-        beforeEach(function() {
-          this.machine = new FooMachine('A');
-          mock_states(this.machine, ['A', 'B', 'C', 'D']);
-          this.machine.setState(['A', 'C']);
-          this.machine.on('A._.A', this.A_A = sinon.spy());
-          this.machine.on('B.enter', this.B_enter = sinon.spy());
-          this.machine.on('C.exit', this.C_exit = sinon.spy());
-          this.machine.on('setState', this.setState = sinon.spy());
-          this.machine.on('cancelTransition', this.cancelTransition = sinon.spy());
-          this.machine.on('addState', this.addState = sinon.spy());
-          return this.machine.setState(['A', 'B']);
-        });
-        afterEach(function() {
-          delete this.C_exit;
-          delete this.A_A;
-          delete this.B_enter;
-          delete this.addState;
-          delete this.setState;
-          return delete this.cancelTransition;
-        });
-        it('for self transitions', function() {
-          return expect(this.A_A.called).to.be.ok;
-        });
-        it('for enter transitions', function() {
-          return expect(this.B_enter.called).to.be.ok;
-        });
-        it('for exit transtions', function() {
-          return expect(this.C_exit.called).to.be.ok;
-        });
-        it('which can cancel the transition', function() {
-          this.machine.on('D_enter', sinon.stub().returns(false));
-          this.machine.setState('D');
-          return expect(this.machine.D_any.called).not.to.be.ok;
-        });
-        it('for setting a new state', function() {
-          return expect(this.setState.called).to.be.ok;
-        });
-        it('for pushing a new state', function() {
-          return expect(this.addState.called).to.be.ok;
-        });
-        return it('for cancelling the transition', function() {
-          return expect(this.cancelTransition.called).to.be.ok;
-        });
-      });
-    });
-    return describe('Events', function() {
-      var EventMachine;
-      EventMachine = (function(_super) {
-        __extends(EventMachine, _super);
-        function EventMachine() {
-          return EventMachine.__super__.constructor.apply(this, arguments);
-        }
-        EventMachine.prototype.state_TestNamespace = {};
-        return EventMachine;
-      })(FooMachine);
-      beforeEach(function() {
-        return this.machine = new EventMachine('A');
-      });
-      describe('should support states', function() {
-        return it('by triggering the listener at once for active states', function() {
-          var l1;
-          l1 = sinon.stub();
-          this.machine.on('A', l1);
-          return expect(l1.calledOnce).to.be.ok;
-        });
-      });
-      describe('should support namespaces', function() {
-        describe('with wildcards', function() {
-          beforeEach(function() {
-            this.listeners = [];
-            this.listeners.push(sinon.stub());
-            this.listeners.push(sinon.stub());
-            this.listeners.push(sinon.stub());
-            this.machine.on('enter.Test', this.listeners[0]);
-            this.machine.on('enter', this.listeners[1]);
-            this.machine.on('A', this.listeners[2]);
-            return this.machine.setState(['TestNamespace', 'B']);
-          });
-          it('should handle "enter.Test" sub event', function() {
-            return expect(this.listeners[0].callCount).to.eql(1);
-          });
-          it('should handle "enter.*" sub event', function() {
-            return expect(this.listeners[1].calledTwice).to.be.ok;
-          });
-          return it('should handle "A" sub events', function() {
-            return expect(this.listeners[2].callCount).to.eql(4);
-          });
-        });
-        return it('for all transitions', function() {
-          var l1, l2;
-          l1 = sinon.stub();
-          l2 = sinon.stub();
-          this.machine.on('Test.Namespace.enter', l1);
-          this.machine.on('A._.Test.Namespace', l2);
-          this.machine.setState('TestNamespace');
-          expect(l1.calledOnce).to.be.ok;
-          return expect(l2.calledOnce).to.be.ok;
-        });
-      });
-      return describe('piping', function() {
-        it('should forward a specific state', function() {
-          var emitter;
-          emitter = new EventMachine('A');
-          this.machine.pipeForward('B', emitter);
-          this.machine.setState('B');
-          return expect(emitter.state()).to.eql(['B', 'A']);
-        });
-        it('should forward a specific state as a different one', function() {
-          var emitter;
-          emitter = new EventMachine('A');
-          this.machine.pipeForward('B', emitter, 'C');
-          this.machine.setState('B');
-          return expect(emitter.state()).to.eql(['C', 'A']);
-        });
-        it('should invert a specific state as a different one', function() {
-          var emitter;
-          emitter = new EventMachine('A');
-          this.machine.pipeInvert('A', emitter, 'C');
-          this.machine.setState('B');
-          return expect(emitter.state()).to.eql(['C', 'A']);
-        });
-        it('should forward a whole machine', function() {
-          var machine2;
-          machine2 = new EventMachine(['A', 'D']);
-          expect(machine2.state()).to.eql(['A', 'D']);
-          this.machine.pipeForward(machine2);
-          this.machine.setState(['B', 'C']);
-          return expect(machine2.state()).to.eql(['C', 'B', 'D']);
-        });
-        return it('can be turned off');
-      });
-    });
-  });
-}).call(this);
-    }
-  };
-});
-multistatemachineTest.pkg(3, function(parents){
+asyncmachineTest.pkg(3, function(parents){
   return {
     'id':5,
     'name':'rsvp',
@@ -6941,7 +6964,7 @@ multistatemachineTest.pkg(3, function(parents){
     'parents':parents
   };
 });
-multistatemachineTest.module(5, function(/* parent */){
+asyncmachineTest.module(5, function(/* parent */){
   return {
     'id': 'rsvp',
     'pkg': arguments[0],
@@ -7111,7 +7134,7 @@ EventTarget.mixin(Promise.prototype);
     }
   };
 });
-multistatemachineTest.pkg(1, function(parents){
+asyncmachineTest.pkg(1, function(parents){
   return {
     'id':7,
     'name':'sinon',
@@ -7121,7 +7144,7 @@ multistatemachineTest.pkg(1, function(parents){
     'parents':parents
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon',
     'pkg': arguments[0],
@@ -7399,7 +7422,7 @@ var sinon = (function (buster) {
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon',
     'pkg': arguments[0],
@@ -7677,7 +7700,7 @@ var sinon = (function (buster) {
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/assert',
     'pkg': arguments[0],
@@ -7831,7 +7854,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/collection',
     'pkg': arguments[0],
@@ -7962,7 +7985,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/match',
     'pkg': arguments[0],
@@ -8186,7 +8209,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/mock',
     'pkg': arguments[0],
@@ -8524,7 +8547,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/sandbox',
     'pkg': arguments[0],
@@ -8632,7 +8655,7 @@ if (typeof module == "object" && typeof require == "function") {
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/spy',
     'pkg': arguments[0],
@@ -9075,7 +9098,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/stub',
     'pkg': arguments[0],
@@ -9363,7 +9386,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/test',
     'pkg': arguments[0],
@@ -9435,7 +9458,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/test_case',
     'pkg': arguments[0],
@@ -9522,7 +9545,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/util/event',
     'pkg': arguments[0],
@@ -9592,7 +9615,7 @@ if (typeof sinon == "undefined") {
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/util/fake_server',
     'pkg': arguments[0],
@@ -9762,7 +9785,7 @@ if (typeof module == "object" && typeof require == "function") {
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/util/fake_server_with_clock',
     'pkg': arguments[0],
@@ -9838,7 +9861,7 @@ multistatemachineTest.module(7, function(/* parent */){
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/util/fake_timers',
     'pkg': arguments[0],
@@ -10131,7 +10154,7 @@ if (typeof module == "object" && typeof require == "function") {
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/util/fake_xml_http_request',
     'pkg': arguments[0],
@@ -10546,7 +10569,7 @@ if (typeof module == "object" && typeof require == "function") {
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/util/timers_ie',
     'pkg': arguments[0],
@@ -10580,7 +10603,7 @@ Date = sinon.timers.Date;
     }
   };
 });
-multistatemachineTest.module(7, function(/* parent */){
+asyncmachineTest.module(7, function(/* parent */){
   return {
     'id': 'lib/sinon/util/xhr_ie',
     'pkg': arguments[0],
@@ -10607,8 +10630,8 @@ XMLHttpRequest = sinon.xhr.XMLHttpRequest || undefined;
   };
 });
 if(typeof module != 'undefined' && module.exports ){
-  module.exports = multistatemachineTest;
+  module.exports = asyncmachineTest;
   if( !module.parent ){
-    multistatemachineTest.main();
+    asyncmachineTest.main();
   }
-}multistatemachineTest.main()
+}asyncmachineTest.main()

@@ -11,6 +11,6 @@ module 'lucidjs' {
 	}
 }
 
-module 'multistatemachine' {
+module 'asyncmachine' {
 	interface MultiStateMachine extends EventEmitter {}
 }

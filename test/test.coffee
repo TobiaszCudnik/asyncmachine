@@ -1,10 +1,10 @@
-multistatemachine = require('multistatemachine')
+asyncmachine = require('asyncmachine')
 expect = require('chai').expect
 sinon = require 'sinon'
 Promise = require('rsvp').Promise
 
-describe "multistatemachine", ->
-  class FooMachine extends multistatemachine.AsyncMachine
+describe "asyncmachine", ->
+  class FooMachine extends asyncmachine.AsyncMachine
 
     state_A: {}
     state_B: {}
@@ -473,7 +473,7 @@ describe "multistatemachine", ->
 
     describe 'and active state is also the target one', ->
       it 'should trigger self transition at the very beggining', ->
-        @machine.setState( [ 'A', 'B' ] )
+        @machine.setState [ 'A', 'B' ]
         order = [
           @machine.A_A
           @machine.any_B
@@ -609,5 +609,18 @@ describe "multistatemachine", ->
         # @machine.setState [ 'B', 'C' ]
         # expect( machine2.state() ).to.eql [ 'D', 'B', 'C' ]
 
-	describe 'bugs', ->
-		'it should trigger the enter state of a subclass'
+		describe 'bugs', ->
+			it 'should trigger the enter state of a subclass', ->
+				@a_enter_spy = sinon.spy()
+				@b_enter_spy = sinon.spy()
+				class Sub extends asyncmachine.AsyncMachine
+					state_A: {}
+					state_B: {}
+					A_enter: @a_enter_spy
+					B_enter: @b_enter_spy
+				mock_states Sub::, [ 'A', 'B' ]
+				sub = new Sub 'A', debug: yes
+				debugger
+				sub.setState 'B'
+				expect( @a_enter_spy.called ).to.be.ok
+				expect( @B_enter_spy.called ).to.be.ok

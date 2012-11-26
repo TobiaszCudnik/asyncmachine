@@ -30,7 +30,7 @@
 
 			Tasks.Tasks.clear list_id
 */
-import msm = module('multistatemachine')
+import msm = module('asyncmachine')
 
 class Query extends msm.AsyncMachine {
 
