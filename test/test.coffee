@@ -4,8 +4,7 @@ sinon = require 'sinon'
 Promise = require('rsvp').Promise
 
 describe "asyncmachine", ->
-    class FooMachine extends asyncmachine.AsyncMachine
-
+	class FooMachine extends asyncmachine.AsyncMachine
 		state_A: {}
 		state_B: {}
 		state_C: {}

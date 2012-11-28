@@ -306,7 +306,7 @@ var Promise = rsvp.Promise;
                 return false;
             }
             states = this.setupTargetStates_(states_to_set);
-            var ret = this.transition_(states, args);
+            var ret = this.transition_(states, states_to_set, args);
             return ret === false ? false : this.allStatesSet(states_to_set);
         }// Curried version of setState.
         ;
@@ -316,11 +316,19 @@ var Promise = rsvp.Promise;
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 rest[_i] = arguments[_i + 1];
             }
+            var states = Array.isArray(states) ? states : [
+                states
+            ];
             var promise = new Promise();
             promise.then(function () {
-                _this.setState.apply(_this, [].concat(states, rest));
+                debugger;
+
+                _this.setState.apply(_this, [].concat([
+                    states
+                ], rest));
             });
-            return this.last_promise = promise;
+            this.last_promise = promise;
+            return promise.resolve.bind(promise);
         }// Deactivate certain states.
         ;
         AsyncMachine.prototype.dropState = function (states) {
@@ -346,11 +354,17 @@ var Promise = rsvp.Promise;
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 rest[_i] = arguments[_i + 1];
             }
+            var states = Array.isArray(states) ? states : [
+                states
+            ];
             var promise = new Promise();
             promise.then(function () {
-                _this.dropState.apply(_this, [].concat(states, rest));
+                _this.dropState.apply(_this, [].concat([
+                    states
+                ], rest));
             });
-            return this.last_promise = promise;
+            this.last_promise = promise;
+            return promise.resolve.bind(promise);
         }// Activate certain states and keep the current ones.
         // TODO Maybe avoid double concat of states_active
         ;
@@ -367,7 +381,7 @@ var Promise = rsvp.Promise;
             }
             states = states_to_add.concat(this.states_active);
             states = this.setupTargetStates_(states);
-            var ret = this.transition_(states, args);
+            var ret = this.transition_(states, states_to_add, args);
             return ret === false ? false : this.allStatesSet(states_to_add);
         }// Curried version of addState
         ;
@@ -377,13 +391,18 @@ var Promise = rsvp.Promise;
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 rest[_i] = arguments[_i + 1];
             }
+            var states = Array.isArray(states) ? states : [
+                states
+            ];
             var promise = new Promise();
             promise.then(function () {
-                _this.addState.apply(_this, [].concat(states, rest));
+                _this.addState.apply(_this, [].concat([
+                    states
+                ], rest));
             });
-            return this.last_promise = promise;
-            //    private trasitions: string[];
-                    };
+            this.last_promise = promise;
+            return promise.resolve.bind(promise);
+        };
         AsyncMachine.prototype.pipeForward = function (state, machine, target_state) {
             var _this = this;
             if(state instanceof AsyncMachine) {
@@ -412,6 +431,7 @@ var Promise = rsvp.Promise;
             });
         };
         AsyncMachine.prototype.pipeOff = function () {
+            throw new Error('not implemented yet');
         }// TODO use a regexp lib for IE8's 'g' flag compat?
         ;
         AsyncMachine.prototype.namespaceStateName = function (state) {
@@ -483,12 +503,19 @@ var Promise = rsvp.Promise;
                 var ret, name = state + '_' + state;
                 var method = _this[name];
                 if(method && ~_this.states_active.indexOf(state)) {
-                    ret = method();
+                    var transition_args = [
+                        states
+                    ].concat(args);
+                    ret = method.apply(_this, transition_args);
                     if(ret === false) {
                         return true;
                     }
                     var event = _this.namespaceTransition_(name);
-                    return _this.trigger(event, args) === false;
+                    transition_args = [
+                        event, 
+                        states
+                    ].concat(args);
+                    return _this.trigger.apply(_this, transition_args) === false;
                 }
             });
             return ret === true ? false : true;
@@ -566,7 +593,8 @@ var Promise = rsvp.Promise;
             });
             return blocked_by;
         };
-        AsyncMachine.prototype.transition_ = function (to, args) {
+        AsyncMachine.prototype.transition_ = function (to, explicit_states, args) {
+            if (typeof args === "undefined") { args = []; }
             var _this = this;
             // TODO handle args
             if(!to.length) {
@@ -580,7 +608,7 @@ var Promise = rsvp.Promise;
             this.orderStates_(from);
             // var wait = <Function[]>[]
             var ret = from.some(function (state) {
-                return _this.transitionExit_(state, to) === false;
+                return _this.transitionExit_(state, to, explicit_states, args) === false;
             });
             if(ret === true) {
                 return false;
@@ -590,7 +618,8 @@ var Promise = rsvp.Promise;
                 if(~_this.states_active.indexOf(state)) {
                     return false;
                 }
-                return _this.transitionEnter_(state, to) === false;
+                var trans_args = ~explicit_states.indexOf(state) ? args : [];
+                return _this.transitionEnter_(state, to, trans_args) === false;
             });
             if(ret === true) {
                 return false;
@@ -599,43 +628,47 @@ var Promise = rsvp.Promise;
             return true;
         }// Exit transition handles state-to-state methods.
         ;
-        AsyncMachine.prototype.transitionExit_ = function (from, to) {
+        AsyncMachine.prototype.transitionExit_ = function (from, to, explicit_states, args) {
             var _this = this;
             var method, callbacks = [];
             if(this.transitionExec_(from + '_exit', to) === false) {
                 return false;
             }
             // Duplicate event for namespacing.
-            var ret = this.transitionExec_('exit.' + this.namespaceStateName(from), to);
+            var transition = 'exit.' + this.namespaceStateName(from);
+            var ret = this.transitionExec_(transition, to);
             if(ret === false) {
                 return false;
             }
             ret = to.some(function (state) {
-                return _this.transitionExec_(from + '_' + state, to) === false;
+                var trans_args = ~explicit_states.indexOf(state) ? args : [];
+                var transition = from + '_' + state;
+                var ret = _this.transitionExec_(transition, to, trans_args);
+                return ret === false;
             });
             if(ret === true) {
                 return false;
             }
-            // TODO trigger the exit transitions (all of them) after all other middle
-            // transitions (_any etc)
+            // TODO pass args to explicitly dropped states
             ret = this.transitionExec_(from + '_any', to) === false;
             return ret === true ? false : true;
         };
-        AsyncMachine.prototype.transitionEnter_ = function (to, target_states) {
+        AsyncMachine.prototype.transitionEnter_ = function (to, target_states, args) {
             var method, callbacks = [];
-            //      from.forEach( (state: string) => {
-            //        this.transitionExec_( state + '_' + to )
-            //      })
-            if(this.transitionExec_('any_' + to, target_states) === false) {
+            var ret = this.transitionExec_('any_' + to, target_states, args);
+            if(ret === false) {
                 return false;
             }
-            // TODO trigger the enter transitions (all of them) after all other middle
-            // transitions (any_ etc)
-            if(ret = this.transitionExec_(to + '_enter', target_states) === false) {
+            ret = this.transitionExec_(to + '_enter', target_states, args);
+            if(ret === false) {
                 return false;
             }
             // Duplicate event for namespacing.
-            var ret = this.trigger('enter.' + this.namespaceStateName(to), target_states);
+            var event_args = [
+                'enter.' + this.namespaceStateName(to), 
+                target_states
+            ];
+            ret = this.trigger.apply(this, event_args.concat(args));
             return ret === false ? false : true;
         };
         AsyncMachine.prototype.transitionExec_ = function (method, target_states, args) {
@@ -2158,6 +2191,7 @@ Promise.prototype = {
   },
   resolve: function(value) {
     exports.async(function() {
+	    debugger
       this.trigger('promise:resolved', { detail: value });
       this.isResolved = value;
     }, this);

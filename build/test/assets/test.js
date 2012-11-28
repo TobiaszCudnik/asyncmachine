@@ -386,6 +386,37 @@
         this.machine = new FooMachine('A');
         return mock_states(this.machine, ['A', 'B', 'C', 'D']);
       });
+      describe('during another state change', function() {
+        it('can\'t be set synchronously', function() {
+          var func;
+          this.machine.B_enter = function(states) {
+            return this.setState(['C']);
+          };
+          func = function() {
+            return this.machine.setState('B');
+          };
+          return expect(func).to["throw"]();
+        });
+        it('can be added synchronously', function() {
+          this.machine.B_enter = function(states) {
+            return this.addState('C');
+          };
+          this.machine.C_enter = sinon.spy();
+          this.machine.A_exit = sinon.spy();
+          this.machine.setState('B');
+          expect(this.machine.B_enter.calledOnce).to.be.ok;
+          expect(this.machine.C_enter.calledOnce).to.be.ok;
+          expect(this.machine.A_exit.calledOnce).to.be.ok;
+          return expect(this.machine.state()).to.eql(['B', 'C']);
+        });
+        return it('can be set asynchronously', function() {
+          this.machine.B_enter = function(states) {
+            return this.on('state.set', this.setStateLater('B', 'C'));
+          };
+          this.machine.setState('B');
+          return expect(this.machine.state()).to.eql(['B', 'C']);
+        });
+      });
       describe('and transition is canceled', function() {
         beforeEach(function() {
           return this.machine.D_enter = function() {
@@ -443,77 +474,110 @@
         });
         describe('and synchronous', function() {
           beforeEach(function() {
-            this.machine.setState('A', 'C');
+            this.machine.setState(['A', 'C']);
             this.machine.setState('D', 'foo', 2);
-            return this.machine.dropState('C', 'foo', 2);
+            this.machine.setState('D', 'foo', 2);
+            return this.machine.dropState('D', 'foo', 2);
           });
           describe('and is explicit', function() {
-            it('should forward arguments to exit states', function() {
-              return expect(this.machine.C_exit.calledWith('foo', 2)).to.be.ok;
+            it('should forward arguments to exit methods', function() {
+              return expect(this.machine.D_exit.calledWith(['B'], 'foo', 2)).to.be.ok;
             });
-            return it('should forward arguments to enter states', function() {
-              return expect(this.machine.D_enter.calledWith('foo', 2)).to.be.ok;
+            it('should forward arguments to enter methods', function() {
+              return expect(this.machine.D_enter.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
+            });
+            it('should forward arguments to self transition methods', function() {
+              return expect(this.machine.D_D.calledWith(['D'], 'foo', 2)).to.be.ok;
+            });
+            return it('should forward arguments to transition methods', function() {
+              return expect(this.machine.C_D.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
             });
           });
           return describe('and is non-explicit', function() {
-            it('should not forward arguments to exit states', function() {
-              return expect(this.machine.A_exit.calledWith('foo', 2)).not.to.be.ok;
+            it('should not forward arguments to exit methods', function() {
+              return expect(this.machine.A_exit.calledWith(['D', 'B'])).to.be.ok;
             });
-            return it('should not forward arguments to enter states', function() {
-              return expect(this.machine.B_enter.calledWith('foo', 2)).not.to.be.ok;
+            it('should not forward arguments to enter methods', function() {
+              return expect(this.machine.B_enter.calledWith(['D', 'B'])).to.be.ok;
+            });
+            return it('should not forward arguments to transition methods', function() {
+              return expect(this.machine.A_B.calledWith(['D', 'B'])).to.be.ok;
             });
           });
         });
         return describe('and delayed', function() {
           beforeEach(function(done) {
-            var _this = this;
-            return setTimeout(function() {
-              _this.machine.setStateLater('A', 'C');
-              _this.machine.setStateLater('D', 'foo', 2);
-              _this.machine.dropStateLater('C', 'foo', 2);
-              return done();
-            }, 0);
+            var resolve,
+              _this = this;
+            resolve = this.machine.setStateLater(['A', 'C']);
+            resolve();
+            return this.machine.last_promise.then(function() {
+              resolve = _this.machine.setStateLater('D', 'foo', 2);
+              resolve();
+              return _this.machine.last_promise;
+            }).then(function() {
+              resolve = _this.machine.setStateLater('D', 'foo', 2);
+              resolve();
+              return _this.machine.last_promise;
+            }).then(function() {
+              resolve = _this.machine.dropStateLater('D', 'foo', 2);
+              resolve();
+              return _this.machine.last_promise;
+            }).then(done);
           });
           describe('and is explicit', function() {
-            it('should forward arguments to exit states', function() {
-              return expect(this.machine.C_exit.calledWith('foo', 2)).to.be.ok;
+            it('should forward arguments to exit methods', function() {
+              return expect(this.machine.D_exit.calledWith(['B'], 'foo', 2)).to.be.ok;
             });
-            return it('should forward arguments to enter states', function() {
-              return expect(this.machine.D_enter.calledWith('foo', 2)).to.be.ok;
+            it('should forward arguments to enter methods', function() {
+              return expect(this.machine.D_enter.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
+            });
+            it('should forward arguments to self transition methods', function() {
+              return expect(this.machine.D_D.calledWith(['D'], 'foo', 2)).to.be.ok;
+            });
+            return it('should forward arguments to transition methods', function() {
+              return expect(this.machine.C_D.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
             });
           });
           return describe('and is non-explicit', function() {
-            it('should not forward arguments to exit states', function() {
-              return expect(this.machine.A_exit.calledWith('foo', 2)).not.to.be.ok;
+            it('should not forward arguments to exit methods', function() {
+              return expect(this.machine.A_exit.calledWith(['D', 'B'])).to.be.ok;
             });
-            return it('should not forward arguments to enter states', function() {
-              return expect(this.machine.B_enter.calledWith('foo', 2)).not.to.be.ok;
+            it('should not forward arguments to enter methods', function() {
+              return expect(this.machine.B_enter.calledWith(['D', 'B'])).to.be.ok;
+            });
+            return it('should not forward arguments to transition methods', function() {
+              return expect(this.machine.A_B.calledWith(['D', 'B'])).to.be.ok;
             });
           });
         });
       });
       describe('and delayed', function() {
         beforeEach(function() {
-          return this.ret = this.machine.setStateLater('D');
+          this.machine.setStateLater('D');
+          return this.promise = this.machine.last_promise;
+        });
+        afterEach(function() {
+          return delete this.promise;
         });
         it('should return a promise', function() {
-          return expect(this.ret instanceof Promise).to.be.ok;
+          return expect(this.promise instanceof Promise).to.be.ok;
         });
         it('should execute the change', function(done) {
           var _this = this;
-          this.ret.resolve();
-          return this.ret.then(function() {
+          this.promise.resolve();
+          return this.promise.then(function() {
             expect(_this.machine.any_D.calledOnce).to.be.ok;
             expect(_this.machine.D_enter.calledOnce).to.be.ok;
             return done();
           });
         });
         it('should expose a ref to the last promise', function() {
-          return expect(this.machine.last_promise).to.equal(this.ret);
+          return expect(this.machine.last_promise).to.equal(this.promise);
         });
         return describe('and then canceled', function() {
           beforeEach(function() {
-            return this.ret.reject();
+            return this.promise.reject();
           });
           return it('should not execute the change', function() {
             expect(this.machine.any_D.called).not.to.be.ok;
@@ -547,10 +611,15 @@
           this.machine.on('A._.A', this.A_A = sinon.spy());
           this.machine.on('B.enter', this.B_enter = sinon.spy());
           this.machine.on('C.exit', this.C_exit = sinon.spy());
-          this.machine.on('setState', this.setState = sinon.spy());
-          this.machine.on('cancelTransition', this.cancelTransition = sinon.spy());
-          this.machine.on('addState', this.addState = sinon.spy());
-          return this.machine.setState(['A', 'B']);
+          this.machine.on('D.exit', function() {
+            return false;
+          });
+          this.machine.on('state.set', this.setState = sinon.spy());
+          this.machine.on('state.cancel', this.cancelTransition = sinon.spy());
+          this.machine.on('state.add', this.addState = sinon.spy());
+          this.machine.setState(['A', 'B']);
+          this.machine.addState(['C']);
+          return this.machine.addState(['D']);
         });
         afterEach(function() {
           delete this.C_exit;
@@ -577,7 +646,7 @@
         it('for setting a new state', function() {
           return expect(this.setState.called).to.be.ok;
         });
-        it('for pushing a new state', function() {
+        it('for adding a new state', function() {
           return expect(this.addState.called).to.be.ok;
         });
         return it('for cancelling the transition', function() {
@@ -677,7 +746,7 @@
         return it('can be turned off');
       });
     });
-    return describe('bugs', function() {
+    describe('bugs', function() {
       return it('should trigger the enter state of a subclass', function() {
         var Sub, a_enter_spy, b_enter_spy, sub;
         a_enter_spy = sinon.spy();
@@ -701,12 +770,18 @@
           return Sub;
 
         })(asyncmachine.AsyncMachine);
-        sub = new Sub('A', {
-          debug: true
-        });
+        sub = new Sub('A');
         sub.setState('B');
         expect(a_enter_spy.called).to.be.ok;
         return expect(b_enter_spy.called).to.be.ok;
+      });
+    });
+    return describe('Promises', function() {
+      it('can be resolved');
+      it('can be rejected');
+      it('can be chainged');
+      return describe('delayed methods', function() {
+        return it('should return correctly bound resolve method');
       });
     });
   });

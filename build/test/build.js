@@ -306,7 +306,7 @@ var Promise = rsvp.Promise;
                 return false;
             }
             states = this.setupTargetStates_(states_to_set);
-            var ret = this.transition_(states, args);
+            var ret = this.transition_(states, states_to_set, args);
             return ret === false ? false : this.allStatesSet(states_to_set);
         }// Curried version of setState.
         ;
@@ -316,11 +316,19 @@ var Promise = rsvp.Promise;
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 rest[_i] = arguments[_i + 1];
             }
+            var states = Array.isArray(states) ? states : [
+                states
+            ];
             var promise = new Promise();
             promise.then(function () {
-                _this.setState.apply(_this, [].concat(states, rest));
+                debugger;
+
+                _this.setState.apply(_this, [].concat([
+                    states
+                ], rest));
             });
-            return this.last_promise = promise;
+            this.last_promise = promise;
+            return promise.resolve.bind(promise);
         }// Deactivate certain states.
         ;
         AsyncMachine.prototype.dropState = function (states) {
@@ -346,11 +354,17 @@ var Promise = rsvp.Promise;
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 rest[_i] = arguments[_i + 1];
             }
+            var states = Array.isArray(states) ? states : [
+                states
+            ];
             var promise = new Promise();
             promise.then(function () {
-                _this.dropState.apply(_this, [].concat(states, rest));
+                _this.dropState.apply(_this, [].concat([
+                    states
+                ], rest));
             });
-            return this.last_promise = promise;
+            this.last_promise = promise;
+            return promise.resolve.bind(promise);
         }// Activate certain states and keep the current ones.
         // TODO Maybe avoid double concat of states_active
         ;
@@ -367,7 +381,7 @@ var Promise = rsvp.Promise;
             }
             states = states_to_add.concat(this.states_active);
             states = this.setupTargetStates_(states);
-            var ret = this.transition_(states, args);
+            var ret = this.transition_(states, states_to_add, args);
             return ret === false ? false : this.allStatesSet(states_to_add);
         }// Curried version of addState
         ;
@@ -377,13 +391,18 @@ var Promise = rsvp.Promise;
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 rest[_i] = arguments[_i + 1];
             }
+            var states = Array.isArray(states) ? states : [
+                states
+            ];
             var promise = new Promise();
             promise.then(function () {
-                _this.addState.apply(_this, [].concat(states, rest));
+                _this.addState.apply(_this, [].concat([
+                    states
+                ], rest));
             });
-            return this.last_promise = promise;
-            //    private trasitions: string[];
-                    };
+            this.last_promise = promise;
+            return promise.resolve.bind(promise);
+        };
         AsyncMachine.prototype.pipeForward = function (state, machine, target_state) {
             var _this = this;
             if(state instanceof AsyncMachine) {
@@ -412,6 +431,7 @@ var Promise = rsvp.Promise;
             });
         };
         AsyncMachine.prototype.pipeOff = function () {
+            throw new Error('not implemented yet');
         }// TODO use a regexp lib for IE8's 'g' flag compat?
         ;
         AsyncMachine.prototype.namespaceStateName = function (state) {
@@ -483,12 +503,19 @@ var Promise = rsvp.Promise;
                 var ret, name = state + '_' + state;
                 var method = _this[name];
                 if(method && ~_this.states_active.indexOf(state)) {
-                    ret = method();
+                    var transition_args = [
+                        states
+                    ].concat(args);
+                    ret = method.apply(_this, transition_args);
                     if(ret === false) {
                         return true;
                     }
                     var event = _this.namespaceTransition_(name);
-                    return _this.trigger(event, args) === false;
+                    transition_args = [
+                        event, 
+                        states
+                    ].concat(args);
+                    return _this.trigger.apply(_this, transition_args) === false;
                 }
             });
             return ret === true ? false : true;
@@ -566,7 +593,8 @@ var Promise = rsvp.Promise;
             });
             return blocked_by;
         };
-        AsyncMachine.prototype.transition_ = function (to, args) {
+        AsyncMachine.prototype.transition_ = function (to, explicit_states, args) {
+            if (typeof args === "undefined") { args = []; }
             var _this = this;
             // TODO handle args
             if(!to.length) {
@@ -580,7 +608,7 @@ var Promise = rsvp.Promise;
             this.orderStates_(from);
             // var wait = <Function[]>[]
             var ret = from.some(function (state) {
-                return _this.transitionExit_(state, to) === false;
+                return _this.transitionExit_(state, to, explicit_states, args) === false;
             });
             if(ret === true) {
                 return false;
@@ -590,7 +618,8 @@ var Promise = rsvp.Promise;
                 if(~_this.states_active.indexOf(state)) {
                     return false;
                 }
-                return _this.transitionEnter_(state, to) === false;
+                var trans_args = ~explicit_states.indexOf(state) ? args : [];
+                return _this.transitionEnter_(state, to, trans_args) === false;
             });
             if(ret === true) {
                 return false;
@@ -599,43 +628,47 @@ var Promise = rsvp.Promise;
             return true;
         }// Exit transition handles state-to-state methods.
         ;
-        AsyncMachine.prototype.transitionExit_ = function (from, to) {
+        AsyncMachine.prototype.transitionExit_ = function (from, to, explicit_states, args) {
             var _this = this;
             var method, callbacks = [];
             if(this.transitionExec_(from + '_exit', to) === false) {
                 return false;
             }
             // Duplicate event for namespacing.
-            var ret = this.transitionExec_('exit.' + this.namespaceStateName(from), to);
+            var transition = 'exit.' + this.namespaceStateName(from);
+            var ret = this.transitionExec_(transition, to);
             if(ret === false) {
                 return false;
             }
             ret = to.some(function (state) {
-                return _this.transitionExec_(from + '_' + state, to) === false;
+                var trans_args = ~explicit_states.indexOf(state) ? args : [];
+                var transition = from + '_' + state;
+                var ret = _this.transitionExec_(transition, to, trans_args);
+                return ret === false;
             });
             if(ret === true) {
                 return false;
             }
-            // TODO trigger the exit transitions (all of them) after all other middle
-            // transitions (_any etc)
+            // TODO pass args to explicitly dropped states
             ret = this.transitionExec_(from + '_any', to) === false;
             return ret === true ? false : true;
         };
-        AsyncMachine.prototype.transitionEnter_ = function (to, target_states) {
+        AsyncMachine.prototype.transitionEnter_ = function (to, target_states, args) {
             var method, callbacks = [];
-            //      from.forEach( (state: string) => {
-            //        this.transitionExec_( state + '_' + to )
-            //      })
-            if(this.transitionExec_('any_' + to, target_states) === false) {
+            var ret = this.transitionExec_('any_' + to, target_states, args);
+            if(ret === false) {
                 return false;
             }
-            // TODO trigger the enter transitions (all of them) after all other middle
-            // transitions (any_ etc)
-            if(ret = this.transitionExec_(to + '_enter', target_states) === false) {
+            ret = this.transitionExec_(to + '_enter', target_states, args);
+            if(ret === false) {
                 return false;
             }
             // Duplicate event for namespacing.
-            var ret = this.trigger('enter.' + this.namespaceStateName(to), target_states);
+            var event_args = [
+                'enter.' + this.namespaceStateName(to), 
+                target_states
+            ];
+            ret = this.trigger.apply(this, event_args.concat(args));
             return ret === false ? false : true;
         };
         AsyncMachine.prototype.transitionExec_ = function (method, target_states, args) {
@@ -1103,6 +1136,37 @@ asyncmachineTest.module(1, function(/* parent */){
         this.machine = new FooMachine('A');
         return mock_states(this.machine, ['A', 'B', 'C', 'D']);
       });
+      describe('during another state change', function() {
+        it('can\'t be set synchronously', function() {
+          var func;
+          this.machine.B_enter = function(states) {
+            return this.setState(['C']);
+          };
+          func = function() {
+            return this.machine.setState('B');
+          };
+          return expect(func).to["throw"]();
+        });
+        it('can be added synchronously', function() {
+          this.machine.B_enter = function(states) {
+            return this.addState('C');
+          };
+          this.machine.C_enter = sinon.spy();
+          this.machine.A_exit = sinon.spy();
+          this.machine.setState('B');
+          expect(this.machine.B_enter.calledOnce).to.be.ok;
+          expect(this.machine.C_enter.calledOnce).to.be.ok;
+          expect(this.machine.A_exit.calledOnce).to.be.ok;
+          return expect(this.machine.state()).to.eql(['B', 'C']);
+        });
+        return it('can be set asynchronously', function() {
+          this.machine.B_enter = function(states) {
+            return this.on('state.set', this.setStateLater('B', 'C'));
+          };
+          this.machine.setState('B');
+          return expect(this.machine.state()).to.eql(['B', 'C']);
+        });
+      });
       describe('and transition is canceled', function() {
         beforeEach(function() {
           return this.machine.D_enter = function() {
@@ -1160,77 +1224,110 @@ asyncmachineTest.module(1, function(/* parent */){
         });
         describe('and synchronous', function() {
           beforeEach(function() {
-            this.machine.setState('A', 'C');
+            this.machine.setState(['A', 'C']);
             this.machine.setState('D', 'foo', 2);
-            return this.machine.dropState('C', 'foo', 2);
+            this.machine.setState('D', 'foo', 2);
+            return this.machine.dropState('D', 'foo', 2);
           });
           describe('and is explicit', function() {
-            it('should forward arguments to exit states', function() {
-              return expect(this.machine.C_exit.calledWith('foo', 2)).to.be.ok;
+            it('should forward arguments to exit methods', function() {
+              return expect(this.machine.D_exit.calledWith(['B'], 'foo', 2)).to.be.ok;
             });
-            return it('should forward arguments to enter states', function() {
-              return expect(this.machine.D_enter.calledWith('foo', 2)).to.be.ok;
+            it('should forward arguments to enter methods', function() {
+              return expect(this.machine.D_enter.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
+            });
+            it('should forward arguments to self transition methods', function() {
+              return expect(this.machine.D_D.calledWith(['D'], 'foo', 2)).to.be.ok;
+            });
+            return it('should forward arguments to transition methods', function() {
+              return expect(this.machine.C_D.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
             });
           });
           return describe('and is non-explicit', function() {
-            it('should not forward arguments to exit states', function() {
-              return expect(this.machine.A_exit.calledWith('foo', 2)).not.to.be.ok;
+            it('should not forward arguments to exit methods', function() {
+              return expect(this.machine.A_exit.calledWith(['D', 'B'])).to.be.ok;
             });
-            return it('should not forward arguments to enter states', function() {
-              return expect(this.machine.B_enter.calledWith('foo', 2)).not.to.be.ok;
+            it('should not forward arguments to enter methods', function() {
+              return expect(this.machine.B_enter.calledWith(['D', 'B'])).to.be.ok;
+            });
+            return it('should not forward arguments to transition methods', function() {
+              return expect(this.machine.A_B.calledWith(['D', 'B'])).to.be.ok;
             });
           });
         });
         return describe('and delayed', function() {
           beforeEach(function(done) {
-            var _this = this;
-            return setTimeout(function() {
-              _this.machine.setStateLater('A', 'C');
-              _this.machine.setStateLater('D', 'foo', 2);
-              _this.machine.dropStateLater('C', 'foo', 2);
-              return done();
-            }, 0);
+            var resolve,
+              _this = this;
+            resolve = this.machine.setStateLater(['A', 'C']);
+            resolve();
+            return this.machine.last_promise.then(function() {
+              resolve = _this.machine.setStateLater('D', 'foo', 2);
+              resolve();
+              return _this.machine.last_promise;
+            }).then(function() {
+              resolve = _this.machine.setStateLater('D', 'foo', 2);
+              resolve();
+              return _this.machine.last_promise;
+            }).then(function() {
+              resolve = _this.machine.dropStateLater('D', 'foo', 2);
+              resolve();
+              return _this.machine.last_promise;
+            }).then(done);
           });
           describe('and is explicit', function() {
-            it('should forward arguments to exit states', function() {
-              return expect(this.machine.C_exit.calledWith('foo', 2)).to.be.ok;
+            it('should forward arguments to exit methods', function() {
+              return expect(this.machine.D_exit.calledWith(['B'], 'foo', 2)).to.be.ok;
             });
-            return it('should forward arguments to enter states', function() {
-              return expect(this.machine.D_enter.calledWith('foo', 2)).to.be.ok;
+            it('should forward arguments to enter methods', function() {
+              return expect(this.machine.D_enter.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
+            });
+            it('should forward arguments to self transition methods', function() {
+              return expect(this.machine.D_D.calledWith(['D'], 'foo', 2)).to.be.ok;
+            });
+            return it('should forward arguments to transition methods', function() {
+              return expect(this.machine.C_D.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
             });
           });
           return describe('and is non-explicit', function() {
-            it('should not forward arguments to exit states', function() {
-              return expect(this.machine.A_exit.calledWith('foo', 2)).not.to.be.ok;
+            it('should not forward arguments to exit methods', function() {
+              return expect(this.machine.A_exit.calledWith(['D', 'B'])).to.be.ok;
             });
-            return it('should not forward arguments to enter states', function() {
-              return expect(this.machine.B_enter.calledWith('foo', 2)).not.to.be.ok;
+            it('should not forward arguments to enter methods', function() {
+              return expect(this.machine.B_enter.calledWith(['D', 'B'])).to.be.ok;
+            });
+            return it('should not forward arguments to transition methods', function() {
+              return expect(this.machine.A_B.calledWith(['D', 'B'])).to.be.ok;
             });
           });
         });
       });
       describe('and delayed', function() {
         beforeEach(function() {
-          return this.ret = this.machine.setStateLater('D');
+          this.machine.setStateLater('D');
+          return this.promise = this.machine.last_promise;
+        });
+        afterEach(function() {
+          return delete this.promise;
         });
         it('should return a promise', function() {
-          return expect(this.ret instanceof Promise).to.be.ok;
+          return expect(this.promise instanceof Promise).to.be.ok;
         });
         it('should execute the change', function(done) {
           var _this = this;
-          this.ret.resolve();
-          return this.ret.then(function() {
+          this.promise.resolve();
+          return this.promise.then(function() {
             expect(_this.machine.any_D.calledOnce).to.be.ok;
             expect(_this.machine.D_enter.calledOnce).to.be.ok;
             return done();
           });
         });
         it('should expose a ref to the last promise', function() {
-          return expect(this.machine.last_promise).to.equal(this.ret);
+          return expect(this.machine.last_promise).to.equal(this.promise);
         });
         return describe('and then canceled', function() {
           beforeEach(function() {
-            return this.ret.reject();
+            return this.promise.reject();
           });
           return it('should not execute the change', function() {
             expect(this.machine.any_D.called).not.to.be.ok;
@@ -1264,10 +1361,15 @@ asyncmachineTest.module(1, function(/* parent */){
           this.machine.on('A._.A', this.A_A = sinon.spy());
           this.machine.on('B.enter', this.B_enter = sinon.spy());
           this.machine.on('C.exit', this.C_exit = sinon.spy());
-          this.machine.on('setState', this.setState = sinon.spy());
-          this.machine.on('cancelTransition', this.cancelTransition = sinon.spy());
-          this.machine.on('addState', this.addState = sinon.spy());
-          return this.machine.setState(['A', 'B']);
+          this.machine.on('D.exit', function() {
+            return false;
+          });
+          this.machine.on('state.set', this.setState = sinon.spy());
+          this.machine.on('state.cancel', this.cancelTransition = sinon.spy());
+          this.machine.on('state.add', this.addState = sinon.spy());
+          this.machine.setState(['A', 'B']);
+          this.machine.addState(['C']);
+          return this.machine.addState(['D']);
         });
         afterEach(function() {
           delete this.C_exit;
@@ -1294,7 +1396,7 @@ asyncmachineTest.module(1, function(/* parent */){
         it('for setting a new state', function() {
           return expect(this.setState.called).to.be.ok;
         });
-        it('for pushing a new state', function() {
+        it('for adding a new state', function() {
           return expect(this.addState.called).to.be.ok;
         });
         return it('for cancelling the transition', function() {
@@ -1389,7 +1491,7 @@ asyncmachineTest.module(1, function(/* parent */){
         return it('can be turned off');
       });
     });
-    return describe('bugs', function() {
+    describe('bugs', function() {
       return it('should trigger the enter state of a subclass', function() {
         var Sub, a_enter_spy, b_enter_spy, sub;
         a_enter_spy = sinon.spy();
@@ -1405,12 +1507,18 @@ asyncmachineTest.module(1, function(/* parent */){
           Sub.prototype.B_enter = b_enter_spy;
           return Sub;
         })(asyncmachine.AsyncMachine);
-        sub = new Sub('A', {
-          debug: true
-        });
+        sub = new Sub('A');
         sub.setState('B');
         expect(a_enter_spy.called).to.be.ok;
         return expect(b_enter_spy.called).to.be.ok;
+      });
+    });
+    return describe('Promises', function() {
+      it('can be resolved');
+      it('can be rejected');
+      it('can be chainged');
+      return describe('delayed methods', function() {
+        return it('should return correctly bound resolve method');
       });
     });
   });
@@ -7113,6 +7221,7 @@ Promise.prototype = {
   },
   resolve: function(value) {
     exports.async(function() {
+	    debugger
       this.trigger('promise:resolved', { detail: value });
       this.isResolved = value;
     }, this);
