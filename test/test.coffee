@@ -210,6 +210,9 @@ describe "asyncmachine", ->
 			]
 			assert_order order
 
+		it 'should trigger only transitions to newly set states'
+		it 'should trigger transitions for simulanously set states (how???)'
+
 	describe "when transitioning to an active state", ->
 		beforeEach ->
 			@machine = new FooMachine [ 'A', 'B' ]

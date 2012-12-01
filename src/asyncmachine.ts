@@ -171,7 +171,7 @@ export module asyncmachine {
 				machine = state
 				state = this.states
 			}
-		[].concat(state).forEach( (state) => {
+			[].concat(state).forEach( (state) => {
 				var new_state = target_state || state
 				state = this.namespaceStateName( state )
 				this.on( state + '.enter', () => {

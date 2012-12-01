@@ -40,11 +40,12 @@ class Foo extends AsyncMachine {
 -- transition can cancel a change of the state
 - states definitions in OO manner
 - state relations: blocks, implies, requires, depends
-- transitions transitions (mnethods) in OO manner (prototype-level)
+- state transitions (methods) in OO manner (prototype-level)
 -- ::A_enter, ::A_B, ::any_A, etc
-- transitions exposed as an event emitter
+- transitions exposed via an event emitter
 -- with sub events (superEvent.subEvent)
 - promises support for deferred state changes (multiplexing)
+- logging system for free
 - mixin support
 - written in TypeScript
 - lots of tests (in Coffee)
@@ -60,9 +61,9 @@ class Foo extends AsyncMachine {
 - travis CI
 - add state to the states' stack before running it's enter transition
 - auto trigger an event if state is set
-- debug messages about rejected state change
+- nested state changes exceptions
 - try to auto drop the implied state when dropping a state
-- mixin api (traits.js?)
+- tests for the mixin api (traits.js support & examples?)
 - method for generating all possible transition permutations (honoring the relations)
 - customizable naming convention
 -- STATE_STATE to StateState or state_
