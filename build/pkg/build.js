@@ -302,9 +302,12 @@ var Promise = rsvp.Promise;
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 args[_i] = arguments[_i + 1];
             }
-            var states_to_set = Array.isArray(states) ? states : [
+            var states_to_set = (Array.isArray(states) ? states : [
                 states
-            ];
+            ]);
+            if(this.log_handler_) {
+                this.log_handler_('[*] Set state ' + states_to_set.join(', '));
+            }
             if(this.selfTransitionExec_(states_to_set, args) === false) {
                 return false;
             }
@@ -339,9 +342,12 @@ var Promise = rsvp.Promise;
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 args[_i] = arguments[_i + 1];
             }
-            var states_to_drop = Array.isArray(states) ? states : [
+            var states_to_drop = (Array.isArray(states) ? states : [
                 states
-            ];
+            ]);
+            if(this.log_handler_) {
+                this.log_handler_('[*] Drop state ' + states_to_drop.join(', '));
+            }
             // Invert states to target ones.
             states = this.states_active.filter(function (state) {
                 return !~states_to_drop.indexOf(state);
@@ -376,9 +382,12 @@ var Promise = rsvp.Promise;
             for (var _i = 0; _i < (arguments.length - 1); _i++) {
                 args[_i] = arguments[_i + 1];
             }
-            var states_to_add = Array.isArray(states) ? states : [
+            var states_to_add = (Array.isArray(states) ? states : [
                 states
-            ];
+            ]);
+            if(this.log_handler_) {
+                this.log_handler_('[*] Add state ' + states_to_add.join(', '));
+            }
             if(this.selfTransitionExec_(states_to_add, args) === false) {
                 return false;
             }
@@ -544,7 +553,7 @@ var Promise = rsvp.Promise;
                 if(blocked_by.length) {
                     already_blocked.push(name);
                     if(_this.log_handler_) {
-                        _this.log_handler_('State ' + name + ' blocked by ' + blocked_by.join(', '));
+                        _this.log_handler_('[i] State ' + name + ' blocked by ' + blocked_by.join(', '));
                     }
                 }
                 return !blocked_by.length && !~exclude.indexOf(name);
@@ -575,7 +584,7 @@ var Promise = rsvp.Promise;
                     return !(state.requires || []).reduce(function (memo, req) {
                         var found = ~states.indexOf(req);
                         if(!found && _this.log_handler_) {
-                            _this.log_handler_('State ' + name + ' dropped because required state ' + req + ' is missing');
+                            _this.log_handler_('[i] State ' + name + ' dropped as required state ' + req + ' is missing');
                         }
                         return memo || !found;
                     }, false);
@@ -695,14 +704,14 @@ var Promise = rsvp.Promise;
                 ret = this[method].apply(this, args);
                 if(ret === false) {
                     if(this.log_handler_) {
-                        this.log_handler_('Transition method ' + method + ' cancelled');
+                        this.log_handler_('[i] Transition method ' + method + ' cancelled');
                     }
                     return false;
                 }
             }
             ret = this.trigger(event, args);
             if(ret === false && this.log_handler_) {
-                this.log_handler_('Transition event ' + event + ' cancelled');
+                this.log_handler_('[i] Transition event ' + event + ' cancelled');
             }
             return ret;
         }// is_exit tells that the order is exit transitions

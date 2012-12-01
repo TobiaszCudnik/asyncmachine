@@ -472,17 +472,17 @@ describe "asyncmachine", ->
 				describe 'and is explicit', ->
 
 					it 'should forward arguments to exit methods', ->
-						expect( @machine.D_exit.calledWith ['B'], 'foo', 2 ).to.be.ok
+						expect( @machine.D_exit.calledWith ['B'], [ 'foo', 2 ] ).to.be.ok
 
 					it 'should forward arguments to enter methods', ->
-						expect( @machine.D_enter.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
+						expect( @machine.D_enter.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
 
 					it 'should forward arguments to self transition methods', ->
 						# TODO this passes only explicite states array, not all target states
-						expect( @machine.D_D.calledWith ['D'], 'foo', 2 ).to.be.ok
+						expect( @machine.D_D.calledWith ['D'], [ 'foo', 2 ] ).to.be.ok
 
 					it 'should forward arguments to transition methods', ->
-						expect( @machine.C_D.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
+						expect( @machine.C_D.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
 
 				describe 'and is non-explicit', ->
 
@@ -517,17 +517,17 @@ describe "asyncmachine", ->
 				describe 'and is explicit', ->
 
 					it 'should forward arguments to exit methods', ->
-						expect( @machine.D_exit.calledWith ['B'], 'foo', 2 ).to.be.ok
+						expect( @machine.D_exit.calledWith ['B'], [ 'foo', 2 ] ).to.be.ok
 
 					it 'should forward arguments to enter methods', ->
-						expect( @machine.D_enter.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
+						expect( @machine.D_enter.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
 
 					it 'should forward arguments to self transition methods', ->
 						# TODO this passes only explicite states array, not all target states
-						expect( @machine.D_D.calledWith ['D'], 'foo', 2 ).to.be.ok
+						expect( @machine.D_D.calledWith ['D'], [ 'foo', 2 ] ).to.be.ok
 
 					it 'should forward arguments to transition methods', ->
-						expect( @machine.C_D.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
+						expect( @machine.C_D.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
 
 				describe 'and is non-explicit', ->
 
@@ -549,14 +549,20 @@ describe "asyncmachine", ->
 
 			it 'should return a promise', ->
 				expect( @promise instanceof Promise ).to.be.ok
+
 			it 'should execute the change', (done) ->
 				@promise.resolve()
 				@promise.then =>
 					expect( @machine.any_D.calledOnce ).to.be.ok
 					expect( @machine.D_enter.calledOnce ).to.be.ok
 					do done
+
 			it 'should expose a ref to the last promise', ->
 				expect( @machine.last_promise ).to.equal @promise
+
+			it 'should be called with params passed to the delayed function', ->
+				@promise.resolve 'foo', 2
+				expect( @machine.D_enter.calledWith [ 'D' ], [], 'foo', 2).to.be.ok
 
 			describe 'and then canceled', ->
 				beforeEach ->

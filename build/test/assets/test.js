@@ -402,7 +402,7 @@
         });
         return it('should explain the reason in the log', function() {
           var msg;
-          msg = 'State C dropped because required state D is missing';
+          msg = 'State C dropped as required state D is missing';
           return expect(this.log).to.contain(msg);
         });
       });
@@ -519,16 +519,16 @@
           });
           describe('and is explicit', function() {
             it('should forward arguments to exit methods', function() {
-              return expect(this.machine.D_exit.calledWith(['B'], 'foo', 2)).to.be.ok;
+              return expect(this.machine.D_exit.calledWith(['B'], ['foo', 2])).to.be.ok;
             });
             it('should forward arguments to enter methods', function() {
-              return expect(this.machine.D_enter.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
+              return expect(this.machine.D_enter.calledWith(['D', 'B'], ['foo', 2])).to.be.ok;
             });
             it('should forward arguments to self transition methods', function() {
-              return expect(this.machine.D_D.calledWith(['D'], 'foo', 2)).to.be.ok;
+              return expect(this.machine.D_D.calledWith(['D'], ['foo', 2])).to.be.ok;
             });
             return it('should forward arguments to transition methods', function() {
-              return expect(this.machine.C_D.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
+              return expect(this.machine.C_D.calledWith(['D', 'B'], ['foo', 2])).to.be.ok;
             });
           });
           return describe('and is non-explicit', function() {
@@ -565,16 +565,16 @@
           });
           describe('and is explicit', function() {
             it('should forward arguments to exit methods', function() {
-              return expect(this.machine.D_exit.calledWith(['B'], 'foo', 2)).to.be.ok;
+              return expect(this.machine.D_exit.calledWith(['B'], ['foo', 2])).to.be.ok;
             });
             it('should forward arguments to enter methods', function() {
-              return expect(this.machine.D_enter.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
+              return expect(this.machine.D_enter.calledWith(['D', 'B'], ['foo', 2])).to.be.ok;
             });
             it('should forward arguments to self transition methods', function() {
-              return expect(this.machine.D_D.calledWith(['D'], 'foo', 2)).to.be.ok;
+              return expect(this.machine.D_D.calledWith(['D'], ['foo', 2])).to.be.ok;
             });
             return it('should forward arguments to transition methods', function() {
-              return expect(this.machine.C_D.calledWith(['D', 'B'], 'foo', 2)).to.be.ok;
+              return expect(this.machine.C_D.calledWith(['D', 'B'], ['foo', 2])).to.be.ok;
             });
           });
           return describe('and is non-explicit', function() {
@@ -612,6 +612,10 @@
         });
         it('should expose a ref to the last promise', function() {
           return expect(this.machine.last_promise).to.equal(this.promise);
+        });
+        it('should be called with params passed to the delayed function', function() {
+          this.promise.resolve('foo', 2);
+          return expect(this.machine.D_enter.calledWith(['D'], [], 'foo', 2)).to.be.ok;
         });
         return describe('and then canceled', function() {
           beforeEach(function() {

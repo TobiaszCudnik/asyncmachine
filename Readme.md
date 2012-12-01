@@ -60,6 +60,8 @@ class Foo extends AsyncMachine {
 
 # TODO / Ideas
 
+- receive callback params !!!
+- accessible method for setting a state on a next tick
 - travis CI
 - make logging better (namespace, pass thou a method)
 - add state to the states' stack before running it's enter transition
