@@ -285,7 +285,12 @@
     });
     describe('when one state blocks another', function() {
       beforeEach(function() {
+        var _this = this;
+        this.log = [];
         this.machine = new FooMachine(['A', 'B']);
+        this.machine.debugStates('', function(msg) {
+          return _this.log.push(msg);
+        });
         mock_states(this.machine, ['A', 'B', 'C', 'D']);
         this.machine.state_C = {
           blocks: ['D']
@@ -301,6 +306,9 @@
         });
         it('should return false', function() {
           return expect(this.ret).to.eql(false);
+        });
+        it('should explain the reson in the log', function() {
+          return console.log(this.log);
         });
         return afterEach(function() {
           return delete this.ret;
@@ -425,13 +433,22 @@
         });
         describe('when setting a new state', function() {
           beforeEach(function() {
+            var _this = this;
+            this.log = [];
+            this.logger = function(msg) {
+              return _this.log.push(msg);
+            };
+            this.machine.debugStates('', this.logger);
             return this.ret = this.machine.setState('D');
           });
           it('should return false', function() {
             return expect(this.machine.setState('D')).not.to.be.ok;
           });
-          return it('should not change the previous state', function() {
+          it('should not change the previous state', function() {
             return expect(this.machine.state()).to.eql(['A']);
+          });
+          return it('should explain the reason in the log', function() {
+            return expect(~this.log.indexOf('Transition method D_enter cancelled')).to.be.ok;
           });
         });
         return describe('when adding an additional state', function() {
@@ -441,8 +458,11 @@
           it('should return false', function() {
             return expect(this.ret).not.to.be.ok;
           });
-          return it('should not change the previous state', function() {
+          it('should not change the previous state', function() {
             return expect(this.machine.state()).to.eql(['A']);
+          });
+          return it('should explain the reason in the log', function() {
+            return expect(~this.log.indexOf('Transition method D_enter cancelled')).to.be.ok;
           });
         });
       });

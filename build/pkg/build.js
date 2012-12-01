@@ -441,21 +441,23 @@ var Promise = rsvp.Promise;
         AsyncMachine.prototype.defineState = function (name, config) {
             throw new Error('not implemented yet');
         };
-        AsyncMachine.prototype.debugStates = function (prefix) {
+        AsyncMachine.prototype.debugStates = function (prefix, log_handler) {
             if(this.debug_states_) {
                 // OFF
                 this.trigger = this.debug_states_;
                 delete this.debug_states_;
+                delete this.log_handler_;
             } else {
                 // ON
                 this.debug_states_ = this.trigger;
+                this.log_handler_ = log_handler || console.log.bind(console);
                 this.trigger = function (event) {
                     var args = [];
                     for (var _i = 0; _i < (arguments.length - 1); _i++) {
                         args[_i] = arguments[_i + 1];
                     }
                     prefix = prefix || '';
-                    console.log(prefix + event);
+                    this.log_handler_(prefix + event);
                     return this.debug_states_.apply(this, [].concat([
                         event
                     ], args));
@@ -539,6 +541,9 @@ var Promise = rsvp.Promise;
                 });
                 if(blocked_by.length) {
                     already_blocked.push(name);
+                    if(_this.log_handler_) {
+                        _this.log_handler_('State ' + name + ' blocked by ' + blocked_by.join(', '));
+                    }
                 }
                 return !blocked_by.length && !~exclude.indexOf(name);
             }).reverse();
@@ -680,10 +685,18 @@ var Promise = rsvp.Promise;
             if(this[method] instanceof Function) {
                 ret = this[method].apply(this, args);
                 if(ret === false) {
+                    if(this.log_handler_) {
+                        this.log_handler_('Transition method ' + method + ' cancelled');
+                    }
                     return false;
                 }
             }
-            return this.trigger(this.namespaceTransition_(method), args);
+            var event = this.namespaceTransition_(method);
+            ret = this.trigger(event, args);
+            if(ret === false && this.log_handler_) {
+                this.log_handler_('Transition event ' + event + ' cancelled');
+            }
+            return ret;
         }// is_exit tells that the order is exit transitions
         ;
         AsyncMachine.prototype.orderStates_ = function (states) {

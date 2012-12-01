@@ -266,7 +266,10 @@ describe "asyncmachine", ->
 
 	describe 'when one state blocks another', ->
 		beforeEach ->
+			@log = []
 			@machine = new FooMachine [ 'A', 'B' ]
+			@machine.debugStates '', (msg) =>
+				@log.push msg
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
 			@machine.state_C = blocks: [ 'D' ]
@@ -281,6 +284,9 @@ describe "asyncmachine", ->
 
 			it 'should return false', ->
 				expect( @ret ).to.eql no
+
+			it 'should explain the reson in the log', ->
+				expect( ~@log.indexOf 'State D blocked by C').to.be.ok
 
 			afterEach ->
 				delete @ret
@@ -389,12 +395,21 @@ describe "asyncmachine", ->
 			beforeEach ->
 				@machine.D_enter = -> no
 			describe 'when setting a new state', ->
-				beforeEach -> @ret = @machine.setState 'D'
+				beforeEach ->
+					@log = []
+					@logger = (msg) =>
+						@log.push msg
+					@machine.debugStates '', @logger
+					@ret = @machine.setState 'D'
 
 				it 'should return false', ->
 					expect( @machine.setState 'D' ).not.to.be.ok
+
 				it 'should not change the previous state', ->
 					expect( @machine.state() ).to.eql [ 'A' ]
+
+				it 'should explain the reason in the log', ->
+					expect( ~@log.indexOf 'Transition method D_enter cancelled').to.be.ok
 
 			# TODO make this and the previous a main contexts
 			describe 'when adding an additional state', ->
@@ -402,8 +417,12 @@ describe "asyncmachine", ->
 
 				it 'should return false', ->
 					expect( @ret ).not.to.be.ok
+
 				it 'should not change the previous state', ->
 					expect( @machine.state() ).to.eql [ 'A' ]
+
+				it 'should explain the reason in the log', ->
+					expect( ~@log.indexOf 'Transition method D_enter cancelled').to.be.ok
 
 		describe 'and transition is successful', ->
 

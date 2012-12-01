@@ -57,7 +57,10 @@ class Foo extends AsyncMachine {
 - STATE2_enter
 
 # TODO / Ideas
+- travis CI
+- add state to the states' stack before running it's enter transition
 - auto trigger an event if state is set
+- debug messages about rejected state change
 - try to auto drop the implied state when dropping a state
 - mixin api (traits.js?)
 - method for generating all possible transition permutations (honoring the relations)

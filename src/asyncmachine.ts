@@ -9,7 +9,7 @@ var Promise = rsvp.Promise
 
 export module asyncmachine {
 
-    require('es5-shim')
+	require('es5-shim')
 
 	export interface IState {
 		// will change the order of transitions placing dependant states in the front
@@ -30,6 +30,7 @@ export module asyncmachine {
 	//export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
 	export class AsyncMachine {
 		private debug_states_: Function;
+		private log_handler_: Function;
 		disabled: bool = false;
 		private states: string[];
 		private states_active: string[];
@@ -204,17 +205,19 @@ export module asyncmachine {
 			throw new Error('not implemented yet')
 		}
 
-		debugStates( prefix?: string ) {
+		debugStates( prefix?: string, log_handler?: (...msgs: string[] ) => void ) {
 			if ( this.debug_states_ ) {
 				// OFF
 				this.trigger = <any>this.debug_states_
 				delete this.debug_states_
+				delete this.log_handler_
 			} else {
 				// ON
 				this.debug_states_ = this.trigger
+				this.log_handler_ = log_handler || console.log.bind( console )
 				this.trigger = function(event, ...args: any[]) {
 					prefix = prefix || ''
-					console.log(prefix + event )
+					this.log_handler_( prefix + event )
 					return this.debug_states_.apply(
 						this, [].concat( [event], args )
 					)
@@ -297,8 +300,14 @@ export module asyncmachine {
 				blocked_by = blocked_by.filter( ( blocker_name ) => {
 					return !~already_blocked.indexOf( blocker_name )
 				})
-				if (blocked_by.length)
+				if ( blocked_by.length ) {
 					already_blocked.push( name )
+					if ( this.log_handler_ ) {
+						this.log_handler_(
+							'State ' + name + ' blocked by ' + blocked_by.join(', ')
+						)
+					}
+				}
 				return !blocked_by.length && !~exclude.indexOf( name )
 			}).reverse()
 			return this.parseRequires_(states)
@@ -431,10 +440,18 @@ export module asyncmachine {
 			var ret
 			if ( this[ method ] instanceof Function ) {
 				ret = this[ method ].apply( this, args )
-				if ( ret === false )
+				if ( ret === false ) {
+					if ( this.log_handler_ )
+						this.log_handler_( 'Transition method ' + method + ' cancelled' )
 					return false
+				}
 			}
-			return this.trigger( this.namespaceTransition_( method ), args )
+			var event = this.namespaceTransition_( method )
+			ret = this.trigger( event, args )
+			if ( ret === false && this.log_handler_ ) {
+				this.log_handler_( 'Transition event ' + event + ' cancelled' )
+			}
+			return ret
 		}
 
 		// is_exit tells that the order is exit transitions
