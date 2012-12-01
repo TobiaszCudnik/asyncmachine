@@ -51,6 +51,7 @@ class Foo extends AsyncMachine {
 - lots of tests (in Coffee)
 
 ## Order of a transition:
+
 - STATE1_exit
 - STATE1_STATE2
 - STATE1_any
@@ -58,6 +59,7 @@ class Foo extends AsyncMachine {
 - STATE2_enter
 
 # TODO / Ideas
+
 - travis CI
 - add state to the states' stack before running it's enter transition
 - auto trigger an event if state is set
@@ -67,6 +69,11 @@ class Foo extends AsyncMachine {
 - method for generating all possible transition permutations (honoring the relations)
 - customizable naming convention
 -- STATE_STATE to StateState or state_
+
+# Design concerns
+
+- dropped state transitions to all currently active states, on only newly added ones
+- state change request during state change transition is not allowed
 
 ## License 
 

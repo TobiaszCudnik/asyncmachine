@@ -562,19 +562,23 @@ var Promise = rsvp.Promise;
                 states = states.concat(state.implies);
             });
             return states;
-        }// Check required states (until no change happens)
+        }// Check required states
+        // Loop until no change happens, as state can requires themselves in a vector.
         ;
         AsyncMachine.prototype.parseRequires_ = function (states) {
             var _this = this;
-            var missing = true;
-            while(missing) {
-                missing = false;
+            var length_before = 0, length_after;
+            while(length_before != states.length) {
+                length_before = states.length;
                 states = states.filter(function (name) {
                     var state = _this.getState_(name);
-                    missing = (state.requires || []).reduce(function (memo, req) {
-                        return memo || !~states.indexOf(req);
+                    return !(state.requires || []).reduce(function (memo, req) {
+                        var found = ~states.indexOf(req);
+                        if(!found && _this.log_handler_) {
+                            _this.log_handler_('State ' + name + ' dropped because required state ' + req + ' is missing');
+                        }
+                        return memo || !found;
                     }, false);
-                    return !missing;
                 });
             }
             return states;
@@ -1151,9 +1155,27 @@ asyncmachineTest.module(1, function(/* parent */){
         this.machine.setState(['C', 'D']);
         return expect(this.machine.state()).to.eql(['C', 'D']);
       });
-      return it('should\'t be set when required state isn\'t active', function() {
-        this.machine.setState(['C', 'A']);
-        return expect(this.machine.state()).to.eql(['A']);
+      return describe('when required state isn\'t active', function() {
+        beforeEach(function() {
+          var _this = this;
+          this.log = [];
+          this.logger = function(msg) {
+            return _this.log.push(msg);
+          };
+          this.machine.debugStates('', this.logger);
+          return this.machine.setState(['C', 'A']);
+        });
+        afterEach(function() {
+          return delete this.log;
+        });
+        it('should\'t be set', function() {
+          return expect(this.machine.state()).to.eql(['A']);
+        });
+        return it('should explain the reason in the log', function() {
+          var msg;
+          msg = 'State C dropped because required state D is missing';
+          return expect(this.log).to.contain(msg);
+        });
       });
     });
     describe('when state is changed', function() {

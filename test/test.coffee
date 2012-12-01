@@ -139,6 +139,7 @@ describe "asyncmachine", ->
 			mock_states @machine, [ 'A', 'B', 'C' ]
 			# exec
 			@machine.setState [ 'C' ]
+
 		it "should trigger the state to state transitions", ->
 			expect( @machine.B_C.calledOnce ).to.be.ok
 			expect( @machine.A_C.calledOnce ).to.be.ok
@@ -174,6 +175,7 @@ describe "asyncmachine", ->
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
 			# exec
 			@machine.setState [ 'D', 'C' ]
+
 		it "should trigger the state to state transitions", ->
 			expect( @machine.A_C.calledOnce ).to.be.ok
 			expect( @machine.A_D.calledOnce ).to.be.ok
@@ -209,9 +211,6 @@ describe "asyncmachine", ->
 				@machine.C_enter
 			]
 			assert_order order
-
-		it 'should trigger only transitions to newly set states'
-		it 'should trigger transitions for simulanously set states (how???)'
 
 	describe "when transitioning to an active state", ->
 		beforeEach ->
@@ -357,9 +356,22 @@ describe "asyncmachine", ->
 			@machine.setState [ 'C', 'D' ]
 			expect( @machine.state() ).to.eql [ 'C', 'D' ]
 
-		it 'should\'t be set when required state isn\'t active', ->
-			@machine.setState [ 'C', 'A' ]
-			expect( @machine.state() ).to.eql [ 'A' ]
+		describe 'when required state isn\'t active', ->
+			beforeEach ->
+				@log = []
+				@logger = (msg) =>
+					@log.push msg
+				@machine.debugStates '', @logger
+				@machine.setState [ 'C', 'A' ]
+			afterEach ->
+				delete @log
+
+			it 'should\'t be set', ->
+				expect( @machine.state() ).to.eql [ 'A' ]
+
+			it 'should explain the reason in the log', ->
+				msg = 'State C dropped as required state D is missing'
+				expect( @log ).to.contain msg
 
 	describe 'when state is changed', ->
 		beforeEach ->

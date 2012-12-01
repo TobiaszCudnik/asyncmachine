@@ -384,9 +384,27 @@
         this.machine.setState(['C', 'D']);
         return expect(this.machine.state()).to.eql(['C', 'D']);
       });
-      return it('should\'t be set when required state isn\'t active', function() {
-        this.machine.setState(['C', 'A']);
-        return expect(this.machine.state()).to.eql(['A']);
+      return describe('when required state isn\'t active', function() {
+        beforeEach(function() {
+          var _this = this;
+          this.log = [];
+          this.logger = function(msg) {
+            return _this.log.push(msg);
+          };
+          this.machine.debugStates('', this.logger);
+          return this.machine.setState(['C', 'A']);
+        });
+        afterEach(function() {
+          return delete this.log;
+        });
+        it('should\'t be set', function() {
+          return expect(this.machine.state()).to.eql(['A']);
+        });
+        return it('should explain the reason in the log', function() {
+          var msg;
+          msg = 'State C dropped because required state D is missing';
+          return expect(this.log).to.contain(msg);
+        });
       });
     });
     describe('when state is changed', function() {

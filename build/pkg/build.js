@@ -562,19 +562,23 @@ var Promise = rsvp.Promise;
                 states = states.concat(state.implies);
             });
             return states;
-        }// Check required states (until no change happens)
+        }// Check required states
+        // Loop until no change happens, as state can requires themselves in a vector.
         ;
         AsyncMachine.prototype.parseRequires_ = function (states) {
             var _this = this;
-            var missing = true;
-            while(missing) {
-                missing = false;
+            var length_before = 0, length_after;
+            while(length_before != states.length) {
+                length_before = states.length;
                 states = states.filter(function (name) {
                     var state = _this.getState_(name);
-                    missing = (state.requires || []).reduce(function (memo, req) {
-                        return memo || !~states.indexOf(req);
+                    return !(state.requires || []).reduce(function (memo, req) {
+                        var found = ~states.indexOf(req);
+                        if(!found && _this.log_handler_) {
+                            _this.log_handler_('State ' + name + ' dropped because required state ' + req + ' is missing');
+                        }
+                        return memo || !found;
                     }, false);
-                    return !missing;
                 });
             }
             return states;

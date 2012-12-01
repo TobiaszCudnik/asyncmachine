@@ -241,13 +241,13 @@ export module asyncmachine {
 
 		////////////////////////////
 
-		private allStatesSet( states ) {
+		private allStatesSet( states ): bool {
 			return ! states.reduce( (ret, state) => {
 				return ret || ! this.state( state )
 			}, false)
 		}
 
-		private allStatesNotSet( states ) {
+		private allStatesNotSet( states ): bool {
 			return ! states.reduce( (ret, state) => {
 				return ret || this.state( state )
 			}, false)
@@ -262,7 +262,7 @@ export module asyncmachine {
 					.replace( '_', '._.' )
 		}
 
-		private getState_(name) {
+		private getState_(name): IState {
 			return this[ 'state_' + name ]
 		}
 
@@ -323,17 +323,24 @@ export module asyncmachine {
 			return states
 		}
 
-		// Check required states (until no change happens)
+		// Check required states
+		// Loop until no change happens, as state can requires themselves in a vector.
 		private parseRequires_(states: string[]): string[] {
-			var missing = true
-			while (missing) {
-				missing = false
+			var length_before = 0,
+				length_after
+			while (length_before != states.length) {
+				length_before = states.length
 				states = states.filter( (name: string) => {
 					var state = this.getState_( name )
-					missing = ( state.requires || [] ).reduce( (memo, req) => {
-						return memo || !~states.indexOf(req)
+					return ! ( state.requires || [] ).reduce( (memo, req) => {
+						var found = ~states.indexOf(req)
+						if ( ! found && this.log_handler_ ) {
+							this.log_handler_( 'State ' + name +
+								' dropped as required state ' + req + ' is missing'
+							)
+						}
+						return memo || !found
 					}, false)
-					return !missing
 				})
 			}
 			return states
