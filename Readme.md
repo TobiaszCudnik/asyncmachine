@@ -61,6 +61,7 @@ class Foo extends AsyncMachine {
 # TODO / Ideas
 
 - travis CI
+- make logging better (namespace, pass thou a method)
 - add state to the states' stack before running it's enter transition
 - auto trigger an event if state is set
 - nested state changes exceptions

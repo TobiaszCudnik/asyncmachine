@@ -84,7 +84,10 @@ export module asyncmachine {
 		setState(states: string[], ...args: any[]);
 		setState(states: string, ...args: any[]);
 		setState(states: any, ...args: any[]) {
-			var states_to_set = Array.isArray( states ) ? states : [ states ]
+			var states_to_set = <string[]>( Array.isArray( states )
+				? states : [ states ] )
+			if ( this.log_handler_ )
+				this.log_handler_( '[*] Set state ' + states_to_set.join(', ') )
 			if ( this.selfTransitionExec_( states_to_set, args ) === false )
 				return false
 			states = this.setupTargetStates_( states_to_set )
@@ -111,7 +114,10 @@ export module asyncmachine {
 		dropState(states: string[], ...args: any[]);
 		dropState(states: string, ...args: any[]);
 		dropState(states: any, ...args: any[]) {
-			var states_to_drop = Array.isArray( states ) ? states : [ states ]
+			var states_to_drop = <string[]>( Array.isArray( states )
+				? states : [ states ] )
+			if ( this.log_handler_ )
+				this.log_handler_( '[*] Drop state ' + states_to_drop.join(', ') )
 			// Invert states to target ones.
 			states = this.states_active.filter( (state: string) => {
 				return !~states_to_drop.indexOf( state )
@@ -139,7 +145,10 @@ export module asyncmachine {
 		addState(states: string[], ...args: any[]);
 		addState(states: string, ...args: any[]);
 		addState(states: any, ...args: any[]) {
-			var states_to_add = Array.isArray( states ) ? states : [ states ]
+			var states_to_add = <string[]>( Array.isArray( states )
+				? states : [ states ] )
+			if ( this.log_handler_ )
+				this.log_handler_( '[*] Add state ' + states_to_add.join(', ') )
 			if ( this.selfTransitionExec_( states_to_add, args ) === false )
 				return false
 			states = states_to_add.concat( this.states_active )
@@ -303,7 +312,7 @@ export module asyncmachine {
 					already_blocked.push( name )
 					if ( this.log_handler_ ) {
 						this.log_handler_(
-							'State ' + name + ' blocked by ' + blocked_by.join(', ')
+							'[i] State ' + name + ' blocked by ' + blocked_by.join(', ')
 						)
 					}
 				}
@@ -335,7 +344,7 @@ export module asyncmachine {
 					return ! ( state.requires || [] ).reduce( (memo, req) => {
 						var found = ~states.indexOf(req)
 						if ( ! found && this.log_handler_ ) {
-							this.log_handler_( 'State ' + name +
+							this.log_handler_( '[i] State ' + name +
 								' dropped as required state ' + req + ' is missing'
 							)
 						}
@@ -451,13 +460,13 @@ export module asyncmachine {
 				ret = this[ method ].apply( this, args )
 				if ( ret === false ) {
 					if ( this.log_handler_ )
-						this.log_handler_( 'Transition method ' + method + ' cancelled' )
+						this.log_handler_( '[i] Transition method ' + method + ' cancelled' )
 					return false
 				}
 			}
 			ret = this.trigger( event, args )
 			if ( ret === false && this.log_handler_ ) {
-				this.log_handler_( 'Transition event ' + event + ' cancelled' )
+				this.log_handler_( '[i] Transition event ' + event + ' cancelled' )
 			}
 			return ret
 		}
