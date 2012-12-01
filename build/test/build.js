@@ -263,15 +263,18 @@ var Promise = rsvp.Promise;
     var AsyncMachine = (function () {
         function AsyncMachine(state, config) {
             this.config = config;
+            this.debug_states_ = false;
             this.disabled = false;
             LucidJS.emitter(this);
             if(config && config.debug) {
                 this.debugStates();
             }
-            state = Array.isArray(state) ? state : [
-                state
-            ];
-            this.initStates(state);
+            if(state) {
+                state = Array.isArray(state) ? state : [
+                    state
+                ];
+                this.initStates(state);
+            }
         }
         // Prepare class'es states. Required to be called manually for inheriting classes.
                 AsyncMachine.prototype.initStates = function (state) {
@@ -444,27 +447,26 @@ var Promise = rsvp.Promise;
         AsyncMachine.prototype.debugStates = function (prefix, log_handler) {
             if(this.debug_states_) {
                 // OFF
-                this.trigger = this.debug_states_;
-                delete this.debug_states_;
+                this.debug_states_ = false;
                 delete this.log_handler_;
             } else {
                 // ON
-                this.debug_states_ = this.trigger;
-                this.log_handler_ = log_handler || console.log.bind(console);
-                this.trigger = function (event) {
-                    var args = [];
-                    for (var _i = 0; _i < (arguments.length - 1); _i++) {
-                        args[_i] = arguments[_i + 1];
+                this.debug_states_ = true;
+                log_handler = log_handler || console.log.bind(console);
+                this.log_handler_ = function () {
+                    var msgs = [];
+                    for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                        msgs[_i] = arguments[_i + 0];
                     }
-                    prefix = prefix || '';
-                    this.log_handler_(prefix + event);
-                    return this.debug_states_.apply(this, [].concat([
-                        event
-                    ], args));
+                    var args = prefix ? [
+                        prefix
+                    ].concat(msgs) : msgs;
+                    log_handler.apply(null, args);
                 };
             }
-        };
-        AsyncMachine.prototype.initMSM = function (state, config) {
+        }// Initializes the mixin.
+        ;
+        AsyncMachine.prototype.initAsyncMachine = function (state, config) {
             AsyncMachine.apply(this, arguments);
         }// Mixin asyncmachine into a prototype of another constructor.
         ;
@@ -681,7 +683,10 @@ var Promise = rsvp.Promise;
             args = [].concat([
                 target_states
             ], args);
-            var ret;
+            var ret, event = this.namespaceTransition_(method);
+            if(this.log_handler_) {
+                this.log_handler_(event);
+            }
             if(this[method] instanceof Function) {
                 ret = this[method].apply(this, args);
                 if(ret === false) {
@@ -691,7 +696,6 @@ var Promise = rsvp.Promise;
                     return false;
                 }
             }
-            var event = this.namespaceTransition_(method);
             ret = this.trigger(event, args);
             if(ret === false && this.log_handler_) {
                 this.log_handler_('Transition event ' + event + ' cancelled');
@@ -1071,7 +1075,7 @@ asyncmachineTest.module(1, function(/* parent */){
           return expect(this.ret).to.eql(false);
         });
         it('should explain the reson in the log', function() {
-          return console.log(this.log);
+          return expect(~this.log.indexOf('State D blocked by C')).to.be.ok;
         });
         return afterEach(function() {
           return delete this.ret;

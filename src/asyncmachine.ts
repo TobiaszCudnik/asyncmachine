@@ -29,7 +29,7 @@ export module asyncmachine {
 
 	//export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
 	export class AsyncMachine {
-		private debug_states_: Function;
+		private debug_states_: bool = false;
 		private log_handler_: Function;
 		disabled: bool = false;
 		private states: string[];
@@ -42,15 +42,17 @@ export module asyncmachine {
 
 		////////////////////////////
 
-		constructor (state: string, config?: IConfig);
-		constructor (state: string[], config?: IConfig);
-		constructor (state: any, public config?: IConfig) {
+		constructor (state?: string, config?: IConfig);
+		constructor (state?: string[], config?: IConfig);
+		constructor (state?: any, public config?: IConfig) {
 			LucidJS.emitter(this)
 			if ( config && config.debug ) {
 				this.debugStates()
 			}
-			state = Array.isArray(state) ? state : [ state ]
-			this.initStates( state )
+			if ( state ) {
+				state = Array.isArray(state) ? state : [ state ]
+				this.initStates( state )
+			}
 		}
 
 		// Prepare class'es states. Required to be called manually for inheriting classes.
@@ -208,24 +210,21 @@ export module asyncmachine {
 		debugStates( prefix?: string, log_handler?: (...msgs: string[] ) => void ) {
 			if ( this.debug_states_ ) {
 				// OFF
-				this.trigger = <any>this.debug_states_
-				delete this.debug_states_
+				this.debug_states_ = false
 				delete this.log_handler_
 			} else {
 				// ON
-				this.debug_states_ = this.trigger
-				this.log_handler_ = log_handler || console.log.bind( console )
-				this.trigger = function(event, ...args: any[]) {
-					prefix = prefix || ''
-					this.log_handler_( prefix + event )
-					return this.debug_states_.apply(
-						this, [].concat( [event], args )
-					)
+				this.debug_states_ = true
+				log_handler = log_handler || console.log.bind( console )
+				this.log_handler_ = ( ...msgs: string[] ) => {
+					var args = prefix ? [ prefix ].concat( msgs ) : msgs
+					log_handler.apply( null, args )
 				}
 			}
 		}
 
-		initMSM(state: string, config?: IConfig) {
+		// Initializes the mixin.
+		initAsyncMachine(state: string, config?: IConfig) {
 			AsyncMachine.apply( this, arguments )
 		}
 
@@ -437,7 +436,10 @@ export module asyncmachine {
 		private transitionExec_( method: string, target_states: string[],
                 args?: any[] = []): bool {
 			args = [].concat( [ target_states ], args )
-			var ret
+			var ret,
+				event = this.namespaceTransition_( method )
+			if ( this.log_handler_ )
+				this.log_handler_( event )
 			if ( this[ method ] instanceof Function ) {
 				ret = this[ method ].apply( this, args )
 				if ( ret === false ) {
@@ -446,7 +448,6 @@ export module asyncmachine {
 					return false
 				}
 			}
-			var event = this.namespaceTransition_( method )
 			ret = this.trigger( event, args )
 			if ( ret === false && this.log_handler_ ) {
 				this.log_handler_( 'Transition event ' + event + ' cancelled' )

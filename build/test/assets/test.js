@@ -308,7 +308,7 @@
           return expect(this.ret).to.eql(false);
         });
         it('should explain the reson in the log', function() {
-          return console.log(this.log);
+          return expect(~this.log.indexOf('State D blocked by C')).to.be.ok;
         });
         return afterEach(function() {
           return delete this.ret;
