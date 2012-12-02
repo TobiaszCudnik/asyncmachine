@@ -713,6 +713,7 @@ describe "asyncmachine", ->
 	# expect( machine2.state() ).to.eql [ 'D', 'B', 'C' ]
 
 	describe 'bugs', ->
+		# TODO use a constructor in Sub
 		it 'should trigger the enter state of a subclass', ->
 			a_enter_spy = sinon.spy()
 			b_enter_spy = sinon.spy()
@@ -725,6 +726,29 @@ describe "asyncmachine", ->
 			sub.setState 'B'
 			expect( a_enter_spy.called ).to.be.ok
 			expect( b_enter_spy.called ).to.be.ok
+
+		it 'should drop states cross-blocked by implied states', ->
+			# parse implied states before current ones
+			# hint: in blocked by
+			class Sub extends asyncmachine.AsyncMachine
+				state_A: {
+					blocks: [ 'B' ]
+				}
+				state_B: {
+					blocks: [ 'A' ]
+				}
+				state_C: {
+					implies: [ 'B' ]
+				}
+				constructor: ->
+					super()
+					@initStates 'A'
+					@setState 'C'
+
+			sub = new Sub
+			expect( sub.state()).to.eql [ 'C', 'B' ]
+
+		it 'should pass args to transition methods'
 
 	describe 'Promises', ->
 		it 'can be resolved'

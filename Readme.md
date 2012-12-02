@@ -60,6 +60,7 @@ class Foo extends AsyncMachine {
 
 # TODO / Ideas
 
+- log only executed transitions
 - receive callback params !!!
 - accessible method for setting a state on a next tick
 - travis CI
