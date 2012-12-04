@@ -4,7 +4,7 @@ sinon = require 'sinon'
 Promise = require('rsvp').Promise
 
 describe "asyncmachine", ->
-	class FooMachine extends asyncmachine.AsyncMachine
+    class FooMachine extends asyncmachine.AsyncMachine
 		state_A: {}
 		state_B: {}
 		state_C: {}
@@ -288,7 +288,7 @@ describe "asyncmachine", ->
 				expect( @ret ).to.eql no
 
 			it 'should explain the reson in the log', ->
-				expect( ~@log.indexOf 'State D blocked by C').to.be.ok
+				expect( ~@log.indexOf '[i] State D blocked by C').to.be.ok
 
 			afterEach ->
 				delete @ret
@@ -370,7 +370,7 @@ describe "asyncmachine", ->
 				expect( @machine.state() ).to.eql [ 'A' ]
 
 			it 'should explain the reason in the log', ->
-				msg = 'State C dropped as required state D is missing'
+				msg = '[i] State C dropped as required state D is missing'
 				expect( @log ).to.contain msg
 
 	describe 'when state is changed', ->
@@ -424,7 +424,7 @@ describe "asyncmachine", ->
 					expect( @machine.state() ).to.eql [ 'A' ]
 
 				it 'should explain the reason in the log', ->
-					expect( ~@log.indexOf 'Transition method D_enter cancelled').to.be.ok
+					expect( ~@log.indexOf '[i] Transition method D_enter cancelled').to.be.ok
 
 			# TODO make this and the previous a main contexts
 			describe 'when adding an additional state', ->
@@ -505,14 +505,14 @@ describe "asyncmachine", ->
 							do resolve
 							@machine.last_promise
 						).then( =>
-							resolve = @machine.setStateLater 'D', 'foo', 2
-							do resolve
-							@machine.last_promise
-						).then( =>
-							resolve = @machine.dropStateLater 'D', 'foo', 2
-							do resolve
-							@machine.last_promise
-						).then done
+						resolve = @machine.setStateLater 'D', 'foo', 2
+						do resolve
+						@machine.last_promise
+					).then( =>
+						resolve = @machine.dropStateLater 'D', 'foo', 2
+						do resolve
+						@machine.last_promise
+					).then done
 
 				describe 'and is explicit', ->
 
@@ -732,13 +732,13 @@ describe "asyncmachine", ->
 			# hint: in blocked by
 			class Sub extends asyncmachine.AsyncMachine
 				state_A: {
-					blocks: [ 'B' ]
+				blocks: [ 'B' ]
 				}
 				state_B: {
-					blocks: [ 'A' ]
+				blocks: [ 'A' ]
 				}
 				state_C: {
-					implies: [ 'B' ]
+				implies: [ 'B' ]
 				}
 				constructor: ->
 					super()

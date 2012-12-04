@@ -9,7 +9,7 @@ var Promise = rsvp.Promise
 
 export module asyncmachine {
 
-	require('es5-shim')
+    require('es5-shim')
 
 	export interface IState {
 		// will change the order of transitions placing dependant states in the front
@@ -81,92 +81,57 @@ export module asyncmachine {
 		}
 
 		// Activate certain states and deactivate the current ones.
-		setState(states: string[], ...args: any[]);
-		setState(states: string, ...args: any[]);
-		setState(states: any, ...args: any[]) {
-			var states_to_set = <string[]>( Array.isArray( states )
-				? states : [ states ] )
-			if ( this.log_handler_ )
-				this.log_handler_( '[*] Set state ' + states_to_set.join(', ') )
-			if ( this.selfTransitionExec_( states_to_set, args ) === false )
-				return false
-			states = this.setupTargetStates_( states_to_set )
-			var ret = this.transition_( states, states_to_set, args )
-			return ret === false
-					? false : this.allStatesSet( states_to_set )
+		setState(states: string[], ...params: any[]);
+		setState(states: string, ...params: any[]);
+		setState(states: any, ...params: any[]) {
+			return this.setState_( states, params )
 		}
 
 		// Curried version of setState.
-		setStateLater(states: string[], ...rest: any[]);
-		setStateLater(states: string, ...rest: any[]);
-		setStateLater(states: any, ...rest: any[]) {
-			var states = Array.isArray( states ) ? states : [ states ]
+		setStateLater(states: string[], ...params: any[]);
+		setStateLater(states: string, ...params: any[]);
+		setStateLater(states: any, ...params: any[]) {
 			var promise = new Promise
-			promise.then( () => {
-				debugger
-				this.setState.apply( this, [].concat( [ states ], rest ) )
-			} )
-			this.last_promise = promise
-			return promise.resolve.bind( promise )
-		}
-
-		// Deactivate certain states.
-		dropState(states: string[], ...args: any[]);
-		dropState(states: string, ...args: any[]);
-		dropState(states: any, ...args: any[]) {
-			var states_to_drop = <string[]>( Array.isArray( states )
-				? states : [ states ] )
-			if ( this.log_handler_ )
-				this.log_handler_( '[*] Drop state ' + states_to_drop.join(', ') )
-			// Invert states to target ones.
-			states = this.states_active.filter( (state: string) => {
-				return !~states_to_drop.indexOf( state )
-			})
-			states = this.setupTargetStates_( states )
-			this.transition_( states, args )
-			return this.allStatesNotSet( states_to_drop )
-		}
-
-		// Deactivate certain states.
-		dropStateLater(states: string[], ...rest: any[]);
-		dropStateLater(states: string, ...rest: any[]);
-		dropStateLater(states: any, ...rest: any[]) {
-			var states = Array.isArray( states ) ? states : [ states ]
-			var promise = new Promise
-			promise.then( () => {
-				this.dropState.apply( this, [].concat( [ states ], rest ) )
+			promise.then( (...callback_params: any[] ) => {
+				this.setState_.call( this, states, params, callback_params )
 			} )
 			this.last_promise = promise
 			return promise.resolve.bind( promise )
 		}
 
 		// Activate certain states and keep the current ones.
-		// TODO Maybe avoid double concat of states_active
-		addState(states: string[], ...args: any[]);
-		addState(states: string, ...args: any[]);
-		addState(states: any, ...args: any[]) {
-			var states_to_add = <string[]>( Array.isArray( states )
-				? states : [ states ] )
-			if ( this.log_handler_ )
-				this.log_handler_( '[*] Add state ' + states_to_add.join(', ') )
-			if ( this.selfTransitionExec_( states_to_add, args ) === false )
-				return false
-			states = states_to_add.concat( this.states_active )
-			states = this.setupTargetStates_( states )
-			var ret = this.transition_( states, states_to_add, args )
-			return ret === false
-					? false : this.allStatesSet( states_to_add )
+		addState(states: string[], ...params: any[]);
+		addState(states: string, ...params: any[]);
+		addState(states: any, ...params: any[]) {
+			return this.addState_( states, params )
 		}
 
 		// Curried version of addState
-
-		addStateLater(states: string[], ...rest: any[]);
-		addStateLater(states: string, ...rest: any[]);
-		addStateLater(states: any, ...rest: any[]) {
-			var states = Array.isArray( states ) ? states : [ states ]
+		addStateLater(states: string[], ...params: any[]);
+		addStateLater(states: string, ...params: any[]);
+		addStateLater(states: any, ...params: any[]) {
 			var promise = new Promise
-			promise.then( () => {
-				this.addState.apply( this, [].concat( [ states ], rest ) )
+			promise.then( (...callback_params: any[] ) => {
+				this.addState_.call( this, states, params, callback_params )
+			} )
+			this.last_promise = promise
+			return promise.resolve.bind( promise )
+		}
+
+		// Deactivate certain states.
+		dropState(states: string[], ...params: any[]);
+		dropState(states: string, ...params: any[]);
+		dropState(states: any, ...params: any[]) {
+			return this.dropState_( states, params )
+		}
+
+		// Deactivate certain states.
+		dropStateLater(states: string[], ...params: any[]);
+		dropStateLater(states: string, ...params: any[]);
+		dropStateLater(states: any, ...params: any[]) {
+			var promise = new Promise
+			promise.then( (...callback_params: any[] ) => {
+				this.dropState_.call( this, states, params, callback_params )
 			} )
 			this.last_promise = promise
 			return promise.resolve.bind( promise )
@@ -250,6 +215,64 @@ export module asyncmachine {
 
 		////////////////////////////
 
+		private setState_(states: string, exec_params: any[], callback_params?: any[]);
+		private setState_(states: string[], exec_params: any[], callback_params?: any[]);
+		private setState_(states: any, exec_params: any[],
+				callback_params?: any[] = []) {
+			var states_to_set = Array.isArray( states ) ? states : [ states ]
+			if ( this.log_handler_ )
+				this.log_handler_( '[*] Set state ' + states_to_set.join(', ') )
+			var ret = this.selfTransitionExec_(
+					states_to_set, exec_params, callback_params
+			)
+			if ( ret === false )
+				return false
+			states = this.setupTargetStates_( states_to_set )
+			ret = this.transition_(
+				states, states_to_set, exec_params, callback_params
+			)
+			return ret === false
+				? false : this.allStatesSet( states_to_set )
+		}
+
+		// TODO Maybe avoid double concat of states_active
+		private addState_(states: string, exec_params: any[], callback_params?: any[]);
+		private addState_(states: string[], exec_params: any[], callback_params?: any[]);
+		private addState_(states: any, exec_params: any[],
+				callback_params?: any[] = [] ) {
+			var states_to_add = Array.isArray( states ) ? states : [ states ]
+			if ( this.log_handler_ )
+				this.log_handler_( '[*] Add state ' + states_to_add.join(', ') )
+			var ret = this.selfTransitionExec_(
+				states_to_add, exec_params, callback_params
+			)
+			if ( ret === false )
+				return false
+			states = states_to_add.concat( this.states_active )
+			states = this.setupTargetStates_( states )
+			ret = this.transition_(
+				states, states_to_add, exec_params, callback_params
+			)
+			return ret === false
+				? false : this.allStatesSet( states_to_add )
+		}
+
+		private dropState_(states: string, exec_params: any[], callback_params?: any[]);
+		private dropState_(states: string[], exec_params: any[], callback_params?: any[]);
+		private dropState_(states: any, exec_params: any[],
+				callback_params?: any[] = [] ) {
+			var states_to_drop = Array.isArray( states ) ? states : [ states ]
+			if ( this.log_handler_ )
+				this.log_handler_( '[*] Drop state ' + states_to_drop.join(', ') )
+			// Invert states to target ones.
+			states = this.states_active.filter( (state: string) => {
+				return !~states_to_drop.indexOf( state )
+			})
+			states = this.setupTargetStates_( states )
+			this.transition_( states, exec_params, callback_params )
+			return this.allStatesNotSet( states_to_drop )
+		}
+
 		private allStatesSet( states ): bool {
 			return ! states.reduce( (ret, state) => {
 				return ret || ! this.state( state )
@@ -266,9 +289,9 @@ export module asyncmachine {
 			// CamelCase to Camel.Case
 			return this.namespaceStateName( transition )
 				// A_exit -> A.exit
-					.replace( /_([a-z]+)$/, '.$1' )
+				.replace( /_([a-z]+)$/, '.$1' )
 				// A_B -> A._.B
-					.replace( '_', '._.' )
+				.replace( '_', '._.' )
 		}
 
 		private getState_(name): IState {
@@ -276,17 +299,18 @@ export module asyncmachine {
 		}
 
 		// Executes self transitions (eg ::A_A) based on active states.
-		private selfTransitionExec_(states: string[], args: any[]) {
+		private selfTransitionExec_(states: string[], exec_params?: any[] = [],
+                callback_params?: any[] = [] ) {
 			var ret = states.some( (state) => {
 				var ret, name = state + '_' + state
 				var method: Function = this[ name ]
 				if ( method && ~this.states_active.indexOf( state ) ) {
-					var transition_args = [ states ].concat( args )
+					var transition_args = [ states ].concat( exec_params )
 					ret = method.apply( this, transition_args )
 					if ( ret === false )
 						return true
 					var event = this.namespaceTransition_( name )
-					transition_args = <any[]>[ event, states ].concat( args )
+					transition_args = <any[]>[ event, states ].concat( exec_params )
 					return this.trigger.apply( this, transition_args ) === false
 				}
 			})
@@ -376,7 +400,7 @@ export module asyncmachine {
 		}
 
 		private transition_(to: string[], explicit_states: string[],
-                args?: any[] = []) {
+                exec_params?: any[] = [], callback_params?: any[] = [] ) {
 			// TODO handle args
 			if ( ! to.length )
 				return true
@@ -388,7 +412,7 @@ export module asyncmachine {
 			this.orderStates_( from )
 			// var wait = <Function[]>[]
 			var ret = from.some( (state: string) => {
-				return this.transitionExit_( state, to, explicit_states, args )
+				return this.transitionExit_( state, to, explicit_states, exec_params )
 					=== false
 			})
 			if ( ret === true )
@@ -397,7 +421,7 @@ export module asyncmachine {
 				// Skip transition if state is already active.
 				if ( ~this.states_active.indexOf(state) )
 					return false
-				var trans_args = ~explicit_states.indexOf(state) ? args : []
+				var trans_args = ~explicit_states.indexOf(state) ? exec_params : []
 				return this.transitionEnter_( state, to, trans_args )
 					=== false
 			})
@@ -409,7 +433,7 @@ export module asyncmachine {
 
 		// Exit transition handles state-to-state methods.
 		private transitionExit_( from: string, to: string[],
-                explicit_states: string[], args: any[] ) {
+				explicit_states: string[], args: any[] ) {
 			var method, callbacks = []
 			if ( this.transitionExec_( from + '_exit', to ) === false )
 				return false
@@ -450,10 +474,10 @@ export module asyncmachine {
 		}
 
 		private transitionExec_( method: string, target_states: string[],
-                args?: any[] = []): bool {
+				args?: any[] = []): bool {
 			args = [].concat( [ target_states ], args )
 			var ret,
-				event = this.namespaceTransition_( method )
+					event = this.namespaceTransition_( method )
 			if ( this.log_handler_ )
 				this.log_handler_( event )
 			if ( this[ method ] instanceof Function ) {
