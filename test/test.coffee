@@ -4,7 +4,7 @@ sinon = require 'sinon'
 Promise = require('rsvp').Promise
 
 describe "asyncmachine", ->
-    class FooMachine extends asyncmachine.AsyncMachine
+	class FooMachine extends asyncmachine.AsyncMachine
 		state_A: {}
 		state_B: {}
 		state_C: {}
@@ -384,9 +384,9 @@ describe "asyncmachine", ->
 			it 'can\'t be set synchronously', ->
 				@machine.B_enter = (states) ->
 					@setState [ 'C' ]
-				func = ->
+				func = =>
 					@machine.setState 'B'
-				expect( func ).to.throw()
+				expect( func ).to.throw Error
 
 			# TODO
 			it 'can be added synchronously', ->
@@ -437,7 +437,7 @@ describe "asyncmachine", ->
 					expect( @machine.state() ).to.eql [ 'A' ]
 
 				it 'should explain the reason in the log', ->
-					expect( ~@log.indexOf 'Transition method D_enter cancelled').to.be.ok
+					expect( ~@log.indexOf '[i] Transition method D_enter cancelled').to.be.ok
 
 		describe 'and transition is successful', ->
 
@@ -505,14 +505,14 @@ describe "asyncmachine", ->
 							do resolve
 							@machine.last_promise
 						).then( =>
-						resolve = @machine.setStateLater 'D', 'foo', 2
-						do resolve
-						@machine.last_promise
-					).then( =>
-						resolve = @machine.dropStateLater 'D', 'foo', 2
-						do resolve
-						@machine.last_promise
-					).then done
+							resolve = @machine.setStateLater 'D', 'foo', 2
+							do resolve
+							@machine.last_promise
+						).then( =>
+							resolve = @machine.dropStateLater 'D', 'foo', 2
+							do resolve
+							@machine.last_promise
+						).then done
 
 				describe 'and is explicit', ->
 
@@ -560,9 +560,12 @@ describe "asyncmachine", ->
 			it 'should expose a ref to the last promise', ->
 				expect( @machine.last_promise ).to.equal @promise
 
-			it 'should be called with params passed to the delayed function', ->
+			it 'should be called with params passed to the delayed function', (done) ->
+				@machine.D_enter = ->
+					#expect( arguments ).to.be.eql [ 'D' ], [], 'foo', 2
+					expect( arguments ).to.be.eql [ [ 'D' ], [], [ 'foo', 2 ] ]
+					do done
 				@promise.resolve 'foo', 2
-				expect( @machine.D_enter.calledWith [ 'D' ], [], 'foo', 2).to.be.ok
 
 			describe 'and then canceled', ->
 				beforeEach ->
@@ -749,6 +752,8 @@ describe "asyncmachine", ->
 			expect( sub.state()).to.eql [ 'C', 'B' ]
 
 		it 'should pass args to transition methods'
+
+		it 'addStatesLater'
 
 	describe 'Promises', ->
 		it 'can be resolved'

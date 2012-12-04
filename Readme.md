@@ -61,9 +61,9 @@ class Foo extends AsyncMachine {
 # TODO / Ideas
 
 - log only executed transitions
-- receive callback params !!!
 - accessible method for setting a state on a next tick
 - travis CI
+- promises eat exceptions
 - make logging better (namespace, pass thou a method)
 - add state to the states' stack before running it's enter transition
 - auto trigger an event if state is set

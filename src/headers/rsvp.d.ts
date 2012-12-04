@@ -7,9 +7,8 @@ declare module "rsvp" {
 	}
 	export class Promise extends EventTarget {
 		isResolved: bool;
-		resolve();
-		reject();
+		resolve(value?: any);
+		reject(err?: any);
 		then(success: Function, failure?: Function): Promise;
-		fulfill();
 	}
 }

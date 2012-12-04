@@ -9,7 +9,7 @@ var Promise = rsvp.Promise
 
 export module asyncmachine {
 
-    require('es5-shim')
+	require('es5-shim')
 
 	export interface IState {
 		// will change the order of transitions placing dependant states in the front
@@ -30,7 +30,7 @@ export module asyncmachine {
 	//export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
 	export class AsyncMachine {
 		private debug_states_: bool = false;
-		private log_handler_: Function;
+		log_handler_: Function;
 		disabled: bool = false;
 		private states: string[];
 		private states_active: string[];
@@ -81,60 +81,66 @@ export module asyncmachine {
 		}
 
 		// Activate certain states and deactivate the current ones.
-		setState(states: string[], ...params: any[]);
-		setState(states: string, ...params: any[]);
-		setState(states: any, ...params: any[]) {
+		setState(states: string[], ...params: any[]): bool;
+		setState(states: string, ...params: any[]): bool;
+		setState(states: any, ...params: any[]): bool {
 			return this.setState_( states, params )
 		}
 
 		// Curried version of setState.
-		setStateLater(states: string[], ...params: any[]);
-		setStateLater(states: string, ...params: any[]);
-		setStateLater(states: any, ...params: any[]) {
+		setStateLater(states: string[], ...params: any[]): (...params: any[]) => void;
+		setStateLater(states: string, ...params: any[]): (...params: any[]) => void;
+		setStateLater(states: any, ...params: any[]): (...params: any[]) => void {
 			var promise = new Promise
 			promise.then( (...callback_params: any[] ) => {
 				this.setState_.call( this, states, params, callback_params )
 			} )
 			this.last_promise = promise
-			return promise.resolve.bind( promise )
+			return function (...params: any[]) {
+				promise.resolve(params)
+			}
 		}
 
 		// Activate certain states and keep the current ones.
-		addState(states: string[], ...params: any[]);
-		addState(states: string, ...params: any[]);
-		addState(states: any, ...params: any[]) {
+		addState(states: string[], ...params: any[]): bool;
+		addState(states: string, ...params: any[]): bool;
+		addState(states: any, ...params: any[]): bool {
 			return this.addState_( states, params )
 		}
 
 		// Curried version of addState
-		addStateLater(states: string[], ...params: any[]);
-		addStateLater(states: string, ...params: any[]);
-		addStateLater(states: any, ...params: any[]) {
+		addStateLater(states: string[], ...params: any[]): (...params: any[]) => void;
+		addStateLater(states: string, ...params: any[]): (...params: any[]) => void;
+		addStateLater(states: any, ...params: any[]): (...params: any[]) => void {
 			var promise = new Promise
 			promise.then( (...callback_params: any[] ) => {
 				this.addState_.call( this, states, params, callback_params )
 			} )
 			this.last_promise = promise
-			return promise.resolve.bind( promise )
+			return function (...params: any[]) {
+				promise.resolve(params)
+			}
 		}
 
 		// Deactivate certain states.
-		dropState(states: string[], ...params: any[]);
-		dropState(states: string, ...params: any[]);
-		dropState(states: any, ...params: any[]) {
+		dropState(states: string[], ...params: any[]): bool;
+		dropState(states: string, ...params: any[]): bool;
+		dropState(states: any, ...params: any[]): bool {
 			return this.dropState_( states, params )
 		}
 
 		// Deactivate certain states.
-		dropStateLater(states: string[], ...params: any[]);
-		dropStateLater(states: string, ...params: any[]);
-		dropStateLater(states: any, ...params: any[]) {
+		dropStateLater(states: string[], ...params: any[]): (...params: any[]) => void;
+		dropStateLater(states: string, ...params: any[]): (...params: any[]) => void;
+		dropStateLater(states: any, ...params: any[]): (...params: any[]) => void {
 			var promise = new Promise
 			promise.then( (...callback_params: any[] ) => {
 				this.dropState_.call( this, states, params, callback_params )
 			} )
 			this.last_promise = promise
-			return promise.resolve.bind( promise )
+			return function (...params: any[]) {
+				promise.resolve(params)
+			}
 		}
 
 		pipeForward(state: AsyncMachine, machine?: string );
@@ -269,7 +275,7 @@ export module asyncmachine {
 				return !~states_to_drop.indexOf( state )
 			})
 			states = this.setupTargetStates_( states )
-			this.transition_( states, exec_params, callback_params )
+			this.transition_( states, states_to_drop, exec_params, callback_params )
 			return this.allStatesNotSet( states_to_drop )
 		}
 
@@ -300,18 +306,22 @@ export module asyncmachine {
 
 		// Executes self transitions (eg ::A_A) based on active states.
 		private selfTransitionExec_(states: string[], exec_params?: any[] = [],
-                callback_params?: any[] = [] ) {
+				callback_params?: any[] = [] ) {
 			var ret = states.some( (state) => {
 				var ret, name = state + '_' + state
 				var method: Function = this[ name ]
 				if ( method && ~this.states_active.indexOf( state ) ) {
-					var transition_args = [ states ].concat( exec_params )
-					ret = method.apply( this, transition_args )
+					var transition_params = [ states ].concat(
+						[ exec_params ], callback_params
+					)
+					ret = method.apply( this, transition_params )
 					if ( ret === false )
 						return true
 					var event = this.namespaceTransition_( name )
-					transition_args = <any[]>[ event, states ].concat( exec_params )
-					return this.trigger.apply( this, transition_args ) === false
+					transition_params = <any[]>[ event, states ].concat(
+						[ exec_params ], callback_params
+					)
+					return this.trigger.apply( this, transition_params ) === false
 				}
 			})
 			return ret === true ? false : true
@@ -400,7 +410,7 @@ export module asyncmachine {
 		}
 
 		private transition_(to: string[], explicit_states: string[],
-                exec_params?: any[] = [], callback_params?: any[] = [] ) {
+				exec_params?: any[] = [], callback_params?: any[] = [] ) {
 			// TODO handle args
 			if ( ! to.length )
 				return true
@@ -410,20 +420,21 @@ export module asyncmachine {
 			})
 			this.orderStates_( to )
 			this.orderStates_( from )
+			var params = [ exec_params ].concat( callback_params )
 			// var wait = <Function[]>[]
 			var ret = from.some( (state: string) => {
-				return this.transitionExit_( state, to, explicit_states, exec_params )
-					=== false
+				var ret = this.transitionExit_(state, to, explicit_states, params)
+				return ret === false
 			})
 			if ( ret === true )
 				return false
 			ret = to.some( (state: string) => {
 				// Skip transition if state is already active.
-				if ( ~this.states_active.indexOf(state) )
+				if ( ~this.states_active.indexOf( state ) )
 					return false
-				var trans_args = ~explicit_states.indexOf(state) ? exec_params : []
-				return this.transitionEnter_( state, to, trans_args )
-					=== false
+				var transition_params = ~explicit_states.indexOf( state ) ? params : []
+				var ret = this.transitionEnter_( state, to, transition_params )
+				return ret === false
 			})
 			if ( ret === true )
 				return false
@@ -433,19 +444,21 @@ export module asyncmachine {
 
 		// Exit transition handles state-to-state methods.
 		private transitionExit_( from: string, to: string[],
-				explicit_states: string[], args: any[] ) {
+				explicit_states: string[], params: any[] ) {
 			var method, callbacks = []
-			if ( this.transitionExec_( from + '_exit', to ) === false )
+			var transition_params = ~explicit_states.indexOf( from ) ? params : []
+			var ret = this.transitionExec_( from + '_exit', to, transition_params )
+			if ( ret === false )
 				return false
 			// Duplicate event for namespacing.
 			var transition = 'exit.' + this.namespaceStateName( from )
-			var ret = this.transitionExec_( transition, to )
+			ret = this.transitionExec_( transition, to, transition_params )
 			if ( ret === false )
 				return false
 			ret = to.some( (state: string) => {
-				var trans_args = ~explicit_states.indexOf( state ) ? args : []
 				var transition = from + '_' + state
-				var ret = this.transitionExec_( transition, to, trans_args )
+				var transition_params = ~explicit_states.indexOf( state ) ? params : []
+				var ret = this.transitionExec_( transition, to, transition_params )
 				return ret === false
 			})
 			if ( ret === true )
@@ -456,12 +469,12 @@ export module asyncmachine {
 		}
 
 		private transitionEnter_( to: string, target_states: string[],
-				args: any[] ) {
+				params: any[] ) {
 			var method, callbacks = []
-			var ret = this.transitionExec_( 'any_' + to, target_states, args )
+			var ret = this.transitionExec_( 'any_' + to, target_states, params )
 			if ( ret === false )
 				return false
-			ret = this.transitionExec_( to + '_enter', target_states, args )
+			ret = this.transitionExec_( to + '_enter', target_states, params )
 			if ( ret === false )
 				return false
 			// Duplicate event for namespacing.
@@ -469,29 +482,27 @@ export module asyncmachine {
 				'enter.' + this.namespaceStateName(to),
 				target_states
 			]
-			ret = this.trigger.apply( this, event_args.concat( args ) )
+			ret = this.trigger.apply( this, event_args.concat( params ) )
 			return ret === false ? false : true
 		}
 
 		private transitionExec_( method: string, target_states: string[],
-				args?: any[] = []): bool {
-			args = [].concat( [ target_states ], args )
-			var ret,
-					event = this.namespaceTransition_( method )
+				params?: any[] = []): bool {
+			params = [].concat( [ target_states ], params )
+			var ret, event = this.namespaceTransition_( method )
 			if ( this.log_handler_ )
 				this.log_handler_( event )
-			if ( this[ method ] instanceof Function ) {
-				ret = this[ method ].apply( this, args )
-				if ( ret === false ) {
-					if ( this.log_handler_ )
-						this.log_handler_( '[i] Transition method ' + method + ' cancelled' )
-					return false
+			if ( this[ method ] instanceof Function )
+				ret = this[ method ].apply( this, params )
+			// TODO reduce this 2 log msgs to 1
+			if ( ret !== false ) {
+				ret = this.trigger( event, params )
+				if ( ret === false && this.log_handler_ ) {
+					this.log_handler_( '[i] Transition event ' + event + ' cancelled' )
 				}
 			}
-			ret = this.trigger( event, args )
-			if ( ret === false && this.log_handler_ ) {
-				this.log_handler_( '[i] Transition event ' + event + ' cancelled' )
-			}
+			if ( ret === false && this.log_handler_ )
+				this.log_handler_( '[i] Transition method ' + method + ' cancelled' )
 			return ret
 		}
 
