@@ -60,14 +60,15 @@ class Foo extends AsyncMachine {
 
 # TODO / Ideas
 
+- exception support (includes promise rejections)
+-- promises eat exceptions
 - log only executed transitions
-- accessible method for setting a state on a next tick
+- queued state changes (when nested)
 - travis CI
-- promises eat exceptions
-- make logging better (namespace, pass thou a method)
-- add state to the states' stack before running it's enter transition
+- make logging better
+-- pass thou a method (namespaced)
+-- log only executed transitions
 - auto trigger an event if state is set
-- nested state changes exceptions
 - try to auto drop the implied state when dropping a state
 - tests for the mixin api (traits.js support & examples?)
 - method for generating all possible transition permutations (honoring the relations)
@@ -76,8 +77,8 @@ class Foo extends AsyncMachine {
 
 # Design concerns
 
-- dropped state transitions to all currently active states, on only newly added ones
-- state change request during state change transition is not allowed
+- dropped state transitions to all currently active states, not only newly added ones
+- state change during a state change is queued after current one finishes
 
 ## License 
 

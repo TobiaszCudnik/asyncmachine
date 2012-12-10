@@ -1,4 +1,4 @@
-///<reference path="headers/node.d.ts" />
+///<reference path="headers/commonjs.d.ts" />
 ///<reference path="headers/lucidjs.d.ts" />
 ///<reference path="headers/rsvp.d.ts" />
 ///<reference path="headers/es5-shim.d.ts" />
@@ -9,7 +9,7 @@ var Promise = rsvp.Promise
 
 export module asyncmachine {
 
-	require('es5-shim')
+    require('es5-shim')
 
 	export interface IState {
 		// will change the order of transitions placing dependant states in the front
@@ -27,14 +27,23 @@ export module asyncmachine {
 		//autostart: bool;
 	}
 
+	export interface ITransition  {
+		call(states?: string[], state_params?: any[], callback_params?: any[]): bool;
+		call(states?: string[], state_params?: any[], callback_params?: any[]): any;
+		apply( context, args ): any;
+	}
+
 	//export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
 	export class AsyncMachine {
+
 		private debug_states_: bool = false;
 		log_handler_: Function;
 		disabled: bool = false;
 		private states: string[];
 		private states_active: string[];
 		last_promise: rsvp.Promise;
+		private queue: any[] = [];
+		private lock: bool = false;
 
 		////////////////////////////
 
@@ -60,6 +69,11 @@ export module asyncmachine {
 		initStates( state: string[] );
 		initStates( state: any ) {
 			var states = []
+			for (var name in (<any>this).constructor ) {
+				var match = name.match(/^state_(.+)/)
+				if ( match )
+					states.push( match[1] )
+			}
 			for (var name in this ) {
 				var match = name.match(/^state_(.+)/)
 				if ( match )
@@ -68,6 +82,10 @@ export module asyncmachine {
 			this.states = states
 			this.states_active = []
 			this.setState( state )
+		}
+
+		getState(name): IState {
+			return this[ 'state_' + name ] || (<any>this).constructor[ 'state_' + name ]
 		}
 
 		// Tells if a state is active now.
@@ -224,8 +242,13 @@ export module asyncmachine {
 		private setState_(states: string, exec_params: any[], callback_params?: any[]);
 		private setState_(states: string[], exec_params: any[], callback_params?: any[]);
 		private setState_(states: any, exec_params: any[],
-				callback_params?: any[] = []) {
+				callback_params?: any[] = []): bool {
 			var states_to_set = Array.isArray( states ) ? states : [ states ]
+			if ( this.lock ) {
+				this.queue.push( [ 2, states_to_set, exec_params, callback_params ] )
+				return
+			}
+			this.lock = true
 			if ( this.log_handler_ )
 				this.log_handler_( '[*] Set state ' + states_to_set.join(', ') )
 			var ret = this.selfTransitionExec_(
@@ -234,10 +257,14 @@ export module asyncmachine {
 			if ( ret === false )
 				return false
 			states = this.setupTargetStates_( states_to_set )
+			var queue = this.queue
+			this.queue = []
 			ret = this.transition_(
 				states, states_to_set, exec_params, callback_params
 			)
-			return ret === false
+			this.queue = queue.concat( this.queue )
+			this.lock = false
+			return this.processQueue_() === false || ret === false
 				? false : this.allStatesSet( states_to_set )
 		}
 
@@ -245,8 +272,13 @@ export module asyncmachine {
 		private addState_(states: string, exec_params: any[], callback_params?: any[]);
 		private addState_(states: string[], exec_params: any[], callback_params?: any[]);
 		private addState_(states: any, exec_params: any[],
-				callback_params?: any[] = [] ) {
+				callback_params?: any[] = [] ): bool {
 			var states_to_add = Array.isArray( states ) ? states : [ states ]
+			if ( this.lock ) {
+				this.queue.push( [ 1, states_to_add, exec_params, callback_params ] )
+				return
+			}
+			this.lock = true
 			if ( this.log_handler_ )
 				this.log_handler_( '[*] Add state ' + states_to_add.join(', ') )
 			var ret = this.selfTransitionExec_(
@@ -256,18 +288,27 @@ export module asyncmachine {
 				return false
 			states = states_to_add.concat( this.states_active )
 			states = this.setupTargetStates_( states )
+			var queue = this.queue
+			this.queue = []
 			ret = this.transition_(
 				states, states_to_add, exec_params, callback_params
 			)
-			return ret === false
+			this.queue = queue.concat( this.queue )
+			this.lock = false
+			return this.processQueue_() === false || ret === false
 				? false : this.allStatesSet( states_to_add )
 		}
 
 		private dropState_(states: string, exec_params: any[], callback_params?: any[]);
 		private dropState_(states: string[], exec_params: any[], callback_params?: any[]);
 		private dropState_(states: any, exec_params: any[],
-				callback_params?: any[] = [] ) {
+				callback_params?: any[] = [] ): bool {
 			var states_to_drop = Array.isArray( states ) ? states : [ states ]
+			if ( this.lock ) {
+				this.queue.push( [ 0, states_to_drop, exec_params, callback_params ] )
+				return
+			}
+			this.lock = true
 			if ( this.log_handler_ )
 				this.log_handler_( '[*] Drop state ' + states_to_drop.join(', ') )
 			// Invert states to target ones.
@@ -275,8 +316,32 @@ export module asyncmachine {
 				return !~states_to_drop.indexOf( state )
 			})
 			states = this.setupTargetStates_( states )
+			var queue = this.queue
+			this.queue = []
 			this.transition_( states, states_to_drop, exec_params, callback_params )
-			return this.allStatesNotSet( states_to_drop )
+			this.queue = queue.concat( this.queue )
+			this.lock = false
+			return this.processQueue_() === false
+				|| this.allStatesNotSet( states_to_drop )
+		}
+
+		private processQueue_() {
+			var ret = [], row;
+
+			while ( row = this.queue.shift() ) {
+				switch ( row[0] ) {
+					case 0:
+						ret.push( this.dropState( row[1], row[2], row[3]) )
+						break;
+					case 1:
+						ret.push( this.addState( row[1], row[2], row[3]) )
+						break;
+					case 2:
+						ret.push( this.setState( row[1], row[2], row[3]) )
+						break;
+				}
+			}
+			return !~ret.indexOf( false )
 		}
 
 		private allStatesSet( states ): bool {
@@ -300,16 +365,12 @@ export module asyncmachine {
 				.replace( '_', '._.' )
 		}
 
-		private getState_(name): IState {
-			return this[ 'state_' + name ]
-		}
-
 		// Executes self transitions (eg ::A_A) based on active states.
 		private selfTransitionExec_(states: string[], exec_params?: any[] = [],
 				callback_params?: any[] = [] ) {
 			var ret = states.some( (state) => {
 				var ret, name = state + '_' + state
-				var method: Function = this[ name ]
+				var method: ITransition = this[ name ]
 				if ( method && ~this.states_active.indexOf( state ) ) {
 					var transition_params = [ states ].concat(
 						[ exec_params ], callback_params
@@ -358,7 +419,7 @@ export module asyncmachine {
 		// Collect implied states
 		private parseImplies_(states: string[]): string[] {
 			states.forEach( (name: string) => {
-				var state = this.getState_( name )
+				var state = this.getState( name )
 				if (! state.implies)
 					return
 				states = states.concat( state.implies )
@@ -374,7 +435,7 @@ export module asyncmachine {
 			while (length_before != states.length) {
 				length_before = states.length
 				states = states.filter( (name: string) => {
-					var state = this.getState_( name )
+					var state = this.getState( name )
 					return ! ( state.requires || [] ).reduce( (memo, req) => {
 						var found = ~states.indexOf(req)
 						if ( ! found && this.log_handler_ ) {
@@ -402,7 +463,7 @@ export module asyncmachine {
 		private isStateBlocked_( states, name ): string[] {
 			var blocked_by = []
 			states.forEach( (name2) => {
-				var state = this.getState_( name2 )
+				var state = this.getState( name2 )
 				if ( state.blocks && ~state.blocks.indexOf(name) )
 					blocked_by.push( name2 )
 			})
@@ -414,7 +475,7 @@ export module asyncmachine {
 			// TODO handle args
 			if ( ! to.length )
 				return true
-			// Collect states to drop, based on the target states.
+			// Remove active states.
 			var from = this.states_active.filter( (state: string) => {
 				return !~to.indexOf( state )
 			})
@@ -509,8 +570,8 @@ export module asyncmachine {
 		// is_exit tells that the order is exit transitions
 		private orderStates_( states: string[] ): void {
 			states.sort( (e1, e2) => {
-				var state1 = this.getState_( e1 )
-				var state2 = this.getState_( e2 )
+				var state1 = this.getState( e1 )
+				var state2 = this.getState( e2 )
 				var ret = 0
 				if ( state1.depends && ~state1.depends.indexOf(e2) )
 					ret = 1
@@ -523,8 +584,12 @@ export module asyncmachine {
 		// Event Emitter interface
 		// TODO cover as mixin in the d.ts file
 
-		on(event: string, VarArgsBoolFn): void {}
-		once(event: string, VarArgsBoolFn): void {}
+		on(event: string, VarArgsBoolFn): LucidJS.IBinding {
+			return <LucidJS.IBinding>{}
+		}
+		once(event: string, VarArgsBoolFn): LucidJS.IBinding {
+			return <LucidJS.IBinding>{}
+		}
 		trigger(event: string, ...args: any[]): bool {
 			return true
 		}
@@ -539,7 +604,110 @@ export module asyncmachine {
 	delete AsyncMachine.prototype.once
 	delete AsyncMachine.prototype.trigger
 	delete AsyncMachine.prototype.set
+
+	declare export function Block(...params: any[]): void;
+
+	/**
+	 * Promise-like setTimeout wrapper imitating worker.
+	 */
+	export class Worker extends AsyncMachine {
+
+		schedule_timer: number = null;
+		async_timers: number[];
+
+		constructor() {
+			super()
+			this.initStates('Idle')
+		}
+
+		// Doing nothing right now (but may be waiting).
+		static state_Idle = {
+			blocks: [ 'Running' ]
+		}
+
+		// Waiting for a scheduled run.
+		// Sets timeout on this.schedule_timer.
+		static state_Waiting = {
+			blocks: [ 'Running' ]
+		}
+
+		// Executing async actions
+		static state_Running = {
+			blocks: [ 'Idle', 'Waiting', 'Scheduled' ]
+		}
+
+		// Cancelling a scheduled execution
+		static state_Cancelling = {
+			blocks: [ 'Waiting' ]
+		}
+
+		// Stopping the execution of async actions
+		static state_Stopping = {
+			blocks: [ 'Running' ]
+		}
+
+		Cancelling_enter() {
+			this.addState('Idle')
+		}
+
+		Running_exit() {
+			this.cancelAsyncTimers()
+			this.addState('Idle')
+		}
+
+		cancelAsyncTimers() {
+			var timer
+			while ( timer = this.async_timers.pop() )
+				clearTimeout( timer )
+		}
+
+		// Used to execute a vector of synchronous (!) functions "concurrently"
+		// with others. Useful when you need to preserve responsivenes on UI or
+		// some other interface.
+		async(context: Object, ...blocks: Function[] ) {
+			this.cancelAsyncTimers()
+			blocks.forEach( (block) => {
+				this.async_timers.push(
+					setTimeout( block.bind(context), 1 )
+				)
+			})
+		}
+
+		// Schedule an execution of a function in the worker.
+		// TODO overload with an alternative params order
+		schedule(delay: number, block: Function, context?: Object,
+				...params: any[] ) {
+			if ( this.state('Waiting') )
+				this.addState('Cancelling')
+			var exec_binding = this.once( 'Running.enter',
+				block.apply( context, params )
+			)
+			var cancel_binding = this.once( 'Cancelling.enter',
+				exec_binding.clear.bind( exec_binding )
+			)
+			this.schedule_timer = setTimeout( () => {
+					cancel_binding.clear()
+					this.setState('Running')
+				}, delay
+			)
+			this.addState('Waiting')
+		}
+
+		// Schedule an async work
+		scheduleAsync(delay: number, context: Object, ...blocks: Function[] ) {
+			this.schedule( delay, () => {
+				this.async.apply( this, [ context ].concat( blocks ) )
+			})
+		}
+
+		// Cancel a scheduled execution
+		cancel() {
+			this.addState('Cancelling')
+			this.dropState('Cancelling')
+		}
+	}
 }
 
 // Fake class for sane export.
 export class AsyncMachine extends asyncmachine.AsyncMachine {}
+export class Worker extends asyncmachine.Worker {}

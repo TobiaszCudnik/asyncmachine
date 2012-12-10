@@ -4,11 +4,11 @@ sinon = require 'sinon'
 Promise = require('rsvp').Promise
 
 describe "asyncmachine", ->
-	class FooMachine extends asyncmachine.AsyncMachine
-		state_A: {}
-		state_B: {}
-		state_C: {}
-		state_D: {}
+    class FooMachine extends asyncmachine.AsyncMachine
+		@state_A: {}
+		@state_B: {}
+		@state_C: {}
+		@state_D: {}
 
 		constructor: (state, config) ->
 			super state, config
@@ -18,13 +18,12 @@ describe "asyncmachine", ->
 			# deeply clone all the state's attrs
 			# proto = instance[ "state_#{state}" ]
 			# instance[ "state_#{state}" ] = {}
-			instance[ "#{state}_#{state}" ] = do sinon.spy
+			instance.constructor[ "#{state}_#{state}" ] = do sinon.spy
 			instance[ "#{state}_enter" ] = do sinon.spy
 			instance[ "#{state}_exit" ] = do sinon.spy
 			instance[ "#{state}_any" ] = do sinon.spy
 			instance[ "any_#{state}" ] = do sinon.spy
 			for inner in states
-				continue if inner is state
 				instance[ "#{inner}_#{state}" ] = do sinon.spy
 
 	assert_order = (order) ->
@@ -233,10 +232,13 @@ describe "asyncmachine", ->
 			@machine = new FooMachine [ 'A', 'B' ]
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
-			@machine.state_C.depends = [ 'D' ]
-			@machine.state_A.depends = [ 'B' ]
+			FooMachine.state_C.depends = [ 'D' ]
+			FooMachine.state_A.depends = [ 'B' ]
 			# exec
 			@machine.setState [ 'C', 'D' ]
+		after ->
+			delete FooMachine.state_C.depends
+			delete FooMachine.state_A.depends
 
 		describe 'when entering', ->
 
@@ -274,7 +276,7 @@ describe "asyncmachine", ->
 				@log.push msg
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
-			@machine.state_C = blocks: [ 'D' ]
+			FooMachine.state_C = blocks: [ 'D' ]
 			@machine.setState 'D'
 
 		describe 'and they are set simultaneously', ->
@@ -301,7 +303,9 @@ describe "asyncmachine", ->
 
 		describe 'and cross blocking one is added', ->
 			beforeEach ->
-				@machine.state_D = blocks: [ 'C' ]
+				FooMachine.state_D = blocks: [ 'C' ]
+			after ->
+				FooMachine.state_D = {}
 
 			describe 'using setState', ->
 
@@ -332,8 +336,8 @@ describe "asyncmachine", ->
 			@machine = new FooMachine [ 'A' ]
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
-			@machine.state_C = implies: [ 'D' ]
-			@machine.state_A = blocks: [ 'D' ]
+			FooMachine.state_C = implies: [ 'D' ]
+			FooMachine.state_A = blocks: [ 'D' ]
 			# exec
 			@machine.setState [ 'C' ]
 
@@ -350,7 +354,9 @@ describe "asyncmachine", ->
 			@machine = new FooMachine [ 'A' ]
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
-			@machine.state_C = requires: [ 'D' ]
+			FooMachine.state_C = requires: [ 'D' ]
+		after ->
+			FooMachine.state_C = {}
 
 		it 'should be set when required state is active', ->
 			@machine.setState [ 'C', 'D' ]
@@ -381,30 +387,21 @@ describe "asyncmachine", ->
 
 		describe 'during another state change', ->
 
-			it 'can\'t be set synchronously', ->
-				@machine.B_enter = (states) ->
-					@setState [ 'C' ]
-				func = =>
-					@machine.setState 'B'
-				expect( func ).to.throw Error
-
-			# TODO
-			it 'can be added synchronously', ->
+			it 'should be scheduled synchronously', ->
 				@machine.B_enter = (states) ->
 					@addState 'C'
 				@machine.C_enter = sinon.spy()
 				@machine.A_exit = sinon.spy()
 				@machine.setState 'B'
-				expect( @machine.B_enter.calledOnce ).to.be.ok
 				expect( @machine.C_enter.calledOnce ).to.be.ok
 				expect( @machine.A_exit.calledOnce ).to.be.ok
-				expect( @machine.state() ).to.eql [ 'B', 'C' ]
+				expect( @machine.state() ).to.eql [ 'C', 'B' ]
 
-			it 'can be set asynchronously', ->
-				@machine.B_enter = (states) ->
-					@on 'state.set', @setStateLater 'B', 'C'
-				@machine.setState 'B'
-				expect( @machine.state() ).to.eql [ 'B', 'C' ]
+#			it 'can be set asynchronously', ->
+#				@machine.B_enter = (states) ->
+#					@on 'state.set', @setStateLater 'B', 'C'
+#				@machine.setState 'B'
+#				expect( @machine.state() ).to.eql [ 'B', 'C' ]
 
 		describe 'and transition is canceled', ->
 			beforeEach ->
@@ -458,9 +455,11 @@ describe "asyncmachine", ->
 
 		describe 'with arguments', ->
 			beforeEach ->
-				@machine.state_D =
+				FooMachine.state_D =
 					implies: [ 'B' ]
 					blocks: [ 'A' ]
+			after ->
+				FooMachine.state_D = {}
 
 			describe 'and synchronous', ->
 				beforeEach ->
@@ -512,7 +511,8 @@ describe "asyncmachine", ->
 							resolve = @machine.dropStateLater 'D', 'foo', 2
 							do resolve
 							@machine.last_promise
-						).then done
+						).then ->
+							do done
 
 				describe 'and is explicit', ->
 
@@ -562,10 +562,9 @@ describe "asyncmachine", ->
 
 			it 'should be called with params passed to the delayed function', (done) ->
 				@machine.D_enter = ->
-					#expect( arguments ).to.be.eql [ 'D' ], [], 'foo', 2
 					expect( arguments ).to.be.eql [ [ 'D' ], [], [ 'foo', 2 ] ]
 					do done
-				@promise.resolve 'foo', 2
+				@promise.resolve [ 'foo', 2 ]
 
 			describe 'and then canceled', ->
 				beforeEach ->
@@ -575,8 +574,9 @@ describe "asyncmachine", ->
 					expect( @machine.D_enter.called ).not.to.be.ok
 
 		describe 'and active state is also the target one', ->
-			it 'should trigger self transition at the very beggining', ->
+			it 'should trigger self transition at the very beginning', ->
 				@machine.setState [ 'A', 'B' ]
+				debugger
 				order = [
 					@machine.A_A
 					@machine.any_B
@@ -618,6 +618,7 @@ describe "asyncmachine", ->
 				delete @cancelTransition
 
 			it 'for self transitions', ->
+				debugger
 				expect( @A_A.called ).to.be.ok
 			it 'for enter transitions', ->
 				expect( @B_enter.called ).to.be.ok
@@ -636,7 +637,7 @@ describe "asyncmachine", ->
 
 	describe 'Events', ->
 		class EventMachine extends FooMachine
-			state_TestNamespace: {}
+			@state_TestNamespace: {}
 
 		beforeEach ->
 			@machine = new EventMachine 'A'
@@ -721,8 +722,8 @@ describe "asyncmachine", ->
 			a_enter_spy = sinon.spy()
 			b_enter_spy = sinon.spy()
 			class Sub extends asyncmachine.AsyncMachine
-				state_A: {}
-				state_B: {}
+				@state_A: {}
+				@state_B: {}
 				A_enter: a_enter_spy
 				B_enter: b_enter_spy
 			sub = new Sub 'A'
@@ -734,19 +735,22 @@ describe "asyncmachine", ->
 			# parse implied states before current ones
 			# hint: in blocked by
 			class Sub extends asyncmachine.AsyncMachine
-				state_A: {
-				blocks: [ 'B' ]
-				}
-				state_B: {
-				blocks: [ 'A' ]
-				}
-				state_C: {
-				implies: [ 'B' ]
-				}
+				@state_A:
+					blocks: [ 'B' ]
+
+				@state_B:
+					blocks: [ 'A' ]
+
+				@state_C:
+					implies: [ 'B' ]
+
 				constructor: ->
 					super()
 					@initStates 'A'
 					@setState 'C'
+
+				getState: (name) ->
+					return this.constructor[ 'state_' + name ]
 
 			sub = new Sub
 			expect( sub.state()).to.eql [ 'C', 'B' ]
@@ -762,3 +766,15 @@ describe "asyncmachine", ->
 		describe 'delayed methods', ->
 			it 'should return correctly bound resolve method'
 
+	describe 'Thread', ->
+		describe 'states\' relations', ->
+			# TODO test various state relations
+		describe 'after scheduling a function', ->
+			it 'should execute it after a given timeout'
+			it 'should be cancellable'
+			it 'should have Waiting state'
+		describe 'after executing a function', ->
+			it 'should have Idle sttae'
+		describe 'when executing a list of async functions', ->
+			it 'should have Running state'
+			it 'should be cancellable'
