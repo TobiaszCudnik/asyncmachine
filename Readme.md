@@ -60,6 +60,7 @@ class Foo extends AsyncMachine {
 
 # TODO / Ideas
 
+- break for Array#some and Array#every (or replace with normal loop)
 - exception support (includes promise rejections)
 -- promises eat exceptions
 - log only executed transitions
@@ -77,8 +78,14 @@ class Foo extends AsyncMachine {
 
 # Design concerns
 
+- [add|set]StateLater works only once
 - dropped state transitions to all currently active states, not only newly added ones
 - state change during a state change is queued after current one finishes
+- auto states that drops other states? should not be allowed?
+- parsing auto states before state change? what if a new state relays on an auto state?
+- typescript properties implementation prevents the visibility of sub 
+  class states in the super constructor (need for calling this.initStates() )
+- polluted stack trace
 
 ## License 
 
