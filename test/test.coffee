@@ -782,11 +782,11 @@ describe "asyncmachine", ->
 	describe 'Promises', ->
 		it 'can be resolved'
 		it 'can be rejected'
-		it 'can be chainged'
+		it 'can be chainable'
 		describe 'delayed methods', ->
 			it 'should return correctly bound resolve method'
 
-	describe 'Worker', ->
+	describe 'Task', ->
 		describe 'states\' relations', ->
 			# TODO test various state relations
 		describe 'after scheduling a function', ->

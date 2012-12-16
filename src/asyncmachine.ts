@@ -39,14 +39,13 @@ export module asyncmachine {
 	export class AsyncMachine {
 
 		// rewrite without default types
-		private debug_states_: bool = false;
+		private debug_states_: bool;
 		private log_handler_: Function;
-		disabled: bool = false;
 		private states: string[];
 		private states_active: string[];
 		last_promise: rsvp.Promise;
-		private queue: any[] = [];
-		private lock: bool = false;
+		private queue: any[];
+		private lock: bool;
 		config: IConfig;
 
 		////////////////////////////
@@ -59,6 +58,9 @@ export module asyncmachine {
 		constructor (state?: string[], config?: IConfig);
 		constructor (state?: any, config?: IConfig) {
 			this.config = config
+			this.debug_states_ = false
+			this.queue = []
+			this.lock = false
 			LucidJS.emitter(this)
 			if ( config && config.debug ) {
 				this.debugStates()
