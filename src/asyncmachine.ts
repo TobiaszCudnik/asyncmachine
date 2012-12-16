@@ -3,13 +3,13 @@
 ///<reference path="headers/rsvp.d.ts" />
 ///<reference path="headers/es5-shim.d.ts" />
 
-import LucidJS = module('lucidjs'); //; required!
-import rsvp = module('rsvp')
-var Promise = rsvp.Promise
-
 export module asyncmachine {
+	
+	export import LucidJS = module('lucidjs'); //; required!
+	export import rsvp = module('rsvp')
+	var Promise = rsvp.Promise
 
-    require('es5-shim')
+	require('es5-shim')
 
 	export interface IState {
 		// will change the order of transitions placing dependant states in the front
@@ -38,8 +38,9 @@ export module asyncmachine {
 	//export class MultiStateMachine extends Eventtriggerter2.Eventtriggerter2 {
 	export class AsyncMachine {
 
+		// rewrite without default types
 		private debug_states_: bool = false;
-		log_handler_: Function;
+		private log_handler_: Function;
 		disabled: bool = false;
 		private states: string[];
 		private states_active: string[];
@@ -117,7 +118,7 @@ export module asyncmachine {
 		setStateLater(states: any, ...params: any[]): (...params: any[]) => void {
 			var promise = new Promise
 			promise.then( (...callback_params: any[] ) => {
-				this.setState_.call( this, states, params, callback_params )
+				this.setState_( states, params, callback_params )
 			} )
 			this.last_promise = promise
 			return function (...params: any[]) {
@@ -138,7 +139,7 @@ export module asyncmachine {
 		addStateLater(states: any, ...params: any[]): (...params: any[]) => void {
 			var promise = new Promise
 			promise.then( (...callback_params: any[] ) => {
-				this.addState_.call( this, states, params, callback_params )
+				this.addState_( states, params, callback_params )
 			} )
 			this.last_promise = promise
 			return function (...params: any[]) {
@@ -159,7 +160,7 @@ export module asyncmachine {
 		dropStateLater(states: any, ...params: any[]): (...params: any[]) => void {
 			var promise = new Promise
 			promise.then( (...callback_params: any[] ) => {
-				this.dropState_.call( this, states, params, callback_params )
+				this.dropState_( states, params, callback_params )
 			} )
 			this.last_promise = promise
 			return function (...params: any[]) {

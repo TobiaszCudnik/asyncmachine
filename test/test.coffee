@@ -4,7 +4,7 @@ sinon = require 'sinon'
 Promise = require('rsvp').Promise
 
 describe "asyncmachine", ->
-    class FooMachine extends asyncmachine.AsyncMachine
+	class FooMachine extends asyncmachine.AsyncMachine
 		state_A: {}
 		state_B: {}
 		state_C: {}
@@ -592,7 +592,6 @@ describe "asyncmachine", ->
 		describe 'and active state is also the target one', ->
 			it 'should trigger self transition at the very beginning', ->
 				@machine.setState [ 'A', 'B' ]
-				debugger
 				order = [
 					@machine.A_A
 					@machine.any_B
