@@ -581,8 +581,21 @@ export module asyncmachine {
 			})
 			if ( ret === true )
 				return false
-			this.states_active = to
+			this.setActiveStates_(to)
 			return true
+		}
+		
+		private setActiveStates_( states: string[] ) {
+			var previous = this.states_active
+			this.states_active = states
+			// Set states in LucidJS emitter
+			previous.forEach( (state) => {
+				if ( !~states.indexOf(state) )
+					(<LucidJS.ISet>this.set).clear( state + '.enter' )
+			})
+			states.forEach( (state) => {
+				this.set( state + '.enter' )
+			})
 		}
 
 		// Exit transition handles state-to-state methods.

@@ -7,7 +7,9 @@
   "dependencies": {
     "chai": "*",
     "asyncmachine": "*",
-    "sinon": "*"
+    "sinon": "*",
+    "mocha": "*",
+	  "coffee-script": "*"
   },
   "devDependencies": {
     "mocha": "*",

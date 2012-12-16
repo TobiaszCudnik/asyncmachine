@@ -633,7 +633,6 @@ describe "asyncmachine", ->
 				delete @cancelTransition
 
 			it 'for self transitions', ->
-				debugger
 				expect( @A_A.called ).to.be.ok
 			it 'for enter transitions', ->
 				expect( @B_enter.called ).to.be.ok
@@ -660,8 +659,14 @@ describe "asyncmachine", ->
 
 			it 'by triggering the listener at once for active states', ->
 				l1 = sinon.stub()
-				@machine.on 'A', l1
+				@machine.on 'A.enter', l1
 				expect( l1.calledOnce ).to.be.ok
+
+			it 'by not triggering the listeners once state is dropped', ->
+				l1 = sinon.stub()
+				@machine.setState 'B'
+				@machine.on 'A.enter', l1
+				expect( l1.called ).not.to.be.ok
 
 		describe 'should support namespaces', ->
 			describe 'with wildcards', ->

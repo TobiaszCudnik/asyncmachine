@@ -1,13 +1,18 @@
 declare module 'lucidjs' {
 	
-	export interface EventEmitter {
+	export interface ISet {
+		(event: string, ...args: any[]): bool;
+		clear(state?: string);
+	}
+	
+	export interface IEventEmitter {
 		on(event: string, VarArgsBoolFn): IBinding;
 		once(event: string, VarArgsBoolFn): IBinding;
 		trigger(event: string, ...args: any[]): bool;
-		set(event: string, ...args: any[]): bool;
+		set: ISet;
 	}
 	
-	export function emitter(obj?: Object): EventEmitter;
+	export function emitter(obj?: Object): IEventEmitter;
 	
 	export interface IBinding {
 		clear();

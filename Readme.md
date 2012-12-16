@@ -44,6 +44,7 @@ class Foo extends AsyncMachine {
 -- ::A_enter, ::A_B, ::any_A, etc
 - transitions exposed via an event emitter
 -- with sub events (superEvent.subEvent)
+- nested transitions queued in a sync way, executed in a series
 - promises support for deferred state changes (multiplexing)
 - logging system for free
 - mixin support
@@ -52,15 +53,34 @@ class Foo extends AsyncMachine {
 
 ## Order of a transition:
 
-- STATE1_exit
-- STATE1_STATE2
-- STATE1_any
-- any_STATE2
-- STATE2_enter
+Example presents a transition from StateA to StateB:
+- StateA_exit
+- StateA_StateB
+- StateA_any
+- any_StateB
+- StateB_enter
+
+## Events
+
+AsyncMachine has an event emitter based on LucidJS, which supports states and 
+sub events. Following events are emitted from the above example transition:
+
+- State.A.exit
+- State.A._.State.B
+- State.A._.any
+- any._.State.B
+- State.B._.enter
+
+Notice the '.' dot convention. It allows you to namespace sub events. This means,
+once bound to 'State.A' it'll be emitted for an exit event and all transitions.
+You can understand it as if there would be a wildcard at the end.
+
+Additionally, all currenly active states emit 'State.Name.enter' event at once
+when you bind to them.
 
 # TODO / Ideas
 
-- break for Array#some and Array#every (or replace with normal loop)
+- break for Array#some and Array#every (or replace with a normal loop)
 - exception support (includes promise rejections)
 -- promises eat exceptions
 - log only executed transitions

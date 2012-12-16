@@ -1,5 +1,6 @@
 ASSETS = buid/test/assets
 ONEJS = node_modules/one/bin/onejs
+COFFEE = test/node_modules/coffee-script/bin/coffee
 
 all:
 	make build
@@ -9,19 +10,21 @@ build:
 	rm -f build/lib/asyncmachine.js
 	tsc --declaration -sourcemap -c src/asyncmachine.ts
 	mv src/asyncmachine.js build/lib/
-	# TODO use coffee makefile fix
 	mv src/asyncmachine.d.ts build/lib/
 	#rm src/asyncmachine.d.ts
-	coffee Makefile.coffee build_fix
+	$(COFFEE) Makefile.coffee build_fix
 	mv src/asyncmachine.js.map build/lib/
+	make package
+	
+package:
 	$(ONEJS) build package.json build/pkg/build.js
-	cp headers/rsvp.d.ts build/lib/
-	cp headers/lucidjs.d.ts build/lib/
+	cp src/headers/rsvp.d.ts build/lib/
+	cp src/headers/lucidjs.d.ts build/lib/
+	cp src/headers/commonjs.d.ts build/lib/
 
 build-test:
 	make build
-	./test/node_modules/coffee-script/bin/coffee \
-		-c test/test.coffee
+	$(COFFEE) -c test/test.coffee
 	$(ONEJS) build test/package.json build/test/build.js
 	mv test/test.js build/test/assets
 	cat test/bootstrap.js >> build/test/build.js
