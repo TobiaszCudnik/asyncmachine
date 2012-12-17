@@ -36,13 +36,13 @@ class Foo extends AsyncMachine {
 ## Features
 
 - always synchronous state
--- transition can cancel a change of the state
+ - transition can cancel a change of the state
 - states definitions in OO manner
 - state relations: blocks, implies, requires, depends
 - state transitions (methods) in OO manner (prototype-level)
--- ::A_enter, ::A_B, ::any_A, etc
+ - ::A_enter, ::A_B, ::any_A, etc
 - transitions exposed via an event emitter
--- with sub events (superEvent.subEvent)
+ - with sub events (superEvent.subEvent)
 - nested transitions queued in a sync way, executed in a series
 - promises support for deferred state changes (multiplexing)
 - logging system for free
@@ -174,7 +174,7 @@ fetcher.on('Done.enter', function() {
 You can run it yourself with `make example-basic`.
 
 Like you see in the above implementation, the code isn't the shortes one, but
-you gain an important information thanks to this approach - you put an address  
+you gain an important information thanks to this approach - you put an address 
 on a timeline of a lifecycle of your object. Using auto states you don't have to 
 trigger states manually. Bonus to that, you can easily overload these methods and
 extend by additional loginc in sub classes.
@@ -310,17 +310,17 @@ export class AsyncMachine extends asyncmachine.AsyncMachine {}
 - broken tests :)
 - break for Array#some and Array#every (or replace with a normal loop)
 - exception support (includes promise rejections)
--- promises eat exceptions
+ - promises eat exceptions
 - queued state changes (when nested)
 - travis CI
 - make logging better
--- pass thou a method (namespaced)
--- log only executed transitions
+ - pass thou a method (namespaced)
+ - log only executed transitions
 - try to auto drop the implied state when dropping a state
 - tests for the mixin api (traits.js support & examples?)
 - method for generating all possible transition permutations (honoring the relations)
 - customizable naming convention
--- STATE_STATE to StateState or state_
+ - STATE_STATE to StateState or state_
 
 ## Design concerns
 
@@ -339,8 +339,8 @@ There are several ways you can incorporate AsyncMachine into your codebase
 - TypeScript sources
 - JavaScript CommonJS module
 - JavaScript staticaly linked file (means deps included)
--- CommonJS interface
--- Browser compatible
+ - CommonJS interface
+ - Browser compatible
 
 ## Tests / Spec
 
@@ -368,10 +368,10 @@ make test
 
 ## Related URLs
 
-[Machine.js](http://machina-js.org/)
-[node-state](https://github.com/ichernev/node-state)
-[javascript-state-machine](https://github.com/jakesgordon/javascript-state-machine)
-[skinny-coffee-machine](https://github.com/fredwu/skinny-coffee-machine)
+- [Machine.js](http://machina-js.org/)
+- [node-state](https://github.com/ichernev/node-state)
+- [javascript-state-machine](https://github.com/jakesgordon/javascript-state-machine)
+- [skinny-coffee-machine](https://github.com/fredwu/skinny-coffee-machine)
 
 ## License 
 
