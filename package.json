@@ -1,9 +1,14 @@
 {
   "name": "asyncmachine",
   "version": "0.1.2 ",
-  "description": "Multi State Machine for declarative async logic.",
+  "description": "Multi State Machine for a declarative async logic.",
   "keywords": ["async", "statemachine", "eventemitter"],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
+  "url" : "https://github.com/TobiaszCudnik/asyncmachine",
+  "repository" : {
+	  "type" : "git",
+	  "url" : "http://github.com/TobiaszCudnik/asyncmachine.git"
+  },
   "dependencies": {
       "es5-shim": "*",
       "rsvp": "*",
