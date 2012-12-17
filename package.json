@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "0.1.2 ",
+  "version": "1.0.0",
   "description": "Multi State Machine for a declarative async logic.",
   "keywords": ["async", "statemachine", "eventemitter"],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
