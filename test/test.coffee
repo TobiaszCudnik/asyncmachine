@@ -680,6 +680,8 @@ describe "asyncmachine", ->
 				i = 0
 				expect( l[ i++ ].calledOnce ).to.be.ok
 				expect( l[ i++ ].called ).not.to.be.ok
+				
+			it 'shouldn\'t duplicate events'
 
 		describe 'should support namespaces', ->
 			describe 'with wildcards', ->

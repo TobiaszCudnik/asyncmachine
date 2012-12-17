@@ -1,6 +1,6 @@
 ///<reference path="externs.d.ts"/>
 ///<reference path="node.d.ts"/>
-///<reference path="../../node_modules/asyncmachine/build/lib/asyncmachine.d.ts"/>
+///<reference path="../../node_modules/asyncmachine/build/lib/multistatemachine.d.ts"/>
 
 // require 'longjohn'
 import flow = module('flow')
@@ -14,8 +14,9 @@ import repl = module( 'repl')
 import Promise = module( 'when')
 import jsprops = module('jsprops')
 var prop = jsprops.property
-import sugar = module('sugar')
-import asyncmachine = module('asyncmachine')
+//import sugar = module('sugar')
+require('sugar')
+import multistatemachine = module('multistatemachine')
 import rsvp = module('rsvp')
 
 // TODO add event emitter
@@ -109,7 +110,7 @@ class GmailSearch extends BaseClass {
 
 //class GmailManager extends BaseClass {
 
-class GmailManager extends asyncmachine.AsyncMachine {
+class GmailManager extends multistatemachine.MultiStateMachine {
 	
 	// STATES
 	
@@ -175,8 +176,12 @@ class GmailManager extends asyncmachine.AsyncMachine {
 		
 	constructor( public settings ) {
 		super( 'Disconnected' )
+		// workaround !!!
+		this.prepareStates()
+		this.debug('[STATES] ')
+		
 		// # TODO no auto connect 
-		this.pushState( 'Connecting')
+		this.setState( 'Connecting')
 
 		if (settings.repl)
 			this.repl()
@@ -187,6 +192,10 @@ class GmailManager extends asyncmachine.AsyncMachine {
 	}
 	
 	// STATE TRANSITIONS
+	
+	Disconnected_enter() {
+		debugger
+	}
 
 	Connecting_enter() {
 		var data = this.settings
@@ -197,9 +206,13 @@ class GmailManager extends asyncmachine.AsyncMachine {
 			port: 993,
 			secure: true
 		})
-		this.connection.connect( this,
-			this.pushStateLater('Connected')
-		)
+		this.connection.connect( (err) => {
+			console.log('connected ?!?!?!', err)
+			if (! this.pushState('Connected') )
+				console.log('state not set!', this.state())
+			else
+				console.log('new state', this.state())
+		})
 	}
 
 	Connecting_exit( target_states ) {

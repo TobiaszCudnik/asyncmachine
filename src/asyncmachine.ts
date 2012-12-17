@@ -595,13 +595,13 @@ export module asyncmachine {
 			// TODO optimise these loops
 			all.forEach( (state) => {
 				if ( ~target.indexOf( state ) ) {
-					if ( ! ~previous.indexOf( state ) )
-						this.set( state + '.enter' );
+//					if ( ! ~previous.indexOf( state ) )
+//						this.set( state + '.enter' );
 					(<LucidJS.ISet>this.set).clear( state + '.exit' )
 				} else {
 //					if ( ~previous.indexOf( state ) )
 					(<LucidJS.ISet>this.set).clear( state + '.enter' )
-					this.set( state + '.exit' )
+//					this.set( state + '.exit' )
 				}
 			})
 		}
@@ -661,7 +661,8 @@ export module asyncmachine {
 				ret = this[ method ].apply( this, params )
 			// TODO reduce this 2 log msgs to 1
 			if ( ret !== false ) {
-				ret = this.trigger( event, params )
+				var fn = ~event.indexOf('_') ? 'trigger' : 'set' 
+				ret = this[ fn ]( event, params )
 				if ( ret === false && this.log_handler_ ) {
 					this.log_handler_( '[i] Transition event ' + event + ' cancelled' )
 				}

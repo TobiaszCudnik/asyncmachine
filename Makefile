@@ -1,6 +1,7 @@
 ASSETS = buid/test/assets
 ONEJS = node_modules/one/bin/onejs
 COFFEE = test/node_modules/coffee-script/bin/coffee
+NODE = node
 
 all:
 	make build
@@ -37,6 +38,9 @@ browser-test:
 
 server:
 	node_modules/http-server/bin/http-server
+	
+example-basic:
+	$(NODE) examples/basic-javascript/basic.js
 	
 setup:
 	npm install
