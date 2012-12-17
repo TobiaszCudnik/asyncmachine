@@ -348,9 +348,9 @@ There are several ways you can incorporate AsyncMachine into your codebase
 
 ## Dependencies
 
-- es5-shim
-- LucidJS
-- RSVP
+- [es5-shim](https://github.com/kriskowal/es5-shim)
+- [LucidJS](https://github.com/RobertWHurst/LucidJS)
+- [RSVP](https://github.com/tildeio/rsvp.js)
 
 ## Development
 
