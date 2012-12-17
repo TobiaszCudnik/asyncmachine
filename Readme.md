@@ -79,19 +79,19 @@ them, depending if it's set or not.
 
 ## Asynchronous solutions
 
-We have several ways of deling with asynchronous code in JS/ECMAScript:
+We have several ways of dealing with asynchronous code in JS/ECMAScript:
 - Callbacks
 - Events
 - Promises
 
 Although all of them doesn't scale well with a complicated relations between 
-async actions. Consider following relation in DB queries:
+async actions. Consider a following relation between DB queries:
 - Query 1 has no deps
 - Query 2 has no deps
 - Query 3 relies on Query 1 and query 2
 - Query 4 relies on Query 1
 
-This simple example show how Query 3 and Query 4 can't be easily abstracted in a
+This simple example shows how Query 3 and Query 4 can't be easily abstracted in a
 lineral way. Thanks to AsyncMachine, such code can look like this:
 
 ```javascript
@@ -174,10 +174,10 @@ fetcher.on('Done.enter', function() {
 You can run it yourself with `make example-basic`.
 
 Like you see in the above implementation, the code isn't the shortes one, but
-you gain an important information thanks to this approach - you put an address 
-on a timeline of a lifecycle of your object. Using auto states you don't have to 
+you gain an important information thanks to this approach - **you put an address 
+on a timeline of a lifecycle of your object**. Using auto states you don't have to 
 trigger states manually. Bonus to that, you can easily overload these methods and
-extend by additional loginc in sub classes.
+extend by additional logic in sub classes.
 
 This declarative approach gives integrity of behavior accross different scenarios 
 easily.
@@ -187,7 +187,7 @@ There's a more complicated example with throttling while
 
 ## Logging system
 
-After executing following method
+After executing a following method
 ```javascript
 this.debugStates('[prefix]')
 ```
