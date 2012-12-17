@@ -362,8 +362,8 @@ make test
 ## Inspirations
 
 - [node-disorder](https://github.com/substack/node-disorder)
-- JS FSM work from [https://github.com/oinopion Tomasz Paczkowski]
-- [CKEditor](https://github.com/ckeditor) dependency calculations
+- JS FSM work from [Tomasz Paczkowski](https://github.com/oinopion)
+- [CKEditor](https://github.com/ckeditor)'s dependency calculation
 - years of writing async systems
 
 ## Related URLs
