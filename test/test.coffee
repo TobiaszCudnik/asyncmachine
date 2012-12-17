@@ -54,7 +54,7 @@ describe "asyncmachine", ->
 		expect( @machine.state() ).to.eql [ "B" ]
 
 
-	it "should throw when setting unknown state", ->
+	it "should throw when setting an unknown state", ->
 		func = =>
 			@machine.setState "unknown"
 		expect( func ).to.throw()
@@ -657,16 +657,29 @@ describe "asyncmachine", ->
 			@machine = new EventMachine 'A'
 		describe 'should support states', ->
 
-			it 'by triggering the listener at once for active states', ->
-				l1 = sinon.stub()
-				@machine.on 'A.enter', l1
-				expect( l1.calledOnce ).to.be.ok
-
-			it 'by not triggering the listeners once state is dropped', ->
-				l1 = sinon.stub()
+			it 'by triggering the *.enter listener at once for active states', ->
+				l = []
+				# init spies
+				l[ i ] = sinon.stub() for i in [ 0..2 ]
+				i = 0
 				@machine.setState 'B'
-				@machine.on 'A.enter', l1
-				expect( l1.called ).not.to.be.ok
+				@machine.on 'A.enter', l[ i++ ]
+				@machine.on 'B.enter', l[ i++ ]
+				i = 0
+				expect( l[ i++ ].called ).not.to.be.ok
+				expect( l[ i++ ].calledOnce ).to.be.ok
+
+			it 'by triggering the *.exit listeners at once for non active states', ->
+				l = []
+				# init spies
+				l[ i ] = sinon.stub() for i in [ 0..2 ]
+				i = 0
+				@machine.setState 'B'
+				@machine.on 'A.exit', l[ i++ ]
+				@machine.on 'B.exit', l[ i++ ]
+				i = 0
+				expect( l[ i++ ].calledOnce ).to.be.ok
+				expect( l[ i++ ].called ).not.to.be.ok
 
 		describe 'should support namespaces', ->
 			describe 'with wildcards', ->

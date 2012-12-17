@@ -587,18 +587,25 @@ export module asyncmachine {
 			return true
 		}
 		
-		private setActiveStates_( states: string[] ) {
+		private setActiveStates_( target: string[] ) {
 			var previous = this.states_active
-			this.states_active = states
+			var all = this.states
+			this.states_active = target
 			// Set states in LucidJS emitter
-			previous.forEach( (state) => {
-				if ( !~states.indexOf(state) )
+			// TODO optimise these loops
+			all.forEach( (state) => {
+				if ( ~target.indexOf( state ) ) {
+					if ( ! ~previous.indexOf( state ) )
+						this.set( state + '.enter' );
+					(<LucidJS.ISet>this.set).clear( state + '.exit' )
+				} else {
+//					if ( ~previous.indexOf( state ) )
 					(<LucidJS.ISet>this.set).clear( state + '.enter' )
-			})
-			states.forEach( (state) => {
-				this.set( state + '.enter' )
+					this.set( state + '.exit' )
+				}
 			})
 		}
+
 
 		// Exit transition handles state-to-state methods.
 		private transitionExit_( from: string, to: string[],
@@ -690,8 +697,8 @@ export module asyncmachine {
 		trigger(event: string, ...args: any[]): bool {
 			return true
 		}
-		set(event: string, ...args: any[]): bool {
-			return true
+		set(event: string, ...args: any[]): LucidJS.IBinding {
+			return <LucidJS.IBinding>{}
 		}
 	}
 

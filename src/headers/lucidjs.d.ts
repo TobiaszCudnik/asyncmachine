@@ -1,7 +1,7 @@
 declare module 'lucidjs' {
 	
 	export interface ISet {
-		(event: string, ...args: any[]): bool;
+		(event: string, ...args: any[]): IBinding;
 		clear(state?: string);
 	}
 	
