@@ -4,6 +4,12 @@
   "description": "Tests for Multi State Machine.",
   "keywords": ["test", "async", "statemachine"],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
+	"url" : "https://github.com/TobiaszCudnik/asyncmachine",
+	"repository" :
+  {
+	  "type" : "git",
+	  "url" : "http://github.com/TobiaszCudnik/asyncmachine.git"
+  }
   "dependencies": {
     "chai": "*",
     "asyncmachine": "*",

@@ -8,7 +8,7 @@ Motivation behind AsyncMachine was to make creating complex asynchronous systems
 easier, more predictable and to reduce code redundancy. It's loosely based on 
 finite state machine and isn't backed up with any formalized theory. 
 
-Target of this project is to extend and/or replace such patterns as promise, 
+Target of this project is to extend or replace such patterns as promise, 
 event emitter and callback passing style. 
   
 ## Sample code (in Coffee)
