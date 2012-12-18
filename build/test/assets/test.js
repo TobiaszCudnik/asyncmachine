@@ -18,10 +18,6 @@
 
       __extends(FooMachine, _super);
 
-      function FooMachine() {
-        return FooMachine.__super__.constructor.apply(this, arguments);
-      }
-
       FooMachine.prototype.state_A = {};
 
       FooMachine.prototype.state_B = {};
@@ -30,9 +26,9 @@
 
       FooMachine.prototype.state_D = {};
 
-      FooMachine.prototype.constructor = function(state, config) {
-        return FooMachine.__super__.constructor.call(this, state, config);
-      };
+      function FooMachine(state, config) {
+        FooMachine.__super__.constructor.call(this, state, config);
+      }
 
       return FooMachine;
 
@@ -42,7 +38,7 @@
       _results = [];
       for (_i = 0, _len = states.length; _i < _len; _i++) {
         state = states[_i];
-        instance["" + state + "_" + state] = sinon.spy();
+        instance.constructor["" + state + "_" + state] = sinon.spy();
         instance["" + state + "_enter"] = sinon.spy();
         instance["" + state + "_exit"] = sinon.spy();
         instance["" + state + "_any"] = sinon.spy();
@@ -52,9 +48,6 @@
           _results1 = [];
           for (_j = 0, _len1 = states.length; _j < _len1; _j++) {
             inner = states[_j];
-            if (inner === state) {
-              continue;
-            }
             _results1.push(instance["" + inner + "_" + state] = sinon.spy());
           }
           return _results1;
@@ -81,6 +74,7 @@
       return this.machine = new FooMachine('A');
     });
     it('should allow to check if single state is active');
+    it('should allow to check if many states are active');
     it("should allow for a delayed start");
     it("should accept the starting state", function() {
       return expect(this.machine.state()).to.eql(["A"]);
@@ -98,7 +92,7 @@
       this.machine.dropState('C');
       return expect(this.machine.state()).to.eql(["B"]);
     });
-    it("should throw when setting unknown state", function() {
+    it("should throw when setting an unknown state", function() {
       var func,
         _this = this;
       func = function() {
@@ -268,6 +262,10 @@
         this.machine.state_A.depends = ['B'];
         return this.machine.setState(['C', 'D']);
       });
+      after(function() {
+        delete this.machine.state_C.depends;
+        return delete this.machine.state_A.depends;
+      });
       describe('when entering', function() {
         return it('should handle dependand states first', function() {
           var order;
@@ -308,7 +306,7 @@
           return expect(this.ret).to.eql(false);
         });
         it('should explain the reson in the log', function() {
-          return expect(~this.log.indexOf('State D blocked by C')).to.be.ok;
+          return expect(~this.log.indexOf('[i] State D blocked by C')).to.be.ok;
         });
         return afterEach(function() {
           return delete this.ret;
@@ -325,6 +323,9 @@
           return this.machine.state_D = {
             blocks: ['C']
           };
+        });
+        after(function() {
+          return this.machine.state_D = {};
         });
         describe('using setState', function() {
           it('should unset the old one', function() {
@@ -380,6 +381,9 @@
           requires: ['D']
         };
       });
+      after(function() {
+        return this.machine.state_C = {};
+      });
       it('should be set when required state is active', function() {
         this.machine.setState(['C', 'D']);
         return expect(this.machine.state()).to.eql(['C', 'D']);
@@ -402,7 +406,7 @@
         });
         return it('should explain the reason in the log', function() {
           var msg;
-          msg = 'State C dropped as required state D is missing';
+          msg = '[i] State C dropped as required state D is missing';
           return expect(this.log).to.contain(msg);
         });
       });
@@ -413,34 +417,16 @@
         return mock_states(this.machine, ['A', 'B', 'C', 'D']);
       });
       describe('during another state change', function() {
-        it('can\'t be set synchronously', function() {
-          var func;
-          this.machine.B_enter = function(states) {
-            return this.setState(['C']);
-          };
-          func = function() {
-            return this.machine.setState('B');
-          };
-          return expect(func).to["throw"]();
-        });
-        it('can be added synchronously', function() {
+        return it('should be scheduled synchronously', function() {
           this.machine.B_enter = function(states) {
             return this.addState('C');
           };
           this.machine.C_enter = sinon.spy();
           this.machine.A_exit = sinon.spy();
           this.machine.setState('B');
-          expect(this.machine.B_enter.calledOnce).to.be.ok;
           expect(this.machine.C_enter.calledOnce).to.be.ok;
           expect(this.machine.A_exit.calledOnce).to.be.ok;
-          return expect(this.machine.state()).to.eql(['B', 'C']);
-        });
-        return it('can be set asynchronously', function() {
-          this.machine.B_enter = function(states) {
-            return this.on('state.set', this.setStateLater('B', 'C'));
-          };
-          this.machine.setState('B');
-          return expect(this.machine.state()).to.eql(['B', 'C']);
+          return expect(this.machine.state()).to.eql(['C', 'B']);
         });
       });
       describe('and transition is canceled', function() {
@@ -465,11 +451,12 @@
           it('should not change the previous state', function() {
             return expect(this.machine.state()).to.eql(['A']);
           });
-          return it('should explain the reason in the log', function() {
-            return expect(~this.log.indexOf('Transition method D_enter cancelled')).to.be.ok;
+          it('should explain the reason in the log', function() {
+            return expect(~this.log.indexOf('[i] Transition method D_enter cancelled')).to.be.ok;
           });
+          return it('should not change the auto states');
         });
-        return describe('when adding an additional state', function() {
+        describe('when adding an additional state', function() {
           beforeEach(function() {
             return this.ret = this.machine.addState('D');
           });
@@ -479,15 +466,23 @@
           it('should not change the previous state', function() {
             return expect(this.machine.state()).to.eql(['A']);
           });
-          return it('should explain the reason in the log', function() {
-            return expect(~this.log.indexOf('Transition method D_enter cancelled')).to.be.ok;
+          it('should explain the reason in the log', function() {
+            return expect(~this.log.indexOf('[i] Transition method D_enter cancelled')).to.be.ok;
           });
+          return it('should not change the auto states');
+        });
+        return describe('when droppping a current state', function() {
+          it('should return false');
+          it('should not change the previous state');
+          it('should explain the reason in the log');
+          return it('should not change the auto states');
         });
       });
       describe('and transition is successful', function() {
-        return it('should return true', function() {
+        it('should return true', function() {
           return expect(this.machine.setState('D')).to.be.ok;
         });
+        return it('should set the auto states');
       });
       it('should provide previous state information', function(done) {
         this.machine.D_enter = function() {
@@ -509,6 +504,9 @@
             implies: ['B'],
             blocks: ['A']
           };
+        });
+        after(function() {
+          return this.machine.state_D = {};
         });
         describe('and synchronous', function() {
           beforeEach(function() {
@@ -561,7 +559,9 @@
               resolve = _this.machine.dropStateLater('D', 'foo', 2);
               resolve();
               return _this.machine.last_promise;
-            }).then(done);
+            }).then(function() {
+              return done();
+            });
           });
           describe('and is explicit', function() {
             it('should forward arguments to exit methods', function() {
@@ -613,9 +613,12 @@
         it('should expose a ref to the last promise', function() {
           return expect(this.machine.last_promise).to.equal(this.promise);
         });
-        it('should be called with params passed to the delayed function', function() {
-          this.promise.resolve('foo', 2);
-          return expect(this.machine.D_enter.calledWith(['D'], [], 'foo', 2)).to.be.ok;
+        it('should be called with params passed to the delayed function', function(done) {
+          this.machine.D_enter = function() {
+            expect(arguments).to.be.eql([['D'], [], ['foo', 2]]);
+            return done();
+          };
+          return this.promise.resolve(['foo', 2]);
         });
         return describe('and then canceled', function() {
           beforeEach(function() {
@@ -628,7 +631,7 @@
         });
       });
       describe('and active state is also the target one', function() {
-        it('should trigger self transition at the very beggining', function() {
+        it('should trigger self transition at the very beginning', function() {
           var order;
           this.machine.setState(['A', 'B']);
           order = [this.machine.A_A, this.machine.any_B, this.machine.B_enter];
@@ -715,12 +718,35 @@
         return this.machine = new EventMachine('A');
       });
       describe('should support states', function() {
-        return it('by triggering the listener at once for active states', function() {
-          var l1;
-          l1 = sinon.stub();
-          this.machine.on('A', l1);
-          return expect(l1.calledOnce).to.be.ok;
+        it('by triggering the *.enter listener at once for active states', function() {
+          var i, l, _i;
+          l = [];
+          for (i = _i = 0; _i <= 2; i = ++_i) {
+            l[i] = sinon.stub();
+          }
+          i = 0;
+          this.machine.setState('B');
+          this.machine.on('A.enter', l[i++]);
+          this.machine.on('B.enter', l[i++]);
+          i = 0;
+          expect(l[i++].called).not.to.be.ok;
+          return expect(l[i++].calledOnce).to.be.ok;
         });
+        it('by triggering the *.exit listeners at once for non active states', function() {
+          var i, l, _i;
+          l = [];
+          for (i = _i = 0; _i <= 2; i = ++_i) {
+            l[i] = sinon.stub();
+          }
+          i = 0;
+          this.machine.setState('B');
+          this.machine.on('A.exit', l[i++]);
+          this.machine.on('B.exit', l[i++]);
+          i = 0;
+          expect(l[i++].calledOnce).to.be.ok;
+          return expect(l[i++].called).not.to.be.ok;
+        });
+        return it('shouldn\'t duplicate events');
       });
       describe('should support namespaces', function() {
         describe('with wildcards', function() {
@@ -789,7 +815,7 @@
       });
     });
     describe('bugs', function() {
-      return it('should trigger the enter state of a subclass', function() {
+      it('should trigger the enter state of a subclass', function() {
         var Sub, a_enter_spy, b_enter_spy, sub;
         a_enter_spy = sinon.spy();
         b_enter_spy = sinon.spy();
@@ -817,14 +843,73 @@
         expect(a_enter_spy.called).to.be.ok;
         return expect(b_enter_spy.called).to.be.ok;
       });
+      it('should drop states cross-blocked by implied states', function() {
+        var Sub, sub;
+        Sub = (function(_super) {
+
+          __extends(Sub, _super);
+
+          Sub.prototype.state_A = {
+            blocks: ['B']
+          };
+
+          Sub.prototype.state_B = {
+            blocks: ['A']
+          };
+
+          Sub.prototype.state_C = {
+            implies: ['B']
+          };
+
+          function Sub() {
+            Sub.__super__.constructor.call(this);
+            this.initStates('A');
+            this.setState('C');
+          }
+
+          Sub.prototype.getState = function(name) {
+            return this.constructor['state_' + name];
+          };
+
+          return Sub;
+
+        })(asyncmachine.AsyncMachine);
+        sub = new Sub;
+        return expect(sub.state()).to.eql(['C', 'B']);
+      });
+      it('should pass args to transition methods');
+      return it('addStatesLater');
     });
-    return describe('Promises', function() {
+    describe('Promises', function() {
       it('can be resolved');
       it('can be rejected');
-      it('can be chainged');
+      it('can be chainable');
       return describe('delayed methods', function() {
         return it('should return correctly bound resolve method');
       });
+    });
+    describe('Task', function() {
+      describe('states\' relations', function() {});
+      describe('after scheduling a function', function() {
+        it('should execute it after a given timeout');
+        it('should be cancellable');
+        return it('should have a Waiting state');
+      });
+      describe('after executing a function', function() {
+        return it('should have an Idle sttae');
+      });
+      return describe('when executing a list of async functions', function() {
+        it('should have a Running state');
+        return it('should be cancellable');
+      });
+    });
+    describe('auto states', function() {
+      it('should work when more than one auto state present');
+      it('should work when auto state if blocked');
+      return it('shouldn\'t trigger any change if auto state is missing from target states');
+    });
+    return describe('piping', function() {
+      return it('should pipe with states implied by another one');
     });
   });
 

@@ -1,16 +1,20 @@
-module 'lucidjs' {
-	function VarArgsBoolFn(...args: any[]): bool;
-
-	export function emitter(obj?: Object): EventEmitter;
-
-	export interface EventEmitter {
-		on(event: string, VarArgsBoolFn): void;
-		once(event: string, VarArgsBoolFn): void;
-		trigger(event: string, ...args: any[]): bool;
-		set(event: string, ...args: any[]): bool;
+declare module 'lucidjs' {
+	
+	export interface ISet {
+		(event: string, ...args: any[]): IBinding;
+		clear(state?: string);
 	}
-}
-
-module 'asyncmachine' {
-	interface MultiStateMachine extends EventEmitter {}
+	
+	export interface IEventEmitter {
+		on(event: string, VarArgsBoolFn): IBinding;
+		once(event: string, VarArgsBoolFn): IBinding;
+		trigger(event: string, ...args: any[]): bool;
+		set: ISet;
+	}
+	
+	export function emitter(obj?: Object): IEventEmitter;
+	
+	export interface IBinding {
+		clear();
+	}
 }

@@ -1,1 +1,0 @@
-export function require(name: string): void;
