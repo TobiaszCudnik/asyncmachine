@@ -86,6 +86,7 @@ We have several ways of dealing with asynchronous code in JS/ECMAScript:
 
 Although all of them doesn't scale well with a complicated relations between 
 async actions. Consider a following relation between DB queries:
+
 - Query 1 has no deps
 - Query 2 has no deps
 - Query 3 relies on Query 1 and query 2
@@ -342,7 +343,7 @@ There are several ways you can incorporate AsyncMachine into your codebase
  - CommonJS interface
  - Browser compatible
 
-## Tests / Spec
+## Tests / Specs
 
 ![alt text](http://tobiaszcudnik.github.com/asyncmachine/tests.png "Test results")
 
