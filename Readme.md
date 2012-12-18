@@ -184,7 +184,7 @@ This declarative approach gives integrity of behavior accross different scenario
 easily.
 
 There's a more complicated example with throttling while 
-[monitoring gmail threads](blob/master/examples/gmail-query/gtd.ts).
+[monitoring gmail threads](https://github.com/TobiaszCudnik/asyncmachine/blob/master/examples/gmail-query/gtd.ts).
 
 ## Logging system
 
