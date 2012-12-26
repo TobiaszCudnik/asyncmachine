@@ -24,6 +24,8 @@ class Foo extends AsyncMachine {
         requires: []
         # When active, blocks activation (or deactivates) of following states.
         blocks: []
+        # Defines if the state should be tried to be set each time active states are changed.
+        auto: false
     state_B: {}
     A_enter: ->
     A_exit: ->
@@ -50,7 +52,7 @@ class Foo extends AsyncMachine {
 - written in TypeScript
 - lots of tests (in Coffee)
 
-## Order of a transition:
+## Order of transitions:
 
 Example presents a transition from StateA to StateB:
 - StateA_exit
@@ -263,6 +265,21 @@ node examples/basic-javascript/basic.js
 
 ```javascript
 export module asyncmachine {
+    interface IState {
+        depends?: string[];
+        implies?: string[];
+        blocks?: string[];
+        requires?: string[];
+        auto?: bool;
+    }
+    interface IConfig {
+        debug: bool;
+    }
+    interface ITransition {
+        call(states?: string[], state_params?: any[], callback_params?: any[]): bool;
+        call(states?: string[], state_params?: any[], callback_params?: any[]): any;
+        apply(context, args): any;
+    }
     class AsyncMachine {
         public last_promise: rsvp.Promise;
         public config: IConfig;

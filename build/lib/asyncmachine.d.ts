@@ -84,37 +84,6 @@ export module asyncmachine {
         public trigger(event: string, ...args: any[]): bool;
         public set(event: string, ...args: any[]): LucidJS.IBinding;
     }
-    class Task extends AsyncMachine {
-        public schedule_timer: number;
-        public async_timers: number[];
-        constructor ();
-        static state_Idle: {
-            blocks: string[];
-        };
-        static state_Waiting: {
-            blocks: string[];
-        };
-        static state_Running: {
-            blocks: string[];
-        };
-        static state_Cancelling: {
-            blocks: string[];
-        };
-        static state_Stopping: {
-            blocks: string[];
-        };
-        public Cancelling_enter(): void;
-        public Stopping_enter(): void;
-        public Running_exit(): void;
-        public async(context: Object, ...blocks: Function[]): void;
-        public schedule(delay: number, block: Function, context?: Object, ...params: any[]): void;
-        public scheduleAsync(delay: number, context: Object, ...blocks: Function[]): void;
-        public cancel(): void;
-        public stop(): void;
-        private cancelAsyncTimers_();
-    }
 }
 export class AsyncMachine extends asyncmachine.AsyncMachine {
-}
-export class Task extends asyncmachine.Task {
 }
