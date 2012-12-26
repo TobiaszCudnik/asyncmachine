@@ -369,6 +369,14 @@ make test
 
 ## Related URLs
 
+#### Papers
+
+- [Plaid: A Resource-Based Programming Language](http://www.cs.cmu.edu/~aldrich/presentations/plaid-resources.pdf)
+- [Concurrency by Default: Using Permissions to Express Dataflow in Stateful Programs](http://www.cs.cmu.edu/~aldrich/papers/onward2009-concurrency.pdf)
+- [Typestate-Oriented Programming](http://www.cs.cmu.edu/~aldrich/papers/onward2009-state.pdf)
+
+#### Libraries
+
 - [Machine.js](http://machina-js.org/)
 - [node-state](https://github.com/ichernev/node-state)
 - [javascript-state-machine](https://github.com/jakesgordon/javascript-state-machine)

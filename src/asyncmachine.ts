@@ -222,7 +222,15 @@ export module asyncmachine {
 			} else {
 				// ON
 				this.debug_states_ = true
-				log_handler = log_handler || console.log.bind( console )
+                if (! log_handler && console && console.log ) {
+                    log_handler = function() {
+                        var a = arguments
+                        if ( console.log.apply )
+                            console.log.apply( console, arguments )
+                        else
+                            console.log( a[0], a[1] )
+                    }
+                }
 				this.log_handler_ = ( ...msgs: string[] ) => {
 					var args = prefix ? [ prefix ].concat( msgs ) : msgs
 					log_handler.apply( null, args )
