@@ -1,6 +1,6 @@
 # AsyncMachine
 
-  Multi state machine for a declarative async logic.
+  Multi state machine for declarative async logic.
   
 ## Disclaimer
 
@@ -42,9 +42,10 @@ class Foo extends AsyncMachine {
 - states definitions in OO manner
 - state relations: blocks, implies, requires, depends
 - state transitions (methods) in OO manner (prototype-level)
- - ::A_enter, ::A_B, ::any_A, etc
+ - obj#A_enter, obj#A_B, obj#any_A, etc
 - transitions exposed via an event emitter
  - with sub events (superEvent.subEvent)
+ - with event piping
 - nested transitions queued in a sync way, executed in a series
 - promises support for deferred state changes (multiplexing)
 - logging system for free
