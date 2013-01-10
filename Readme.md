@@ -329,7 +329,6 @@ export class AsyncMachine extends asyncmachine.AsyncMachine {}
 - break for Array#some and Array#every (or replace with a normal loop)
 - exception support (includes promise rejections)
  - promises eat exceptions
-- queued state changes (when nested)
 - travis CI
 - make logging better
  - pass thou a method (namespaced)
