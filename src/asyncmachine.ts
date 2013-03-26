@@ -224,7 +224,7 @@ export module asyncmachine {
 			}
 		}
 		
-		amLog( msgs...: any[] ) {
+		amLog( ...msgs: any[] ) {
 			if ( ! this.debug_states_ )
 				return
 		
