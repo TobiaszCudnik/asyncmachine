@@ -47,7 +47,7 @@ class Foo extends AsyncMachine {
  - with sub events (superEvent.subEvent)
  - with event piping
 - nested transitions queued in a sync way, executed in a series
-- promises support for deferred state changes (multiplexing)
+- promises support for deferred state changes
 - logging system for free
 - mixin support
 - written in TypeScript
@@ -68,10 +68,12 @@ AsyncMachine has an event emitter based on LucidJS, which supports states and
 sub events. Following events are emitted from the above example transition:
 
 - State.A.exit
+- exit.A.exit (alias)
 - State.A._.State.B
 - State.A._.any
 - any._.State.B
 - State.B._.enter
+- enter.State.B (alias)
 
 Notice the '.' dot convention. It allows you to namespace sub events. This means,
 once bound to 'State.A' it'll be emitted for `enter`, `exit` events and all transitions.
@@ -115,7 +117,7 @@ function Inherit() {
 }
 Inherit.prototype = am.AsyncMachine.prototype
 var p = QueryFetcher.prototype = new Inherit 
- 
+
 p.state_Start = {}
 p.state_ExecQuery1 = {}
 p.state_ExecQuery2 = {}
@@ -152,10 +154,10 @@ p.ExecQuery4_enter = function() {
 }
 
 // Collect results from every callback.
-p.Result_enter = function() {
-	// Redirect to self transition, to keep it concise.
-	this.Result_Result.apply( this, arguments )
+p.Result_enter = function(states, params, callback_params) {
+	this.results[ states[0] ] = callback_params[0]
 }
+// Result to Result state transition
 p.Result_Result = function(states, params, callback_params) {
 	this.results[ states[0] ] = callback_params[0]
 }

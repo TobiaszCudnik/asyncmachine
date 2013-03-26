@@ -215,27 +215,25 @@ export module asyncmachine {
 		}
 
 		debugStates( prefix?: string, log_handler?: (...msgs: string[] ) => void ) {
+			this.debug_states_ = ! this.debug_states_
 			if ( this.debug_states_ ) {
-				// OFF
-				this.debug_states_ = false
-				delete this.log_handler_
-			} else {
-				// ON
-				this.debug_states_ = true
-                if (! log_handler && console && console.log ) {
-                    log_handler = function() {
-                        var a = arguments
-                        if ( console.log.apply )
-                            console.log.apply( console, arguments )
-                        else
-                            console.log( a[0], a[1] )
-                    }
-                }
 				this.log_handler_ = ( ...msgs: string[] ) => {
 					var args = prefix ? [ prefix ].concat( msgs ) : msgs
 					log_handler.apply( null, args )
 				}
 			}
+		}
+		
+		amLog( msgs...: any[] ) {
+			if ( ! this.debug_states_ )
+				return
+		
+      var a = arguments
+			// ie6 love
+      if ( console.log.apply )
+          console.log.apply( console, arguments )
+      else
+          console.log( a[0], a[1] )
 		}
 
 		// Initializes the mixin.
@@ -613,7 +611,6 @@ export module asyncmachine {
 				}
 			})
 		}
-
 
 		// Exit transition handles state-to-state methods.
 		private transitionExit_( from: string, to: string[],
