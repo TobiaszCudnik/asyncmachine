@@ -73,4 +73,4 @@ var QueryController = (function (_super) {
     };
     return QueryController;
 })(msm.AsyncMachine);
-
+//@ sourceMappingURL=tasks.js.map

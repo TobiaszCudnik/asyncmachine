@@ -264,6 +264,8 @@ asyncmachine.module(1, function(/* parent */){
             this.config = config;
             this.debug_states_ = false;
             this.queue = [];
+            this.states = [];
+            this.states_active = [];
             this.lock = false;
             LucidJS.emitter(this);
             if(config && config.debug) {
@@ -286,7 +288,6 @@ asyncmachine.module(1, function(/* parent */){
                 }
             }
             this.states = states;
-            this.states_active = [];
             this.setState(state);
         };
         AsyncMachine.prototype.getState = function (name) {
@@ -441,23 +442,8 @@ asyncmachine.module(1, function(/* parent */){
             throw new Error('not implemented yet');
         };
         AsyncMachine.prototype.debugStates = function (prefix, log_handler) {
+            this.debug_states_ = !this.debug_states_;
             if(this.debug_states_) {
-                // OFF
-                this.debug_states_ = false;
-                delete this.log_handler_;
-            } else {
-                // ON
-                this.debug_states_ = true;
-                if(!log_handler && console && console.log) {
-                    log_handler = function () {
-                        var a = arguments;
-                        if(console.log.apply) {
-                            console.log.apply(console, arguments);
-                        } else {
-                            console.log(a[0], a[1]);
-                        }
-                    };
-                }
                 this.log_handler_ = function () {
                     var msgs = [];
                     for (var _i = 0; _i < (arguments.length - 0); _i++) {
@@ -468,6 +454,22 @@ asyncmachine.module(1, function(/* parent */){
                     ].concat(msgs) : msgs;
                     log_handler.apply(null, args);
                 };
+            }
+        };
+        AsyncMachine.prototype.amLog = function () {
+            var msgs = [];
+            for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                msgs[_i] = arguments[_i + 0];
+            }
+            if(!this.debug_states_) {
+                return;
+            }
+            var a = arguments;
+            // ie6 love
+            if(console.log.apply) {
+                console.log.apply(console, arguments);
+            } else {
+                console.log(a[0], a[1]);
             }
         }// Initializes the mixin.
         ;
@@ -987,148 +989,7 @@ asyncmachine.module(1, function(/* parent */){
     delete AsyncMachine.prototype.once;
     delete AsyncMachine.prototype.trigger;
     delete AsyncMachine.prototype.set;
-    //	declare export function Block(...params: any[]): void;
-    //
-    //	/**
-    //	 * Promise-like setTimeout wrapper imitating a task.
-    //	 */
-    //	export class Task extends AsyncMachine {
-    //
-    //		schedule_timer: number = null;
-    //		async_timers: number[];
-    //		queue: Function[] = [];
-    //
-    //		constructor(public dispatcher: Scheduler) {
-    //			super()
-    //			this.initStates('Idle')
-    //		}
-    //
-    //		// Doing nothing right now (but may be waiting).
-    //		state_Idle = IState;
-    //
-    //		// Waiting for a scheduled run.
-    //		// Sets timeout on this.schedule_timer.
-    //		state_Waiting = IState;
-    //
-    //		// Executing async actions
-    //		state_Running: IState;
-    //
-    //		// Cancelling a scheduled execution
-    //		state_Cancelling = IState;
-    //
-    //		// Stopping the execution of async actions
-    //		state_Stopping = IState;
-    //
-    //		Cancelling_enter() {
-    //			this.addState('Idle')
-    //			this.dropState('Cancelling')
-    //		}
-    //
-    //		Stopping_enter() {
-    //			this.addState('Idle')
-    //			this.dropState('Stopping')
-    //		}
-    //
-    //		Running_exit() {
-    //			this.cancelAsyncTimers_()
-    //			this.addState('Idle')
-    //		}
-    //
-    //		// Used to execute a vector of synchronous (!) functions "concurrently"
-    //		// with others. Useful when you need to preserve responsivenes on UI or
-    //		// some other interface.
-    //		async(context: Object, ...blocks: Function[] ) {
-    //			this.cancelAsyncTimers_()
-    //			this.addState('Running')
-    //			setTimeout( block.bind(context), 0 )
-    //			blocks.forEach( (block) => {
-    //				this.async_timers.push(
-    //					setTimeout( block.bind(context), 1 )
-    //				)
-    //			})
-    //			this.async_timers.push(
-    //				setTimeout( this.dropStateLater('Running'), 1 )
-    //			)
-    //		}
-    //
-    //		// Schedule an execution of a function in the worker.
-    //		// TODO overload with an alternative params order
-    //		schedule(delay: number, block: Function, context?: Object,
-    //				...params: any[] ) {
-    //			if ( this.state('Waiting') )
-    //				this.addState('Cancelling')
-    //			var exec_binding = this.once( 'Running.enter',
-    //				block.apply( context, params )
-    //			)
-    //			var cancel_binding = this.once( 'Cancelling.enter',
-    //				exec_binding.clear.bind( exec_binding )
-    //			)
-    //			this.schedule_timer = setTimeout( () => {
-    //					cancel_binding.clear()
-    //					this.setState('Running')
-    //				}, delay
-    //			)
-    //			this.addState('Waiting')
-    //		}
-    //
-    //		// Schedule an async work
-    //		scheduleAsync(delay: number, context: Object, ...blocks: Function[] ) {
-    //			this.schedule( delay, () => {
-    //				this.async.apply( this, [ context ].concat( blocks ) )
-    //			})
-    //		}
-    //
-    //		// Cancel a scheduled execution
-    //		cancel() { this.addState('Cancelling') }
-    //
-    //		// Stop an async execution.
-    //		stop() { this.addState('Stopping') }
-    //
-    //		private cancelAsyncTimers_() {
-    //			var timer
-    //			while ( timer = this.async_timers.pop() )
-    //				clearTimeout( timer )
-    //		}
-    //
-    //		newTask() {
-    //			// TODO
-    //		}
-    //	}
-    //
-    //	var p = Thread.prototype
-    //	p.state_Idle = {
-    //			blocks: [ 'Running' ]
-    //	}
-    //	p.state_Waiting = {
-    //			blocks: [ 'Running' ]
-    //	}
-    //	p.state_Running = {
-    //			blocks: [ 'Idle', 'Waiting', 'Scheduled' ]
-    //	}
-    //	p.state_Cancelling = {
-    //			blocks: [ 'Waiting' ]
-    //	}
-    //	p.state_Stopping = {
-    //			blocks: [ 'Running' ]
-    //	}
-    //
-    //	export class Scheduler extends AsyncMachine {
-    //		tasks: Task[] = [];
-    //
-    //		constructor() {
-    //			super()
-    //		}
-    //
-    //		newThread() {
-    //			// TODO
-    //		}
-    //
-    //		dispatch( block: Function, task: Task, context?: Task ) {
-    //			// run task
-    //			(global || window).Task = task || context
-    //		}
-    //	}
-    })(exports.asyncmachine || (exports.asyncmachine = {}));
+})(exports.asyncmachine || (exports.asyncmachine = {}));
 var asyncmachine = exports.asyncmachine;
 // Fake class for sane export.
 var AsyncMachine = (function (_super) {
@@ -1189,6 +1050,7 @@ asyncmachine.module(2, function(/* parent */){
 //
 // ES-5 15.3.4.5
 // http://es5.github.com/#x15.3.4.5
+function Empty() {}
 if (!Function.prototype.bind) {
     Function.prototype.bind = function bind(that) { // .length is 1
         // 1. Let Target be the this value.
@@ -1200,7 +1062,7 @@ if (!Function.prototype.bind) {
         // 3. Let A be a new (possibly empty) internal list of all of the
         //   argument values provided after thisArg (arg1, arg2 etc), in order.
         // XXX slicedArgs will stand in for "A" if used
-        var args = slice.call(arguments, 1); // for normal call
+        var args = _Array_slice_.call(arguments, 1); // for normal call
         // 4. Let F be a new native ECMAScript object.
         // 11. Set the [[Prototype]] internal property of F to the standard
         //   built-in Function prototype object as specified in 15.3.3.1.
@@ -1229,7 +1091,7 @@ if (!Function.prototype.bind) {
                 //   method of target providing args as the arguments.
                 var result = target.apply(
                     this,
-                    args.concat(slice.call(arguments))
+                    args.concat(_Array_slice_.call(arguments))
                 );
                 if (Object(result) === result) {
                     return result;
@@ -1256,12 +1118,15 @@ if (!Function.prototype.bind) {
                 // equiv: target.call(this, ...boundArgs, ...args)
                 return target.apply(
                     that,
-                    args.concat(slice.call(arguments))
+                    args.concat(_Array_slice_.call(arguments))
                 );
             }
         };
         if(target.prototype) {
-            bound.prototype = Object.create(target.prototype);
+            Empty.prototype = target.prototype;
+            bound.prototype = new Empty();
+            // Clean up dangling references.
+            Empty.prototype = null;
         }
         // XXX bound.length is never writable, so don't even try
         //
@@ -1300,7 +1165,7 @@ if (!Function.prototype.bind) {
 var call = Function.prototype.call;
 var prototypeOfArray = Array.prototype;
 var prototypeOfObject = Object.prototype;
-var slice = prototypeOfArray.slice;
+var _Array_slice_ = prototypeOfArray.slice;
 // Having a toString local variable name breaks in Opera so use _toString.
 var _toString = call.bind(prototypeOfObject.toString);
 var owns = call.bind(prototypeOfObject.hasOwnProperty);
@@ -1327,15 +1192,88 @@ if ((supportsAccessors = owns(prototypeOfObject, "__defineGetter__"))) {
 // IE < 9 bug: [1,2].splice(0).join("") == "" but should be "12"
 if ([1,2].splice(0).length != 2) {
     var array_splice = Array.prototype.splice;
-    Array.prototype.splice = function(start, deleteCount) {
-        if (!arguments.length) {
-            return [];
-        } else {
-            return array_splice.apply(this, [
-                start === void 0 ? 0 : start,
-                deleteCount === void 0 ? (this.length - start) : deleteCount
-            ].concat(slice.call(arguments, 2)))
+    if(function() { // test IE < 9 to splice bug - see issue #138
+        function makeArray(l) {
+            var a = [];
+            while (l--) {
+                a.unshift(l)
+            }
+            return a
         }
+        var array = []
+            , lengthBefore
+        ;
+        array.splice.bind(array, 0, 0).apply(null, makeArray(20));
+        array.splice.bind(array, 0, 0).apply(null, makeArray(26));
+        lengthBefore = array.length; //20
+        array.splice(5, 0, "XXX"); // add one element
+        if(lengthBefore + 1 == array.length) {
+            return true;// has right splice implementation without bugs
+        }
+        // else {
+        //    IE8 bug
+        // }
+    }()) {//IE 6/7
+        Array.prototype.splice = function(start, deleteCount) {
+            if (!arguments.length) {
+                return [];
+            } else {
+                return array_splice.apply(this, [
+                    start === void 0 ? 0 : start,
+                    deleteCount === void 0 ? (this.length - start) : deleteCount
+                ].concat(_Array_slice_.call(arguments, 2)))
+            }
+        };
+    }
+    else {//IE8
+        Array.prototype.splice = function(start, deleteCount) {
+            var result
+                , args = _Array_slice_.call(arguments, 2)
+                , addElementsCount = args.length
+            ;
+            if(!arguments.length) {
+                return [];
+            }
+            if(start === void 0) { // default
+                start = 0;
+            }
+            if(deleteCount === void 0) { // default
+                deleteCount = this.length - start;
+            }
+            if(addElementsCount > 0) {
+                if(deleteCount <= 0) {
+                    if(start == this.length) { // tiny optimisation #1
+                        this.push.apply(this, args);
+                        return [];
+                    }
+                    if(start == 0) { // tiny optimisation #2
+                        this.unshift.apply(this, args);
+                        return [];
+                    }
+                }
+                // Array.prototype.splice implementation
+                result = _Array_slice_.call(this, start, start + deleteCount);// delete part
+                args.push.apply(args, _Array_slice_.call(this, start + deleteCount, this.length));// right part
+                args.unshift.apply(args, _Array_slice_.call(this, 0, start));// left part
+                // delete all items from this array and replace it to 'left part' + _Array_slice_.call(arguments, 2) + 'right part'
+                args.unshift(0, this.length);
+                array_splice.apply(this, args);
+                return result;
+            }
+            return array_splice.call(this, start, deleteCount);
+        }
+    }
+}
+// ES5 15.4.4.12
+// http://es5.github.com/#x15.4.4.13
+// Return len+argCount.
+// [bugfix, ielt8]
+// IE < 8 bug: [].unshift(0) == undefined but should be "1"
+if ([].unshift(0) != 1) {
+    var array_unshift = Array.prototype.unshift;
+    Array.prototype.unshift = function() {
+        array_unshift.apply(this, arguments);
+        return this.length;
     };
 }
 // ES5 15.4.3.2
@@ -1635,7 +1573,7 @@ if (!Object.keys) {
             "hasOwnProperty",
             "isPrototypeOf",
             "propertyIsEnumerable",
-            "AsyncMachine"
+            "constructor"
         ],
         dontEnumsLength = dontEnums.length;
     for (var key in {"toString": null}) {
@@ -1777,12 +1715,12 @@ if (!Date.parse || "Date.parse is buggy") {
     // an alternate object for the context.
     Date = (function(NativeDate) {
         // Date.length === 7
-        var newDate = function Date(Y, M, D, h, m, s, ms) {
+        function Date(Y, M, D, h, m, s, ms) {
             var length = arguments.length;
             if (this instanceof NativeDate) {
                 var date = length == 1 && String(Y) === Y ? // isString(Y)
                     // We explicitly pass it through parse:
-                    new NativeDate(newDate.parse(Y)) :
+                    new NativeDate(Date.parse(Y)) :
                     // We have to manually make calls depending on argument
                     // length here
                     length >= 7 ? new NativeDate(Y, M, D, h, m, s, ms) :
@@ -1794,7 +1732,7 @@ if (!Date.parse || "Date.parse is buggy") {
                     length >= 1 ? new NativeDate(Y) :
                                   new NativeDate();
                 // Prevent mixups with unfixed Date object
-                date.constructor = newDate;
+                date.constructor = Date;
                 return date;
             }
             return NativeDate.apply(this, arguments);
@@ -1810,7 +1748,7 @@ if (!Date.parse || "Date.parse is buggy") {
                 ":(\\d{2})" + // minutes capture
                 "(?:" + // optional :seconds.milliseconds
                     ":(\\d{2})" + // seconds capture
-                    "(?:\\.(\\d{3}))?" + // milliseconds capture
+                    "(?:(\\.\\d{1,}))?" + // milliseconds capture
                 ")?" +
             "(" + // capture UTC offset component
                 "Z|" + // UTC capture
@@ -1836,15 +1774,15 @@ if (!Date.parse || "Date.parse is buggy") {
         }
         // Copy any custom methods a 3rd party library may have added
         for (var key in NativeDate) {
-            newDate[key] = NativeDate[key];
+            Date[key] = NativeDate[key];
         }
         // Copy "native" methods explicitly; they may be non-enumerable
-        newDate.now = NativeDate.now;
-        newDate.UTC = NativeDate.UTC;
-        newDate.prototype = NativeDate.prototype;
-        newDate.prototype.constructor = Date;
+        Date.now = NativeDate.now;
+        Date.UTC = NativeDate.UTC;
+        Date.prototype = NativeDate.prototype;
+        Date.prototype.constructor = Date;
         // Upgrade Date.parse to handle simplified ISO 8601 strings
-        newDate.parse = function parse(string) {
+        Date.parse = function parse(string) {
             var match = isoDateExpression.exec(string);
             if (match) {
                 // parse months, days, hours, minutes, seconds, and milliseconds
@@ -1856,12 +1794,12 @@ if (!Date.parse || "Date.parse is buggy") {
                     hour = Number(match[4] || 0),
                     minute = Number(match[5] || 0),
                     second = Number(match[6] || 0),
-                    millisecond = Number(match[7] || 0),
+                    millisecond = Math.floor(Number(match[7] || 0) * 1000),
                     // When time zone is missed, local offset should be used
                     // (ES 5.1 bug)
                     // see https://bugs.ecmascript.org/show_bug.cgi?id=112
                     offset = !match[4] || match[8] ?
-                        0 : Number(new Date(1970, 0)),
+                        0 : Number(new NativeDate(1970, 0)),
                     signOffset = match[9] === "-" ? 1 : -1,
                     hourOffset = Number(match[10] || 0),
                     minuteOffset = Number(match[11] || 0),
@@ -1897,7 +1835,7 @@ if (!Date.parse || "Date.parse is buggy") {
             }
             return NativeDate.parse.apply(this, arguments);
         };
-        return newDate;
+        return Date;
     })(Date);
 }
 // ES5 15.9.4.4
@@ -1906,6 +1844,134 @@ if (!Date.now) {
     Date.now = function now() {
         return new Date().getTime();
     };
+}
+//
+// Number
+// ======
+//
+// ES5.1 15.7.4.5
+// http://es5.github.com/#x15.7.4.5
+if (!Number.prototype.toFixed || (0.00008).toFixed(3) !== '0.000' || (0.9).toFixed(0) === '0' || (1.255).toFixed(2) !== '1.25' || (1000000000000000128).toFixed(0) !== "1000000000000000128") {
+    // Hide these variables and functions
+    (function () {
+        var base, size, data, i;
+        base = 1e7;
+        size = 6;
+        data = [0, 0, 0, 0, 0, 0];
+        function multiply(n, c) {
+            var i = -1;
+            while (++i < size) {
+                c += n * data[i];
+                data[i] = c % base;
+                c = Math.floor(c / base);
+            }
+        }
+        function divide(n) {
+            var i = size, c = 0;
+            while (--i >= 0) {
+                c += data[i];
+                data[i] = Math.floor(c / n);
+                c = (c % n) * base;
+            }
+        }
+        function toString() {
+            var i = size;
+            var s = '';
+            while (--i >= 0) {
+                if (s !== '' || i === 0 || data[i] !== 0) {
+                    var t = String(data[i]);
+                    if (s === '') {
+                        s = t;
+                    } else {
+                        s += '0000000'.slice(0, 7 - t.length) + t;
+                    }
+                }
+            }
+            return s;
+        }
+        function pow(x, n, acc) {
+            return (n === 0 ? acc : (n % 2 === 1 ? pow(x, n - 1, acc * x) : pow(x * x, n / 2, acc)));
+        }
+        function log(x) {
+            var n = 0;
+            while (x >= 4096) {
+                n += 12;
+                x /= 4096;
+            }
+            while (x >= 2) {
+                n += 1;
+                x /= 2;
+            }
+            return n;
+        }
+        Number.prototype.toFixed = function (fractionDigits) {
+            var f, x, s, m, e, z, j, k;
+            // Test for NaN and round fractionDigits down
+            f = Number(fractionDigits);
+            f = f !== f ? 0 : Math.floor(f);
+            if (f < 0 || f > 20) {
+                throw new RangeError("Number.toFixed called with invalid number of decimals");
+            }
+            x = Number(this);
+            // Test for NaN
+            if (x !== x) {
+                return "NaN";
+            }
+            // If it is too big or small, return the string value of the number
+            if (x <= -1e21 || x >= 1e21) {
+                return String(x);
+            }
+            s = "";
+            if (x < 0) {
+                s = "-";
+                x = -x;
+            }
+            m = "0";
+            if (x > 1e-21) {
+                // 1e-21 < x < 1e21
+                // -70 < log2(x) < 70
+                e = log(x * pow(2, 69, 1)) - 69;
+                z = (e < 0 ? x * pow(2, -e, 1) : x / pow(2, e, 1));
+                z *= 0x10000000000000; // Math.pow(2, 52);
+                e = 52 - e;
+                // -18 < e < 122
+                // x = z / 2 ^ e
+                if (e > 0) {
+                    multiply(0, z);
+                    j = f;
+                    while (j >= 7) {
+                        multiply(1e7, 0);
+                        j -= 7;
+                    }
+                    multiply(pow(10, j, 1), 0);
+                    j = e - 1;
+                    while (j >= 23) {
+                        divide(1 << 23);
+                        j -= 23;
+                    }
+                    divide(1 << j);
+                    multiply(1, 1);
+                    divide(2);
+                    m = toString();
+                } else {
+                    multiply(0, z);
+                    multiply(1 << (-e), 0);
+                    m = toString() + '0.00000000000000000000'.slice(2, 2 + f);
+                }
+            }
+            if (f > 0) {
+                k = m.length;
+                if (k <= f) {
+                    m = s + '0.0000000000000000000'.slice(0, f - k + 2) + m;
+                } else {
+                    m = s + m.slice(0, k - f) + '.' + m.slice(k - f);
+                }
+            } else {
+                m = s + m;
+            }
+            return m;
+        }
+    }());
 }
 //
 // String
@@ -1942,7 +2008,7 @@ if("".substr && "0b".substr(-1) !== "b") {
     String.prototype.substr = function(start, length) {
         return string_substr.call(
             this,
-            start < 0 ? (start = this.length + start) < 0 ? 0 : start : start,
+            start < 0 ? ((start = this.length + start) < 0 ? 0 : start) : start,
             length
         );
     }
@@ -2056,7 +2122,7 @@ asyncmachine.module(4, function(/* parent */){
 	if(typeof define === 'function' && define.amd) {
 		define(factory);
 	//NODE
-	} else if(typeof module === 'object' && module.exports) {
+	} else if((typeof module == 'object' || typeof module == 'function') && module.exports) {
 		module.exports = factory();
 	//GLOBAL
 	} else {
@@ -2075,7 +2141,7 @@ asyncmachine.module(4, function(/* parent */){
 	 * Creates a event emitter.
 	 */
 	function EventEmitter(object) {
-		var emitter = object || {}, listeners = {}, setEvents = {}, pipes = {};
+		var emitter = object || {}, listeners = {}, setEvents = {}, pipes = [];
 		//augment an object if it isn't already an emitter
 		if(
 			!emitter.on &&
@@ -2083,10 +2149,10 @@ asyncmachine.module(4, function(/* parent */){
 			!emitter.trigger &&
 			!emitter.set &&
 			!emitter.pipe &&
-			!emitter.pipe &&
 			!emitter.listeners
 		) {
 			emitter.on = on;
+			emitter.off = off;
 			emitter.once = once;
 			emitter.trigger = trigger;
 			emitter.set = set;
@@ -2108,23 +2174,15 @@ asyncmachine.module(4, function(/* parent */){
 		 * @return {Object}
 		 */
 		function on(event     ) {
-			var args = Array.prototype.slice.apply(arguments, [1]), binding = {}, aI, sI;
+			var args, binding = {}, aI, sI;
+			args = Array.prototype.slice.apply(arguments, [1]);
 			//recurse over a batch of events
 			if(typeof event === 'object' && typeof event.push === 'function') { return batchOn(event, args); }
 			//trigger the listener event
-			if(event.slice(0, 7) !== 'emitter') {
-				trigger('emitter.listener', event, args);
-			}
-			//check for a set event
-			if(setEvents[event]) {
+			if(event.slice(0, 7) !== 'emitter' && (listeners['emitter'] || listeners['emitter.listener'])) {
 				for(aI = 0; aI < args.length; aI += 1) {
-					if(typeof args[aI] !== 'function') { throw new Error('Cannot bind event. All callbacks must be functions.'); }
-					for(sI = 0; sI < setEvents[event].length; sI += 1) {
-						args[aI].apply(this, setEvents[event][sI]);
-					}
+					trigger('emitter.listener', event, args[aI]);
 				}
-				binding.clear = function() {};
-				return binding;
 			}
 			//create the event
 			if(!listeners[event]) { listeners[event] = []; }
@@ -2160,84 +2218,165 @@ asyncmachine.module(4, function(/* parent */){
 			}
 		}
 		/**
+		 * Unbinds listeners to events.
+		 * @param event
+		 * @return {Object}
+		 */
+		function off(event     ) {
+			var args = Array.prototype.slice.apply(arguments, [1]), aI, sI;
+			//recurse over a batch of events
+			if(typeof event === 'object' && typeof event.push === 'function') {
+				for(sI = 0; sI < event.length; sI += 1) {
+					off.apply(null, [event[sI]].concat(args));
+				}
+				return;
+			}
+			if(!listeners[event]) { throw new Error('Tried to remove an event from a non-existant event of type "'+event+'".'); }
+			//remove each callback
+			for(aI = 0; aI < args.length; aI += 1) {
+				if(typeof args[aI] !== 'function') { throw new Error('Tried to remove a non-function.'); }
+				var listenerIndex = listeners[event].indexOf(args[aI]);
+				listeners[event].splice(listenerIndex, 1);
+			}
+		}
+		/**
 		 * Binds listeners to events. Once an event is fired the binding is cleared automatically.
 		 * @param event
 		 * @return {Object}
 		 */
 		function once(event     ) {
-			var binding, args = Array.prototype.slice.apply(arguments, [1]), result = true;
+			var binding, args = Array.prototype.slice.apply(arguments, [1]), result = true, cleared = false;
 			binding = on(event, function(    ) {
 				var aI, eventArgs = Array.prototype.slice.apply(arguments);
-				binding.clear();
+				if(!binding) {
+					if(cleared) { return; }
+					cleared = true;
+					setTimeout(function(){ binding.clear(); }, 0);
+				} else {
+					binding.clear();
+				}
 				for(aI = 0; aI < args.length; aI += 1) {
 					if(args[aI].apply(this, eventArgs) === false) {
-						result = true;
+						result = false;
 					}
 				}
+				return result;
 			});
 			return binding;
 		}
 		/**
 		 * Triggers events. Passes listeners any additional arguments.
+		 *  Optimized for 6 arguments.
 		 * @param event
 		 * @return {Boolean}
 		 */
-		function trigger(event     ) {
-			var args = Array.prototype.slice.apply(arguments, [1]), lI, eventListeners, result = true;
-			if(typeof event === 'object' && typeof event.push === 'function') { return batchTrigger(event, args); }
+		function trigger(event, a1, a2, a3, a4, a5, a6, a7, a8, a9, la) {
+			var longArgs, lI, eventListeners, result = true;
+			if(typeof la !== 'undefined') {
+				longArgs = Array.prototype.slice.apply(arguments, [1]);
+			}
+			if(typeof event === 'object' && typeof event.push === 'function') {
+				if(longArgs) {
+					return batchTrigger.apply(null, arguments);
+				} else {
+					return batchTrigger(event, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+				}
+			}
 			event = event.split('.');
 			while(event.length) {
 				eventListeners = listeners[event.join('.')];
+				if(event[0] !== 'emitter' && (listeners['emitter'] || listeners['emitter.event'])) {
+					if(longArgs) {
+						trigger.apply(this, [].concat('emitter.event', event.join('.'), longArgs));
+					} else {
+						trigger('emitter.event', event.join('.'), a1, a2, a3, a4, a5, a6, a7, a8, a9);
+					}
+				}
 				if(eventListeners) {
+					eventListeners = [].concat(eventListeners);
 					for(lI = 0; lI < eventListeners.length; lI += 1) {
-						if(eventListeners[lI].apply(this, args) === false) {
-							result = false;
+						if(longArgs) {
+							if(eventListeners[lI].apply(this, longArgs) === false) {
+								result = false;
+							}
+						} else {
+							if(eventListeners[lI](a1, a2, a3, a4, a5, a6, a7, a8, a9) === false) {
+								result = false;
+							}
 						}
 					}
 				}
 				event.pop();
 			}
 			return result;
-			function batchTrigger(events, args) {
-				var eI, result = true;
-				for(eI = 0; eI < events.length; eI += 1) {
+		}
+		/**
+		 * Triggers a batch of events. Passes listeners any additional arguments.
+		 *  Optimized for 6 arguments.
+		 */
+		function batchTrigger(events, a1, a2, a3, a4, a5, a6, a7, a8, a9, la) {
+			var longArgs, eI, result = true;
+			if(typeof la !== 'undefined') {
+				longArgs = Array.prototype.slice.apply(arguments, [1]);
+			}
+			for(eI = 0; eI < events.length; eI += 1) {
+				if(longArgs) {
 					args.unshift(events[eI]);
 					if(trigger.apply(this, args) === false) { result = false; }
 					args.shift();
+				} else {
+					if(trigger(events[eI], a1, a2, a3, a4, a5, a6, a7, a8, a9) === false) { result = false; }
 				}
-				return result;
 			}
+			return result;
 		}
 		/**
 		 * Sets events. Passes listeners any additional arguments.
-		 * @param event
-		 * @return {*}
+		 *  Optimized for 6 arguments.
 		 */
-		function set(event     ) {
-			var args = Array.prototype.slice.apply(arguments), setEvent = {};
-			if(typeof event === 'object' && typeof event.push === 'function') { return batchSet(event, args); }
-			//execute all of the existing binds for the event
-			trigger.apply(this, args);
-			clearListeners(event);
-			if(!setEvents[event]) { setEvents[event] = []; }
-			setEvents[event].push(args.slice(1));
-			setEvent.clear = clear;
-			return setEvent;
-			function batchSet(events, args) {
-				var eI, result = true;
-				for(eI = 0; eI < events.length; eI += 1) {
-					args.unshift(events[eI]);
-					if(trigger.apply(this, args) === false) { result = false; }
-					args.shift();
-				}
-				return result;
+		function set(event, a1, a2, a3, a4, a5, a6, a7, a8, a9, la) {
+			var args, binding, _clear;
+			if(la) { args = Array.prototype.slice.apply(arguments, [1]); }
+			if(typeof event === 'object' && event.push) {
+				if(args) { return batchSet.apply(null, args); }
+				else { return batchSet(event, a1, a2, a3, a4, a5, a6, a7, a8, a9); }
 			}
+			binding = on(['emitter.listener', 'pipe.listener'], function(_event, listener) {
+				var lI;
+				if(event === _event) {
+					if(args) { listener.apply(null, args); }
+					else { listener(a1, a2, a3, a4, a5, a6, a7, a8, a9); }
+				}
+			});
+			if(args) { trigger.apply(null, arguments); }
+			else { trigger(event, a1, a2, a3, a4, a5, a6, a7, a8, a9); }
+			if(!setEvents[event]) { setEvents[event] = []; }
+			setEvents[event].push(binding);
+			_clear = binding.clear;
+			binding.clear = clear;
+			return binding;
 			function clear() {
-				if(setEvents[event]) {
-					setEvents[event].splice(setEvents[event].indexOf(args), 1);
-					if(setEvents[event].length < 1) {
-						delete setEvents[event];
-					}
+				trigger('emitter.unset', event);
+				setEvents[event].splice(setEvents[event].indexOf(binding), 1);
+				_clear();
+			}
+		}
+		function batchSet(events, a1, a2, a3, a4, a5, a6, a7, a8, a9, la) {
+			var binding = {}, args, eI, bindings = [];
+			if(la) { args = Array.prototype.slice.apply(arguments, [1]); }
+			for(eI = 0; eI < events.length; eI += 1) {
+				if(args) {
+					bindings.push(set.apply(null, [events[eI]].concat(args)));
+				} else {
+					bindings.push(set(events[eI], a1, a2, a3, a4, a5, a6, a7, a8, a9));
+				}
+			}
+			binding.clear = clear;
+			return binding;
+			function clear() {
+				var bI;
+				for(bI = 0; bI < bindings.length; bI += 1) {
+					bindings[bI].clear();
 				}
 			}
 		}
@@ -2246,71 +2385,80 @@ asyncmachine.module(4, function(/* parent */){
 		 * @param event
 		 */
 		function clearSet(event) {
-			if(event) {
+			var bI;
+			if(event && setEvents[event]) {
+				for(bI = 0; bI < setEvents[event].length; bI += 1) {
+					setEvents[event][bI].clear();
+				}
 				delete setEvents[event];
-			} else {
-				setEvents = {};
+			} else if (!event) {
+				for(event in setEvents) {
+					if(!setEvents.hasOwnProperty(event)) { continue; }
+					clearSet(event);
+				}
 			}
 		}
 		/**
 		 * Pipes events from another emitter.
-		 * @param event
+		 * @param event [optional]
 		 * @return {Object}
 		 */
-		function pipe(event     ) {
-			var args = Array.prototype.slice.apply(arguments);
-			if(typeof event === 'object' && typeof event.on === 'function') { return pipeAll(args); }
-			if(typeof event !== 'string' && (typeof event !== 'object' || typeof event.push !== 'function')) { throw new Error('Cannot create pipe. The first argument must be an event string.'); }
-			return pipeEvent(event, args.slice(1));
-			function pipeEvent(event, args) {
-				var aI, pipeBindings = [], pipe = {};
-				if(typeof event === 'object' && typeof event.push === 'function') {
-					return (function(events) {
-						var pipe = {}, eI, eventPipes = [];
-						for(eI = 0; eI < events.length; eI += 1) {
-							eventPipes.push(pipeEvent(events[eI], args));
-						}
-						pipe.clear = clear;
-						return pipe;
-						function clear() {
-							while(eventPipes.length) {
-								eventPipes[0].clear();
-								eventPipes.splice(0, 1);
-							}
-						}
-					})(event);
+		function pipe(event    ) {
+			var binding = {}, emitters, eI, emitter, bindings = [],
+			setEvents = [], eventCaptures = [], sendListeners = [];
+			emitters = Array.prototype.slice.apply(arguments, [1]);
+			if(typeof event === 'object') {
+				if(event.on) { emitters.unshift(event); event = false; }
+				else { return batchPipe.apply(null, arguments); }
+			}
+			for(eI = 0; eI < emitters.length; eI += 1) {
+				emitter = emitters[eI];
+				eventCaptures.push(emitter.on('emitter.event', captureEvent));
+				sendListeners.push(on('emitter.listener', sendListener));
+			}
+			binding.clear = clear;
+			return binding;
+			function captureEvent(event     ) {
+				var setEvent = false, args;
+				args = Array.prototype.slice.apply(arguments, [1]);
+				emitter.once(event, function() { setEvent = true; });
+				if(event.substr(0, 4) !== 'pipe' && (listeners['pipe'] || listeners['pipe.event'])) {
+					trigger('pipe.event', event, args);
 				}
-				if(event.slice(0, 7) === 'emitter') { throw new Error('Cannot pipe event "' + event + '". Events beginning with "emitter" cannot be piped.'); }
-				for(aI = 0; aI < args.length; aI += 1) {
-					pipeBindings.push(args[aI].on(event, function(    ) {
-						var args = Array.prototype.slice.apply(arguments);
-						args.unshift(event);
-						return trigger.apply(this, args);
-					}));
+				if(setEvent) { setEvents.push(set.apply(null, [event].concat(args))); }
+				else { trigger.apply(null, [event].concat(args)); }
+			}
+			function sendListener(event, listener) {
+				emitter.trigger('pipe.listener', event, listener);
+			}
+			function clear() {
+				var bI, sI, eI, sII;
+				for(bI = 0; bI < bindings.length; bI += 1) {
+					bindings[bI].clear();
 				}
-				if(!pipes[event]) { pipes[event] = []; }
-				pipes[event].push(pipeBindings);
-				pipe.clear = clear;
-				return pipe;
-				function clear() {
-					if(pipes[event]) {
-						pipes[event].splice(pipes[event].indexOf(pipeBindings), 1);
-					}
+				for(sI = 0; sI < bindings.length; sI += 1) {
+					setEvents[sI].clear();
+				}
+				for(eI = 0; eI < eventListeners.length; eI += 1) {
+					bindings[eI].clear();
+				}
+				for(sII = 0; sII < sendListeners.length; sII += 1) {
+					setEvents[sII].clear();
 				}
 			}
-			function pipeAll(args) {
-				var pipe = {}, binding, eventPipes = [];
-				binding = on('emitter.listener', function(event) {
-					eventPipes.push(pipeEvent(event, args));
-				});
-				pipe.clear = clear;
-				return pipe;
-				function clear() {
-					binding.clear();
-					while(eventPipes.length) {
-						eventPipes[0].clear();
-						eventPipes.splice(0, 1);
-					}
+		}
+		function batchPipe(events    ) {
+			var binding = {}, eI, bindings = [], emitters;
+			emitters = Array.prototype.slice.apply(arguments, [1]);
+			for(eI = 0; eI < events.length; eI += 1) {
+				bindings.push(pipe.apply(null, [events[eI]].concat(emitters)));
+			}
+			binding.clear = clear;
+			return binding;
+			function clear() {
+				var bI;
+				for(bI = 0; bI < bindings.length; bI += 1) {
+					bindings[bI].clear();
 				}
 			}
 		}
@@ -2319,10 +2467,24 @@ asyncmachine.module(4, function(/* parent */){
 		 * @param event
 		 */
 		function clearPipes(event) {
-			if(event) {
-				delete pipes[event];
-			} else {
-				pipes = {};
+			var pI, bI, binding;
+			for(pI = 0; pI < pipes.length; pI += 1) {
+				if(event) {
+					if(pipes[pI].type === 2) { continue; }
+					if(pipes[pI].events.indexOf(event) === -1) { continue; }
+					pipes[pI].events.splice(pipes[pI].events.indexOf(event), 1);
+				}
+				if(pipes[pI].type === 2) { pipes[pI].listenerBinding.clear(); }
+				for(bI = 0; bI < pipes[pI].bindings.length; bI += 1) {
+					if(event && pipes[pI].bindings[bI].event !== event) { continue; }
+					pipes[pI].bindings[bI].clear();
+					pipes[pI].bindings.splice(bI, 1);
+					bI -= 1;
+				}
+				if(pipes[pI].bindings.length < 1) {
+					pipes.splice(pI, 1);
+					pI -= 1;
+				}
 			}
 		}
 		/**
@@ -2352,10 +2514,12 @@ asyncmachine.module(4, function(/* parent */){
 		 * Clears the emitter
 		 */
 		function clear() {
-			trigger('emitter.clear');
+			if(listeners['emitter'] || listeners['emitter.clear']) {
+				trigger('emitter.clear');
+			}
 			listeners = {};
-			setEvents = {};
-			pipes = {};
+			clearSet();
+			clearPipes();
 			delete emitter.on;
 			delete emitter.once;
 			delete emitter.trigger;
@@ -2433,22 +2597,24 @@ asyncmachine.pkg(1, function(parents){
     'id':3,
     'name':'rsvp',
     'main':undefined,
-    'mainModuleId':'rsvp',
+    'mainModuleId':'node/rsvp',
     'modules':[],
     'parents':parents
   };
 });
 asyncmachine.module(3, function(/* parent */){
   return {
-    'id': 'rsvp',
+    'id': 'node/rsvp',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process,require, undefined){
       "use strict";
+var config = {};
 var browserGlobal = (typeof window !== 'undefined') ? window : {};
 var MutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
-var async;
-if (typeof process !== 'undefined') {
-  async = function(callback, binding) {
+var RSVP;
+if (typeof process !== 'undefined' &&
+  {}.toString.call(process) === '[object process]') {
+  config.async = function(callback, binding) {
     process.nextTick(function() {
       callback.call(binding);
     });
@@ -2465,19 +2631,23 @@ if (typeof process !== 'undefined') {
   });
   var element = document.createElement('div');
   observer.observe(element, { attributes: true });
-  async = function(callback, binding) {
+  // Chrome Memory Leak: https://bugs.webkit.org/show_bug.cgi?id=93661
+  window.addEventListener('unload', function(){
+    observer.disconnect();
+    observer = null;
+  });
+  config.async = function(callback, binding) {
     queue.push([callback, binding]);
     element.setAttribute('drainQueue', 'drainQueue');
   };
 } else {
-  async = function(callback, binding) {
+  config.async = function(callback, binding) {
     setTimeout(function() {
       callback.call(binding);
     }, 1);
   };
 }
-exports.async = async;
-var Event = exports.Event = function(type, options) {
+var Event = function(type, options) {
   this.type = type;
   for (var option in options) {
     if (!options.hasOwnProperty(option)) { continue; }
@@ -2497,33 +2667,39 @@ var callbacksFor = function(object) {
   }
   return callbacks;
 };
-var EventTarget = exports.EventTarget = {
+var EventTarget = {
   mixin: function(object) {
     object.on = this.on;
     object.off = this.off;
     object.trigger = this.trigger;
     return object;
   },
-  on: function(eventName, callback, binding) {
-    var allCallbacks = callbacksFor(this), callbacks;
+  on: function(eventNames, callback, binding) {
+    var allCallbacks = callbacksFor(this), callbacks, eventName;
+    eventNames = eventNames.split(/\s+/);
     binding = binding || this;
-    callbacks = allCallbacks[eventName];
-    if (!callbacks) {
-      callbacks = allCallbacks[eventName] = [];
-    }
-    if (indexOf(callbacks, callback) === -1) {
-      callbacks.push([callback, binding]);
+    while (eventName = eventNames.shift()) {
+      callbacks = allCallbacks[eventName];
+      if (!callbacks) {
+        callbacks = allCallbacks[eventName] = [];
+      }
+      if (indexOf(callbacks, callback) === -1) {
+        callbacks.push([callback, binding]);
+      }
     }
   },
-  off: function(eventName, callback) {
-    var allCallbacks = callbacksFor(this), callbacks;
-    if (!callback) {
-      allCallbacks[eventName] = [];
-      return;
+  off: function(eventNames, callback) {
+    var allCallbacks = callbacksFor(this), callbacks, eventName, index;
+    eventNames = eventNames.split(/\s+/);
+    while (eventName = eventNames.shift()) {
+      if (!callback) {
+        allCallbacks[eventName] = [];
+        continue;
+      }
+      callbacks = allCallbacks[eventName];
+      index = indexOf(callbacks, callback);
+      if (index !== -1) { callbacks.splice(index, 1); }
     }
-    callbacks = allCallbacks[eventName];
-    var index = indexOf(callbacks, callback);
-    if (index !== -1) { callbacks.splice(index, 1); }
   },
   trigger: function(eventName, options) {
     var allCallbacks = callbacksFor(this),
@@ -2542,7 +2718,7 @@ var EventTarget = exports.EventTarget = {
     }
   }
 };
-var Promise = exports.Promise = function() {
+var Promise = function() {
   this.on('promise:resolved', function(event) {
     this.trigger('success', { detail: event.detail });
   }, this);
@@ -2552,25 +2728,29 @@ var Promise = exports.Promise = function() {
 };
 var noop = function() {};
 var invokeCallback = function(type, promise, callback, event) {
-  var value, error;
-  if (callback) {
+  var hasCallback = typeof callback === 'function',
+      value, error, succeeded, failed;
+  if (hasCallback) {
     try {
       value = callback(event.detail);
+      succeeded = true;
     } catch(e) {
+      failed = true;
       error = e;
     }
   } else {
     value = event.detail;
+    succeeded = true;
   }
-  if (value instanceof Promise) {
+  if (value && typeof value.then === 'function') {
     value.then(function(value) {
       promise.resolve(value);
     }, function(error) {
       promise.reject(error);
     });
-  } else if (callback && value) {
+  } else if (hasCallback && succeeded) {
     promise.resolve(value);
-  } else if (error) {
+  } else if (failed) {
     promise.reject(error);
   } else {
     promise[type](value);
@@ -2579,6 +2759,16 @@ var invokeCallback = function(type, promise, callback, event) {
 Promise.prototype = {
   then: function(done, fail) {
     var thenPromise = new Promise();
+    if (this.isResolved) {
+      config.async(function() {
+        invokeCallback('resolve', thenPromise, done, { detail: this.resolvedValue });
+      }, this);
+    }
+    if (this.isRejected) {
+      config.async(function() {
+        invokeCallback('reject', thenPromise, fail, { detail: this.rejectedValue });
+      }, this);
+    }
     this.on('promise:resolved', function(event) {
       invokeCallback('resolve', thenPromise, done, event);
     });
@@ -2588,23 +2778,65 @@ Promise.prototype = {
     return thenPromise;
   },
   resolve: function(value) {
-    exports.async(function() {
-      this.trigger('promise:resolved', { detail: value });
-      this.isResolved = value;
-    }, this);
+    resolve(this, value);
     this.resolve = noop;
     this.reject = noop;
   },
   reject: function(value) {
-    exports.async(function() {
-      this.trigger('promise:failed', { detail: value });
-      this.isRejected = value;
-    }, this);
+    reject(this, value);
     this.resolve = noop;
     this.reject = noop;
   }
 };
+function resolve(promise, value) {
+  config.async(function() {
+    promise.trigger('promise:resolved', { detail: value });
+    promise.isResolved = true;
+    promise.resolvedValue = value;
+  });
+}
+function reject(promise, value) {
+  config.async(function() {
+    promise.trigger('promise:failed', { detail: value });
+    promise.isRejected = true;
+    promise.rejectedValue = value;
+  });
+}
+function all(promises) {
+  var i, results = [];
+  var allPromise = new Promise();
+  var remaining = promises.length;
+  if (remaining === 0) {
+    allPromise.resolve([]);
+  }
+  var resolver = function(index) {
+    return function(value) {
+      resolve(index, value);
+    };
+  };
+  var resolve = function(index, value) {
+    results[index] = value;
+    if (--remaining === 0) {
+      allPromise.resolve(results);
+    }
+  };
+  var reject = function(error) {
+    allPromise.reject(error);
+  };
+  for (i = 0; i < remaining; i++) {
+    promises[i].then(resolver(i), reject);
+  }
+  return allPromise;
+}
 EventTarget.mixin(Promise.prototype);
+function configure(name, value) {
+  config[name] = value;
+}
+exports.Promise = Promise;
+exports.Event = Event;
+exports.EventTarget = EventTarget;
+exports.all = all;
+exports.configure = configure;
     }
   };
 });

@@ -60,6 +60,8 @@ export module asyncmachine {
 			this.config = config
 			this.debug_states_ = false
 			this.queue = []
+			this.states = []
+			this.states_active = []
 			this.lock = false
 			LucidJS.emitter(this)
 			if ( config && config.debug ) {
@@ -82,7 +84,6 @@ export module asyncmachine {
 					states.push( match[1] )
 			}
 			this.states = states
-			this.states_active = []
 			this.setState( state )
 		}
 

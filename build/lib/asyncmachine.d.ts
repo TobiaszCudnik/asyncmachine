@@ -56,6 +56,7 @@ export module asyncmachine {
         public namespaceStateName(state: string): string;
         public defineState(name: string, config: IState): void;
         public debugStates(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
+        public amLog(...msgs: any[]): void;
         public initAsyncMachine(state: string, config?: IConfig): void;
         static mixin(prototype: Object): void;
         static mergeState(name: string): void;
