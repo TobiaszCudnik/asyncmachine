@@ -115,7 +115,8 @@ export module asyncmachine {
 			return this.setState_( states, params )
 		}
 
-		// Curried version of setState.
+		// Returns a callback which after the execution triggers the state change.
+		// Used for async functions.
 		setStateLater(states: string[], ...params: any[]): (...params: any[]) => void;
 		setStateLater(states: string, ...params: any[]): (...params: any[]) => void;
 		setStateLater(states: any, ...params: any[]): (...params: any[]) => void {
@@ -128,6 +129,9 @@ export module asyncmachine {
 				promise.resolve(params)
 			}
 		}
+
+		// TODO later
+		setStateWithException();
 
 		// Activate certain states and keep the current ones.
 		addState(states: string[], ...params: any[]): bool;
@@ -149,6 +153,9 @@ export module asyncmachine {
 				promise.resolve(params)
 			}
 		}
+
+		// TODO later
+		addStateWithException();
 
 		// Deactivate certain states.
 		dropState(states: string[], ...params: any[]): bool;
