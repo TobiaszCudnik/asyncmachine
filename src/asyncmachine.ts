@@ -41,7 +41,7 @@ export module asyncmachine {
 		// rewrite without default types
 		private debug_states_: bool;
 		private log_handler_: Function;
-		private states: string[];
+		private states_all: string[];
 		private states_active: string[];
 		last_promise: rsvp.Promise;
 		private queue: any[];
@@ -60,7 +60,7 @@ export module asyncmachine {
 			this.config = config
 			this.debug_states_ = false
 			this.queue = []
-			this.states = []
+			this.states_all = []
 			this.states_active = []
 			this.lock = false
 			LucidJS.emitter(this)
@@ -83,7 +83,7 @@ export module asyncmachine {
 				if ( match )
 					states.push( match[1] )
 			}
-			this.states = states
+			this.states_all = states
 			this.setState( state )
 		}
 
@@ -91,21 +91,26 @@ export module asyncmachine {
 			return this[ 'state_' + name ] || (<any>this).constructor[ 'state_' + name ]
 		}
 
-		// Tells if a state is active now.
-		state(name: string): bool;
-		state(name: string[]): bool;
 		// Returns all active states.
 		state(): string[];
-		state(name?: any): any {
-			if ( name ) {
-				if ( Array.isArray( name ) ) {
-					return name.every( (name) => {
-						return ~this.states_active.indexOf(name)
-					})
-				} else
-					return !!~this.states_active.indexOf(name)
+		// Tells if a state is active now.
+		state(...names: string): bool {
+			if (names.length) {
+				return names.some( (name) => {
+					if ( Array.isArray( name ) ) {
+						return this.states_all(name)
+					} else {
+						return !!~this.states_active.indexOf(name)
+					}
+				})
 			}
 			return this.states_active
+		}
+
+		states(...names: string): bool {
+			return names.every((name) => {
+				return ~this.states_active.indexOf(name)
+			})
 		}
 
 		// Activate certain states and deactivate the current ones.
@@ -184,7 +189,7 @@ export module asyncmachine {
 			if ( state instanceof AsyncMachine ) {
 				target_state = machine
 				machine = state
-				state = this.states
+				state = this.states_all
 			}
 			[].concat(state).forEach( (state) => {
 				var new_state = target_state || state
@@ -231,6 +236,14 @@ export module asyncmachine {
 				}
 			}
 		}
+
+		// Returns a promise resolved once the specified state is set.
+		when(state: string): Promise {
+			var promise = new rsvp.Promise
+			var binding = this.once(state, promise.resolve.bind(promise))
+			promie.then(null, binding.clear.bind(binding))
+			return promise
+		}
 		
 		amLog( ...msgs: any[] ) {
 			if ( ! this.debug_states_ )
@@ -270,7 +283,7 @@ export module asyncmachine {
 
 		private processAutoStates( excluded: string[] = [] ) {
 			var add = []
-			this.states.forEach( (state: string) {
+			this.states_all.forEach( (state: string) {
 				var is_excluded = ~excluded.indexOf( state )
 				var is_current = this.state(state)
 				if ( this.getState(state).auto && ! is_excluded && ! is_current ) {
@@ -485,7 +498,7 @@ export module asyncmachine {
 		private setupTargetStates_(states: string[], exclude: string[] = []) {
 			// Remove non existing states
 			states = states.filter( (name: string) => {
-				var ret = ~this.states.indexOf( name )
+				var ret = ~this.states_all.indexOf( name )
 				if (! ret && this.log_handler_ ) {
 					this.log_handler_('[i] State ' + name + ' doesn\'t exist')
 				}
@@ -603,7 +616,7 @@ export module asyncmachine {
 		
 		private setActiveStates_( target: string[] ) {
 			var previous = this.states_active
-			var all = this.states
+			var all = this.states_all
 			this.states_active = target
 			// Set states in LucidJS emitter
 			// TODO optimise these loops
