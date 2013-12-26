@@ -34,8 +34,8 @@ class AsyncMachine extends lucidjs.EventEmitter {
     private $: Object;
     private lock: boolean;
     public config: IConfig;
-    constructor (state?: string, config?: IConfig);
-    constructor (state?: string[], config?: IConfig);
+    constructor(config?: IConfig);
+    constructor(config?: IConfig);
     public register(...states: string[]);
     public get(state: string): IState;
     public state(name: string): boolean;

@@ -7,13 +7,12 @@ all:
 	make build
 	make build-test
 
+
 build:
-	node --harmony ../typed-coffeescript/src/coffeetype.js \
-		-o build2 \
-		-i src2
-	rm -f build/lib/asyncmachine.js
-	tsc --declarations -sourcemap -c src/asyncmachine.ts
-	make package
+	node --harmony ../typed-coffeescript/src/coffeetype.js -o build2 -i src2
+
+build-watch:
+	node --harmony ../typed-coffeescript/src/coffeetype.js -o build2 -i src2 --watch
 	
 package:
 	./node_modules/browserify/bin/cmd.js build2/dist/asyncmachine.js > \
@@ -51,9 +50,15 @@ setup:
 	mv test/package-one.json test/package.json
 
 test:
+	#rm test/build/*/**
 	./node_modules/mocha/bin/mocha \
-		--reporter spec \
+		--harmony-generators \
 		--compilers coffee:coffee-script \
-		test
+		--reporter spec \
+		build2/test/dist/*.coffee
 
+build-test-watch:
+	node --harmony ../typed-coffeescript/src/coffeetype.js -o build2/test -i test \
+		--watch
+	
 .PHONY: build test

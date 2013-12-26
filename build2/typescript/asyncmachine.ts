@@ -63,51 +63,12 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     	// Prepare class'es states. Required to be called manually for inheriting classes.
 
-    public initScan_(obj) {
-        var name, parent, _i, _len;
-        for (_i = 0, _len = obj.length; _i < _len; _i++) {
-            name = obj[_i];
-            if (name instanceof Function) {
-                continue;
-            }
-            if (!this.hasOwnProperty(name)) {
-                continue;
-            }
-            this.states_all.push(name);
-        }
-        parent = obj.constructor.prototype.constructor;
-        if (parent === AsyncMachine) {
-            return;
-        }
-        return this.initScan_(parent);
-    }
-
-    public init(state: string);
-    public init(state: string[]);
-    public init(state: any) {
-        this.states_all = [];
-        this.initScan_(this);
-        if (state) {
-            this.setState(state);
-        }
-        return null;
-    }
-
-    public getState(name: string): IState {
-        console.log("#getState is deprecated, use #get");  //getState is deprecated, use #get'
-        return this.get(name);
+    public register(...states) {
+        return states.map((state) => this.states_all.push(state));
     }
 
     public get(state: string): IState {
         return this[state];
-    }
-
-    public state(name: string): boolean;
-    public state(name: string[]): boolean;
-    public state(): string[];
-    public state(name?: any): any {
-        console.log("#state is deprecated, use #is");  //state is deprecated, use #is'
-        return this.any(name);
     }
 
     	// Returns active states or if passed a state, returns if its set.
@@ -119,7 +80,6 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (!state) {
             return this.states_active;
         }
-        !!~this.states_active.indexOf(state);
         return !!~this.states_active.indexOf(state);
     }
 
@@ -141,6 +101,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     }
 
     	// Activate certain states and deactivate the current ones.
+    	// TODO this should be named #set, but lucidjs took it over
 
     public setState(states: string[], ...params: any[]): boolean;
     public setState(states: string, ...params: any[]): boolean;
@@ -244,13 +205,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void {
         this.debug_ = !this.debug_;
-        if (this.debug_) {
-            this.log_handler_ = (...msgs) => {
-                var args;
-                args = prefix ? [prefix].concat(msgs) : msgs;
-                return log_handler.apply(null, args);
-            };
-        }
+        this.debug_prefix = prefix;
         return null;
     }
 
@@ -259,13 +214,11 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (!this.debug_) {
             return;
         }
-
+        if (this.debug_prefix) {
+            msgs = this.debug_prefix ? [this.debug_prefix].concat(msgs) : msgs;
+        }
         return typeof (_base = console.log).apply === "function" ? _base.apply(console, msgs) : void 0;
     }
-
-    	// TODO merge a state with the given name with the super
-    	// class' state
-    	// TODO2 merge by a definition
 
     	////////////////////////////
     	// PRIVATES
@@ -308,7 +261,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             return;
         }
         this.lock = true;
-        this.log_handler_("[*] Set state " + states_to_set.join(", "));
+        this.log("[*] Set state " + (states_to_set.join(", ")));
         states_before = this.is();
         ret = this.selfTransitionExec_(states_to_set, exec_params, callback_params);
         if (ret === false) {
@@ -318,9 +271,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         states_to_set_valid = states_to_set.some((state) => ~states.indexOf(state));
 
         if (!states_to_set_valid) {
-            if (this.log_handler_) {
-                this.log_handler_("[i] Transition cancelled, as target states wasn't accepted");
-            }
+            this.log("[i] Transition cancelled, as target states wasn't accepted");
             return this.lock = false;
         }
         queue = this.queue;
@@ -364,7 +315,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             return;
         }
         this.lock = true;
-        this.log_handler_("[*] Add state " + states_to_add.join(", "));
+        this.log("[*] Add state " + states_to_add.join(", "));
         states_before = this.is();
         ret = this.selfTransitionExec_(states_to_add, exec_params, callback_params);
         if (ret === false) {
@@ -375,9 +326,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         states_to_addState_valid = states_to_add.some((state) => ~states.indexOf(state));
 
         if (!states_to_addState_valid) {
-            if (this.log_handler_) {
-                this.log_handler_("[i] Transition cancelled, as target states wasn't accepted");
-            }
+            this.log("[i] Transition cancelled, as target states wasn't accepted");
             return this.lock = false;
         }
 
@@ -420,7 +369,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             return;
         }
         this.lock = true;
-        this.log_handler_("[*] Drop state " + states_to_drop.join(", "));
+        this.log("[*] Drop state " + states_to_drop.join(", "));
         states_before = this.is();
 
         		// Invert states to target ones.
@@ -525,7 +474,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             var ret;
             ret = ~this.states_all.indexOf(name);
             if (!ret) {
-                this.log_handler_("[i] State " + name + " doesn't exist");
+                this.log("[i] State " + name + " doesn't exist");
             }
             return ret;
         });
@@ -544,7 +493,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
             if (blocked_by.length) {
                 already_blocked.push(name);
-                this.log_handler_("[i] State " + name + " blocked by " + (blocked_by.join(", ")));
+                this.log("[i] State " + name + " blocked by " + (blocked_by.join(", ")));
             }
             return !blocked_by.length && !~exclude.indexOf(name);
         });
@@ -582,7 +531,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                     var found;
                     found = ~states.indexOf(req);
                     if (!found) {
-                        this.log_handler_("[i] State " + name + " dropped as required state " + req + " 								is missing");
+                        this.log("[i] State " + name + " dropped as required state " + req + " 								is missing");
                     }
                     return memo || !found;
                 }), false) : void 0);
@@ -758,9 +707,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         transition_params = [target_states].concat(params);
         ret = void 0;
         event = this.namespaceTransition_(method);
-        if (this.log_handler_) {
-            this.log_handler_(event);
-        }
+        this.log(event);
         if (this[method] instanceof Function) {
             ret = this[method].apply(this, transition_params);
         }
@@ -775,11 +722,11 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             }
             ret = this[fn](event, transition_params);
             if (ret === false) {
-                this.log_handler_("[i] Transition event " + event + " cancelled");
+                this.log("[i] Transition event " + event + " cancelled");
             }
         }
         if (ret === false) {
-            this.log_handler_("[i] Transition method " + method + " cancelled");
+            this.log("[i] Transition method " + method + " cancelled");
         }
         return ret;
     }
@@ -804,3 +751,5 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return null;
     }
 }
+
+module.exports.AsyncMachine = AsyncMachine;

@@ -1,21 +1,61 @@
-asyncmachine = require '../src2/asyncmachine'
-expect = require('chai').expect
+#/<reference path="d.ts/mocha.d.ts" />
+#/<reference path="d.ts/chai.d.ts" />
+#/<reference path="d.ts/sinon.d.ts" />
+
+asyncmachine = require '../../typescript/asyncmachine'
+chai = require 'chai'
+expect = chai.expect
 sinon = require 'sinon'
-Promise = require('rsvp').Promise
+rsvp = require 'rsvp'
+Promise = rsvp.Promise
 
+class FooMachine extends asyncmachine.AsyncMachine
+	constructor: -> 
+		super()
+	A: {}
+	B: {}
+	C: {}
+	D: {}
+
+	constructor: (initialState, config) ->
+		super config
+		@register 'A', 'B', 'C', 'D'
+		@setState initialState
+
+class EventMachine extends FooMachine
+	TestNamespace: {}
+	
+	constructor: (initial, config) ->
+		super config
+		@setState initial
+
+class Sub extends asyncmachine.AsyncMachine
+	A: {}
+	B: {}
+	A_enter: null
+	B_enter: null
+					
+	constructor: (initial, a_spy, b_spy) ->
+		super config
+		@register 'A', 'B'
+		@setState initial
+		@A_enter = a_spy
+		@B_enter = b_spy
+			
+class SubCrossBlocked extends asyncmachine.AsyncMachine
+	A:
+		blocks: [ 'B' ]
+	B:
+		blocks: [ 'A' ]
+	C:
+		implies: [ 'B' ]
+
+	constructor: (config) ->
+		super config
+		@register 'A', 'B', 'C'
+		@setState 'C'
+					
 describe "asyncmachine", ->
-	class FooMachine extends asyncmachine.AsyncMachine
-		constructor: -> 
-			super()
-		A: {}
-		B: {}
-		C: {}
-		D: {}
-
-		constructor: (initialState, config) ->
-			super config
-			@register 'A', 'B', 'C', 'D'
-			@setState initialState
 
 	mock_states = (instance, states) ->
 		for state in states
@@ -404,11 +444,11 @@ describe "asyncmachine", ->
 				expect( @machine.A_exit.calledOnce ).to.be.ok()
 				expect( @machine.is() ).to.eql [ 'C', 'B' ]
 
-#			it 'can be set asynchronously', ->
-#				@machine.B_enter = (states) ->
-#					@on 'state.set', @setLater 'B', 'C'
-#				@machine.setState 'B'
-#				expect( @machine.is() ).to.eql [ 'B', 'C' ]
+		#			it 'can be set asynchronously', ->
+		#				@machine.B_enter = (states) ->
+		#					@on 'state.set', @setLater 'B', 'C'
+		#				@machine.setState 'B'
+		#				expect( @machine.is() ).to.eql [ 'B', 'C' ]
 
 		describe 'and transition is canceled', ->
 			beforeEach ->
@@ -656,8 +696,6 @@ describe "asyncmachine", ->
 				expect( @cancelTransition.called ).to.be.ok()
 
 	describe 'Events', ->
-		class EventMachine extends FooMachine
-			TestNamespace: {}
 
 		beforeEach ->
 			@machine = new EventMachine 'A'
@@ -686,7 +724,7 @@ describe "asyncmachine", ->
 				i = 0
 				expect( l[ i++ ].calledOnce ).to.be.ok()
 				expect( l[ i++ ].called ).not.to.be.ok()
-				
+								
 			it 'shouldn\'t duplicate events'
 
 		describe 'should support namespaces', ->
@@ -762,17 +800,7 @@ describe "asyncmachine", ->
 		it 'should trigger the enter state of a subclass', ->
 			a_enter_spy = sinon.spy()
 			b_enter_spy = sinon.spy()
-			class Sub extends asyncmachine.AsyncMachine
-				A: {}
-				B: {}
-				A_enter: a_enter_spy
-				B_enter: b_enter_spy
-				
-				constructor: (initial, config) ->
-					super config
-					@register 'A', 'B'
-					@setState initial
-			sub = new Sub 'A'
+			sub = new Sub 'A', a_enter_spy, b_enter_spy
 			sub.setState 'B'
 			expect( a_enter_spy.called ).to.be.ok()
 			expect( b_enter_spy.called ).to.be.ok()
@@ -780,23 +808,7 @@ describe "asyncmachine", ->
 		it 'should drop states cross-blocked by implied states', ->
 			# parse implied states before current ones
 			# hint: in blocked by
-			class Sub extends asyncmachine.AsyncMachine
-				A:
-					blocks: [ 'B' ]
-				B:
-					blocks: [ 'A' ]
-				C:
-					implies: [ 'B' ]
-
-				constructor: (config) ->
-					super config
-					@register 'A', 'B', 'C'
-					@setState 'C'
-
-				getState: (name) ->
-					return this.constructor[ '' + name ]
-
-			sub = new Sub
+			sub = new SubCrossBlocked
 			expect( sub.is()).to.eql [ 'C', 'B' ]
 
 		it 'should pass args to transition methods'
