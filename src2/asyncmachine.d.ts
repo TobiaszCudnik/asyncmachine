@@ -31,7 +31,6 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public last_promise: rsvp.Promise;
 		private log_handler_: Function;
     private queue: Object[];
-    private $: Object;
     private lock: boolean;
     public config: IConfig;
     constructor(config?: IConfig);

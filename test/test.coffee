@@ -17,7 +17,7 @@ class FooMachine extends asyncmachine.AsyncMachine
 	C: {}
 	D: {}
 
-	constructor: (initialState, config) ->
+	constructor: (initialState = null, config = null) ->
 		super config
 		@register 'A', 'B', 'C', 'D'
 		@setState initialState

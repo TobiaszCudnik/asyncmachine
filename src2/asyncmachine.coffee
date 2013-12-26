@@ -30,7 +30,6 @@ export interface ITransition {
 	  
 class AsyncMachine extends lucidjs.EventEmitter
 						
-	$: null
 	states_all: null
 	states_active: null
 	queue: null
@@ -40,14 +39,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 	
 	debug_: no
 		
-	constructor: (parent, @config) ->
+	constructor: (@config) ->
 		super()
-		@$ = parent if parent
-		@debug_ = no
+		@debug_ = !!config?.debug
 		@queue = []
 		@states_all = []
 		@states_active = []
-		@debug() if config?.debug
 	  
 	# Prepare class'es states. Required to be called manually for inheriting classes.
 	register: (states...) ->
