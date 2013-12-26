@@ -143,7 +143,8 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     	// Activate certain states and deactivate the current ones.
 
     public setState(states: string[], ...params: any[]): boolean;
-    public setState(states: string, ...params: any[]): boolean {
+    public setState(states: string, ...params: any[]): boolean;
+    public setState(states: any, ...params: any[]): boolean {
         return this.setState_(states, params);
     }
 

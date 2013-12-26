@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Multi State Machine for a declarative async logic.",
   "keywords": ["async", "statemachine", "eventemitter"],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
@@ -10,15 +10,17 @@
 	  "url" : "http://github.com/TobiaszCudnik/asyncmachine.git"
   },
   "dependencies": {
-      "es5-shim": "*",
-      "rsvp": "*",
-      "lucidjs": "*"
+	  "es5-shim": "latest",
+	  "rsvp": "latest",
+	  "lucidjs": "latest"
   },
   "devDependencies": {
-    "one": "*",
-    "typescript": "*",
-	  "shelljs": "*",
-	  "http-server": "*"
+    "browserify": "latest",
+	  "http-server": "latest",
+    "chai": "latest",
+    "sinon": "latest",
+    "mocha": "latest",
+    "coffee-script": "latest"
   },
-  "main": "build/lib/asyncmachine.js"
+  "main": "build2/dist/asyncmachine.js"
 }

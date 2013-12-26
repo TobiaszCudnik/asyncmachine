@@ -36,10 +36,7 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public config: IConfig;
     constructor (state?: string, config?: IConfig);
     constructor (state?: string[], config?: IConfig);
-    public init(state: string);
-    public init(state: string[]);
-    public init(state: any);
-    public getState(name: string): IState;
+    public register(...states: string[]);
     public get(state: string): IState;
     public state(name: string): boolean;
     public state(name: string[]): boolean;
@@ -51,11 +48,15 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public is(state?: any): any;
     public any(...names: string[]): boolean;
     public every(...names: string[]): boolean;
+	
     public setState(states: string[], ...params: any[]): boolean;
     public setState(states: string, ...params: any[]): boolean;
+    public setState(states: any, ...params: any[]): boolean;
+	
     public setLater(states: string[], ...params: any[]): (...params: any[]) => void;
     public setLater(states: string, ...params: any[]): (...params: any[]) => void;
     public setLater(states: any, ...params: any[]): (...params: any[]) => void;
+	
     public addState(states: string[], ...params: any[]): boolean;
     public add(states: string[], ...params: any[]): boolean;
     public add(states: string, ...params: any[]): boolean;
@@ -69,9 +70,9 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public dropLater(states: string[], ...params: any[]): (...params: any[]) => void;
     public dropLater(states: string, ...params: any[]): (...params: any[]) => void;
     public dropLater(states: any, ...params: any[]): (...params: any[]) => void;
-    public pipeForward(state: AsyncMachine, machine?: string);
     public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
     public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
+    public pipeForward(state: AsyncMachine, machine?: string);
     public pipeForward(state: any, machine?: any, target_state?: any);
     public pipeInvert(state: string, machine: AsyncMachine, target_state: string);
     public pipeOff(): void;

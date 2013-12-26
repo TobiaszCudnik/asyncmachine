@@ -8,20 +8,16 @@ all:
 	make build-test
 
 build:
+	node --harmony ../typed-coffeescript/src/coffeetype.js \
+		-o build2 \
+		-i src2
 	rm -f build/lib/asyncmachine.js
 	tsc --declarations -sourcemap -c src/asyncmachine.ts
-	mv src/asyncmachine.js build/lib/
-	mv src/asyncmachine.d.ts build/lib/
-	#rm src/asyncmachine.d.ts
-	$(COFFEE) Makefile.coffee build_fix
-	mv src/asyncmachine.js.map build/lib/
 	make package
 	
 package:
-	$(ONEJS) build package.json build/pkg/build.js
-	cp src/headers/rsvp.d.ts build/lib/
-	cp src/headers/lucidjs.d.ts build/lib/
-	cp src/headers/commonjs.d.ts build/lib/
+	./node_modules/browserify/bin/cmd.js build2/dist/asyncmachine.js > \
+		build2/dist/asyncmachine.pkg.js
 
 build-test:
 	make build
@@ -55,12 +51,9 @@ setup:
 	mv test/package-one.json test/package.json
 
 test:
-	make build-test
-	make test-exec
-
-test-exec:
-	./test/node_modules/mocha/bin/mocha \
+	./node_modules/mocha/bin/mocha \
 		--reporter spec \
-		build/test/build.js
+		--compilers coffee:coffee-script \
+		test
 
 .PHONY: build test

@@ -1,23 +1,27 @@
-asyncmachine = require('asyncmachine')
+asyncmachine = require '../src2/asyncmachine'
 expect = require('chai').expect
 sinon = require 'sinon'
 Promise = require('rsvp').Promise
 
 describe "asyncmachine", ->
 	class FooMachine extends asyncmachine.AsyncMachine
-		state_A: {}
-		state_B: {}
-		state_C: {}
-		state_D: {}
+		constructor: -> 
+			super()
+		A: {}
+		B: {}
+		C: {}
+		D: {}
 
-		constructor: (state, config) ->
-			super state, config
+		constructor: (initialState, config) ->
+			super config
+			@register 'A', 'B', 'C', 'D'
+			@setState initialState
 
 	mock_states = (instance, states) ->
 		for state in states
 			# deeply clone all the state's attrs
-			# proto = instance[ "state_#{state}" ]
-			# instance[ "state_#{state}" ] = {}
+			# proto = instance[ "#{state}" ]
+			# instance[ "#{state}" ] = {}
 			instance.constructor[ "#{state}_#{state}" ] = do sinon.spy
 			instance[ "#{state}_enter" ] = do sinon.spy
 			instance[ "#{state}_exit" ] = do sinon.spy
@@ -29,29 +33,30 @@ describe "asyncmachine", ->
 	assert_order = (order) ->
 		for m, k in order[ 0...-1 ]
 			order[k] = m.calledBefore order[ k+1 ]
-		expect( check ).to.be.ok for check in order[ 0...-1 ]
+		expect( check ).to.be.ok() for check in order[ 0...-1 ]
 
 	beforeEach ->
-		@machine = new FooMachine 'A'
+		@machine = new FooMachine
+		@machine.init 'A'
 
 	it 'should allow to check if single state is active'
 	it 'should allow to check if many states are active'
 	it "should allow for a delayed start"
 	it "should accept the starting state", ->
-		expect( @machine.state() ).to.eql [ "A" ]
+		expect( @machine.is() ).to.eql [ "A" ]
 
 	it "should allow to set the state", ->
 		@machine.setState "B"
-		expect( @machine.state() ).to.eql [ "B" ]
+		expect( @machine.is() ).to.eql [ "B" ]
 
 	it "should allow to add a new state", ->
-		@machine.addState "B"
-		expect( @machine.state() ).to.eql [ "B", "A" ]
+		@machine.add "B"
+		expect( @machine.is() ).to.eql [ "B", "A" ]
 
 	it "should allow to drop a state", ->
 		@machine.setState [ "B", "C" ]
-		@machine.dropState 'C'
-		expect( @machine.state() ).to.eql [ "B" ]
+		@machine.drop 'C'
+		expect( @machine.is() ).to.eql [ "B" ]
 
 
 	it "should throw when setting an unknown state", ->
@@ -64,7 +69,7 @@ describe "asyncmachine", ->
 	it "should skip non existing states", ->
 		@machine.A_exit = sinon.spy()
 		@machine.setState "unknown"
-		expect( @machine.A_exit.calledOnce ).not.to.be.ok
+		expect( @machine.A_exit.calledOnce ).to.not.be.ok()
 
 	describe "when single to single state transition", ->
 		beforeEach ->
@@ -75,17 +80,17 @@ describe "asyncmachine", ->
 			@machine.setState 'B'
 
 		it "should trigger the state to state transition", ->
-			expect( @machine.A_B.calledOnce ).to.be.ok
+			expect( @machine.A_B.calledOnce ).to.be.ok()
 		it "should trigger the state exit transition", ->
-			expect( @machine.A_exit.calledOnce ).to.be.ok
+			expect( @machine.A_exit.calledOnce ).to.be.ok()
 		it "should trigger the transition to the new state", ->
-			expect( @machine.B_enter.calledOnce ).to.be.ok
+			expect( @machine.B_enter.calledOnce ).to.be.ok()
 		it "should trigger the transition to \"Any\" state", ->
-			expect( @machine.A_any.calledOnce ).to.be.ok
+			expect( @machine.A_any.calledOnce ).to.be.ok()
 		it "should trigger the transition from \"Any\" state", ->
-			expect( @machine.any_B.calledOnce ).to.be.ok
+			expect( @machine.any_B.calledOnce ).to.be.ok()
 		it 'should set the correct state', ->
-			expect( @machine.state() ).to.eql ['B']
+			expect( @machine.is() ).to.eql ['B']
 		it "should remain the correct order", ->
 			order = [
 				@machine.A_exit
@@ -105,20 +110,20 @@ describe "asyncmachine", ->
 			@machine.setState [ 'B', 'C' ]
 
 		it "should trigger the state to state transitions", ->
-			expect( @machine.A_B.calledOnce ).to.be.ok
-			expect( @machine.A_C.calledOnce ).to.be.ok
+			expect( @machine.A_B.calledOnce ).to.be.ok()
+			expect( @machine.A_C.calledOnce ).to.be.ok()
 		it "should trigger the state exit transition", ->
-			expect( @machine.A_exit.calledOnce ).to.be.ok
+			expect( @machine.A_exit.calledOnce ).to.be.ok()
 		it "should trigger the transition to new states", ->
-			expect( @machine.B_enter.calledOnce ).to.be.ok
-			expect( @machine.C_enter.calledOnce ).to.be.ok
+			expect( @machine.B_enter.calledOnce ).to.be.ok()
+			expect( @machine.C_enter.calledOnce ).to.be.ok()
 		it "should trigger the transition to \"Any\" state", ->
-			expect( @machine.A_any.calledOnce ).to.be.ok
+			expect( @machine.A_any.calledOnce ).to.be.ok()
 		it "should trigger the transition from \"Any\" state", ->
-			expect( @machine.any_B.calledOnce ).to.be.ok
-			expect( @machine.any_C.calledOnce ).to.be.ok
+			expect( @machine.any_B.calledOnce ).to.be.ok()
+			expect( @machine.any_C.calledOnce ).to.be.ok()
 		it 'should set the correct state', ->
-			expect( @machine.state() ).to.eql ['B', 'C']
+			expect( @machine.is() ).to.eql ['B', 'C']
 		it "should remain the correct order", ->
 			order = [
 				@machine.A_exit
@@ -141,20 +146,20 @@ describe "asyncmachine", ->
 			@machine.setState [ 'C' ]
 
 		it "should trigger the state to state transitions", ->
-			expect( @machine.B_C.calledOnce ).to.be.ok
-			expect( @machine.A_C.calledOnce ).to.be.ok
+			expect( @machine.B_C.calledOnce ).to.be.ok()
+			expect( @machine.A_C.calledOnce ).to.be.ok()
 		it "should trigger the state exit transition", ->
-			expect( @machine.A_exit.calledOnce ).to.be.ok
-			expect( @machine.B_exit.calledOnce ).to.be.ok
+			expect( @machine.A_exit.calledOnce ).to.be.ok()
+			expect( @machine.B_exit.calledOnce ).to.be.ok()
 		it "should trigger the transition to the new state", ->
-			expect( @machine.C_enter.calledOnce ).to.be.ok
+			expect( @machine.C_enter.calledOnce ).to.be.ok()
 		it "should trigger the transition to \"Any\" state", ->
-			expect( @machine.A_any.calledOnce ).to.be.ok
-			expect( @machine.B_any.calledOnce ).to.be.ok
+			expect( @machine.A_any.calledOnce ).to.be.ok()
+			expect( @machine.B_any.calledOnce ).to.be.ok()
 		it "should trigger the transition from \"Any\" state", ->
-			expect( @machine.any_C.calledOnce ).to.be.ok
+			expect( @machine.any_C.calledOnce ).to.be.ok()
 		it 'should set the correct state', ->
-			expect( @machine.state() ).to.eql ['C']
+			expect( @machine.is() ).to.eql ['C']
 		it "should remain the correct order", ->
 			order = [
 				@machine.A_exit
@@ -177,24 +182,24 @@ describe "asyncmachine", ->
 			@machine.setState [ 'D', 'C' ]
 
 		it "should trigger the state to state transitions", ->
-			expect( @machine.A_C.calledOnce ).to.be.ok
-			expect( @machine.A_D.calledOnce ).to.be.ok
-			expect( @machine.B_C.calledOnce ).to.be.ok
-			expect( @machine.B_D.calledOnce ).to.be.ok
+			expect( @machine.A_C.calledOnce ).to.be.ok()
+			expect( @machine.A_D.calledOnce ).to.be.ok()
+			expect( @machine.B_C.calledOnce ).to.be.ok()
+			expect( @machine.B_D.calledOnce ).to.be.ok()
 		it "should trigger the state exit transition", ->
-			expect( @machine.A_exit.calledOnce ).to.be.ok
-			expect( @machine.B_exit.calledOnce ).to.be.ok
+			expect( @machine.A_exit.calledOnce ).to.be.ok()
+			expect( @machine.B_exit.calledOnce ).to.be.ok()
 		it "should trigger the transition to the new state", ->
-			expect( @machine.C_enter.calledOnce ).to.be.ok
-			expect( @machine.D_enter.calledOnce ).to.be.ok
+			expect( @machine.C_enter.calledOnce ).to.be.ok()
+			expect( @machine.D_enter.calledOnce ).to.be.ok()
 		it "should trigger the transition to \"Any\" state", ->
-			expect( @machine.A_any.calledOnce ).to.be.ok
-			expect( @machine.B_any.calledOnce ).to.be.ok
+			expect( @machine.A_any.calledOnce ).to.be.ok()
+			expect( @machine.B_any.calledOnce ).to.be.ok()
 		it "should trigger the transition from \"Any\" state", ->
-			expect( @machine.any_C.calledOnce ).to.be.ok
-			expect( @machine.any_D.calledOnce ).to.be.ok
+			expect( @machine.any_C.calledOnce ).to.be.ok()
+			expect( @machine.any_D.calledOnce ).to.be.ok()
 		it 'should set the correct state', ->
-			expect( @machine.state() ).to.eql ['D', 'C']
+			expect( @machine.is() ).to.eql ['D', 'C']
 		it "should remain the correct order", ->
 			order = [
 				@machine.A_exit
@@ -221,25 +226,25 @@ describe "asyncmachine", ->
 			@machine.setState [ 'A' ]
 
 		it 'shouldn\'t trigger transition methods', ->
-			expect( @machine.A_exit.called ).not.to.be.ok
-			expect( @machine.A_any.called ).not.to.be.ok
-			expect( @machine.any_A.called ).not.to.be.ok
+			expect( @machine.A_exit.called ).not.to.be.ok()
+			expect( @machine.A_any.called ).not.to.be.ok()
+			expect( @machine.any_A.called ).not.to.be.ok()
 
 		it 'should remain in the requested state', ->
-			expect( @machine.state() ).to.eql [ 'A' ]
+			expect( @machine.is() ).to.eql [ 'A' ]
 
 	describe 'when order is defined by the depends attr', ->
 		beforeEach ->
 			@machine = new FooMachine [ 'A', 'B' ]
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
-			@machine.state_C.depends = [ 'D' ]
-			@machine.state_A.depends = [ 'B' ]
+			@machine.C.depends = [ 'D' ]
+			@machine.A.depends = [ 'B' ]
 			# exec
 			@machine.setState [ 'C', 'D' ]
 		after ->
-			delete @machine.state_C.depends
-			delete @machine.state_A.depends
+			delete @machine.C.depends
+			delete @machine.A.depends
 
 		describe 'when entering', ->
 
@@ -273,11 +278,12 @@ describe "asyncmachine", ->
 		beforeEach ->
 			@log = []
 			@machine = new FooMachine [ 'A', 'B' ]
-			@machine.debugStates '', (msg) =>
+			@machine.debug()
+			@machine.log = (msg) =>
 				@log.push msg
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
-			@machine.state_C = blocks: [ 'D' ]
+			@machine.C = blocks: [ 'D' ]
 			@machine.setState 'D'
 
 		describe 'and they are set simultaneously', ->
@@ -285,13 +291,13 @@ describe "asyncmachine", ->
 				@ret = @machine.setState [ 'C', 'D' ]
 
 			it 'should skip the second state', ->
-				expect( @machine.state() ).to.eql [ 'C' ]
+				expect( @machine.is() ).to.eql [ 'C' ]
 
 			it 'should return false', ->
 				expect( @ret ).to.eql no
 
 			it 'should explain the reson in the log', ->
-				expect( ~@log.indexOf '[i] State D blocked by C').to.be.ok
+				expect( ~@log.indexOf '[i] State D blocked by C').to.be.ok()
 
 			afterEach ->
 				delete @ret
@@ -299,55 +305,55 @@ describe "asyncmachine", ->
 		describe 'and blocking one is added', ->
 
 			it 'should unset the blocked one', ->
-				@machine.addState [ 'C' ]
-				expect( @machine.state() ).to.eql [ 'C' ]
+				@machine.add [ 'C' ]
+				expect( @machine.is() ).to.eql [ 'C' ]
 
 		describe 'and cross blocking one is added', ->
 			beforeEach ->
-				@machine.state_D = blocks: [ 'C' ]
+				@machine.D = blocks: [ 'C' ]
 			after ->
-				@machine.state_D = {}
+				@machine.D = {}
 
 			describe 'using setState', ->
 
 				it 'should unset the old one', ->
 					@machine.setState 'C'
-					expect( @machine.state() ).to.eql [ 'C' ]
+					expect( @machine.is() ).to.eql [ 'C' ]
 
 				it 'should work in both ways', ->
 					@machine.setState 'C'
-					expect( @machine.state() ).to.eql [ 'C' ]
+					expect( @machine.is() ).to.eql [ 'C' ]
 					@machine.setState 'D'
-					expect( @machine.state() ).to.eql [ 'D' ]
+					expect( @machine.is() ).to.eql [ 'D' ]
 
-			describe 'using addState', ->
+			describe 'using add', ->
 
 				it 'should unset the old one', ->
-					@machine.addState 'C'
-					expect( @machine.state() ).to.eql [ 'C' ]
+					@machine.add 'C'
+					expect( @machine.is() ).to.eql [ 'C' ]
 
 				it 'should work in both ways', ->
-					@machine.addState 'C'
-					expect( @machine.state() ).to.eql [ 'C' ]
-					@machine.addState 'D'
-					expect( @machine.state() ).to.eql [ 'D' ]
+					@machine.add 'C'
+					expect( @machine.is() ).to.eql [ 'C' ]
+					@machine.add 'D'
+					expect( @machine.is() ).to.eql [ 'D' ]
 
 	describe 'when state is implied', ->
 		beforeEach ->
 			@machine = new FooMachine [ 'A' ]
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
-			@machine.state_C = implies: [ 'D' ]
-			@machine.state_A = blocks: [ 'D' ]
+			@machine.C = implies: [ 'D' ]
+			@machine.A = blocks: [ 'D' ]
 			# exec
 			@machine.setState [ 'C' ]
 
 		it 'should be activated', ->
-			expect( @machine.state() ).to.eql [ 'C', 'D' ]
+			expect( @machine.is() ).to.eql [ 'C', 'D' ]
 
 		it 'should be skipped if blocked at the same time', ->
 			@machine.setState [ 'A', 'D' ]
-			expect( @machine.state() ).to.eql [ 'A' ]
+			expect( @machine.is() ).to.eql [ 'A' ]
 	#expect( fn ).to.throw
 
 	describe 'when state requires another one', ->
@@ -355,26 +361,26 @@ describe "asyncmachine", ->
 			@machine = new FooMachine [ 'A' ]
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
-			@machine.state_C = requires: [ 'D' ]
+			@machine.C = requires: [ 'D' ]
 		after ->
-			@machine.state_C = {}
+			@machine.C = {}
 
 		it 'should be set when required state is active', ->
 			@machine.setState [ 'C', 'D' ]
-			expect( @machine.state() ).to.eql [ 'C', 'D' ]
+			expect( @machine.is() ).to.eql [ 'C', 'D' ]
 
 		describe 'when required state isn\'t active', ->
 			beforeEach ->
 				@log = []
-				@logger = (msg) =>
+				@machine.debug()
+				@machine.log = (msg) =>
 					@log.push msg
-				@machine.debugStates '', @logger
 				@machine.setState [ 'C', 'A' ]
 			afterEach ->
 				delete @log
 
 			it 'should\'t be set', ->
-				expect( @machine.state() ).to.eql [ 'A' ]
+				expect( @machine.is() ).to.eql [ 'A' ]
 
 			it 'should explain the reason in the log', ->
 				msg = '[i] State C dropped as required state D is missing'
@@ -390,19 +396,19 @@ describe "asyncmachine", ->
 
 			it 'should be scheduled synchronously', ->
 				@machine.B_enter = (states) ->
-					@addState 'C'
+					@add 'C'
 				@machine.C_enter = sinon.spy()
 				@machine.A_exit = sinon.spy()
 				@machine.setState 'B'
-				expect( @machine.C_enter.calledOnce ).to.be.ok
-				expect( @machine.A_exit.calledOnce ).to.be.ok
-				expect( @machine.state() ).to.eql [ 'C', 'B' ]
+				expect( @machine.C_enter.calledOnce ).to.be.ok()
+				expect( @machine.A_exit.calledOnce ).to.be.ok()
+				expect( @machine.is() ).to.eql [ 'C', 'B' ]
 
 #			it 'can be set asynchronously', ->
 #				@machine.B_enter = (states) ->
-#					@on 'state.set', @setStateLater 'B', 'C'
+#					@on 'state.set', @setLater 'B', 'C'
 #				@machine.setState 'B'
-#				expect( @machine.state() ).to.eql [ 'B', 'C' ]
+#				expect( @machine.is() ).to.eql [ 'B', 'C' ]
 
 		describe 'and transition is canceled', ->
 			beforeEach ->
@@ -410,34 +416,34 @@ describe "asyncmachine", ->
 			describe 'when setting a new state', ->
 				beforeEach ->
 					@log = []
-					@logger = (msg) =>
+					@machine.debug()
+					@machine.log = (msg) =>
 						@log.push msg
-					@machine.debugStates '', @logger
 					@ret = @machine.setState 'D'
 
 				it 'should return false', ->
-					expect( @machine.setState 'D' ).not.to.be.ok
+					expect( @machine.setState 'D' ).not.to.be.ok()
 
 				it 'should not change the previous state', ->
-					expect( @machine.state() ).to.eql [ 'A' ]
+					expect( @machine.is() ).to.eql [ 'A' ]
 
 				it 'should explain the reason in the log', ->
-					expect( ~@log.indexOf '[i] Transition method D_enter cancelled').to.be.ok
+					expect( ~@log.indexOf '[i] Transition method D_enter cancelled').to.be.ok()
 
 				it 'should not change the auto states'
 
 			# TODO make this and the previous a main contexts
 			describe 'when adding an additional state', ->
-				beforeEach -> @ret = @machine.addState 'D'
+				beforeEach -> @ret = @machine.add 'D'
 
 				it 'should return false', ->
-					expect( @ret ).not.to.be.ok
+					expect( @ret ).not.to.be.ok()
 
 				it 'should not change the previous state', ->
-					expect( @machine.state() ).to.eql [ 'A' ]
+					expect( @machine.is() ).to.eql [ 'A' ]
 
 				it 'should explain the reason in the log', ->
-					expect( ~@log.indexOf '[i] Transition method D_enter cancelled').to.be.ok
+					expect( ~@log.indexOf '[i] Transition method D_enter cancelled').to.be.ok()
 
 				it 'should not change the auto states'
 
@@ -453,7 +459,7 @@ describe "asyncmachine", ->
 		describe 'and transition is successful', ->
 
 			it 'should return true', ->
-				expect( @machine.setState 'D' ).to.be.ok
+				expect( @machine.setState 'D' ).to.be.ok()
 
 			it 'should set the auto states'
 
@@ -471,60 +477,60 @@ describe "asyncmachine", ->
 
 		describe 'with arguments', ->
 			beforeEach ->
-				@machine.state_D =
+				@machine.D =
 					implies: [ 'B' ]
 					blocks: [ 'A' ]
 			after ->
-				@machine.state_D = {}
+				@machine.D = {}
 
 			describe 'and synchronous', ->
 				beforeEach ->
 					@machine.setState [ 'A', 'C' ]
 					@machine.setState 'D', 'foo', 2
 					@machine.setState 'D', 'foo', 2
-					@machine.dropState 'D', 'foo', 2
+					@machine.drop 'D', 'foo', 2
 
 				describe 'and is explicit', ->
 
 					it 'should forward arguments to exit methods', ->
-						expect( @machine.D_exit.calledWith ['B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_exit.calledWith ['B'], [ 'foo', 2 ] ).to.be.ok()
 
 					it 'should forward arguments to enter methods', ->
-						expect( @machine.D_enter.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_enter.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok()
 
 					it 'should forward arguments to self transition methods', ->
 						# TODO this passes only explicite states array, not all target states
-						expect( @machine.D_D.calledWith ['D'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_D.calledWith ['D'], [ 'foo', 2 ] ).to.be.ok()
 
 					it 'should forward arguments to transition methods', ->
-						expect( @machine.C_D.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.C_D.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok()
 
 				describe 'and is non-explicit', ->
 
 					it 'should not forward arguments to exit methods', ->
-						expect( @machine.A_exit.calledWith ['D', 'B'] ).to.be.ok
+						expect( @machine.A_exit.calledWith ['D', 'B'] ).to.be.ok()
 
 					it 'should not forward arguments to enter methods', ->
-						expect( @machine.B_enter.calledWith ['D', 'B'] ).to.be.ok
+						expect( @machine.B_enter.calledWith ['D', 'B'] ).to.be.ok()
 
 					it 'should not forward arguments to transition methods', ->
-						expect( @machine.A_B.calledWith ['D', 'B'] ).to.be.ok
+						expect( @machine.A_B.calledWith ['D', 'B'] ).to.be.ok()
 
 			describe 'and delayed', ->
 				beforeEach (done) ->
-					resolve = @machine.setStateLater [ 'A', 'C' ]
+					resolve = @machine.setLater [ 'A', 'C' ]
 					do resolve
 					@machine.last_promise
 						.then( =>
-							resolve = @machine.setStateLater 'D', 'foo', 2
+							resolve = @machine.setLater 'D', 'foo', 2
 							do resolve
 							@machine.last_promise
 						).then( =>
-							resolve = @machine.setStateLater 'D', 'foo', 2
+							resolve = @machine.setLater 'D', 'foo', 2
 							do resolve
 							@machine.last_promise
 						).then( =>
-							resolve = @machine.dropStateLater 'D', 'foo', 2
+							resolve = @machine.dropLater 'D', 'foo', 2
 							do resolve
 							@machine.last_promise
 						).then ->
@@ -533,44 +539,44 @@ describe "asyncmachine", ->
 				describe 'and is explicit', ->
 
 					it 'should forward arguments to exit methods', ->
-						expect( @machine.D_exit.calledWith ['B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_exit.calledWith ['B'], [ 'foo', 2 ] ).to.be.ok()
 
 					it 'should forward arguments to enter methods', ->
-						expect( @machine.D_enter.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_enter.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok()
 
 					it 'should forward arguments to self transition methods', ->
 						# TODO this passes only explicite states array, not all target states
-						expect( @machine.D_D.calledWith ['D'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_D.calledWith ['D'], [ 'foo', 2 ] ).to.be.ok()
 
 					it 'should forward arguments to transition methods', ->
-						expect( @machine.C_D.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.C_D.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok()
 
 				describe 'and is non-explicit', ->
 
 					it 'should not forward arguments to exit methods', ->
-						expect( @machine.A_exit.calledWith ['D', 'B'] ).to.be.ok
+						expect( @machine.A_exit.calledWith ['D', 'B'] ).to.be.ok()
 
 					it 'should not forward arguments to enter methods', ->
-						expect( @machine.B_enter.calledWith ['D', 'B'] ).to.be.ok
+						expect( @machine.B_enter.calledWith ['D', 'B'] ).to.be.ok()
 
 					it 'should not forward arguments to transition methods', ->
-						expect( @machine.A_B.calledWith ['D', 'B'] ).to.be.ok
+						expect( @machine.A_B.calledWith ['D', 'B'] ).to.be.ok()
 
 		describe 'and delayed', ->
 			beforeEach ->
-				@machine.setStateLater 'D'
+				@machine.setLater 'D'
 				@promise = @machine.last_promise
 			afterEach ->
 				delete @promise
 
 			it 'should return a promise', ->
-				expect( @promise instanceof Promise ).to.be.ok
+				expect( @promise instanceof Promise ).to.be.ok()
 
 			it 'should execute the change', (done) ->
 				@promise.resolve()
 				@promise.then =>
-					expect( @machine.any_D.calledOnce ).to.be.ok
-					expect( @machine.D_enter.calledOnce ).to.be.ok
+					expect( @machine.any_D.calledOnce ).to.be.ok()
+					expect( @machine.D_enter.calledOnce ).to.be.ok()
 					do done
 
 			it 'should expose a ref to the last promise', ->
@@ -586,8 +592,8 @@ describe "asyncmachine", ->
 				beforeEach ->
 					@promise.reject()
 				it 'should not execute the change', ->
-					expect( @machine.any_D.called ).not.to.be.ok
-					expect( @machine.D_enter.called ).not.to.be.ok
+					expect( @machine.any_D.called ).not.to.be.ok()
+					expect( @machine.D_enter.called ).not.to.be.ok()
 
 		describe 'and active state is also the target one', ->
 			it 'should trigger self transition at the very beginning', ->
@@ -602,8 +608,8 @@ describe "asyncmachine", ->
 			it 'should be cancellable', ->
 				@machine.A_A = sinon.stub().returns no
 				@machine.setState( [ 'A', 'B' ] )
-				expect( @machine.A_A.calledOnce ).to.be.ok
-				expect( @machine.any_B.called ).not.to.be.ok
+				expect( @machine.A_A.calledOnce ).to.be.ok()
+				expect( @machine.any_B.called ).not.to.be.ok()
 
 			after ->
 				delete @machine.A_A
@@ -620,38 +626,38 @@ describe "asyncmachine", ->
 				@machine.on 'D.exit', -> no
 				@machine.on 'state.set', @setState = sinon.spy()
 				@machine.on 'state.cancel', @cancelTransition = sinon.spy()
-				@machine.on 'state.add', @addState = sinon.spy()
+				@machine.on 'state.add', @add = sinon.spy()
 				@machine.setState [ 'A', 'B' ]
-				@machine.addState [ 'C' ]
-				@machine.addState [ 'D' ]
+				@machine.add [ 'C' ]
+				@machine.add [ 'D' ]
 			afterEach ->
 				delete @C_exit
 				delete @A_A
 				delete @B_enter
-				delete @addState
+				delete @add
 				delete @setState
 				delete @cancelTransition
 
 			it 'for self transitions', ->
-				expect( @A_A.called ).to.be.ok
+				expect( @A_A.called ).to.be.ok()
 			it 'for enter transitions', ->
-				expect( @B_enter.called ).to.be.ok
+				expect( @B_enter.called ).to.be.ok()
 			it 'for exit transtions', ->
-				expect( @C_exit.called ).to.be.ok
+				expect( @C_exit.called ).to.be.ok()
 			it 'which can cancel the transition', ->
 				@machine.on 'D_enter', sinon.stub().returns no
 				@machine.setState 'D'
-				expect( @machine.D_any.called ).not.to.be.ok
+				expect( @machine.D_any.called ).not.to.be.ok()
 			it 'for setting a new state', ->
-				expect( @setState.called ).to.be.ok
+				expect( @setState.called ).to.be.ok()
 			it 'for adding a new state', ->
-				expect( @addState.called ).to.be.ok
+				expect( @add.called ).to.be.ok()
 			it 'for cancelling the transition', ->
-				expect( @cancelTransition.called ).to.be.ok
+				expect( @cancelTransition.called ).to.be.ok()
 
 	describe 'Events', ->
 		class EventMachine extends FooMachine
-			state_TestNamespace: {}
+			TestNamespace: {}
 
 		beforeEach ->
 			@machine = new EventMachine 'A'
@@ -666,8 +672,8 @@ describe "asyncmachine", ->
 				@machine.on 'A.enter', l[ i++ ]
 				@machine.on 'B.enter', l[ i++ ]
 				i = 0
-				expect( l[ i++ ].called ).not.to.be.ok
-				expect( l[ i++ ].calledOnce ).to.be.ok
+				expect( l[ i++ ].called ).not.to.be.ok()
+				expect( l[ i++ ].calledOnce ).to.be.ok()
 
 			it 'by triggering the *.exit listeners at once for non active states', ->
 				l = []
@@ -678,8 +684,8 @@ describe "asyncmachine", ->
 				@machine.on 'A.exit', l[ i++ ]
 				@machine.on 'B.exit', l[ i++ ]
 				i = 0
-				expect( l[ i++ ].calledOnce ).to.be.ok
-				expect( l[ i++ ].called ).not.to.be.ok
+				expect( l[ i++ ].calledOnce ).to.be.ok()
+				expect( l[ i++ ].called ).not.to.be.ok()
 				
 			it 'shouldn\'t duplicate events'
 
@@ -699,7 +705,7 @@ describe "asyncmachine", ->
 				it 'should handle "enter.Test" sub event', ->
 					expect( @listeners[0].callCount ).to.eql 1
 				it 'should handle "enter.*" sub event', ->
-					expect( @listeners[1].calledTwice ).to.be.ok
+					expect( @listeners[1].calledTwice ).to.be.ok()
 				it 'should handle "A" sub events', ->
 					expect( @listeners[2].callCount ).to.eql 4
 
@@ -711,8 +717,8 @@ describe "asyncmachine", ->
 				@machine.on('A._.Test.Namespace', l2)
 				@machine.setState('TestNamespace')
 
-				expect( l1.calledOnce ).to.be.ok
-				expect( l2.calledOnce ).to.be.ok
+				expect( l1.calledOnce ).to.be.ok()
+				expect( l2.calledOnce ).to.be.ok()
 
 		describe 'piping', ->
 
@@ -721,35 +727,35 @@ describe "asyncmachine", ->
 				@machine.pipeForward 'B', emitter
 				@machine.setState 'B'
 				# TODO order inverted?
-				expect( emitter.state() ).to.eql [ 'B', 'A' ]
+				expect( emitter.is() ).to.eql [ 'B', 'A' ]
 
 			it 'should forward a specific state as a different one', ->
 				emitter = new EventMachine 'A'
 				@machine.pipeForward 'B', emitter, 'C'
 				@machine.setState 'B'
-				expect( emitter.state() ).to.eql [ 'C', 'A' ]
+				expect( emitter.is() ).to.eql [ 'C', 'A' ]
 
 			it 'should invert a specific state as a different one', ->
 				emitter = new EventMachine 'A'
 				@machine.pipeInvert 'A', emitter, 'C'
 				@machine.setState 'B'
-				expect( emitter.state() ).to.eql [ 'C', 'A' ]
+				expect( emitter.is() ).to.eql [ 'C', 'A' ]
 
 			it 'should forward a whole machine', ->
 				#@machine.debug()
 				machine2 = new EventMachine [ 'A', 'D' ]
 				#machine2.debug()
-				expect( machine2.state() ).to.eql [ 'A', 'D' ]
+				expect( machine2.is() ).to.eql [ 'A', 'D' ]
 				@machine.pipeForward machine2
 				@machine.setState [ 'B', 'C' ]
-				expect( machine2.state() ).to.eql [ 'C', 'B', 'D' ]
+				expect( machine2.is() ).to.eql [ 'C', 'B', 'D' ]
 
 			it 'can be turned off'
 	# machine2 = new EventMachine [ 'A', 'D' ]
 	# @machine.pipeOff 'B', emitter #, 'BB'
 	# @machine.pipeForward machine2
 	# @machine.setState [ 'B', 'C' ]
-	# expect( machine2.state() ).to.eql [ 'D', 'B', 'C' ]
+	# expect( machine2.is() ).to.eql [ 'D', 'B', 'C' ]
 
 	describe 'bugs', ->
 		# TODO use a constructor in Sub
@@ -757,42 +763,45 @@ describe "asyncmachine", ->
 			a_enter_spy = sinon.spy()
 			b_enter_spy = sinon.spy()
 			class Sub extends asyncmachine.AsyncMachine
-				state_A: {}
-				state_B: {}
+				A: {}
+				B: {}
 				A_enter: a_enter_spy
 				B_enter: b_enter_spy
+				
+				constructor: (initial, config) ->
+					super config
+					@register 'A', 'B'
+					@setState initial
 			sub = new Sub 'A'
 			sub.setState 'B'
-			expect( a_enter_spy.called ).to.be.ok
-			expect( b_enter_spy.called ).to.be.ok
+			expect( a_enter_spy.called ).to.be.ok()
+			expect( b_enter_spy.called ).to.be.ok()
 
 		it 'should drop states cross-blocked by implied states', ->
 			# parse implied states before current ones
 			# hint: in blocked by
 			class Sub extends asyncmachine.AsyncMachine
-				state_A:
+				A:
 					blocks: [ 'B' ]
-
-				state_B:
+				B:
 					blocks: [ 'A' ]
-
-				state_C:
+				C:
 					implies: [ 'B' ]
 
-				constructor: ->
-					super()
-					@initStates 'A'
+				constructor: (config) ->
+					super config
+					@register 'A', 'B', 'C'
 					@setState 'C'
 
 				getState: (name) ->
-					return this.constructor[ 'state_' + name ]
+					return this.constructor[ '' + name ]
 
 			sub = new Sub
-			expect( sub.state()).to.eql [ 'C', 'B' ]
+			expect( sub.is()).to.eql [ 'C', 'B' ]
 
 		it 'should pass args to transition methods'
 
-		it 'addStatesLater'
+		it 'addsLater'
 
 	describe 'Promises', ->
 		it 'can be resolved'
