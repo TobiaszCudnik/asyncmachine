@@ -3,7 +3,7 @@
 #/<reference path="headers/rsvp.d.ts" />
 #/<reference path="headers/es5-shim.d.ts" />
 
-lucidjs = require("lucidjs") #; required!
+lucidjs = require("lucidjs")
 rsvp = require("rsvp")
 Promise = rsvp.Promise
 require "es5-shim"
@@ -15,7 +15,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	states_active: null
 	lock: no
 	
-	debug_states_ = no
+	debug_states_: no
 		
 	constructor: (parent, @config) ->
 		super
@@ -30,7 +30,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@init state
 	  
 	# Prepare class'es states. Required to be called manually for inheriting classes.
-	initScan_ = (obj) ->
+	initScan_: (obj) ->
 		for name in obj
 			continue if name instanceof Function
 			continue if not @hasOwnProperty name
@@ -50,15 +50,17 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	get: (state) -> @[state]
 		
-	state: ->
+	state: (state) ->
 		console.log '#state is deprecated, use #is'
-		@any.apply @, arguments
+		@any state
 		
+	# Returns active states or if passed a state, returns if its set. 
 	is: (state) ->
 		return @states_active if not state
 		!!~@states_active.indexOf state
 
-	# Tells if a state is active now
+	# Tells if any of the parameters is set, where if param is an array, checks if
+	#   all states in array are set.
 	any: (names...) ->
 		if names.length
 			return @states_active
@@ -103,7 +105,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@dropState_ states, params
 
 	# Deactivate certain states.
-	dropLater = (states, params...) ->
+	dropLater: (states, params...) ->
 		promise = new Promise()
 		promise.then (callback_params...) =>
 			@dropState_ states, params, callback_params
@@ -153,7 +155,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 				args = if prefix then [prefix].concat(msgs) else msgs
 				log_handler.apply null, args
 
-	log = (msgs...) ->
+	log: (msgs...) ->
 		return unless @debug_states_
 
 		console.log.apply? console, msgs
@@ -213,7 +215,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@allStatesSet states_to_set
 
 	# TODO Maybe avoid double concat of states_active
-	addState_ = (states, exec_params, callback_params) ->
+	addState_: (states, exec_params, callback_params) ->
 		callback_params = []  if typeof callback_params is "undefined"
 		states_to_add = [].concat states
 		return unless states_to_add.length
@@ -251,7 +253,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		else
 			@allStatesSet states_to_add
 
-	dropState_ = (states, exec_params, callback_params) ->
+	dropState_: (states, exec_params, callback_params) ->
 		callback_params = []  if typeof callback_params is "undefined"
 		states_to_drop = [].concat states
 		return unless states_to_drop.length
@@ -283,7 +285,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@processAutoStates()
 		ret is no or @allStatesNotSet states_to_drop
 
-	processQueue_ = (previous_ret) ->
+	processQueue_: (previous_ret) ->
 		if previous_ret is no
 			# Cancel the current queue.
 			@queue = []
@@ -384,7 +386,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			length_before = states.length
 			states = states.filter (name) =>
 				state = @get(name)
-				not (state.requires or []).reduce ((memo, req) ->
+				not state.requires?.reduce ((memo, req) ->
 						found = ~states.indexOf(req)
 						if not found
 							@log_handler_ "[i] State #{name} dropped as required state #{req} 
@@ -483,13 +485,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 		return no if ret is yes
 		    
 		# TODO pass args to explicitly dropped states
-		ret = @transitionExec_(from + "_any", to) is no
+		ret = (@transitionExec_ "#{from}_any", to) is no
 		not ret
 
 	transitionEnter_: (to, target_states, params) ->
-		ret = @transitionExec_("any_" + to, target_states, params)
+		ret = @transitionExec_ "any_" + to, target_states, params
 		return no if ret is no
-		ret = @transitionExec_(to + "_enter", target_states, params)
+		ret = @transitionExec_ to + "_enter", target_states, params
 		return no if ret is no
 		    
 		# Duplicate event for namespacing.
@@ -498,8 +500,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		ret
 
 	transitionExec_: (method, target_states, params) ->
-		params = []  if typeof params is "undefined"
-		params = [].concat([target_states], params)
+		params ?= []
+		params = [].concat [target_states], params
 		ret = undefined
 		event = @namespaceTransition_ method
 		@log_handler_ event  if @log_handler_

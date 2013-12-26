@@ -3,7 +3,7 @@
 /// <reference path="headers/rsvp.d.ts" />
 /// <reference path="headers/es5-shim.d.ts" />
 
-import LucidJS = module ('lucidjs');
+import lucidjs = module ('lucidjs');
 import rsvp = module ('rsvp');
 interface IState {
     depends?: string[];
@@ -23,7 +23,7 @@ interface ITransition {
     apply(context, args): any;
 }
 
-class AsyncMachine {
+class AsyncMachine extends lucidjs.EventEmitter {
     private debug_states_;
     private log_handler_;
     private states;
