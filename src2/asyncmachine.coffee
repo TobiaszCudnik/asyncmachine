@@ -31,7 +31,7 @@ class AsyncMachine
 			@init state
 	  
 	# Prepare class'es states. Required to be called manually for inheriting classes.
-	AsyncMachine::initScan_ = (obj) ->
+	initScan_ = (obj) ->
 		for name in obj
 			continue if name instanceof Function
 			continue if not @hasOwnProperty name
@@ -122,7 +122,7 @@ class AsyncMachine
 		# cast to an array
 		[].concat(state).forEach (state) =>
 			new_state = target_state or state
-			state = @namespaceStateName state
+			state = @namespaceName state
 			
 			@on state + ".enter", ->
 				machine.addState new_state
@@ -132,7 +132,7 @@ class AsyncMachine
 
 
 	pipeInvert: (state, machine, target_state) ->
-		state = @namespaceStateName state
+		state = @namespaceName state
 		@on state + ".enter", ->
 			machine.dropState target_state
 
@@ -214,7 +214,7 @@ class AsyncMachine
 			@allStatesSet states_to_set
 
 	# TODO Maybe avoid double concat of states_active
-	AsyncMachine::addState_ = (states, exec_params, callback_params) ->
+	addState_ = (states, exec_params, callback_params) ->
 		callback_params = []  if typeof callback_params is "undefined"
 		states_to_add = [].concat states
 		return unless states_to_add.length
@@ -224,7 +224,7 @@ class AsyncMachine
 		@lock = yes
 		@log_handler_ "[*] Add state " + states_to_add.join ", "
 		states_before = @is()
-		ret = @selfTransitionExec_(states_to_add, exec_params, callback_params)
+		ret = @selfTransitionExec_ states_to_add, exec_params, callback_params
 		return no if ret is no
 		states = states_to_add.concat(@states_active)
 		states = @setupTargetStates_(states)
@@ -234,6 +234,7 @@ class AsyncMachine
 		unless states_to_add_valid
 			@log_handler_ "[i] Transition cancelled, as target states wasn't accepted"  if @log_handler_
 			return @lock = no
+			
 		queue = @queue
 		@queue = []
 		ret = @transition_ states, states_to_add, exec_params, callback_params
@@ -249,9 +250,9 @@ class AsyncMachine
 		if ret is no 
 			no
 		else
-			@allStatesSet states_to_set
+			@allStatesSet states_to_add
 
-	AsyncMachine::dropState_ = (states, exec_params, callback_params) ->
+	dropState_ = (states, exec_params, callback_params) ->
 		callback_params = []  if typeof callback_params is "undefined"
 		states_to_drop = [].concat states
 		return unless states_to_drop.length
@@ -283,7 +284,7 @@ class AsyncMachine
 			@processAutoStates()
 		ret is no or @allStatesNotSet states_to_drop
 
-	AsyncMachine::processQueue_ = (previous_ret) ->
+	processQueue_ = (previous_ret) ->
 		if previous_ret is no
 			# Cancel the current queue.
 			@queue = []
@@ -318,7 +319,7 @@ class AsyncMachine
 		# CamelCase to Camel.Case
 		# A_exit -> A.exit
 		# A_B -> A._.B
-		@namespaceStateName(transition)
+		@namespaceName(transition)
 			.replace(/_([a-z]+)$/, ".$1").replace "_", "._."
 
 	# Executes self transitions (eg ::A_A) based on active states.
@@ -337,10 +338,7 @@ class AsyncMachine
 				transition_params = [event, states].concat [exec_params], 
 					callback_params
 				(@trigger.apply @, transition_params) is no
-		if ret
-			no
-		else
-			yes
+		not ret
 
 	setupTargetStates_: (states, exclude) ->
 		exclude ?= []
@@ -374,7 +372,7 @@ class AsyncMachine
 	# Collect implied states
 	parseImplies_: (states) ->
 		states.forEach (name) =>
-			state = @getState(name)
+			state = @get(name)
 			return unless state.implies
 			states = states.concat(state.implies)
 
@@ -387,7 +385,7 @@ class AsyncMachine
 		until length_before is states.length
 			length_before = states.length
 			states = states.filter (name) =>
-				state = @getState(name)
+				state = @get(name)
 				not (state.requires or []).reduce ((memo, req) ->
 						found = ~states.indexOf(req)
 						if not found
@@ -444,7 +442,7 @@ class AsyncMachine
 			ret = @transitionEnter_ state, to, transition_params
 			ret is no
 			
-		return no  if ret is yes
+		return no if ret is yes
 		@setActiveStates_ to
 		yes
 
@@ -466,8 +464,6 @@ class AsyncMachine
 
 	# Exit transition handles state-to-state methods.
 	transitionExit_: (from, to, explicit_states, params) ->
-		method = undefined
-		callbacks = []
 		if ~explicit_states.indexOf from
 			transition_params = params
 		transition_params ?= []
@@ -475,7 +471,7 @@ class AsyncMachine
 		return no if ret is no
 		    
 		# Duplicate event for namespacing.
-		transition = "exit." + @namespaceStateName from
+		transition = "exit." + @namespaceName from
 		ret = @transitionExec_ transition, to, transition_params
 		return no if ret is no
 		ret = to.some (state) ->
@@ -490,78 +486,59 @@ class AsyncMachine
 		    
 		# TODO pass args to explicitly dropped states
 		ret = @transitionExec_(from + "_any", to) is no
-		(if ret is yes then no else yes)
+		not ret
 
-	AsyncMachine::transitionEnter_ = (to, target_states, params) ->
-		method = undefined
-		callbacks = []
+	transitionEnter_: (to, target_states, params) ->
 		ret = @transitionExec_("any_" + to, target_states, params)
-		return no  if ret is no
+		return no if ret is no
 		ret = @transitionExec_(to + "_enter", target_states, params)
-		return no  if ret is no
+		return no if ret is no
 		    
 		# Duplicate event for namespacing.
-		event_args = ["enter." + @namespaceStateName(to), target_states]
-		ret = @trigger.apply(this, event_args.concat(params))
-		(if ret is no then no else yes)
+		event_args = ["enter.#{@namespaceName to}", target_states]
+		ret = @trigger.apply @, event_args.concat params
+		ret
 
-	AsyncMachine::transitionExec_ = (method, target_states, params) ->
+	transitionExec_: (method, target_states, params) ->
 		params = []  if typeof params is "undefined"
 		params = [].concat([target_states], params)
 		ret = undefined
-		event = @namespaceTransition_(method)
+		event = @namespaceTransition_ method
 		@log_handler_ event  if @log_handler_
-		ret = this[method].apply(this, params)  if this[method] instanceof Function
+		if @[method] instanceof Function
+			ret = @[method].apply @, params  
 		    
 		# TODO reduce this 2 log msgs to 1
 		if ret isnt no
-			fn = (if ~event.indexOf("_") then "trigger" else "set")
-			ret = this[fn](event, params)
-			@log_handler_ "[i] Transition event " + event + " cancelled"  if ret is no and @log_handler_
-		@log_handler_ "[i] Transition method " + method + " cancelled"  if ret is no and @log_handler_
+			if ~event.indexOf "_"
+				fn = "trigger"
+			fn ?= "set"
+			ret = @[fn] event, params
+			if ret is no
+				@log_handler_ "[i] Transition event #{event} cancelled" 
+		if ret is no
+			@log_handler_ "[i] Transition method #{method} cancelled"
 		ret
 
 	# is_exit tells that the order is exit transitions
-	AsyncMachine::orderStates_ = (states) ->
+	orderStates_: (states) ->
 		_this = this
 		states.sort (e1, e2) ->
-			state1 = @getState(e1)
-			state2 = @getState(e2)
+			state1 = @get e1
+			state2 = @get e2
 			ret = 0
-			if state1.depends and ~state1.depends.indexOf(e2)
+			if state1.depends and ~state1.depends.indexOf e2
 				ret = 1
 			else
-				ret = -1  if state2.depends and ~state2.depends.indexOf(e1)
+				ret = -1  if state2.depends and ~state2.depends.indexOf e1
 			ret
 
-
 	# Event Emitter interface
-	# TODO cover as mixin in the d.ts file
-	AsyncMachine::on = (event, VarArgsBoolFn) ->
-		{}
-
-	AsyncMachine::once = (event, VarArgsBoolFn) ->
-		{}
-
-	AsyncMachine::trigger = (event) ->
-		args = []
-		_i = 0
-
-		while _i < (arguments_.length - 1)
-			args[_i] = arguments_[_i + 1]
-			_i++
-		yes
-
-	AsyncMachine::set = (event) ->
-		args = []
-		_i = 0
-
-		while _i < (arguments_.length - 1)
-			args[_i] = arguments_[_i + 1]
-			_i++
-		{}
-			  
-asyncmachine.AsyncMachine = AsyncMachine
+	# TODO bind directly to lucidjs methods???
+	on = (event, VarArgsBoolFn) -> {}
+	once = (event, VarArgsBoolFn) -> {}
+	trigger = (event, ...args) -> yes
+	set = (event, ...args) -> {}
 
 # Support LucidJS mixin
 # TODO make it sucks less
