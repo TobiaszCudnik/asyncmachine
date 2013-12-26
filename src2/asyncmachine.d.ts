@@ -10,59 +10,74 @@ interface IState {
     implies?: string[];
     blocks?: string[];
     requires?: string[];
-    auto?: bool;
+    auto?: boolean;
 }
 
 interface IConfig {
-    debug: bool;
+    debug: boolean;
 }
 
 interface ITransition {
-    call(states?: string[], state_params?: any[], callback_params?: any[]): bool;
+    call(states?: string[], state_params?: any[], callback_params?: any[]): boolean;
     call(states?: string[], state_params?: any[], callback_params?: any[]): any;
     apply(context, args): any;
 }
 
 class AsyncMachine extends lucidjs.EventEmitter {
-    private debug_states_;
-    private log_handler_;
-    private states;
-    private states_active;
+    private debug_: boolean;
+    private log_handler_: Function;
+    private states_all: Array<String>;
+    private states_active: Array<String>;
     public last_promise: rsvp.Promise;
-    private queue;
-    private lock;
+		private log_handler_: Function;
+    private queue: Array<Object>;
+    private $: Object;
+    private lock: boolean;
     public config: IConfig;
     constructor (state?: string, config?: IConfig);
     constructor (state?: string[], config?: IConfig);
-    public initStates(state: string);
-    public initStates(state: string[]);
+    public init(state: string);
+    public init(state: string[]);
+    public init(state: any);
     public getState(name): IState;
-    public state(name: string): bool;
-    public state(name: string[]): bool;
+    public get(name): IState;
+    public state(name: string): boolean;
+    public state(name: string[]): boolean;
     public state(): string[];
-    public setState(states: string[], ...params: any[]): bool;
-    public setState(states: string, ...params: any[]): bool;
+    public state(name: any): any;
+    public is(name: string): boolean;
+    public is(name: string[]): boolean;
+    public is(): string[];
+    public setState(states: string[], ...params: any[]): boolean;
+    public setState(states: string, ...params: any[]): boolean;
     public setStateLater(states: string[], ...params: any[]): (...params: any[]) => void;
     public setStateLater(states: string, ...params: any[]): (...params: any[]) => void;
-    public addState(states: string[], ...params: any[]): bool;
-    public addState(states: string, ...params: any[]): bool;
+    public setLater(states: string[], ...params: any[]): (...params: any[]) => void;
+    public setLater(states: string, ...params: any[]): (...params: any[]) => void;
+    public addState(states: string[], ...params: any[]): boolean;
+    public addState(states: string, ...params: any[]): boolean;
+    public add(states: string[], ...params: any[]): boolean;
+    public add(states: string, ...params: any[]): boolean;
     public addStateLater(states: string[], ...params: any[]): (...params: any[]) => void;
     public addStateLater(states: string, ...params: any[]): (...params: any[]) => void;
-    public dropState(states: string[], ...params: any[]): bool;
-    public dropState(states: string, ...params: any[]): bool;
+    public addLater(states: string[], ...params: any[]): (...params: any[]) => void;
+    public addLater(states: string, ...params: any[]): (...params: any[]) => void;
+    public dropState(states: string[], ...params: any[]): boolean;
+    public dropState(states: string, ...params: any[]): boolean;
+    public drop(states: string[], ...params: any[]): boolean;
+    public drop(states: string, ...params: any[]): boolean;
     public dropStateLater(states: string[], ...params: any[]): (...params: any[]) => void;
     public dropStateLater(states: string, ...params: any[]): (...params: any[]) => void;
+    public dropLater(states: string[], ...params: any[]): (...params: any[]) => void;
+    public dropLater(states: string, ...params: any[]): (...params: any[]) => void;
     public pipeForward(state: AsyncMachine, machine?: string);
     public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
     public pipeInvert(state: string, machine: AsyncMachine, target_state: string): void;
     public pipeOff(): void;
-    public namespaceStateName(state: string): string;
-    public defineState(name: string, config: IState): void;
-    public debugStates(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
+    public namespaceName(state: string): string;
+    public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
     public amLog(...msgs: any[]): void;
-    public initAsyncMachine(state: string, config?: IConfig): void;
-    static mixin(prototype: Object): void;
-    static mergeState(name: string): void;
+    static merge(name: string): void;
     private processAutoStates(excluded?);
     private setState_(states, exec_params, callback_params?);
     private addState_(states, exec_params, callback_params?);
@@ -83,8 +98,4 @@ class AsyncMachine extends lucidjs.EventEmitter {
     private transitionEnter_(to, target_states, params);
     private transitionExec_(method, target_states, params?);
     private orderStates_(states);
-    public on(event: string, VarArgsBoolFn): LucidJS.IBinding;
-    public once(event: string, VarArgsBoolFn): LucidJS.IBinding;
-    public trigger(event: string, ...args: any[]): bool;
-    public set(event: string, ...args: any[]): LucidJS.IBinding;
 }

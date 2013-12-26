@@ -7,27 +7,47 @@ lucidjs = require("lucidjs")
 rsvp = require("rsvp")
 Promise = rsvp.Promise
 require "es5-shim"
+
+# TODO merge with definition
+`
+export interface IState {
+    depends?: string[];
+    implies?: string[];
+    blocks?: string[];
+    requires?: string[];
+    auto?: boolean;
+}
+
+export interface IConfig {
+    debug: boolean;
+}
+
+export interface ITransition {
+    call(states?: string[], state_params?: any[], callback_params?: any[]): boolean;
+    apply(context, args): any;
+}
+`
 	  
 class AsyncMachine extends lucidjs.EventEmitter
 						
 	$: null
-	states: null
+	states_all: null
 	states_active: null
+	queue: null
 	lock: no
+	last_promise: null;
+	log_handler_: null
 	
-	debug_states_: no
+	debug_: no
 		
 	constructor: (parent, @config) ->
-		super
-		@$ = parent
-		@debug_states_ = no
+		super()
+		@$ = parent if parent
+		@debug_ = no
 		@queue = []
 		@states_all = []
 		@states_active = []
-		@debugStates() if config?.debug
-		if state
-			state = if (Array.isArray state) then state else [state]
-			@init state
+		@debug() if config?.debug
 	  
 	# Prepare class'es states. Required to be called manually for inheriting classes.
 	initScan_: (obj) ->
@@ -43,6 +63,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@states_all = []
 		@initScan_ @
 		@setState state if state
+		null
 
 	getState: (state) ->
 		console.log '#getState is deprecated, use #get'
@@ -116,9 +137,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	pipeForward: (state, machine, target_state) ->
 		# switch params order
 		if state instanceof AsyncMachine
-			target_state = machine
-			machine = state
-			state = @states_all
+			return @pipeForward @states_all, state, machine
 		
 		# cast to an array
 		[].concat(state).forEach (state) =>
@@ -140,7 +159,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@on state + ".exit", ->
 			machine.addState target_state
 
-
 	pipeOff: -> throw new Error("not implemented yet")
 
 	# TODO use a regexp lib for IE8's 'g' flag compat?
@@ -149,14 +167,14 @@ class AsyncMachine extends lucidjs.EventEmitter
 		state.replace /([a-zA-Z])([A-Z])/g, "$1.$2"
 
 	debug: (prefix, log_handler) ->
-		@debug_states_ = not @debug_states_
-		if @debug_states_
+		@debug_ = not @debug_
+		if @debug_
 			@log_handler_ = (msgs...) ->
 				args = if prefix then [prefix].concat(msgs) else msgs
 				log_handler.apply null, args
 
 	log: (msgs...) ->
-		return unless @debug_states_
+		return unless @debug_
 
 		console.log.apply? console, msgs
 	  

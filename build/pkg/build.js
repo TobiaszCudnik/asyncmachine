@@ -262,7 +262,7 @@ asyncmachine.module(1, function(/* parent */){
     var AsyncMachine = (function () {
         function AsyncMachine(state, config) {
             this.config = config;
-            this.debug_states_ = false;
+            this.debug_ = false;
             this.queue = [];
             this.states = [];
             this.states_active = [];
@@ -442,8 +442,8 @@ asyncmachine.module(1, function(/* parent */){
             throw new Error('not implemented yet');
         };
         AsyncMachine.prototype.debugStates = function (prefix, log_handler) {
-            this.debug_states_ = !this.debug_states_;
-            if(this.debug_states_) {
+            this.debug_ = !this.debug_;
+            if(this.debug_) {
                 this.log_handler_ = function () {
                     var msgs = [];
                     for (var _i = 0; _i < (arguments.length - 0); _i++) {
@@ -461,7 +461,7 @@ asyncmachine.module(1, function(/* parent */){
             for (var _i = 0; _i < (arguments.length - 0); _i++) {
                 msgs[_i] = arguments[_i + 0];
             }
-            if(!this.debug_states_) {
+            if(!this.debug_) {
                 return;
             }
             var a = arguments;
