@@ -65,15 +65,15 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@setState state if state
 		null
 
-	getState: (state) ->
+	getState: (name) ->
 		console.log '#getState is deprecated, use #get'
-		@get state
+		@get name
 
 	get: (state) -> @[state]
 		
-	state: (state) ->
+	state: (name) ->
 		console.log '#state is deprecated, use #is'
-		@any state
+		@any name
 		
 	# Returns active states or if passed a state, returns if its set. 
 	is: (state) ->
@@ -83,8 +83,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# Tells if any of the parameters is set, where if param is an array, checks if
 	#   all states in array are set.
 	any: (names...) ->
-		if names.length
-			return @states_active
 		names.some (name) =>
 			if Array.isArray name
 				@every name
@@ -93,7 +91,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		
 	every: (names...) ->
 		names.every (name) =>
-			~@states_active.indexOf name
+			!!~@states_active.indexOf name
 
 	# Activate certain states and deactivate the current ones.
 	setState: (states, params...) ->
