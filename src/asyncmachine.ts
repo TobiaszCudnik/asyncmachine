@@ -98,7 +98,7 @@ export module asyncmachine {
 			if (names.length) {
 				return names.some( (name) => {
 					if ( Array.isArray( name ) ) {
-						return this.states_all(name)
+						return this.states(name)
 					} else {
 						return !!~this.states_active.indexOf(name)
 					}

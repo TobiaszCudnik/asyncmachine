@@ -9,7 +9,7 @@ all:
 
 build:
 	rm -f build/lib/asyncmachine.js
-	tsc --declaration -sourcemap -c src/asyncmachine.ts
+	tsc --declarations -sourcemap -c src/asyncmachine.ts
 	mv src/asyncmachine.js build/lib/
 	mv src/asyncmachine.d.ts build/lib/
 	#rm src/asyncmachine.d.ts
