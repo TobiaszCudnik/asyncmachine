@@ -183,7 +183,7 @@ interface SinonFakeXMLHttpRequest {
 	async: boolean;
 	username: string;
 	password: string;
-	responseXML: Document;
+//	responseXML: Document;
 	getResponseHeader(header: string): string;
 	getAllResponseHeaders(): any;
 

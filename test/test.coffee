@@ -1,6 +1,7 @@
 #/<reference path="d.ts/mocha.d.ts" />
 #/<reference path="d.ts/chai.d.ts" />
 #/<reference path="d.ts/sinon.d.ts" />
+#/<reference path="d.ts/underscore.d.ts" />
 
 asyncmachine = require '../../typescript/asyncmachine'
 chai = require 'chai'
@@ -8,10 +9,9 @@ expect = chai.expect
 sinon = require 'sinon'
 rsvp = require 'rsvp'
 Promise = rsvp.Promise
+_ = require '_'
 
 class FooMachine extends asyncmachine.AsyncMachine
-	constructor: -> 
-		super()
 	A: {}
 	B: {}
 	C: {}
@@ -25,7 +25,7 @@ class FooMachine extends asyncmachine.AsyncMachine
 class EventMachine extends FooMachine
 	TestNamespace: {}
 	
-	constructor: (initial, config) ->
+	constructor: (initial, config = {}) ->
 		super config
 		@setState initial
 
@@ -36,7 +36,7 @@ class Sub extends asyncmachine.AsyncMachine
 	B_enter: null
 					
 	constructor: (initial, a_spy, b_spy) ->
-		super config
+		super()
 		@register 'A', 'B'
 		@setState initial
 		@A_enter = a_spy
@@ -50,7 +50,7 @@ class SubCrossBlocked extends asyncmachine.AsyncMachine
 	C:
 		implies: [ 'B' ]
 
-	constructor: (config) ->
+	constructor: (config = {}) ->
 		super config
 		@register 'A', 'B', 'C'
 		@setState 'C'
@@ -100,8 +100,11 @@ describe "asyncmachine", ->
 
 
 	it "should throw when setting an unknown state", ->
+		# TODO when referencing @machine in the callback
+		#   error TS2108: 'this' cannot be referenced within module bodies.
+		machine = @machine
 		func = =>
-			@machine.setState "unknown"
+			machine.setState "unknown"
 		expect( func ).to.throw()
 
 	it 'should allow to define a new state'

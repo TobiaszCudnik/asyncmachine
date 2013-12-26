@@ -34,14 +34,15 @@ class AsyncMachine extends lucidjs.EventEmitter
 	states_active: null
 	queue: null
 	lock: no
-	last_promise: null;
+	last_promise: null
 	log_handler_: null
+	debug_prefix: ''
 	
 	debug_: no
 		
-	constructor: (@config) ->
+	constructor: (@config = {}) ->
 		super()
-		@debug_ = !!config?.debug
+		@debug_ = !!config.debug
 		@queue = []
 		@states_all = []
 		@states_active = []
@@ -296,12 +297,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	allStatesSet: (states) ->
 		not states.reduce ((ret, state) =>
-				ret or not @state(state)
+				ret or not @is state
 			), no
 
 	allStatesNotSet: (states) ->
 		not states.reduce ((ret, state) =>
-				ret or @state(state)
+				ret or @is state
 			), no
 
 	namespaceTransition_: (transition) ->

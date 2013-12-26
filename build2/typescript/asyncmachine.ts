@@ -43,11 +43,13 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     private log_handler_: Function = null;
 
+    public debug_prefix = "";
+
     private debug_: boolean = false;
 
-    constructor(public config) {
+    constructor(public config : any = {}) {
         super();
-        this.debug_ = !!(config != null ? config.debug : void 0);
+        this.debug_ = !!config.debug;
         this.queue = [];
         this.states_all = [];
         this.states_active = [];
@@ -411,11 +413,11 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     }
 
     private allStatesSet(states): boolean {
-        return !states.reduce(((ret, state) => ret || !this.state(state)), false);
+        return !states.reduce(((ret, state) => ret || !this.is(state)), false);
     }
 
     private allStatesNotSet(states): boolean {
-        return !states.reduce(((ret, state) => ret || this.state(state)), false);
+        return !states.reduce(((ret, state) => ret || this.is(state)), false);
     }
 
     private namespaceTransition_(transition: string) {
