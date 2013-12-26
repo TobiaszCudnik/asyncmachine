@@ -3,12 +3,12 @@
 #/<reference path="headers/rsvp.d.ts" />
 #/<reference path="headers/es5-shim.d.ts" />
 
-LucidJS = require("lucidjs") #; required!
+lucidjs = require("lucidjs") #; required!
 rsvp = require("rsvp")
 Promise = rsvp.Promise
 require "es5-shim"
 	  
-class AsyncMachine
+class AsyncMachine extends lucidjs.EventEmitter
 						
 	$: null
 	states: null
@@ -18,13 +18,12 @@ class AsyncMachine
 	debug_states_ = no
 		
 	constructor: (parent, @config) ->
+		super
 		@$ = parent
 		@debug_states_ = no
 		@queue = []
 		@states_all = []
 		@states_active = []
-		# initialize the event emitter
-		LucidJS.emitter this
 		@debugStates() if config?.debug
 		if state
 			state = if (Array.isArray state) then state else [state]
@@ -60,7 +59,7 @@ class AsyncMachine
 		!!~@states_active.indexOf state
 
 	# Tells if a state is active now
-	any: (...names) ->
+	any: (names...) ->
 		if names.length
 			return @states_active
 		names.some (name) =>
@@ -69,48 +68,48 @@ class AsyncMachine
 			else
 				@is name
 		
-	every: (...names) ->
+	every: (names...) ->
 		names.every (name) =>
 			~@states_active.indexOf name
 
 	# Activate certain states and deactivate the current ones.
-	setState: (states, ...params) ->
+	setState: (states, params...) ->
 		@setState_ states, params
 
 	# Curried version of setState.
-	setLater: (states, ...params) ->
+	setLater: (states, params...) ->
 		promise = new Promise()
-		promise.then (...callback_params) =>
+		promise.then (callback_params...) =>
 			@setState_ states, params, callback_params
 
 		@last_promise = promise
-		(...params) -> promise.resolve params
+		(params...) -> promise.resolve params
 
 	# Activate certain states and keep the current ones.
-	add: (states, ...params) ->
+	add: (states, params...) ->
 		@addState_ states, params
 
 	# Curried version of addState
-	addLater: (states, ...params) ->
+	addLater: (states, params...) ->
 		promise = new Promise()
-		promise.then (...callback_params) =>
+		promise.then (callback_params...) =>
 			@addState_ states, params, callback_params
 
 		@last_promise = promise
-		(...params) -> promise.resolve params
+		(params...) -> promise.resolve params
 
 	# Deactivate certain states.
-	drop: (states, ...params) ->
+	drop: (states, params...) ->
 		@dropState_ states, params
 
 	# Deactivate certain states.
-	dropLater = (states, ...params) ->
+	dropLater = (states, params...) ->
 		promise = new Promise()
-		promise.then (...callback_params) =>
+		promise.then (callback_params...) =>
 			@dropState_ states, params, callback_params
 
 		@last_promise = promise
-		(...params) -> promise.resolve params
+		(params...) -> promise.resolve params
 
 	pipeForward: (state, machine, target_state) ->
 		# switch params order
@@ -150,11 +149,11 @@ class AsyncMachine
 	debug: (prefix, log_handler) ->
 		@debug_states_ = not @debug_states_
 		if @debug_states_
-			@log_handler_ = (...msgs) ->
+			@log_handler_ = (msgs...) ->
 				args = if prefix then [prefix].concat(msgs) else msgs
 				log_handler.apply null, args
 
-	log = (...msgs) ->
+	log = (msgs...) ->
 		return unless @debug_states_
 
 		console.log.apply? console, msgs
@@ -302,10 +301,9 @@ class AsyncMachine
 				when 2
 					ret.push @setState row[1], row[2], row[3]
 					break
-		not ~ret.indexOf(no)
+		not ~ret.indexOf no
 
 	allStatesSet: (states) ->
-		_this = this
 		not states.reduce ((ret, state) =>
 				ret or not @state(state)
 			), no
@@ -522,7 +520,6 @@ class AsyncMachine
 
 	# is_exit tells that the order is exit transitions
 	orderStates_: (states) ->
-		_this = this
 		states.sort (e1, e2) ->
 			state1 = @get e1
 			state2 = @get e2
@@ -532,20 +529,3 @@ class AsyncMachine
 			else
 				ret = -1  if state2.depends and ~state2.depends.indexOf e1
 			ret
-
-	# Event Emitter interface
-	# TODO bind directly to lucidjs methods???
-	on = (event, VarArgsBoolFn) -> {}
-	once = (event, VarArgsBoolFn) -> {}
-	trigger = (event, ...args) -> yes
-	set = (event, ...args) -> {}
-
-# Support LucidJS mixin
-# TODO make it sucks less
-delete AsyncMachine::on
-
-delete AsyncMachine::once
-
-delete AsyncMachine::trigger
-
-delete AsyncMachine::set
