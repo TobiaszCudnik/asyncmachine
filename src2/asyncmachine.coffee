@@ -79,6 +79,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	is: (state) ->
 		return @states_active if not state
 		!!~@states_active.indexOf state
+		!!~@states_active.indexOf state
 
 	# Tells if any of the parameters is set, where if param is an array, checks if
 	#   all states in array are set.
@@ -121,13 +122,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	# Deactivate certain states.
 	drop: (states, params...) ->
-		@dropState_ states, params
+		@drop_ states, params
 
 	# Deactivate certain states.
 	dropLater: (states, params...) ->
 		promise = new Promise()
 		promise.then (callback_params...) =>
-			@dropState_ states, params, callback_params
+			@drop_ states, params, callback_params
 
 		@last_promise = promise
 		(params...) -> promise.resolve params
@@ -146,13 +147,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 				machine.addState new_state
 
 			@on state + ".exit", ->
-				machine.dropState new_state
+				machine.drop new_state
 
 
 	pipeInvert: (state, machine, target_state) ->
 		state = @namespaceName state
 		@on state + ".enter", ->
-			machine.dropState target_state
+			machine.drop target_state
 
 		@on state + ".exit", ->
 			machine.addState target_state
@@ -269,7 +270,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		else
 			@allStatesSet states_to_add
 
-	dropState_: (states, exec_params, callback_params) ->
+	drop_: (states, exec_params, callback_params) ->
 		callback_params = []  if typeof callback_params is "undefined"
 		states_to_drop = [].concat states
 		return unless states_to_drop.length
@@ -311,7 +312,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		while row = @queue.shift()
 			switch row[0]
 				when 0
-					ret.push @dropState row[1], row[2], row[3]
+					ret.push @drop row[1], row[2], row[3]
 					break
 				when 1
 					ret.push @addState row[1], row[2], row[3]

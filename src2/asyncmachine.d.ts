@@ -26,7 +26,7 @@ interface ITransition {
 class AsyncMachine extends lucidjs.EventEmitter {
     private debug_: boolean;
     private log_handler_: Function;
-    private states_all: Array<String>;
+    private states_all: string[];
     private states_active: Array<String>;
     public last_promise: rsvp.Promise;
 		private log_handler_: Function;
@@ -71,6 +71,7 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public dropLater(states: any, ...params: any[]): (...params: any[]) => void;
     public pipeForward(state: AsyncMachine, machine?: string);
     public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
+    public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
     public pipeForward(state: any, machine?: any, target_state?: any);
     public pipeInvert(state: string, machine: AsyncMachine, target_state: string): void;
     public pipeOff(): void;
@@ -78,24 +79,47 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
     public amLog(...msgs: any[]): void;
     static merge(name: string): void;
-    private processAutoStates(excluded?);
-    private setState_(states, exec_params, callback_params?);
-    private addState_(states, exec_params, callback_params?);
-    private dropState_(states, exec_params, callback_params?);
+    private processAutoStates(excluded?: string[] = []);
+	
+		private setState_(states: string, exec_params: any[], 
+			callback_params?: any[]);
+		private setState_(states: string[], exec_params: any[], 
+			callback_params?: any[]);
+		private setState_(states: any, exec_params: any[],
+			callback_params?: any[] = []): boolean;
+	
+		private addState_(states: string, exec_params: any[], 
+			callback_params?: any[]);
+		private addState_(states: string[], exec_params: any[], 
+			callback_params?: any[]);
+		private addState_(states: any, exec_params: any[],
+			callback_params?: any[] = [] ): boolean;
+	
+		private dropState_(states: string, exec_params: any[], 
+			callback_params?: any[]);
+		private dropState_(states: string[], exec_params: any[], 
+			callback_params?: any[]);
+		private dropState_(states: any, exec_params: any[],
+			callback_params?: any[] ): boolean
     private processQueue_(previous_ret);
-    private allStatesSet(states);
-    private allStatesNotSet(states);
-    private namespaceTransition_(transition);
-    private selfTransitionExec_(states, exec_params?, callback_params?);
-    private setupTargetStates_(states, exclude?);
-    private parseImplies_(states);
-    private parseRequires_(states);
-    private removeDuplicateStates_(states);
-    private isStateBlocked_(states, name);
-    private transition_(to, explicit_states, exec_params?, callback_params?);
-    private setActiveStates_(target);
-    private transitionExit_(from, to, explicit_states, params);
-    private transitionEnter_(to, target_states, params);
-    private transitionExec_(method, target_states, params?);
-    private orderStates_(states);
+    private allStatesSet(states): boolean;
+    private allStatesNotSet(states): boolean;
+    private namespaceTransition_(transition: string);
+    private selfTransitionExec_(states: string[], exec_params?: any[],
+				callback_params?: any[] );
+    private setupTargetStates_(states: string[], exclude?: string[]);
+    private parseImplies_(states: string[]): string[];
+    private parseRequires_(states: string[]): string[];
+    private removeDuplicateStates_(states: string[]): string[];
+    private isStateBlocked_(states: string[], name: string): string[];
+    private transition_(to: string[], explicit_states: string[], 
+			exec_params?: any[], callback_params?: any[]);
+    private setActiveStates_(target: string[]);
+    private transitionExit_(from: string, to: string[], 
+			explicit_states: string[], params: any[]);
+    private transitionEnter_(to: string, target_states: string[], 
+			params: any[]);
+    private transitionExec_(method: string, target_states: string[], 
+			params?: string[]);
+    private orderStates_(states: string[]): void;
 }
