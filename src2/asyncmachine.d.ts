@@ -27,10 +27,10 @@ class AsyncMachine extends lucidjs.EventEmitter {
     private debug_: boolean;
     private log_handler_: Function;
     private states_all: string[];
-    private states_active: Array<String>;
+    private states_active: string[];
     public last_promise: rsvp.Promise;
 		private log_handler_: Function;
-    private queue: Array<Object>;
+    private queue: Object[];
     private $: Object;
     private lock: boolean;
     public config: IConfig;
@@ -73,34 +73,35 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
     public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
     public pipeForward(state: any, machine?: any, target_state?: any);
-    public pipeInvert(state: string, machine: AsyncMachine, target_state: string): void;
+    public pipeInvert(state: string, machine: AsyncMachine, target_state: string);
     public pipeOff(): void;
     public namespaceName(state: string): string;
     public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
     public amLog(...msgs: any[]): void;
     static merge(name: string): void;
-    private processAutoStates(excluded?: string[] = []);
+    private processAutoStates(excluded?: string[]);
 	
 		private setState_(states: string, exec_params: any[], 
 			callback_params?: any[]);
 		private setState_(states: string[], exec_params: any[], 
 			callback_params?: any[]);
 		private setState_(states: any, exec_params: any[],
-			callback_params?: any[] = []): boolean;
+			callback_params?: any[]): boolean;
 	
 		private addState_(states: string, exec_params: any[], 
 			callback_params?: any[]);
 		private addState_(states: string[], exec_params: any[], 
 			callback_params?: any[]);
 		private addState_(states: any, exec_params: any[],
-			callback_params?: any[] = [] ): boolean;
+			callback_params?: any[]): boolean;
 	
 		private dropState_(states: string, exec_params: any[], 
 			callback_params?: any[]);
 		private dropState_(states: string[], exec_params: any[], 
 			callback_params?: any[]);
 		private dropState_(states: any, exec_params: any[],
-			callback_params?: any[] ): boolean
+			callback_params?: any[] ): boolean;
+	
     private processQueue_(previous_ret);
     private allStatesSet(states): boolean;
     private allStatesNotSet(states): boolean;

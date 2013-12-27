@@ -111,7 +111,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	add: (states, params...) ->
 		@addState_ states, params
 
-	# Curried version of addState
+	# Curried version of add
 	addLater: (states, params...) ->
 		promise = new Promise()
 		promise.then (callback_params...) =>
@@ -122,13 +122,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	# Deactivate certain states.
 	drop: (states, params...) ->
-		@drop_ states, params
+		@dropState_ states, params
 
 	# Deactivate certain states.
 	dropLater: (states, params...) ->
 		promise = new Promise()
 		promise.then (callback_params...) =>
-			@drop_ states, params, callback_params
+			@dropState_ states, params, callback_params
 
 		@last_promise = promise
 		(params...) -> promise.resolve params
@@ -141,12 +141,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 		# cast to an array
 		[].concat(state).forEach (state) =>
 			new_state = target_state or state
-			state = @namespaceName state
+			namespace = @namespaceName state
 			
-			@on state + ".enter", ->
-				machine.addState new_state
+			@on namespace + ".enter", ->
+				machine.add new_state
 
-			@on state + ".exit", ->
+			@on namespace + ".exit", ->
 				machine.drop new_state
 
 
@@ -156,7 +156,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			machine.drop target_state
 
 		@on state + ".exit", ->
-			machine.addState target_state
+			machine.add target_state
 
 	pipeOff: -> throw new Error("not implemented yet")
 
@@ -171,6 +171,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@log_handler_ = (msgs...) ->
 				args = if prefix then [prefix].concat(msgs) else msgs
 				log_handler.apply null, args
+		null
 
 	log: (msgs...) ->
 		return unless @debug_
@@ -184,7 +185,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	#//////////////////////////
 	# PRIVATES
 	#//////////////////////////
-	processAuto: (excluded) ->
+	processAutoStates: (excluded) ->
 		excluded ?= []
 		add = []
 		@states_all.forEach (state) =>
@@ -246,10 +247,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 		return no if ret is no
 		states = states_to_add.concat(@states_active)
 		states = @setupTargetStates_(states)
-		states_to_add_valid = states_to_add.some (state) ->
+		states_to_addState_valid = states_to_add.some (state) ->
 			~states.indexOf(state)
 			
-		unless states_to_add_valid
+		unless states_to_addState_valid
 			@log_handler_ "[i] Transition cancelled, as target states wasn't accepted"  if @log_handler_
 			return @lock = no
 			
@@ -270,7 +271,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		else
 			@allStatesSet states_to_add
 
-	drop_: (states, exec_params, callback_params) ->
+	dropState_: (states, exec_params, callback_params) ->
 		callback_params = []  if typeof callback_params is "undefined"
 		states_to_drop = [].concat states
 		return unless states_to_drop.length
@@ -315,7 +316,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 					ret.push @drop row[1], row[2], row[3]
 					break
 				when 1
-					ret.push @addState row[1], row[2], row[3]
+					ret.push @add row[1], row[2], row[3]
 					break
 				when 2
 					ret.push @setState row[1], row[2], row[3]
@@ -362,7 +363,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		    
 		# Remove non existing states
 		states = states.filter (name) =>
-			ret = ~@states.indexOf name
+			ret = ~@states_all.indexOf name
 			if not ret
 				@log_handler_ "[i] State #{name} doesn't exist" 
 			ret
@@ -374,17 +375,17 @@ class AsyncMachine extends lucidjs.EventEmitter
 		already_blocked = []
 		    
 		# Remove states already blocked.
-		states = states.reverse().filter ((name) =>
-				blocked_by = @isStateBlocked_ states, name
-				blocked_by = blocked_by.filter (blocker_name) ->
-					not ~already_blocked.indexOf blocker_name
-					
-				if blocked_by.length
-					already_blocked.push name
-					@log_handler_ "[i] State #{name} blocked by #{blocked_by.join(", ")}"
-				not blocked_by.length and not ~exclude.indexOf name
-			).reverse()
-		@parseRequires_ states
+		states = states.reverse().filter (name) =>
+			blocked_by = @isStateBlocked_ states, name
+			blocked_by = blocked_by.filter (blocker_name) ->
+				not ~already_blocked.indexOf blocker_name
+				
+			if blocked_by.length
+				already_blocked.push name
+				@log_handler_ "[i] State #{name} blocked by #{blocked_by.join(", ")}"
+			not blocked_by.length and not ~exclude.indexOf name
+
+		@parseRequires_ states.reverse()
 
 	# Collect implied states
 	parseImplies_: (states) ->
@@ -438,7 +439,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		    
 		# Remove active states.
 		from = @states_active.filter (state) ->
-			not ~to.indexOf(state)
+			not ~to.indexOf state
 			
 		@orderStates_ to
 		@orderStates_ from
@@ -518,19 +519,19 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	transitionExec_: (method, target_states, params) ->
 		params ?= []
-		params = [].concat [target_states], params
+		transition_params = [target_states].concat params
 		ret = undefined
 		event = @namespaceTransition_ method
 		@log_handler_ event  if @log_handler_
 		if @[method] instanceof Function
-			ret = @[method].apply @, params  
+			ret = @[method].apply @, transition_params
 		    
 		# TODO reduce this 2 log msgs to 1
 		if ret isnt no
 			if ~event.indexOf "_"
 				fn = "trigger"
 			fn ?= "set"
-			ret = @[fn] event, params
+			ret = @[fn] event, transition_params
 			if ret is no
 				@log_handler_ "[i] Transition event #{event} cancelled" 
 		if ret is no
@@ -548,3 +549,4 @@ class AsyncMachine extends lucidjs.EventEmitter
 			else
 				ret = -1  if state2.depends and ~state2.depends.indexOf e1
 			ret
+		null
