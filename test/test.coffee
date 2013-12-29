@@ -657,19 +657,20 @@ describe "asyncmachine", ->
 			after ->
 				delete @machine.A_A
 
+		# TODO move to events
 		describe 'should trigger events', ->
 			beforeEach ->
 				@machine = new FooMachine 'A'
 				# mock
 				mock_states @machine, [ 'A', 'B', 'C', 'D' ]
 				@machine.set [ 'A', 'C' ]
-				@machine.on 'A._.A', @A_A = sinon.spy()
-				@machine.on 'B.enter', @B_enter = sinon.spy()
-				@machine.on 'C.exit', @C_exit = sinon.spy()
+				@machine.on 'A._.A', do -> @A_A = sinon.spy()
+				@machine.on 'B.enter', do -> @B_enter = sinon.spy()
+				@machine.on 'C.exit', do -> @C_exit = sinon.spy()
 				@machine.on 'D.exit', -> no
-				@machine.on 'state.set', @set = sinon.spy()
-				@machine.on 'state.cancel', @cancelTransition = sinon.spy()
-				@machine.on 'state.add', @add = sinon.spy()
+				@machine.on 'state.set', do -> @set = sinon.spy()
+				@machine.on 'state.cancel', do -> @cancelTransition = sinon.spy()
+				@machine.on 'state.add', do -> @add = sinon.spy()
 				@machine.set [ 'A', 'B' ]
 				@machine.add [ 'C' ]
 				@machine.add [ 'D' ]
@@ -734,14 +735,14 @@ describe "asyncmachine", ->
 			describe 'with wildcards', ->
 				beforeEach ->
 					@listeners = []
-					@listeners.push( sinon.stub() )
-					@listeners.push( sinon.stub() )
-					@listeners.push( sinon.stub() )
-					@machine.on('enter.Test', @listeners[0])
+					@listeners.push sinon.stub()
+					@listeners.push sinon.stub()
+					@listeners.push sinon.stub()
+					@machine.on 'enter.Test', @listeners[0]
 					# TODO FIXME * fails to conver 2 namespaces
-					@machine.on('enter', @listeners[1])
-					@machine.on('A', @listeners[2])
-					@machine.set( [ 'TestNamespace', 'B' ] )
+					@machine.on 'enter', @listeners[1]
+					@machine.on 'A', @listeners[2]
+					@machine.set [ 'TestNamespace', 'B' ]
 
 				it 'should handle "enter.Test" sub event', ->
 					expect( @listeners[0].callCount ).to.eql 1

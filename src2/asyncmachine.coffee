@@ -498,12 +498,11 @@ class AsyncMachine extends lucidjs.EventEmitter
 		if @[method] instanceof Function
 			ret = @[method].apply @, transition_params
 		    
-		# TODO reduce this 2 log msgs to 1
 		if ret isnt no
 			if ~event.indexOf "_"
-				fn = "trigger"
-			fn ?= "flag"
-			ret = @[fn] event, transition_params
+				fn = @trigger
+			fn ?= @flag
+			ret = fn.call @, event, transition_params
 			if ret is no
 				@log "[i] Transition event #{event} cancelled" 
 		if ret is no
