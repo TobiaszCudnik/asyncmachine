@@ -46,8 +46,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@queue = []
 		@states_all = []
 		@states_active = []
-		# forward lucid flags as state events
-		@on 'emitter.flag', => @trigger.apply @, arguments
 	  
 	# Prepare class'es states. Required to be called manually for inheriting classes.
 	register: (states...) ->
@@ -173,6 +171,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 	setState_: (states, exec_params, callback_params) ->
 		callback_params ?= []
 		states_to_set = [].concat states
+		for state in states_to_set
+			if not ~@states_all.indexOf state
+				debugger
+				throw new Error "Can't set a non-existing state #{state}"
 		return unless states_to_set.length
 		if @lock
 			@queue.push [2, states_to_set, exec_params, callback_params]
@@ -381,8 +383,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 				not state.requires?.reduce ((memo, req) =>
 						found = ~states.indexOf(req)
 						if not found
-							@log "[i] State #{name} dropped as required state #{req} 
-								is missing"
+							@log "[i] State #{name} dropped as required state #{req} " +
+								"is missing"
 						memo or not found
 					), no
 		states
@@ -501,21 +503,21 @@ class AsyncMachine extends lucidjs.EventEmitter
 			ret = @[method]?.apply? @, transition_params
 		    
 		if ret isnt no
-			if ~event.indexOf "_"
-				fn = @trigger
-			else
+			if not ~event.indexOf "_"
 				# Unflag constraint states
 				if event[-5..-1] is '.exit'
 					@unflag "#{event[0...-5]}.enter"
 				else if event[-5...-1] is '.enter'
 					@unflag "#{event[0...-5]}.exit"
 				@log "[i] Setting flag #{event}"
-				fn = @flag
-			ret = fn.call @, event, transition_params
+				@flag event
+			ret = @trigger event, transition_params
 			if ret is no
-				@log "[i] Transition event #{event} cancelled" 
+				@log "[i] Transition event #{event} cancelled"
+				# TODO broadcast the event, add a test
 		if ret is no
 			@log "[i] Transition method #{method} cancelled"
+			# TODO broadcast the event, add a test
 		ret
 
 	# is_exit tells that the order is exit transitions

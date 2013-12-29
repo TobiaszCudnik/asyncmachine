@@ -20,15 +20,15 @@ class FooMachine extends asyncmachine.AsyncMachine
 	constructor: (initialState = null, config = {}) ->
 		super config
 		@register 'A', 'B', 'C', 'D'
-		@set initialState
+		@set initialState if initialState
 
 class EventMachine extends FooMachine
 	TestNamespace: {}
 	
 	constructor: (initial, config = {}) ->
-		super config
+		super null, config
 		@register 'TestNamespace'
-		@set initial
+		@set initial if initial
 
 class Sub extends asyncmachine.AsyncMachine
 	A: {}
@@ -39,7 +39,7 @@ class Sub extends asyncmachine.AsyncMachine
 	constructor: (initial, a_spy, b_spy) ->
 		super()
 		@register 'A', 'B'
-		@set initial
+		@set initial if initial
 		@A_enter = a_spy
 		@B_enter = b_spy
 			
@@ -101,19 +101,12 @@ describe "asyncmachine", ->
 
 
 	it "should throw when setting an unknown state", ->
-		# TODO when referencing @machine in the callback
-		#   error TS2108: 'this' cannot be referenced within module bodies.
 		machine = @machine
 		func = =>
 			machine.set "unknown"
 		expect( func ).to.throw()
 
 	it 'should allow to define a new state'
-
-	it "should skip non existing states", ->
-		@machine.A_exit = sinon.spy()
-		@machine.set "unknown"
-		expect( @machine.A_exit.calledOnce ).not.to.be.ok
 
 	describe "when single to single state transition", ->
 		beforeEach ->
@@ -414,12 +407,14 @@ describe "asyncmachine", ->
 			expect( @machine.is() ).to.eql [ 'C', 'D' ]
 
 		describe 'when required state isn\'t active', ->
+			
 			beforeEach ->
 				@log = []
 				@machine.debug()
 				@machine.log = (msg) =>
 					@log.push msg
 				@machine.set [ 'C', 'A' ]
+				
 			afterEach ->
 				delete @log
 
