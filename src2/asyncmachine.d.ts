@@ -48,9 +48,9 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public any(...names: string[]): boolean;
     public every(...names: string[]): boolean;
 	
-    public setState(states: string[], ...params: any[]): boolean;
-    public setState(states: string, ...params: any[]): boolean;
-    public setState(states: any, ...params: any[]): boolean;
+    public set(states: string[], ...params: any[]): boolean;
+    public set(states: string, ...params: any[]): boolean;
+    public set(states: any, ...params: any[]): boolean;
 	
     public setLater(states: string[], ...params: any[]): (...params: any[]) => void;
     public setLater(states: string, ...params: any[]): (...params: any[]) => void;

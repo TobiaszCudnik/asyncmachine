@@ -73,10 +73,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	# Activate certain states and deactivate the current ones.
 	# TODO this should be named #set, but lucidjs took it over
-	setState: (states, params...) ->
+	set: (states, params...) ->
 		@setState_ states, params
 
-	# Curried version of setState.
+	# Curried version of set.
 	setLater: (states, params...) ->
 		promise = new Promise()
 		promise.then (callback_params...) =>
@@ -181,10 +181,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 		ret = @selfTransitionExec_ states_to_set, exec_params, callback_params
 		return no if ret is no
 		states = @setupTargetStates_ states_to_set
-		states_to_set_valid = states_to_set.some (state) ->
+		states_to_setState_valid = states_to_set.some (state) ->
 			~states.indexOf state
 			
-		unless states_to_set_valid
+		unless states_to_setState_valid
 			@log "[i] Transition cancelled, as target states wasn't accepted"
 			return @lock = no
 		queue = @queue
@@ -291,7 +291,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 					ret.push @add row[1], row[2], row[3]
 					break
 				when 2
-					ret.push @setState row[1], row[2], row[3]
+					ret.push @set row[1], row[2], row[3]
 					break
 		not ~ret.indexOf no
 
@@ -446,10 +446,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 			if ~target.indexOf state
 				# if ( ! ~previous.indexOf( state ) )
 				# this.set( state + '.enter' );
-				(@set).clear state + ".exit"
+				@unflag state + ".exit"
 			else
 				# if ( ~previous.indexOf( state ) )
-				(@set).clear state + ".enter"
+				@unflag state + ".enter"
 				# this.set( state + '.exit'
 
 	# Exit transition handles state-to-state methods.
@@ -464,7 +464,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		transition = "exit." + @namespaceName from
 		ret = @transitionExec_ transition, to, transition_params
 		return no if ret is no
-		ret = to.some (state) ->
+		ret = to.some (state) =>
 			transition = from + "_" + state
 			if ~explicit_states.indexOf state
 				transition_params = params
@@ -502,7 +502,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		if ret isnt no
 			if ~event.indexOf "_"
 				fn = "trigger"
-			fn ?= "set"
+			fn ?= "flag"
 			ret = @[fn] event, transition_params
 			if ret is no
 				@log "[i] Transition event #{event} cancelled" 
@@ -512,7 +512,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	# is_exit tells that the order is exit transitions
 	orderStates_: (states) ->
-		states.sort (e1, e2) ->
+		# TODO curry?
+		states.sort (e1, e2) =>
 			state1 = @get e1
 			state2 = @get e2
 			ret = 0

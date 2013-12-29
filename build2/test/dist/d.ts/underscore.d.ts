@@ -2952,6 +2952,6 @@ interface _Chain<T> {
 
 declare var _: UnderscoreStatic;
 
-declare module "_" {
+declare module "underscore" {
 	export = _;
 }
