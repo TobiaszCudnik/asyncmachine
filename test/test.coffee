@@ -27,6 +27,7 @@ class EventMachine extends FooMachine
 	
 	constructor: (initial, config = {}) ->
 		super config
+		@register 'TestNamespace'
 		@set initial
 
 class Sub extends asyncmachine.AsyncMachine
@@ -112,7 +113,7 @@ describe "asyncmachine", ->
 	it "should skip non existing states", ->
 		@machine.A_exit = sinon.spy()
 		@machine.set "unknown"
-		expect( @machine.A_exit.calledOnce ).to.not.be.ok()
+		expect( @machine.A_exit.calledOnce ).not.to.be.ok
 
 	describe "when single to single state transition", ->
 		beforeEach ->
@@ -508,7 +509,7 @@ describe "asyncmachine", ->
 
 		it 'should provide previous state information', (done) ->
 			@machine.D_enter = ->
-				expect( @state() ).to.eql [ 'A' ]
+				expect( @is() ).to.eql [ 'A' ]
 				do done
 			@machine.set 'D'
 
@@ -659,21 +660,31 @@ describe "asyncmachine", ->
 
 		# TODO move to events
 		describe 'should trigger events', ->
+			
 			beforeEach ->
+				@A_A = sinon.spy()
+				@B_enter = sinon.spy()
+				@C_exit = sinon.spy()
+				@set = sinon.spy()
+				@add = sinon.spy()
+				@cancelTransition = sinon.spy()
+				
 				@machine = new FooMachine 'A'
 				# mock
 				mock_states @machine, [ 'A', 'B', 'C', 'D' ]
 				@machine.set [ 'A', 'C' ]
-				@machine.on 'A._.A', do -> @A_A = sinon.spy()
-				@machine.on 'B.enter', do -> @B_enter = sinon.spy()
-				@machine.on 'C.exit', do -> @C_exit = sinon.spy()
+				@machine.on 'A._.A', @A_A
+				@machine.on 'B.enter', @B_enter
+				@machine.on 'C.exit', @C_exit
 				@machine.on 'D.exit', -> no
-				@machine.on 'state.set', do -> @set = sinon.spy()
-				@machine.on 'state.cancel', do -> @cancelTransition = sinon.spy()
-				@machine.on 'state.add', do -> @add = sinon.spy()
+				# lucid emitter event
+				@machine.on 'emitter.flag', @set
+				@machine.on 'state.cancel', @cancelTransition
+				@machine.on 'state.add', @add
 				@machine.set [ 'A', 'B' ]
 				@machine.add [ 'C' ]
 				@machine.add [ 'D' ]
+				
 			afterEach ->
 				delete @C_exit
 				delete @A_A
@@ -703,6 +714,7 @@ describe "asyncmachine", ->
 
 		beforeEach ->
 			@machine = new EventMachine 'A'
+			
 		describe 'should support states', ->
 
 			it 'by triggering the *.enter listener at once for active states', ->
@@ -784,9 +796,7 @@ describe "asyncmachine", ->
 				expect( emitter.is() ).to.eql [ 'C', 'A' ]
 
 			it 'should forward a whole machine', ->
-				#@machine.debug()
 				machine2 = new EventMachine [ 'A', 'D' ]
-				#machine2.debug()
 				expect( machine2.is() ).to.eql [ 'A', 'D' ]
 				@machine.pipeForward machine2
 				@machine.set [ 'B', 'C' ]
@@ -825,24 +835,3 @@ describe "asyncmachine", ->
 		it 'can be chainable'
 		describe 'delayed methods', ->
 			it 'should return correctly bound resolve method'
-
-	describe 'Task', ->
-		describe 'states\' relations', ->
-			# TODO test various state relations
-		describe 'after scheduling a function', ->
-			it 'should execute it after a given timeout'
-			it 'should be cancellable'
-			it 'should have a Waiting state'
-		describe 'after executing a function', ->
-			it 'should have an Idle sttae'
-		describe 'when executing a list of async functions', ->
-			it 'should have a Running state'
-			it 'should be cancellable'
-
-	describe 'auto states', ->
-		it 'should work when more than one auto state present'
-		it 'should work when auto state if blocked'
-		it 'shouldn\'t trigger any change if auto state is missing from target states'
-
-	describe 'piping', ->
-		it 'should pipe with states implied by another one'

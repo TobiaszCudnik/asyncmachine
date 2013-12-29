@@ -46,6 +46,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@queue = []
 		@states_all = []
 		@states_active = []
+		# forward lucid flags as state events
+		@on 'emitter.flag', => @trigger.apply @, arguments
 	  
 	# Prepare class'es states. Required to be called manually for inheriting classes.
 	register: (states...) ->
@@ -143,7 +145,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	namespaceName: (state) ->
 		state.replace /([a-zA-Z])([A-Z])/g, "$1.$2"
 
-	debug: (prefix) ->
+	debug: (prefix = '', handler = null) ->
 		@debug_ = not @debug_
 		@debug_prefix = prefix
 		null
@@ -310,7 +312,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		# A_exit -> A.exit
 		# A_B -> A._.B
 		@namespaceName(transition)
-			.replace(/_([a-z]+)$/, ".$1").replace "_", "._."
+			.replace(/_(exit|enter)$/, ".$1").replace "_", "._."
 
 	# Executes self transitions (eg ::A_A) based on active states.
 	selfTransitionExec_: (states, exec_params, callback_params) ->
@@ -376,7 +378,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			length_before = states.length
 			states = states.filter (name) =>
 				state = @get(name)
-				not state.requires?.reduce ((memo, req) ->
+				not state.requires?.reduce ((memo, req) =>
 						found = ~states.indexOf(req)
 						if not found
 							@log "[i] State #{name} dropped as required state #{req} 
@@ -479,9 +481,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 		not ret
 
 	transitionEnter_: (to, target_states, params) ->
-		ret = @transitionExec_ "any_" + to, target_states, params
+		ret = @transitionExec_ "any_#{to}", target_states, params
 		return no if ret is no
-		ret = @transitionExec_ to + "_enter", target_states, params
+		ret = @transitionExec_ "#{to}_enter", target_states, params
 		return no if ret is no
 		    
 		# Duplicate event for namespacing.
@@ -496,12 +498,19 @@ class AsyncMachine extends lucidjs.EventEmitter
 		event = @namespaceTransition_ method
 		@log event
 		if @[method] instanceof Function
-			ret = @[method].apply @, transition_params
+			ret = @[method]?.apply? @, transition_params
 		    
 		if ret isnt no
 			if ~event.indexOf "_"
 				fn = @trigger
-			fn ?= @flag
+			else
+				# Unflag constraint states
+				if event[-5..-1] is '.exit'
+					@unflag "#{event[0...-5]}.enter"
+				else if event[-5...-1] is '.enter'
+					@unflag "#{event[0...-5]}.exit"
+				@log "[i] Setting flag #{event}"
+				fn = @flag
 			ret = fn.call @, event, transition_params
 			if ret is no
 				@log "[i] Transition event #{event} cancelled" 
