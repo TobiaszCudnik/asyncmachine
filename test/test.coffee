@@ -561,16 +561,13 @@ describe "asyncmachine", ->
 					resolve null
 					@machine.last_promise
 						.then( =>
-							resolve = @machine.setLater 'D', 'foo', 2
-							do resolve
+							do @machine.setLater 'D', 'foo', 2
 							@machine.last_promise
 						).then( =>
-							resolve = @machine.setLater 'D', 'foo', 2
-							do resolve
+							do @machine.setLater 'D', 'foo', 2
 							@machine.last_promise
 						).then( =>
-							resolve = @machine.dropLater 'D', 'foo', 2
-							do resolve
+							do @machine.dropLater 'D', 'foo', 2
 							@machine.last_promise
 						).then ->
 							do done
@@ -625,7 +622,7 @@ describe "asyncmachine", ->
 
 			it 'should be called with params passed to the delayed function (!!!)', 
 				(done) ->
-					@machine.D_enter = (...params) ->
+					@machine.D_enter = (params...) ->
 						expect( params ).to.be.eql [ [ 'D' ], [], [ 'foo', 2 ] ]
 						do done
 					@callback null, [ 'foo', 2 ]

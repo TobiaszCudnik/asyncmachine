@@ -86,7 +86,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 	setLater: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params...) =>
-			debugger
 			@setState_ states, params, callback_params
 
 		@last_promise = deferred.promise
