@@ -3,12 +3,18 @@
 #/<reference path="headers/rsvp.d.ts" />
 #/<reference path="headers/es5-shim.d.ts" />
 
-lucidjs = require("lucidjs")
-rsvp = require("rsvp")
+###
+TODO:
+  #createChild forking a new proto inherited object with a separate
+		#active_states   
+###
+
+lucidjs = require "lucidjs"
+rsvp = require "rsvp"
 Promise = rsvp.Promise
 require "es5-shim"
 
-# TODO merge with definition
+# TODO merge interfaces with definition
 `
 export interface IState {
     depends?: string[];
@@ -78,12 +84,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	# Curried version of set.
 	setLater: (states, params...) ->
-		promise = new Promise()
-		promise.then (callback_params...) =>
+		deferred = rsvp.defer()
+		deferred.promise.then (callback_params...) =>
+			debugger
 			@setState_ states, params, callback_params
 
-		@last_promise = promise
-		(params...) -> promise.resolve params
+		@last_promise = deferred.promise
+		@createCallback deferred
 
 	# Activate certain states and keep the current ones.
 	add: (states, params...) ->
@@ -91,12 +98,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	# Curried version of add
 	addLater: (states, params...) ->
-		promise = new Promise()
-		promise.then (callback_params...) =>
+		deferred = rsvp.defer()
+		deferred.promise.then (callback_params...) =>
 			@addState_ states, params, callback_params
 
-		@last_promise = promise
-		(params...) -> promise.resolve params
+		@last_promise = deferred.promise
+		@createCallback deferred
 
 	# Deactivate certain states.
 	drop: (states, params...) ->
@@ -104,12 +111,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	# Deactivate certain states.
 	dropLater: (states, params...) ->
-		promise = new Promise()
-		promise.then (callback_params...) =>
+		deferred = rsvp.defer()
+		deferred.promise.then (callback_params...) =>
 			@dropState_ states, params, callback_params
 
-		@last_promise = promise
-		(params...) -> promise.resolve params
+		@last_promise = deferred.promise
+		@createCallback deferred
 
 	pipeForward: (state, machine, target_state) ->
 		# switch params order
@@ -173,7 +180,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 		states_to_set = [].concat states
 		for state in states_to_set
 			if not ~@states_all.indexOf state
-				debugger
 				throw new Error "Can't set a non-existing state #{state}"
 		return unless states_to_set.length
 		if @lock
@@ -308,6 +314,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 		not states.reduce ((ret, state) =>
 				ret or @is state
 			), no
+		
+	createCallback: (deferred) ->
+		(err = null, params...) ->
+			if err
+				deferred.reject err
+			else
+				deferred.resolve params
 
 	namespaceTransition_: (transition) ->
 		# CamelCase to Camel.Case
@@ -343,13 +356,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 			if not ret
 				@log "[i] State #{name} doesn't exist" 
 			ret
-			
+
 		states = @parseImplies_ states
 		states = @removeDuplicateStates_ states
-		    
+    
 		# Check if state is blocked or excluded
 		already_blocked = []
-		    
+   
 		# Remove states already blocked.
 		states = states.reverse().filter (name) =>
 			blocked_by = @isStateBlocked_ states, name

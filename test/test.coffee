@@ -558,7 +558,7 @@ describe "asyncmachine", ->
 			describe 'and delayed', ->
 				beforeEach (done) ->
 					resolve = @machine.setLater [ 'A', 'C' ]
-					do resolve
+					resolve null
 					@machine.last_promise
 						.then( =>
 							resolve = @machine.setLater 'D', 'foo', 2
@@ -603,8 +603,9 @@ describe "asyncmachine", ->
 
 		describe 'and delayed', ->
 			beforeEach ->
-				@machine.setLater 'D'
+				@callback = @machine.setLater 'D'
 				@promise = @machine.last_promise
+				
 			afterEach ->
 				delete @promise
 
@@ -612,7 +613,8 @@ describe "asyncmachine", ->
 				expect( @promise instanceof Promise ).to.be.ok
 
 			it 'should execute the change', (done) ->
-				@promise.resolve()
+				# call without an error
+				@callback null
 				@promise.then =>
 					expect( @machine.any_D.calledOnce ).to.be.ok
 					expect( @machine.D_enter.calledOnce ).to.be.ok
@@ -621,15 +623,17 @@ describe "asyncmachine", ->
 			it 'should expose a ref to the last promise', ->
 				expect( @machine.last_promise ).to.equal @promise
 
-			it 'should be called with params passed to the delayed function', (done) ->
-				@machine.D_enter = ->
-					expect( arguments ).to.be.eql [ [ 'D' ], [], [ 'foo', 2 ] ]
-					do done
-				@promise.resolve [ 'foo', 2 ]
+			it 'should be called with params passed to the delayed function (!!!)', 
+				(done) ->
+					@machine.D_enter = (...params) ->
+						expect( params ).to.be.eql [ [ 'D' ], [], [ 'foo', 2 ] ]
+						do done
+					@callback null, [ 'foo', 2 ]
 
 			describe 'and then canceled', ->
 				beforeEach ->
-					@promise.reject()
+					# call with an error
+					@callback yes
 				it 'should not execute the change', ->
 					expect( @machine.any_D.called ).not.to.be.ok
 					expect( @machine.D_enter.called ).not.to.be.ok

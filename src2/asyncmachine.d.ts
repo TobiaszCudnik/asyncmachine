@@ -51,24 +51,24 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public set(states: string[], ...params: any[]): boolean;
     public set(states: string, ...params: any[]): boolean;
     public set(states: any, ...params: any[]): boolean;
+    public setLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+    public setLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+    public setLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
 	
-    public setLater(states: string[], ...params: any[]): (...params: any[]) => void;
-    public setLater(states: string, ...params: any[]): (...params: any[]) => void;
-    public setLater(states: any, ...params: any[]): (...params: any[]) => void;
-	
-    public addState(states: string[], ...params: any[]): boolean;
     public add(states: string[], ...params: any[]): boolean;
     public add(states: string, ...params: any[]): boolean;
     public add(states: any, ...params: any[]): boolean;
-    public addLater(states: string[], ...params: any[]): (...params: any[]) => void;
-    public addLater(states: string, ...params: any[]): (...params: any[]) => void;
-    public addLater(states: any, ...params: any[]): (...params: any[]) => void;
+    public addLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+    public addLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+    public addLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+	
     public drop(states: string[], ...params: any[]): boolean;
     public drop(states: string, ...params: any[]): boolean;
     public drop(states: any, ...params: any[]): boolean;
-    public dropLater(states: string[], ...params: any[]): (...params: any[]) => void;
-    public dropLater(states: string, ...params: any[]): (...params: any[]) => void;
-    public dropLater(states: any, ...params: any[]): (...params: any[]) => void;
+    public dropLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+    public dropLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+    public dropLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+	
     public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
     public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
     public pipeForward(state: AsyncMachine, machine?: string);
@@ -79,6 +79,9 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
     public amLog(...msgs: any[]): void;
     static merge(name: string): void;
+	
+		private createCallback(deferred: rsvp.Defered): (err?, ...params) => void;
+	
     private processAutoStates(excluded?: string[]);
 	
 		private setState_(states: string, exec_params: any[], 
