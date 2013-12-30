@@ -9,14 +9,15 @@ all:
 
 
 build:
-	node --harmony ../typed-coffeescript/src/coffeetype.js -o build2 -i src2
+	node --harmony ../typed-coffeescript/src/coffeetype.js -o build -i src
 
 build-watch:
-	node --harmony ../typed-coffeescript/src/coffeetype.js -o build2 -i src2 --watch
+	node --harmony ../typed-coffeescript/src/coffeetype.js -o build -i src --watch
 	
 package:
-	./node_modules/browserify/bin/cmd.js build2/dist/asyncmachine.js > \
-		build2/dist/asyncmachine.pkg.js
+	./node_modules/browserify/bin/cmd.js -r ./build/dist/asyncmachine.js:asyncmachine \
+		--no-builtins > \
+		build/dist-pkg/asyncmachine.js
 
 build-test:
 	make build
