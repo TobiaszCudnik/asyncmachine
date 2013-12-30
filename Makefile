@@ -21,16 +21,16 @@ package:
 		build/dist-pkg/asyncmachine.js
 
 build-test:
-	make build
-	$(COFFEE) -c test/test.coffee
-	$(ONEJS) build test/package.json build/test/build.js
-	mv test/test.js build/test/assets
-	cat test/bootstrap.js >> build/test/build.js
+	$(CCOFFEE) -o build/test -i test
+
+build-test-watch:
+	$(CCOFFEE) -o build/test -i test \
+		--watch
 
 browser-test:
 	make build-test
 	make server
-	echo "Open http://localhost:8080/build/test.html"
+	echo "Open http://localhost:8080/build/dist-pkg/test.html"
 	# TODO open URL
 
 server:
@@ -41,15 +41,6 @@ example-basic:
 	
 setup:
 	npm install
-	rm -f test/node_modules/asyncmachine
-	mkdir -p test/node_modules
-	ln -s ../.. test/node_modules/asyncmachine
-	mv test/package.json test/package-one.json
-	mv test/package-npm.json test/package.json
-
-	cd test && npm install
-	mv test/package.json test/package-npm.json
-	mv test/package-one.json test/package.json
 
 test:
 	#rm test/build/*/**
@@ -67,9 +58,5 @@ test-debug:
 		--compilers coffee:coffee-script \
 		--reporter spec \
 		build/test/dist/*.js
-
-build-test-watch:
-	$(CCOFFEE) -o build/test -i test \
-		--watch
 	
 .PHONY: build test
