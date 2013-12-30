@@ -5,7 +5,8 @@
 
 import lucidjs = module ('lucidjs');
 import rsvp = module ('rsvp');
-interface IState {
+
+export interface IState {
     depends?: string[];
     implies?: string[];
     blocks?: string[];
@@ -13,13 +14,12 @@ interface IState {
     auto?: boolean;
 }
 
-interface IConfig {
+export interface IConfig {
     debug: boolean;
 }
 
-interface ITransition {
+export interface ITransition {
     call(states?: string[], state_params?: any[], callback_params?: any[]): boolean;
-    call(states?: string[], state_params?: any[], callback_params?: any[]): any;
     apply(context, args): any;
 }
 

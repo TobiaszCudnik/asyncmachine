@@ -13,26 +13,6 @@ lucidjs = require "lucidjs"
 rsvp = require "rsvp"
 Promise = rsvp.Promise
 require "es5-shim"
-
-# TODO merge interfaces with definition
-`
-export interface IState {
-    depends?: string[];
-    implies?: string[];
-    blocks?: string[];
-    requires?: string[];
-    auto?: boolean;
-}
-
-export interface IConfig {
-    debug: boolean;
-}
-
-export interface ITransition {
-    call(states?: string[], state_params?: any[], callback_params?: any[]): boolean;
-    apply(context, args): any;
-}
-`
 	  
 class AsyncMachine extends lucidjs.EventEmitter
 						
