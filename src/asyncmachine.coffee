@@ -6,7 +6,8 @@
 ###
 TODO:
   #createChild forking a new proto inherited object with a separate
-		#active_states   
+		#active_states and #tick_map
+  #tick for states
 ###
 
 lucidjs = require "lucidjs"
@@ -23,6 +24,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	last_promise: null
 	log_handler_: null
 	debug_prefix: ''
+	clock_: null
 	
 	debug_: no
 		
@@ -32,10 +34,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@queue = []
 		@states_all = []
 		@states_active = []
+		@clock_ = {}
 	  
 	# Prepare class'es states. Required to be called manually for inheriting classes.
 	register: (states...) ->
-		@states_all.push state for state in states
+		for state in states
+			@states_all.push state
+			@clock[state] = 0
 
 	get: (state) -> @[state]
 		
@@ -113,6 +118,19 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@on namespace + ".exit", ->
 				machine.drop new_state
 
+	# Creates a prototype child with dedicated acrive states and the clock.
+	createChild: ->
+		child = Object.create @
+		child.states_active = []
+		child.clock = {}
+		child.clock[state] = 0 for state in @states_all
+		child
+		
+	# Gets the current tick of a state.
+	# Ticks are incemented by #set, for non-set states.
+	clock: (state) ->
+		# TODO assert an existing state
+		@clock[state]
 
 	pipeInvert: (state, machine, target_state) ->
 		state = @namespaceName state
@@ -176,6 +194,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		unless states_to_setState_valid
 			@log "[i] Transition cancelled, as target states wasn't accepted"
 			return @lock = no
+			
+		# Queue
 		queue = @queue
 		@queue = []
 		ret = @transition_ states, states_to_set, exec_params, callback_params
@@ -188,10 +208,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		length_equals = @is().length is states_before.length
 		if not (@any states_before) or not length_equals
 			@processAutoStates()
-		if ret is no 
-			no
-		else
-			@allStatesSet states_to_set
+		return no if not ret
+		@allStatesSet states_to_set
 
 	# TODO Maybe avoid double concat of states_active
 	addState_: (states, exec_params, callback_params) ->
@@ -436,6 +454,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 		previous = @states_active
 		all = @states_all
 		@states_active = target
+		# Tick all the new states.
+		for state in target
+			(@tick state) if not ~previous.indexOf state
 		# Set states in LucidJS emitter
 		# TODO optimise these loops
 		all.forEach (state) =>

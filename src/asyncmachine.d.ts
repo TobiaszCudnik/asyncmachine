@@ -25,15 +25,15 @@ export interface ITransition {
 
 class AsyncMachine extends lucidjs.EventEmitter {
     private debug_: boolean;
-    private log_handler_: Function;
     private states_all: string[];
     private states_active: string[];
     public last_promise: rsvp.Promise;
-		private log_handler_: Function;
+		// TODO typeme
     private queue: Object[];
     private lock: boolean;
     public config: IConfig;
-    constructor(config?: IConfig);
+    private clock_: Object<number>;
+		// TODO merge with the TS source
     constructor(config?: IConfig);
     public register(...states: string[]);
     public get(state: string): IState;
