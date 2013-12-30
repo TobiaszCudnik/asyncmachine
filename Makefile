@@ -2,6 +2,7 @@ ASSETS = buid/test/assets
 ONEJS = node_modules/one/bin/onejs
 COFFEE = test/node_modules/coffee-script/bin/coffee
 NODE = node
+CCOFFEE = ccoffee
 
 all:
 	make build
@@ -9,10 +10,10 @@ all:
 
 
 build:
-	node --harmony ../typed-coffeescript/src/coffeetype.js -o build -i src
+	$(CCOFFEE) -o build -i src
 
 build-watch:
-	node --harmony ../typed-coffeescript/src/coffeetype.js -o build -i src --watch
+	$(CCOFFEE) -o build -i src --watch
 	
 package:
 	./node_modules/browserify/bin/cmd.js -r ./build/dist/asyncmachine.js:asyncmachine \
@@ -68,7 +69,7 @@ test-debug:
 		build/test/dist/*.js
 
 build-test-watch:
-	node --harmony ../typed-coffeescript/src/coffeetype.js -o build/test -i test \
+	$(CCOFFEE) -o build/test -i test \
 		--watch
 	
 .PHONY: build test
