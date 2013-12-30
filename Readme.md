@@ -342,22 +342,15 @@ export class AsyncMachine extends asyncmachine.AsyncMachine {}
 
 - more examples
 - broken tests :)
-- break for Array#some and Array#every (or replace with a normal loop)
-- exception support (includes promise rejections)
- - promises eat exceptions
 - travis CI
 - make logging better
- - pass thou a method (namespaced)
  - log only executed transitions
 - try to auto drop the implied state when dropping a state
-- tests for the mixin api (traits.js support & examples?)
 - method for generating all possible transition permutations (honoring the relations)
-- customizable naming convention
- - STATE_STATE to StateState or state_
 
 ## Design concerns
 
-- [add|set]StateLater works only once
+- #add and #set works only once (?)
 - dropped state transitions to all currently active states, not only newly added ones
 - state change during a state change is queued after current one finishes
 - auto states that drops other states? should not be allowed?
@@ -369,11 +362,11 @@ export class AsyncMachine extends asyncmachine.AsyncMachine {}
 ## Distributions
 
 There are several ways you can incorporate AsyncMachine into your codebase
-- TypeScript sources
+- CoffeeScript sources (typed via d.ts file)
+- TypeScript sources (typed)
 - JavaScript CommonJS module
-- JavaScript staticaly linked file (means deps included)
- - CommonJS interface
- - Browser compatible
+- JavaScript staticaly linked file (means deps included / browserify)
+- Closure Compiler sources (experimental, w/ warnings)
 
 ## Tests / Specs
 
