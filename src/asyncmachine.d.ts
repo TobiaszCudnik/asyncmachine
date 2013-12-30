@@ -32,7 +32,7 @@ class AsyncMachine extends lucidjs.EventEmitter {
     private queue: Object[];
     private lock: boolean;
     public config: IConfig;
-    private clock_: Object<number>;
+    private clock_: { [state: string]: number };
 		// TODO merge with the TS source
     constructor(config?: IConfig);
     public register(...states: string[]);

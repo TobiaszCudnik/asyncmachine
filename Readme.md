@@ -15,7 +15,7 @@ event emitter and callback passing style.
   
 ```coffeescript
 class Foo extends AsyncMachine {
-    state_A:
+    A:
         # Decides about the order of activations (transitions).
         depends: []
         # Activates also following states.
@@ -26,7 +26,8 @@ class Foo extends AsyncMachine {
         blocks: []
         # Defines if the state should be tried to be set each time active states are changed.
         auto: false
-    state_B: {}
+    B: {}
+    
     A_enter: ->
     A_exit: ->
     A_B: ->
@@ -56,24 +57,24 @@ class Foo extends AsyncMachine {
 ## Order of transitions:
 
 Example presents a transition from StateA to StateB:
-- StateA_exit
-- StateA_StateB
-- StateA_any
-- any_StateB
-- StateB_enter
+- A_exit
+- A_B
+- A_any
+- any_B
+- B_enter
 
 ## Events
 
 AsyncMachine has an event emitter based on LucidJS, which supports states and 
 sub events. Following events are emitted from the above example transition:
 
-- State.A.exit
-- exit.A.exit (alias)
-- State.A._.State.B
-- State.A._.any
-- any._.State.B
-- State.B._.enter
-- enter.State.B (alias)
+- A.exit
+- exit.A (alias)
+- A._.B
+- A._.any
+- any._.B
+- B._.enter
+- enter.B (alias)
 
 Notice the '.' dot convention. It allows you to namespace sub events. This means,
 once bound to 'State.A' it'll be emitted for `enter`, `exit` events and all transitions.
@@ -81,6 +82,18 @@ You can understand it as if there would be a wildcard at the end.
 
 Additionally, all states emit `enter` or `exit` event at once when you bind to 
 them, depending if it's set or not.
+
+## Change log
+
+2.0:
+- rewritten to CompiledCoffee
+- dropped inheritance in flavor of composition
+- dropped state name prefixes
+- added a clock for states
+- added prototype children support
+- updated to lucidjs 2.0
+- updated to rsvp 3.0
+- experimental Closure Compiler dist version (with warnings)
 
 ## Asynchronous solutions
 

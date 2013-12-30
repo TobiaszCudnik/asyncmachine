@@ -46,6 +46,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		
 	# Returns active states or if passed a state, returns if its set. 
 	is: (state) ->
+		# TODO clone the array
 		return @states_active if not state
 		!!~@states_active.indexOf state
 
@@ -389,14 +390,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 		until length_before is states.length
 			length_before = states.length
 			states = states.filter (name) =>
-				state = @get(name)
-				not state.requires?.reduce ((memo, req) =>
-						found = ~states.indexOf(req)
-						if not found
-							@log "[i] State #{name} dropped as required state #{req} " +
-								"is missing"
-						memo or not found
-					), no
+				state = @get name
+				not state.requires?.some (req) =>
+					found = ~states.indexOf req
+					if not found
+						@log "[i] State #{name} dropped as required state #{req} " +
+							"is missing"
+					not found
 		states
 
 	removeDuplicateStates_: (states) ->
@@ -456,7 +456,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@states_active = target
 		# Tick all the new states.
 		for state in target
-			(@tick state) if not ~previous.indexOf state
+			@clock[state]++ if not ~previous.indexOf state
 		# Set states in LucidJS emitter
 		# TODO optimise these loops
 		all.forEach (state) =>

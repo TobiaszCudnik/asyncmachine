@@ -56,7 +56,7 @@ test:
 		--harmony-generators \
 		--compilers coffee:coffee-script \
 		--reporter spec \
-		build2/test/dist/*.js
+		build/test/dist/*.js
 
 test-debug:
 	#rm test/build/*/**
@@ -65,10 +65,10 @@ test-debug:
 		--harmony-generators \
 		--compilers coffee:coffee-script \
 		--reporter spec \
-		build2/test/dist/*.js
+		build/test/dist/*.js
 
 build-test-watch:
-	node --harmony ../typed-coffeescript/src/coffeetype.js -o build2/test -i test \
+	node --harmony ../typed-coffeescript/src/coffeetype.js -o build/test -i test \
 		--watch
 	
 .PHONY: build test

@@ -769,6 +769,38 @@ describe "asyncmachine", ->
 
 				expect( l1.calledOnce ).to.be.ok
 				expect( l2.calledOnce ).to.be.ok
+				
+		describe 'clock', ->
+			beforeEach ->
+				@machine = new FooMachine
+				
+			it 'should tick when setting a new state', ->
+				@machine.set 'A'
+				(expect @machine.clock 'A').to.be.eql 1
+				
+			it 'should tick when setting many new states', ->
+				@machine.set ['A', 'B']
+				(expect @machine.clock 'A').to.be.eql 1
+				(expect @machine.clock 'B').to.be.eql 1
+			
+			it 'shouldn\'t tick when setting an already set state', ->
+				@machine.set 'A'
+				@machine.set 'A'
+				(expect @machine.clock 'A').to.be.eql 1
+			
+		describe 'proto child', ->
+			beforeEach ->
+				@machine = new FooMachine
+				@child = @machine.createChild()
+				
+			after: -> delete @child
+				
+			it 'should inherit all the instance properties', ->
+				(expect @machine.A).to.equal @child.A
+				
+			it 'should have own active states and the clock', ->
+				@child.add 'B'
+				(expect @machine.is()).to.not.eql @child.is()
 
 		describe 'piping', ->
 
