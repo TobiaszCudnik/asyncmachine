@@ -189,10 +189,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 		ret = @selfTransitionExec_ states_to_set, exec_params, callback_params
 		return no if ret is no
 		states = @setupTargetStates_ states_to_set
-		states_to_setState_valid = states_to_set.some (state) ->
-			~states.indexOf state
+		states_to_set_valid = states_to_set.some (state) ->
+			!!~states.indexOf state
 			
-		unless states_to_setState_valid
+		unless states_to_set_valid
 			@log "[i] Transition cancelled, as target states wasn't accepted"
 			return @lock = no
 			
@@ -227,10 +227,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 		return no if ret is no
 		states = states_to_add.concat(@states_active)
 		states = @setupTargetStates_(states)
-		states_to_addState_valid = states_to_add.some (state) ->
-			~states.indexOf(state)
+		states_to_add_valid = states_to_add.some (state) ->
+			!!~states.indexOf(state)
 			
-		unless states_to_addState_valid
+		unless states_to_add_valid
 			@log "[i] Transition cancelled, as target states wasn't accepted"
 			return @lock = no
 			
@@ -353,7 +353,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			ret = ~@states_all.indexOf name
 			if not ret
 				@log "[i] State #{name} doesn't exist" 
-			ret
+			!!ret
 
 		states = @parseImplies_ states
 		states = @removeDuplicateStates_ states

@@ -46,6 +46,8 @@ class AsyncMachine extends lucidjs.EventEmitter {
     public is(): string[];
     public is(state?: any): any;
     public any(...names: string[]): boolean;
+    public any(...names: string[][]): boolean;
+    public any(...names: any[]): boolean;
     public every(...names: string[]): boolean;
 	
     public set(states: string[], ...params: any[]): boolean;
