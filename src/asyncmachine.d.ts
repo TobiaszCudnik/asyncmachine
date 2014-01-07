@@ -110,7 +110,7 @@ class AsyncMachine extends lucidjs.EventEmitter {
     private processQueue_(previous_ret);
     private allStatesSet(states): boolean;
     private allStatesNotSet(states): boolean;
-    private namespaceTransition_(transition: string);
+    private namespaceTransition_(transition: string): string;
     private selfTransitionExec_(states: string[], exec_params?: any[],
 				callback_params?: any[] );
     private setupTargetStates_(states: string[], exclude?: string[]);

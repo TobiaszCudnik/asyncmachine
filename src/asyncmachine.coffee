@@ -340,9 +340,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 				ret = method.apply @, transition_params
 				return yes if ret is no
 				event = @namespaceTransition_ name
-				transition_params = [event, states].concat [exec_params], 
+				# TODO tsc compiler doesnt like overriding transition_params 
+				transition_params2 = [event, states].concat [exec_params], 
 					callback_params
-				(@trigger.apply @, transition_params) is no
+				(@trigger.apply @, transition_params2) is no
 		not ret
 
 	setupTargetStates_: (states, exclude) ->
