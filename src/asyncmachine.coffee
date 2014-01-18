@@ -3,13 +3,6 @@
 #/<reference path="headers/rsvp.d.ts" />
 #/<reference path="headers/es5-shim.d.ts" />
 
-###
-TODO:
-  #createChild forking a new proto inherited object with a separate
-		#active_states and #tick_map
-  #tick for states
-###
-
 lucidjs = require "lucidjs"
 rsvp = require "rsvp"
 Promise = rsvp.Promise

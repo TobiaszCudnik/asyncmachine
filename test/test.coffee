@@ -72,6 +72,8 @@ describe "asyncmachine", ->
 				instance[ "#{inner}_#{state}" ] = do sinon.spy
 
 	assert_order = (order) ->
+		m = null
+		k = null
 		for m, k in order[ 0...-1 ]
 			order[k] = m.calledBefore order[ k+1 ]
 		expect( check ).to.be.ok for check in order[ 0...-1 ]
