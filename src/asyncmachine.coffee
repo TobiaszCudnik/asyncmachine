@@ -1,8 +1,3 @@
-#/<reference path="headers/commonjs.d.ts" />
-#/<reference path="headers/lucidjs.d.ts" />
-#/<reference path="headers/rsvp.d.ts" />
-#/<reference path="headers/es5-shim.d.ts" />
-
 lucidjs = require "lucidjs"
 rsvp = require "rsvp"
 Promise = rsvp.Promise

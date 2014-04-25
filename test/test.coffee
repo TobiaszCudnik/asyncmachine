@@ -1,7 +1,7 @@
-#/<reference path="d.ts/mocha.d.ts" />
-#/<reference path="d.ts/chai.d.ts" />
-#/<reference path="d.ts/sinon.d.ts" />
-#/<reference path="d.ts/underscore.d.ts" />
+#/<reference path="../../../d.ts/mocha.d.ts" />
+#/<reference path="../../../d.ts/chai.d.ts" />
+#/<reference path="../../../d.ts/sinon.d.ts" />
+#/<reference path="../../../d.ts/underscore.d.ts" />
 
 asyncmachine = require '../../dist/asyncmachine'
 chai = require 'chai'
