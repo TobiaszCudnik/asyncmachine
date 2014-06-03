@@ -64,6 +64,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		@last_promise = deferred.promise
 		@createCallback deferred
+		
+	# Sets a state and fires a callback once it's fulfilled
+	# TODO types, tests
+#	onceSet: (state, listener) ->
+#		@set state
+#		@once state, listener
 
 	# Activate certain states and keep the current ones.
 	add: (states, params...) ->
