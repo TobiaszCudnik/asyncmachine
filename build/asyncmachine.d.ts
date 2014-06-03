@@ -1,7 +1,6 @@
 /// <reference path="../d.ts/es5-shim.d.ts" />
 /// <reference path="../d.ts/rsvp.d.ts" />
 /// <reference path="../d.ts/lucidjs.d.ts" />
-/// <reference path="../d.ts/commonjs.d.ts" />
 
 declare module "asyncmachine" {
 
