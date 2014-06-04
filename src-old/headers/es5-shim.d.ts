@@ -1,1 +1,0 @@
-declare module 'es5-shim' {}

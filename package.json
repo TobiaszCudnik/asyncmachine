@@ -23,5 +23,5 @@
     "mocha": "latest",
     "coffee-script": "latest"
   },
-  "main": "build2/dist/asyncmachine.js"
+  "main": "build/asyncmachine.js"
 }
