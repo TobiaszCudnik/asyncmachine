@@ -5,7 +5,6 @@
 declare module "asyncmachine" {
 	export import lucidjs = require("lucidjs");
 	export import rsvp = require("rsvp");
-	
 	export var Promise: typeof rsvp.Promise;
 	export class AsyncMachine extends lucidjs.EventEmitter {
 	    public config: any;
@@ -49,7 +48,7 @@ declare module "asyncmachine" {
 	    public pipeOff(): void;
 	    public namespaceName(state: string): string;
 	    public debug(prefix?: any, level?: any, handler?: any): any;
-	    public log(msg: any, level: any): any;
+	    public log(msg: string, level?: number): void;
 	    private processAutoStates(excluded?);
 	    private setState_(states, params);
 	    private addState_(states, params);

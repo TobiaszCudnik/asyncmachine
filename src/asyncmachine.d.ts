@@ -79,7 +79,7 @@ class AsyncMachine {
 	public pipeOff(): void;
 	public namespaceName(state: string): string;
 	public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
-	public amLog(...msgs: any[]): void;
+	public log(msg: string, level?: number): void;
 	static merge(name: string): void;
 		
 	private createCallback(deferred: rsvp.Defered): (err?, ...params) => void;
