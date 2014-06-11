@@ -3,7 +3,7 @@
 #/<reference path="../../../d.ts/sinon.d.ts" />
 #/<reference path="../../../d.ts/underscore.d.ts" />
 
-asyncmachine = require '../buildsara/asyncmachine'
+asyncmachine = require '../build/asyncmachine'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
@@ -61,15 +61,15 @@ describe "asyncmachine", ->
 	mock_states = (instance, states) ->
 		for state in states
 			# deeply clone all the state's attrs
-			# proto = instance[ "#{state}" ]
-			# instance[ "#{state}" ] = {}
-			instance.constructor[ "#{state}_#{state}" ] = do sinon.spy
-			instance[ "#{state}_enter" ] = do sinon.spy
-			instance[ "#{state}_exit" ] = do sinon.spy
-			instance[ "#{state}_any" ] = do sinon.spy
-			instance[ "any_#{state}" ] = do sinon.spy
+			# proto = instance["#{state}"]
+			# instance["#{state}"] = {}
+			instance.constructor["#{state}_#{state}"] = do sinon.spy
+			instance["#{state}_enter"] = do sinon.spy
+			instance["#{state}_exit"] = do sinon.spy
+			instance["#{state}_any"] = do sinon.spy
+			instance["any_#{state}"] = do sinon.spy
 			for inner in states
-				instance[ "#{inner}_#{state}" ] = do sinon.spy
+				instance["#{inner}_#{state}"] = do sinon.spy
 
 	assert_order = (order) ->
 		m = null
@@ -82,24 +82,28 @@ describe "asyncmachine", ->
 		@machine = new FooMachine
 		@machine.set 'A'
 
-	it 'should allow to check if single state is active'
-	it 'should allow to check if many states are active'
-	it "should allow for a delayed start"
+	it 'should allow to check if single state is active', ->
+		expect(@machine.is 'A').to.be.ok
+		
+	it 'should allow to check if many states are active', ->
+		@machine.add 'B'
+		expect(@machine.every 'A', 'B').to.be.ok
+		
 	it "should accept the starting state", ->
-		expect( @machine.is() ).to.eql [ "A" ]
+		expect( @machine.is() ).to.eql ["A"]
 
 	it "should allow to set the state", ->
 		@machine.set "B"
-		expect( @machine.is() ).to.eql [ "B" ]
+		expect( @machine.is() ).to.eql ["B"]
 
 	it "should allow to add a new state", ->
 		@machine.add "B"
-		expect( @machine.is() ).to.eql [ "B", "A" ]
+		expect( @machine.is() ).to.eql ["B", "A"]
 
 	it "should allow to drop a state", ->
-		@machine.set [ "B", "C" ]
+		@machine.set ["B", "C"]
 		@machine.drop 'C'
-		expect( @machine.is() ).to.eql [ "B" ]
+		expect( @machine.is() ).to.eql ["B"]
 
 
 	it "should throw when setting an unknown state", ->
@@ -534,17 +538,17 @@ describe "asyncmachine", ->
 				describe 'and is explicit', ->
 
 					it 'should forward arguments to exit methods', ->
-						expect( @machine.D_exit.calledWith ['B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_exit.calledWith ['B'], 'foo', 2 ).to.be.ok
 
 					it 'should forward arguments to enter methods', ->
-						expect( @machine.D_enter.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_enter.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
 
 					it 'should forward arguments to self transition methods', ->
 						# TODO this passes only explicite states array, not all target states
-						expect( @machine.D_D.calledWith ['D'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_D.calledWith ['D'], 'foo', 2 ).to.be.ok
 
 					it 'should forward arguments to transition methods', ->
-						expect( @machine.C_D.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.C_D.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
 
 				describe 'and is non-explicit', ->
 
@@ -559,7 +563,7 @@ describe "asyncmachine", ->
 
 			describe 'and delayed', ->
 				beforeEach (done) ->
-					resolve = @machine.setLater [ 'A', 'C' ]
+					resolve = @machine.setLater [ 'A', 'C' ], 'foo'
 					resolve null
 					@machine.last_promise
 						.then( =>
@@ -622,12 +626,12 @@ describe "asyncmachine", ->
 			it 'should expose a ref to the last promise', ->
 				expect( @machine.last_promise ).to.equal @promise
 
-			it 'should be called with params passed to the delayed function (!!!)', 
+			it 'should be called with params passed to the delayed function', 
 				(done) ->
 					@machine.D_enter = (params...) ->
 						expect( params ).to.be.eql [ [ 'D' ], 'foo', 2 ]
 						do done
-					@callback null, [ 'foo', 2 ]
+					@callback null, 'foo', 2
 
 			describe 'and then canceled', ->
 				beforeEach ->

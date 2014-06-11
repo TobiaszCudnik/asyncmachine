@@ -1,3 +1,10 @@
+"""
+TODO:
+- queue enum
+- log enum
+"""
+
+
 lucidjs = require "lucidjs"
 rsvp = require "rsvp"
 Promise = rsvp.Promise
@@ -61,8 +68,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# Curried version of set.
 	setLater: (states, params...) ->
 		deferred = rsvp.defer()
-		deferred.promise.then (callback_params...) =>
-			@setState_ states, params, callback_params
+		deferred.promise.then (callback_params) =>
+			params.push.apply params, callback_params
+			@setState_ states, params
 
 		@last_promise = deferred.promise
 		@createCallback deferred
@@ -80,8 +88,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# Curried version of add
 	addLater: (states, params...) ->
 		deferred = rsvp.defer()
-		deferred.promise.then (callback_params...) =>
-			@addState_ states, params, callback_params
+		deferred.promise.then (callback_params) =>
+			params.push.apply params, callback_params
+			@addState_ states, params
 
 		@last_promise = deferred.promise
 		@createCallback deferred
@@ -93,8 +102,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# Deactivate certain states.
 	dropLater: (states, params...) ->
 		deferred = rsvp.defer()
-		deferred.promise.then (callback_params...) =>
-			@dropState_ states, params, callback_params
+		deferred.promise.then (callback_params) =>
+			params.push.apply params, callback_params
+			@dropState_ states, params
 
 		@last_promise = deferred.promise
 		@createCallback deferred
@@ -170,20 +180,19 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		@add add
 
-	setState_: (states, exec_params, callback_params) ->
-		callback_params ?= []
+	setState_: (states, params) ->
 		states_to_set = [].concat states
 		for state in states_to_set
 			if not ~@states_all.indexOf state
 				throw new Error "Can't set a non-existing state #{state}"
 		return unless states_to_set.length
 		if @lock
-			@queue.push [2, states_to_set, exec_params, callback_params]
+			@queue.push [2, states_to_set, params]
 			return
 		@lock = yes
 		@log "[*] Set state #{states_to_set.join ', '}", 1
 		states_before = @is()
-		ret = @selfTransitionExec_ states_to_set, exec_params, callback_params
+		ret = @selfTransitionExec_ states_to_set, params
 		return no if ret is no
 		states = @setupTargetStates_ states_to_set
 		states_to_set_valid = states_to_set.some (state) ->
@@ -196,7 +205,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		# Queue
 		queue = @queue
 		@queue = []
-		ret = @transition_ states, states_to_set, exec_params, callback_params
+		ret = @transition_ states, states_to_set, params
 		@queue = if ret is no then queue else queue.concat @queue
 		@lock = no
 		ret = @processQueue_ ret
@@ -210,20 +219,19 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@allStatesSet states_to_set
 
 	# TODO Maybe avoid double concat of states_active
-	addState_: (states, exec_params, callback_params) ->
-		callback_params = []  if typeof callback_params is "undefined"
+	addState_: (states, params) ->
 		states_to_add = [].concat states
 		return unless states_to_add.length
 		if @lock
-			@queue.push [1, states_to_add, exec_params, callback_params]
+			@queue.push [1, states_to_add, params]
 			return
 		@lock = yes
 		@log "[*] Add state #{states_to_add.join ", "}", 1
 		states_before = @is()
-		ret = @selfTransitionExec_ states_to_add, exec_params, callback_params
+		ret = @selfTransitionExec_ states_to_add, params
 		return no if ret is no
-		states = states_to_add.concat(@states_active)
-		states = @setupTargetStates_(states)
+		states = states_to_add.concat @states_active
+		states = @setupTargetStates_ states
 		states_to_add_valid = states_to_add.some (state) ->
 			!!~states.indexOf(state)
 			
@@ -233,7 +241,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			
 		queue = @queue
 		@queue = []
-		ret = @transition_ states, states_to_add, exec_params, callback_params
+		ret = @transition_ states, states_to_add, params
 		@queue = if ret is no then queue else queue.concat @queue
 		@lock = no
 		ret = @processQueue_ ret
@@ -248,27 +256,25 @@ class AsyncMachine extends lucidjs.EventEmitter
 		else
 			@allStatesSet states_to_add
 
-	dropState_: (states, exec_params, callback_params) ->
-		callback_params = []  if typeof callback_params is "undefined"
+	dropState_: (states, params) ->
 		states_to_drop = [].concat states
 		return unless states_to_drop.length
 		if @lock
-			@queue.push [0, states_to_drop, exec_params, callback_params]
+			@queue.push [0, states_to_drop, params]
 			return
 		@lock = yes
 		@log "[*] Drop state #{states_to_drop.join ", "}", 1
 		states_before = @is()
 		    
 		# Invert states to target ones.
-		states = @states_active.filter((state) ->
+		states = @states_active.filter (state) ->
 			not ~states_to_drop.indexOf(state)
-		)
-		states = @setupTargetStates_(states)
+		states = @setupTargetStates_ states
 		    
 		# TODO validate if transition still makes sense? like in set/add
 		queue = @queue
 		@queue = []
-		ret = @transition_ states, states_to_drop, exec_params, callback_params
+		ret = @transition_ states, states_to_drop, params
 		@queue = if ret is no then queue else queue.concat @queue
 		@lock = no
 		ret = @processQueue_(ret)
@@ -325,21 +331,18 @@ class AsyncMachine extends lucidjs.EventEmitter
 			.replace(/_(exit|enter)$/, ".$1").replace "_", "._."
 
 	# Executes self transitions (eg ::A_A) based on active states.
-	selfTransitionExec_: (states, exec_params, callback_params) ->
-		exec_params ?= []
-		callback_params ?= []
+	selfTransitionExec_: (states, params) ->
+		params ?= []
 		ret = states.some (state) =>
 			ret = undefined
 			name = state + "_" + state
 			method = @[name]
 			if method and ~@states_active.indexOf state
-				transition_params = [states].concat [exec_params], callback_params
+				transition_params = [states].concat params
 				ret = method.apply @, transition_params
 				return yes if ret is no
 				event = @namespaceTransition_ name
-				# TODO tsc compiler doesnt like overriding transition_params 
-				transition_params2 = [event, states].concat [exec_params], 
-					callback_params
+				transition_params2 = [event, states].concat params
 				(@trigger.apply @, transition_params2) is no
 		not ret
 
@@ -414,9 +417,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		blocked_by
 
-	transition_: (to, explicit_states, exec_params, callback_params) ->
-		exec_params ?= []
-		callback_params ?= []
+	transition_: (to, explicit_states, params) ->
+		params ?= []
 		    
 		# TODO handle args
 		return yes unless to.length
@@ -427,7 +429,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 			
 		@orderStates_ to
 		@orderStates_ from
-		params = [].concat exec_params, callback_params
 		    
 		ret = from.some (state) =>
 			no is @transitionExit_ state, to, explicit_states, params

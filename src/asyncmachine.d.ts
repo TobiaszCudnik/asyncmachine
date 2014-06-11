@@ -86,40 +86,29 @@ class AsyncMachine {
 		
 	private processAutoStates(excluded?: string[]);
 		
-	private setState_(states: string, exec_params: any[], 
-		callback_params?: any[]);
-	private setState_(states: string[], exec_params: any[], 
-		callback_params?: any[]);
-	private setState_(states: any, exec_params: any[],
-		callback_params?: any[]): boolean;
+	private setState_(states: string, params: any[]);
+	private setState_(states: string[], params: any[]);
+	private setState_(states: any, params: any[]): boolean;
 		
-	private addState_(states: string, exec_params: any[], 
-		callback_params?: any[]);
-	private addState_(states: string[], exec_params: any[], 
-		callback_params?: any[]);
-	private addState_(states: any, exec_params: any[],
-		callback_params?: any[]): boolean;
+	private addState_(states: string, params: any[]);
+	private addState_(states: string[], params: any[]);
+	private addState_(states: any, params: any[]): boolean;
 		
-	private dropState_(states: string, exec_params: any[], 
-		callback_params?: any[]);
-	private dropState_(states: string[], exec_params: any[], 
-		callback_params?: any[]);
-	private dropState_(states: any, exec_params: any[],
-		callback_params?: any[] ): boolean;
+	private dropState_(states: string, params: any[]);
+	private dropState_(states: string[], params: any[]);
+	private dropState_(states: any, params: any[]): boolean;
 		
 	private processQueue_(previous_ret);
 	private allStatesSet(states): boolean;
 	private allStatesNotSet(states): boolean;
 	private namespaceTransition_(transition: string): string;
-	private selfTransitionExec_(states: string[], exec_params?: any[],
-		callback_params?: any[] );
+	private selfTransitionExec_(states: string[], params?: any[]);
 	private setupTargetStates_(states: string[], exclude?: string[]);
 	private parseImplies_(states: string[]): string[];
 	private parseRequires_(states: string[]): string[];
 	private removeDuplicateStates_(states: string[]): string[];
 	private isStateBlocked_(states: string[], name: string): string[];
-	private transition_(to: string[], explicit_states: string[], 
-		exec_params?: any[], callback_params?: any[]);
+	private transition_(to: string[], explicit_states: string[], params?: any[]);
 	private setActiveStates_(target: string[]);
 	private transitionExit_(from: string, to: string[], 
 		explicit_states: string[], params: any[]);

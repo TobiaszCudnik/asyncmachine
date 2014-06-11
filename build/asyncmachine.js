@@ -1,13 +1,14 @@
+/// <reference path="../d.ts/es5-shim.d.ts" />
+/// <reference path="../d.ts/rsvp.d.ts" />
+/// <reference path="../d.ts/lucidjs.d.ts" />
+/// <reference path="../d.ts/commonjs.d.ts" />
+"TODO:\n- queue enum\n- log enum";
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-/// <reference path="../d.ts/es5-shim.d.ts" />
-/// <reference path="../d.ts/rsvp.d.ts" />
-/// <reference path="../d.ts/lucidjs.d.ts" />
-/// <reference path="../d.ts/commonjs.d.ts" />
 var lucidjs = require("lucidjs");
 var rsvp = require("rsvp");
 exports.Promise = rsvp.Promise;
@@ -99,12 +100,9 @@ var AsyncMachine = (function (_super) {
             params[_i] = arguments[_i + 1];
         }
         var deferred = rsvp.defer();
-        deferred.promise.then(function () {
-            var callback_params = [];
-            for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                callback_params[_i] = arguments[_i + 0];
-            }
-            return _this.setState_(states, params, callback_params);
+        deferred.promise.then(function (callback_params) {
+            params.push.apply(params, callback_params);
+            return _this.setState_(states, params);
         });
 
         this.last_promise = deferred.promise;
@@ -126,12 +124,9 @@ var AsyncMachine = (function (_super) {
             params[_i] = arguments[_i + 1];
         }
         var deferred = rsvp.defer();
-        deferred.promise.then(function () {
-            var callback_params = [];
-            for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                callback_params[_i] = arguments[_i + 0];
-            }
-            return _this.addState_(states, params, callback_params);
+        deferred.promise.then(function (callback_params) {
+            params.push.apply(params, callback_params);
+            return _this.addState_(states, params);
         });
 
         this.last_promise = deferred.promise;
@@ -153,12 +148,9 @@ var AsyncMachine = (function (_super) {
             params[_i] = arguments[_i + 1];
         }
         var deferred = rsvp.defer();
-        deferred.promise.then(function () {
-            var callback_params = [];
-            for (var _i = 0; _i < (arguments.length - 0); _i++) {
-                callback_params[_i] = arguments[_i + 0];
-            }
-            return _this.dropState_(states, params, callback_params);
+        deferred.promise.then(function (callback_params) {
+            params.push.apply(params, callback_params);
+            return _this.dropState_(states, params);
         });
 
         this.last_promise = deferred.promise;
@@ -257,11 +249,8 @@ var AsyncMachine = (function (_super) {
         return this.add(add);
     };
 
-    AsyncMachine.prototype.setState_ = function (states, exec_params, callback_params) {
+    AsyncMachine.prototype.setState_ = function (states, params) {
         var _this = this;
-        if (callback_params == null) {
-            callback_params = [];
-        }
         var states_to_set = [].concat(states);
         states_to_set.forEach(function (state) {
             if (!~_this.states_all.indexOf(state)) {
@@ -272,13 +261,13 @@ var AsyncMachine = (function (_super) {
             return;
         }
         if (this.lock) {
-            this.queue.push([2, states_to_set, exec_params, callback_params]);
+            this.queue.push([2, states_to_set, params]);
             return;
         }
         this.lock = true;
         this.log("[*] Set state " + (states_to_set.join(", ")), 1);
         var states_before = this.is();
-        var ret = this.selfTransitionExec_(states_to_set, exec_params, callback_params);
+        var ret = this.selfTransitionExec_(states_to_set, params);
         if (ret === false) {
             return false;
         }
@@ -293,7 +282,7 @@ var AsyncMachine = (function (_super) {
         }
         var queue = this.queue;
         this.queue = [];
-        ret = this.transition_(states, states_to_set, exec_params, callback_params);
+        ret = this.transition_(states, states_to_set, params);
         this.queue = ret === false ? queue : queue.concat(this.queue);
         this.lock = false;
         ret = this.processQueue_(ret);
@@ -307,22 +296,19 @@ var AsyncMachine = (function (_super) {
         return this.allStatesSet(states_to_set);
     };
 
-    AsyncMachine.prototype.addState_ = function (states, exec_params, callback_params) {
-        if (typeof callback_params === "undefined") {
-            callback_params = [];
-        }
+    AsyncMachine.prototype.addState_ = function (states, params) {
         var states_to_add = [].concat(states);
         if (!states_to_add.length) {
             return;
         }
         if (this.lock) {
-            this.queue.push([1, states_to_add, exec_params, callback_params]);
+            this.queue.push([1, states_to_add, params]);
             return;
         }
         this.lock = true;
         this.log("[*] Add state " + (states_to_add.join(", ")), 1);
         var states_before = this.is();
-        var ret = this.selfTransitionExec_(states_to_add, exec_params, callback_params);
+        var ret = this.selfTransitionExec_(states_to_add, params);
         if (ret === false) {
             return false;
         }
@@ -339,7 +325,7 @@ var AsyncMachine = (function (_super) {
 
         var queue = this.queue;
         this.queue = [];
-        ret = this.transition_(states, states_to_add, exec_params, callback_params);
+        ret = this.transition_(states, states_to_add, params);
         this.queue = ret === false ? queue : queue.concat(this.queue);
         this.lock = false;
         ret = this.processQueue_(ret);
@@ -354,16 +340,13 @@ var AsyncMachine = (function (_super) {
         }
     };
 
-    AsyncMachine.prototype.dropState_ = function (states, exec_params, callback_params) {
-        if (typeof callback_params === "undefined") {
-            callback_params = [];
-        }
+    AsyncMachine.prototype.dropState_ = function (states, params) {
         var states_to_drop = [].concat(states);
         if (!states_to_drop.length) {
             return;
         }
         if (this.lock) {
-            this.queue.push([0, states_to_drop, exec_params, callback_params]);
+            this.queue.push([0, states_to_drop, params]);
             return;
         }
         this.lock = true;
@@ -375,7 +358,7 @@ var AsyncMachine = (function (_super) {
         states = this.setupTargetStates_(states);
         var queue = this.queue;
         this.queue = [];
-        var ret = this.transition_(states, states_to_drop, exec_params, callback_params);
+        var ret = this.transition_(states, states_to_drop, params);
         this.queue = ret === false ? queue : queue.concat(this.queue);
         this.lock = false;
         ret = this.processQueue_(ret);
@@ -442,26 +425,23 @@ var AsyncMachine = (function (_super) {
         return this.namespaceName(transition).replace(/_(exit|enter)$/, ".$1").replace("_", "._.");
     };
 
-    AsyncMachine.prototype.selfTransitionExec_ = function (states, exec_params, callback_params) {
+    AsyncMachine.prototype.selfTransitionExec_ = function (states, params) {
         var _this = this;
-        if (exec_params == null) {
-            exec_params = [];
-        }
-        if (callback_params == null) {
-            callback_params = [];
+        if (params == null) {
+            params = [];
         }
         var ret = states.some(function (state) {
             ret = void 0;
             var name = state + "_" + state;
             var method = _this[name];
             if (method && ~_this.states_active.indexOf(state)) {
-                var transition_params = [states].concat([exec_params], callback_params);
+                var transition_params = [states].concat(params);
                 ret = method.apply(_this, transition_params);
                 if (ret === false) {
                     return true;
                 }
                 var event = _this.namespaceTransition_(name);
-                var transition_params2 = [event, states].concat([exec_params], callback_params);
+                var transition_params2 = [event, states].concat(params);
                 return (_this.trigger.apply(_this, transition_params2)) === false;
             }
         });
@@ -556,13 +536,10 @@ var AsyncMachine = (function (_super) {
         return blocked_by;
     };
 
-    AsyncMachine.prototype.transition_ = function (to, explicit_states, exec_params, callback_params) {
+    AsyncMachine.prototype.transition_ = function (to, explicit_states, params) {
         var _this = this;
-        if (exec_params == null) {
-            exec_params = [];
-        }
-        if (callback_params == null) {
-            callback_params = [];
+        if (params == null) {
+            params = [];
         }
         if (!to.length) {
             return true;
@@ -573,7 +550,6 @@ var AsyncMachine = (function (_super) {
 
         this.orderStates_(to);
         this.orderStates_(from);
-        var params = [].concat(exec_params, callback_params);
 
         var ret = from.some(function (state) {
             return false === _this.transitionExit_(state, to, explicit_states, params);
