@@ -46,18 +46,16 @@ setup:
 test:
 	#rm test/build/*/**
 	./node_modules/mocha/bin/mocha \
-		--harmony-generators \
 		--compilers coffee:coffee-script \
 		--reporter spec \
-		build/test/dist/*.js
+		test/*.coffee
 
 test-debug:
 	#rm test/build/*/**
 	./node_modules/mocha/bin/mocha \
 		--debug-brk \
-		--harmony-generators \
 		--compilers coffee:coffee-script \
 		--reporter spec \
-		build/test/dist/*.js
+		test/*.coffee
 	
 .PHONY: build test

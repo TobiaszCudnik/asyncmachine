@@ -3,7 +3,7 @@
 #/<reference path="../../../d.ts/sinon.d.ts" />
 #/<reference path="../../../d.ts/underscore.d.ts" />
 
-asyncmachine = require '../../dist/asyncmachine'
+asyncmachine = require '../buildsara/asyncmachine'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
@@ -577,17 +577,17 @@ describe "asyncmachine", ->
 				describe 'and is explicit', ->
 
 					it 'should forward arguments to exit methods', ->
-						expect( @machine.D_exit.calledWith ['B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_exit.calledWith ['B'], 'foo', 2 ).to.be.ok
 
 					it 'should forward arguments to enter methods', ->
-						expect( @machine.D_enter.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_enter.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
 
 					it 'should forward arguments to self transition methods', ->
 						# TODO this passes only explicite states array, not all target states
-						expect( @machine.D_D.calledWith ['D'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.D_D.calledWith ['D'], 'foo', 2 ).to.be.ok
 
 					it 'should forward arguments to transition methods', ->
-						expect( @machine.C_D.calledWith ['D', 'B'], [ 'foo', 2 ] ).to.be.ok
+						expect( @machine.C_D.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
 
 				describe 'and is non-explicit', ->
 
@@ -625,7 +625,7 @@ describe "asyncmachine", ->
 			it 'should be called with params passed to the delayed function (!!!)', 
 				(done) ->
 					@machine.D_enter = (params...) ->
-						expect( params ).to.be.eql [ [ 'D' ], [], [ 'foo', 2 ] ]
+						expect( params ).to.be.eql [ [ 'D' ], 'foo', 2 ]
 						do done
 					@callback null, [ 'foo', 2 ]
 

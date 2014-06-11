@@ -11,7 +11,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 	lock: no
 	last_promise: null
 	log_handler_: null
+	# TODO change to log_prefix and log_level
 	debug_prefix: ''
+	debug_level: 1
 	clock_: null
 	
 	debug_: no
@@ -142,16 +144,17 @@ class AsyncMachine extends lucidjs.EventEmitter
 	namespaceName: (state) ->
 		state.replace /([a-zA-Z])([A-Z])/g, "$1.$2"
 
-	debug: (prefix = '', handler = null) ->
+	debug: (prefix = '', level = 1, handler = null) ->
 		@debug_ = not @debug_
 		@debug_prefix = prefix
+		@debug_level = level
 		null
 
-	log: (msgs...) ->
+	log: (msg, level) ->
+		level ?= 3
 		return unless @debug_
-		if @debug_prefix
-			msgs = if @debug_prefix then [@debug_prefix].concat(msgs) else msgs
-		console.log.apply? console, msgs
+		return if level > @debug_level
+		console.log @debug_prefix + msg
 	  
 	#//////////////////////////
 	# PRIVATES
@@ -178,7 +181,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@queue.push [2, states_to_set, exec_params, callback_params]
 			return
 		@lock = yes
-		@log "[*] Set state #{states_to_set.join ', '}"
+		@log "[*] Set state #{states_to_set.join ', '}", 1
 		states_before = @is()
 		ret = @selfTransitionExec_ states_to_set, exec_params, callback_params
 		return no if ret is no
@@ -187,7 +190,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			!!~states.indexOf state
 			
 		unless states_to_set_valid
-			@log "[i] Transition cancelled, as target states wasn't accepted"
+			@log "[i] Transition cancelled, as target states wasn't accepted", 2
 			return @lock = no
 			
 		# Queue
@@ -215,7 +218,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@queue.push [1, states_to_add, exec_params, callback_params]
 			return
 		@lock = yes
-		@log "[*] Add state " + states_to_add.join ", "
+		@log "[*] Add state #{states_to_add.join ", "}", 1
 		states_before = @is()
 		ret = @selfTransitionExec_ states_to_add, exec_params, callback_params
 		return no if ret is no
@@ -225,7 +228,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			!!~states.indexOf(state)
 			
 		unless states_to_add_valid
-			@log "[i] Transition cancelled, as target states wasn't accepted"
+			@log "[i] Transition cancelled, as target states wasn't accepted", 2
 			return @lock = no
 			
 		queue = @queue
@@ -253,7 +256,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@queue.push [0, states_to_drop, exec_params, callback_params]
 			return
 		@lock = yes
-		@log "[*] Drop state " + states_to_drop.join ", "
+		@log "[*] Drop state #{states_to_drop.join ", "}", 1
 		states_before = @is()
 		    
 		# Invert states to target ones.
@@ -347,7 +350,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		states = states.filter (name) =>
 			ret = ~@states_all.indexOf name
 			if not ret
-				@log "[i] State #{name} doesn't exist" 
+				@log "[i] State #{name} doesn't exist", 2
 			!!ret
 
 		states = @parseImplies_ states
@@ -364,7 +367,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 				
 			if blocked_by.length
 				already_blocked.push name
-				@log "[i] State #{name} blocked by #{blocked_by.join(", ")}"
+				@log "[i] State #{name} blocked by #{blocked_by.join(", ")}", 2
 			not blocked_by.length and not ~exclude.indexOf name
 
 		@parseRequires_ states.reverse()
@@ -390,7 +393,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 					found = ~states.indexOf req
 					if not found
 						@log "[i] State #{name} dropped as required state #{req} " +
-							"is missing"
+							"is missing", 2
 					not found
 		states
 
@@ -424,9 +427,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 			
 		@orderStates_ to
 		@orderStates_ from
-		params = [exec_params].concat(callback_params)
+		params = [].concat exec_params, callback_params
 		    
-		# var wait = <Function[]>[]
 		ret = from.some (state) =>
 			no is @transitionExit_ state, to, explicit_states, params
 			
@@ -506,7 +508,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		transition_params = [target_states].concat params
 		ret = undefined
 		event = @namespaceTransition_ method
-		@log event
+		@log "[event] #{event}", 3
 		if @[method] instanceof Function
 			ret = @[method]?.apply? @, transition_params
 		    
@@ -517,14 +519,14 @@ class AsyncMachine extends lucidjs.EventEmitter
 					@unflag "#{event[0...-5]}.enter"
 				else if event[-5...-1] is '.enter'
 					@unflag "#{event[0...-5]}.exit"
-				@log "[i] Setting flag #{event}"
+				@log "[i] Setting flag #{event}", 2
 				@flag event
 			ret = @trigger event, transition_params
 			if ret is no
-				@log "[i] Transition event #{event} cancelled"
+				@log "[i] Transition event #{event} cancelled", 2
 				# TODO broadcast the event, add a test
 		if ret is no
-			@log "[i] Transition method #{method} cancelled"
+			@log "[i] Transition method #{method} cancelled", 2
 			# TODO broadcast the event, add a test
 		ret
 

@@ -26,6 +26,7 @@ var AsyncMachine = (function (_super) {
         this.last_promise = null;
         this.log_handler_ = null;
         this.debug_prefix = "";
+        this.debug_level = 1;
         this.clock_ = null;
         this.debug_ = false;
         this.debug_ = !!config.debug;
@@ -35,11 +36,11 @@ var AsyncMachine = (function (_super) {
         this.clock_ = {};
     }
     AsyncMachine.prototype.register = function () {
+        var _this = this;
         var states = [];
         for (var _i = 0; _i < (arguments.length - 0); _i++) {
             states[_i] = arguments[_i + 0];
         }
-        var _this = this;
         return states.map(function (state) {
             _this.states_all.push(state);
             return _this.clock[state] = 0;
@@ -58,11 +59,11 @@ var AsyncMachine = (function (_super) {
     };
 
     AsyncMachine.prototype.any = function () {
+        var _this = this;
         var names = [];
         for (var _i = 0; _i < (arguments.length - 0); _i++) {
             names[_i] = arguments[_i + 0];
         }
-        var _this = this;
         return names.some(function (name) {
             if (Array.isArray(name)) {
                 return _this.every(name);
@@ -73,11 +74,11 @@ var AsyncMachine = (function (_super) {
     };
 
     AsyncMachine.prototype.every = function () {
+        var _this = this;
         var names = [];
         for (var _i = 0; _i < (arguments.length - 0); _i++) {
             names[_i] = arguments[_i + 0];
         }
-        var _this = this;
         return names.every(function (name) {
             return !!~_this.states_active.indexOf(name);
         });
@@ -92,11 +93,11 @@ var AsyncMachine = (function (_super) {
     };
 
     AsyncMachine.prototype.setLater = function (states) {
+        var _this = this;
         var params = [];
         for (var _i = 0; _i < (arguments.length - 1); _i++) {
             params[_i] = arguments[_i + 1];
         }
-        var _this = this;
         var deferred = rsvp.defer();
         deferred.promise.then(function () {
             var callback_params = [];
@@ -119,11 +120,11 @@ var AsyncMachine = (function (_super) {
     };
 
     AsyncMachine.prototype.addLater = function (states) {
+        var _this = this;
         var params = [];
         for (var _i = 0; _i < (arguments.length - 1); _i++) {
             params[_i] = arguments[_i + 1];
         }
-        var _this = this;
         var deferred = rsvp.defer();
         deferred.promise.then(function () {
             var callback_params = [];
@@ -146,11 +147,11 @@ var AsyncMachine = (function (_super) {
     };
 
     AsyncMachine.prototype.dropLater = function (states) {
+        var _this = this;
         var params = [];
         for (var _i = 0; _i < (arguments.length - 1); _i++) {
             params[_i] = arguments[_i + 1];
         }
-        var _this = this;
         var deferred = rsvp.defer();
         deferred.promise.then(function () {
             var callback_params = [];
@@ -216,27 +217,27 @@ var AsyncMachine = (function (_super) {
         return state.replace(/([a-zA-Z])([A-Z])/g, "$1.$2");
     };
 
-    AsyncMachine.prototype.debug = function (prefix, handler) {
+    AsyncMachine.prototype.debug = function (prefix, level, handler) {
         if (typeof prefix === "undefined") { prefix = ""; }
+        if (typeof level === "undefined") { level = 1; }
         if (typeof handler === "undefined") { handler = null; }
         this.debug_ = !this.debug_;
         this.debug_prefix = prefix;
+        this.debug_level = level;
         return null;
     };
 
-    AsyncMachine.prototype.log = function () {
-        var msgs = [];
-        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-            msgs[_i] = arguments[_i + 0];
+    AsyncMachine.prototype.log = function (msg, level) {
+        if (level == null) {
+            level = 3;
         }
-        var _base;
         if (!this.debug_) {
             return;
         }
-        if (this.debug_prefix) {
-            msgs = this.debug_prefix ? [this.debug_prefix].concat(msgs) : msgs;
+        if (level > this.debug_level) {
+            return;
         }
-        return typeof (_base = console.log).apply === "function" ? _base.apply(console, msgs) : void 0;
+        return console.log(this.debug_prefix + msg);
     };
 
     AsyncMachine.prototype.processAutoStates = function (excluded) {
@@ -275,7 +276,7 @@ var AsyncMachine = (function (_super) {
             return;
         }
         this.lock = true;
-        this.log("[*] Set state " + (states_to_set.join(", ")));
+        this.log("[*] Set state " + (states_to_set.join(", ")), 1);
         var states_before = this.is();
         var ret = this.selfTransitionExec_(states_to_set, exec_params, callback_params);
         if (ret === false) {
@@ -287,7 +288,7 @@ var AsyncMachine = (function (_super) {
         });
 
         if (!states_to_set_valid) {
-            this.log("[i] Transition cancelled, as target states wasn't accepted");
+            this.log("[i] Transition cancelled, as target states wasn't accepted", 2);
             return this.lock = false;
         }
         var queue = this.queue;
@@ -319,7 +320,7 @@ var AsyncMachine = (function (_super) {
             return;
         }
         this.lock = true;
-        this.log("[*] Add state " + states_to_add.join(", "));
+        this.log("[*] Add state " + (states_to_add.join(", ")), 1);
         var states_before = this.is();
         var ret = this.selfTransitionExec_(states_to_add, exec_params, callback_params);
         if (ret === false) {
@@ -332,7 +333,7 @@ var AsyncMachine = (function (_super) {
         });
 
         if (!states_to_add_valid) {
-            this.log("[i] Transition cancelled, as target states wasn't accepted");
+            this.log("[i] Transition cancelled, as target states wasn't accepted", 2);
             return this.lock = false;
         }
 
@@ -366,7 +367,7 @@ var AsyncMachine = (function (_super) {
             return;
         }
         this.lock = true;
-        this.log("[*] Drop state " + states_to_drop.join(", "));
+        this.log("[*] Drop state " + (states_to_drop.join(", ")), 1);
         var states_before = this.is();
         states = this.states_active.filter(function (state) {
             return !~states_to_drop.indexOf(state);
@@ -475,7 +476,7 @@ var AsyncMachine = (function (_super) {
         states = states.filter(function (name) {
             var ret = ~_this.states_all.indexOf(name);
             if (!ret) {
-                _this.log("[i] State " + name + " doesn't exist");
+                _this.log("[i] State " + name + " doesn't exist", 2);
             }
             return !!ret;
         });
@@ -491,7 +492,7 @@ var AsyncMachine = (function (_super) {
 
             if (blocked_by.length) {
                 already_blocked.push(name);
-                _this.log("[i] State " + name + " blocked by " + (blocked_by.join(", ")));
+                _this.log("[i] State " + name + " blocked by " + (blocked_by.join(", ")), 2);
             }
             return !blocked_by.length && !~exclude.indexOf(name);
         });
@@ -522,7 +523,7 @@ var AsyncMachine = (function (_super) {
                 return !(state.requires != null ? state.requires.some(function (req) {
                     var found = ~states.indexOf(req);
                     if (!found) {
-                        _this.log(("[i] State " + name + " dropped as required state " + req + " ") + "is missing");
+                        _this.log(("[i] State " + name + " dropped as required state " + req + " ") + "is missing", 2);
                     }
                     return !found;
                 }) : void 0);
@@ -572,7 +573,8 @@ var AsyncMachine = (function (_super) {
 
         this.orderStates_(to);
         this.orderStates_(from);
-        var params = [exec_params].concat(callback_params);
+        var params = [].concat(exec_params, callback_params);
+
         var ret = from.some(function (state) {
             return false === _this.transitionExit_(state, to, explicit_states, params);
         });
@@ -677,7 +679,7 @@ var AsyncMachine = (function (_super) {
         var transition_params = [target_states].concat(params);
         var ret = void 0;
         var event = this.namespaceTransition_(method);
-        this.log(event);
+        this.log("[event] " + event, 3);
         if (this[method] instanceof Function) {
             ret = (_ref = this[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(this, transition_params) : void 0 : void 0;
         }
@@ -689,16 +691,16 @@ var AsyncMachine = (function (_super) {
                 } else if (event.slice(-5, -1) === ".enter") {
                     this.unflag(event.slice(0, -5) + ".exit");
                 }
-                this.log("[i] Setting flag " + event);
+                this.log("[i] Setting flag " + event, 2);
                 this.flag(event);
             }
             ret = this.trigger(event, transition_params);
             if (ret === false) {
-                this.log("[i] Transition event " + event + " cancelled");
+                this.log("[i] Transition event " + event + " cancelled", 2);
             }
         }
         if (ret === false) {
-            this.log("[i] Transition method " + method + " cancelled");
+            this.log("[i] Transition method " + method + " cancelled", 2);
         }
         return ret;
     };
