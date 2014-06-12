@@ -265,7 +265,7 @@ var AsyncMachine = (function (_super) {
             return;
         }
         this.lock = true;
-        this.log("[*] Set state " + (states_to_set.join(", ")), 1);
+        this.log("[=] Set state " + (states_to_set.join(", ")), 1);
         var states_before = this.is();
         var ret = this.selfTransitionExec_(states_to_set, params);
         if (ret === false) {
@@ -277,7 +277,7 @@ var AsyncMachine = (function (_super) {
         });
 
         if (!states_to_set_valid) {
-            this.log("[i] Transition cancelled, as target states wasn't accepted", 2);
+            this.log("Transition cancelled, as target states weren't accepted", 2);
             return this.lock = false;
         }
         var queue = this.queue;
@@ -306,7 +306,7 @@ var AsyncMachine = (function (_super) {
             return;
         }
         this.lock = true;
-        this.log("[*] Add state " + (states_to_add.join(", ")), 1);
+        this.log("[+] Add state " + (states_to_add.join(", ")), 1);
         var states_before = this.is();
         var ret = this.selfTransitionExec_(states_to_add, params);
         if (ret === false) {
@@ -319,7 +319,7 @@ var AsyncMachine = (function (_super) {
         });
 
         if (!states_to_add_valid) {
-            this.log("[i] Transition cancelled, as target states wasn't accepted", 2);
+            this.log("Transition cancelled, as target states weren't accepted", 2);
             return this.lock = false;
         }
 
@@ -350,7 +350,7 @@ var AsyncMachine = (function (_super) {
             return;
         }
         this.lock = true;
-        this.log("[*] Drop state " + (states_to_drop.join(", ")), 1);
+        this.log("[-] Drop state " + (states_to_drop.join(", ")), 1);
         var states_before = this.is();
         states = this.states_active.filter(function (state) {
             return !~states_to_drop.indexOf(state);
@@ -456,7 +456,7 @@ var AsyncMachine = (function (_super) {
         states = states.filter(function (name) {
             var ret = ~_this.states_all.indexOf(name);
             if (!ret) {
-                _this.log("[i] State " + name + " doesn't exist", 2);
+                _this.log("State " + name + " doesn't exist", 2);
             }
             return !!ret;
         });
@@ -472,7 +472,11 @@ var AsyncMachine = (function (_super) {
 
             if (blocked_by.length) {
                 already_blocked.push(name);
-                _this.log("[i] State " + name + " blocked by " + (blocked_by.join(", ")), 2);
+                var log_level = 3;
+                if (_this.is(name)) {
+                    log_level = 2;
+                }
+                _this.log("State " + name + " removed by " + (blocked_by.join(", ")), log_level);
             }
             return !blocked_by.length && !~exclude.indexOf(name);
         });
@@ -503,7 +507,7 @@ var AsyncMachine = (function (_super) {
                 return !(state.requires != null ? state.requires.some(function (req) {
                     var found = ~states.indexOf(req);
                     if (!found) {
-                        _this.log(("[i] State " + name + " dropped as required state " + req + " ") + "is missing", 2);
+                        _this.log(("State " + name + " dropped as required state " + req + " ") + "is missing", 2);
                     }
                     return !found;
                 }) : void 0);
@@ -663,20 +667,22 @@ var AsyncMachine = (function (_super) {
         if (ret !== false) {
             if (!~event.indexOf("_")) {
                 if (event.slice(-5) === ".exit") {
+                    this.log("[unflag] " + event.slice(0, -5) + ".enter", 3);
                     this.unflag(event.slice(0, -5) + ".enter");
                 } else if (event.slice(-5, -1) === ".enter") {
+                    this.log("[unflag] " + event.slice(0, -5) + ".exit", 3);
                     this.unflag(event.slice(0, -5) + ".exit");
                 }
-                this.log("[i] Setting flag " + event, 2);
+                this.log("[flag] " + event, 3);
                 this.flag(event);
             }
             ret = this.trigger(event, transition_params);
             if (ret === false) {
-                this.log("[i] Transition event " + event + " cancelled", 2);
+                this.log("Transition event " + event + " cancelled", 2);
             }
         }
         if (ret === false) {
-            this.log("[i] Transition method " + method + " cancelled", 2);
+            this.log("Transition method " + method + " cancelled", 2);
         }
         return ret;
     };

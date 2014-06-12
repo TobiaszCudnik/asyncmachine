@@ -190,7 +190,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@queue.push [2, states_to_set, params]
 			return
 		@lock = yes
-		@log "[*] Set state #{states_to_set.join ', '}", 1
+		@log "[=] Set state #{states_to_set.join ', '}", 1
 		states_before = @is()
 		ret = @selfTransitionExec_ states_to_set, params
 		return no if ret is no
@@ -199,7 +199,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			!!~states.indexOf state
 			
 		unless states_to_set_valid
-			@log "[i] Transition cancelled, as target states wasn't accepted", 2
+			@log "Transition cancelled, as target states weren't accepted", 2
 			return @lock = no
 			
 		# Queue
@@ -226,7 +226,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@queue.push [1, states_to_add, params]
 			return
 		@lock = yes
-		@log "[*] Add state #{states_to_add.join ", "}", 1
+		@log "[+] Add state #{states_to_add.join ", "}", 1
 		states_before = @is()
 		ret = @selfTransitionExec_ states_to_add, params
 		return no if ret is no
@@ -236,7 +236,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			!!~states.indexOf(state)
 			
 		unless states_to_add_valid
-			@log "[i] Transition cancelled, as target states wasn't accepted", 2
+			@log "Transition cancelled, as target states weren't accepted", 2
 			return @lock = no
 			
 		queue = @queue
@@ -263,7 +263,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@queue.push [0, states_to_drop, params]
 			return
 		@lock = yes
-		@log "[*] Drop state #{states_to_drop.join ", "}", 1
+		@log "[-] Drop state #{states_to_drop.join ", "}", 1
 		states_before = @is()
 		    
 		# Invert states to target ones.
@@ -353,7 +353,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		states = states.filter (name) =>
 			ret = ~@states_all.indexOf name
 			if not ret
-				@log "[i] State #{name} doesn't exist", 2
+				@log "State #{name} doesn't exist", 2
 			!!ret
 
 		states = @parseImplies_ states
@@ -361,7 +361,7 @@ class AsyncMachine extends lucidjs.EventEmitter
     
 		# Check if state is blocked or excluded
 		already_blocked = []
-   
+
 		# Remove states already blocked.
 		states = states.reverse().filter (name) =>
 			blocked_by = @isStateBlocked_ states, name
@@ -370,7 +370,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 				
 			if blocked_by.length
 				already_blocked.push name
-				@log "[i] State #{name} blocked by #{blocked_by.join(", ")}", 2
+				log_level = 3
+				# if state wasn't implied by another state (was one of the current 
+				# states) then make it a higher priorioty log msg
+				if @is name
+					log_level = 2
+				@log "State #{name} removed by #{blocked_by.join(", ")}", log_level
 			not blocked_by.length and not ~exclude.indexOf name
 
 		@parseRequires_ states.reverse()
@@ -395,7 +400,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 				not state.requires?.some (req) =>
 					found = ~states.indexOf req
 					if not found
-						@log "[i] State #{name} dropped as required state #{req} " +
+						@log "State #{name} dropped as required state #{req} " +
 							"is missing", 2
 					not found
 		states
@@ -517,17 +522,19 @@ class AsyncMachine extends lucidjs.EventEmitter
 			if not ~event.indexOf "_"
 				# Unflag constraint states
 				if event[-5..-1] is '.exit'
+					@log "[unflag] #{event[0...-5]}.enter", 3
 					@unflag "#{event[0...-5]}.enter"
 				else if event[-5...-1] is '.enter'
+					@log "[unflag] #{event[0...-5]}.exit", 3
 					@unflag "#{event[0...-5]}.exit"
-				@log "[i] Setting flag #{event}", 2
+				@log "[flag] #{event}", 3
 				@flag event
 			ret = @trigger event, transition_params
 			if ret is no
-				@log "[i] Transition event #{event} cancelled", 2
+				@log "Transition event #{event} cancelled", 2
 				# TODO broadcast the event, add a test
 		if ret is no
-			@log "[i] Transition method #{method} cancelled", 2
+			@log "Transition method #{method} cancelled", 2
 			# TODO broadcast the event, add a test
 		ret
 

@@ -1,0 +1,2 @@
+- MAYBE: generating definitions for state changing methods based on transition 
+	methods signatures (and states string values)
