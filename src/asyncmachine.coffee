@@ -161,7 +161,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		null
 
 	log: (msg, level) ->
-		level ?= 3
+		level ?= 1
 		return unless @debug_
 		return if level > @debug_level
 		console.log @debug_prefix + msg

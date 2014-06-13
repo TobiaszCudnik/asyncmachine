@@ -186,7 +186,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     public log(msg: string, level?: number): void {
         if (level == null) {
-            level = 3;
+            level = 1;
         }
         if (!this.debug_) {
             return;

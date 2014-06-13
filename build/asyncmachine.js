@@ -221,7 +221,7 @@ var AsyncMachine = (function (_super) {
 
     AsyncMachine.prototype.log = function (msg, level) {
         if (level == null) {
-            level = 3;
+            level = 1;
         }
         if (!this.debug_) {
             return;

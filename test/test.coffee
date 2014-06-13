@@ -42,8 +42,8 @@ class Sub extends asyncmachine.AsyncMachine
 		@set initial if initial
 		@A_enter = a_spy
 		@B_enter = b_spy
-			
-class SubCrossBlocked extends asyncmachine.AsyncMachine
+
+class SubCrossBlockedByImplied extends asyncmachine.AsyncMachine
 	A:
 		blocks: [ 'B' ]
 	B:
@@ -55,6 +55,18 @@ class SubCrossBlocked extends asyncmachine.AsyncMachine
 		super config
 		@register 'A', 'B', 'C'
 		@set 'C'
+		
+class CrossBlocked extends asyncmachine.AsyncMachine
+	A:
+		blocks: [ 'B' ]
+	B:
+		blocks: [ 'A' ]
+
+	constructor: (config = {}) ->
+		super config
+		@register 'A', 'B'
+		@set 'A'
+		@set 'B'
 					
 describe "asyncmachine", ->
 
@@ -856,12 +868,16 @@ describe "asyncmachine", ->
 		it 'should drop states cross-blocked by implied states', ->
 			# parse implied states before current ones
 			# hint: in blocked by
-			sub = new SubCrossBlocked
-			expect( sub.is()).to.eql [ 'C', 'B' ]
+			sub = new SubCrossBlockedByImplied
+			expect( sub.is() ).to.eql [ 'C', 'B' ]
 
 		it 'should pass args to transition methods'
 
-		it 'addsLater'
+		it 'should drop states blocked by a new one if the one blocks it', ->
+			sub = new CrossBlocked
+			expect( sub.is() ).to.eql [ 'B' ]
+			
+		it 'should pass args to non-explicite transition methods if they are also queued ???'
 
 	describe 'Promises', ->
 		it 'can be resolved'
