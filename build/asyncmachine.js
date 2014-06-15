@@ -205,6 +205,10 @@ var AsyncMachine = (function (_super) {
         throw new Error("not implemented yet");
     };
 
+    AsyncMachine.prototype.duringTransition = function () {
+        return this.lock;
+    };
+
     AsyncMachine.prototype.namespaceName = function (state) {
         return state.replace(/([a-zA-Z])([A-Z])/g, "$1.$2");
     };
@@ -393,17 +397,14 @@ var AsyncMachine = (function (_super) {
     };
 
     AsyncMachine.prototype.allStatesSet = function (states) {
-        var _this = this;
-        return !states.reduce((function (ret, state) {
-            return ret || !_this.is(state);
-        }), false);
+        return states.every(this.is.bind(this));
     };
 
     AsyncMachine.prototype.allStatesNotSet = function (states) {
         var _this = this;
-        return !states.reduce((function (ret, state) {
-            return ret || _this.is(state);
-        }), false);
+        return states.every(function (state) {
+            return !_this.is(state);
+        });
     };
 
     AsyncMachine.prototype.createCallback = function (deferred) {

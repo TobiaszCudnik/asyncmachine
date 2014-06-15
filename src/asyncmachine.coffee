@@ -147,7 +147,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@on state + ".exit", ->
 			machine.add target_state
 
-	pipeOff: -> throw new Error("not implemented yet")
+	pipeOff: -> throw new Error "not implemented yet"
+		
+	duringTransition: -> @lock
 
 	# TODO use a regexp lib for IE8's 'g' flag compat?
 	# CamelCase to Camel.Case
@@ -307,14 +309,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 		not ~ret.indexOf no
 
 	allStatesSet: (states) ->
-		not states.reduce ((ret, state) =>
-				ret or not @is state
-			), no
+		states.every @is.bind @
 
 	allStatesNotSet: (states) ->
-		not states.reduce ((ret, state) =>
-				ret or @is state
-			), no
+		states.every (state) => not @is state
 		
 	createCallback: (deferred) ->
 		(err = null, params...) ->

@@ -173,6 +173,10 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         throw new Error("not implemented yet");
     }
 
+    public duringTransition(): boolean {
+        return this.lock;
+    }
+
     public namespaceName(state: string): string {
         return state.replace(/([a-zA-Z])([A-Z])/g, "$1.$2");
     }
@@ -356,11 +360,11 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     }
 
     private allStatesSet(states): boolean {
-        return !states.reduce(((ret, state) => ret || !this.is(state)), false);
+        return states.every(this.is.bind(this));
     }
 
     private allStatesNotSet(states): boolean {
-        return !states.reduce(((ret, state) => ret || this.is(state)), false);
+        return states.every((state) => !this.is(state));
     }
 
     private createCallback(deferred: rsvp.Defered): (err?, ...params) => void {

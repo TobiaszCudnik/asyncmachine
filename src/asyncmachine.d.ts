@@ -77,6 +77,7 @@ class AsyncMachine {
 	public pipeForward(state: any, machine?: any, target_state?: any);
 	public pipeInvert(state: string, machine: AsyncMachine, target_state: string);
 	public pipeOff(): void;
+	public duringTransition(): boolean;
 	public namespaceName(state: string): string;
 	public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
 	public log(msg: string, level?: number): void;

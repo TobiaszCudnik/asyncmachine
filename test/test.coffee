@@ -461,11 +461,8 @@ describe "asyncmachine", ->
 				expect( @machine.A_exit.calledOnce ).to.be.ok
 				expect( @machine.is() ).to.eql [ 'C', 'B' ]
 
-		#			it 'can be set asynchronously', ->
-		#				@machine.B_enter = (states) ->
-		#					@on 'state.set', @setLater 'B', 'C'
-		#				@machine.set 'B'
-		#				expect( @machine.is() ).to.eql [ 'B', 'C' ]
+			it 'should be checkable'
+				# TODO use #duringTransition
 
 		describe 'and transition is canceled', ->
 			beforeEach ->

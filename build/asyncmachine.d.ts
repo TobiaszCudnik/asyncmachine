@@ -46,6 +46,7 @@ declare module "asyncmachine" {
     public clock(state: any): any;
     public pipeInvert(state: string, machine: AsyncMachine, target_state: string): lucidjs.IBinding;
     public pipeOff(): void;
+    public duringTransition(): boolean;
     public namespaceName(state: string): string;
     public debug(prefix?: any, level?: any, handler?: any): any;
     public log(msg: string, level?: number): void;
