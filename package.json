@@ -16,8 +16,6 @@
   },
   "devDependencies": {
 	  "compiled-coffee": "TobiaszCudnik/compiled-coffee",
-    "browserify": "latest",
-	  "http-server": "latest",
     "chai": "latest",
     "sinon": "latest",
     "mocha": "latest",
