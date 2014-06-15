@@ -1,7 +1,6 @@
-/// <reference path="../d.ts/es5-shim.d.ts" />
-/// <reference path="../d.ts/rsvp.d.ts" />
 /// <reference path="../d.ts/lucidjs.d.ts" />
-/// <reference path="../d.ts/commonjs.d.ts" />
+/// <reference path="../d.ts/rsvp.d.ts" />
+/// <reference path="../d.ts/es5-shim.d.ts" />
 "TODO:\n- queue enum\n- log enum";
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -473,11 +472,11 @@ var AsyncMachine = (function (_super) {
 
             if (blocked_by.length) {
                 already_blocked.push(name);
-                var log_level = 3;
                 if (_this.is(name)) {
-                    log_level = 2;
+                    _this.log("State " + name + " dropped by " + (blocked_by.join(", ")), 2);
+                } else {
+                    _this.log("State " + name + " ignored because of " + (blocked_by.join(", ")), 3);
                 }
-                _this.log("State " + name + " removed by " + (blocked_by.join(", ")), log_level);
             }
             return !blocked_by.length && !~exclude.indexOf(name);
         });

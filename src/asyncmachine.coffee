@@ -368,12 +368,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 				
 			if blocked_by.length
 				already_blocked.push name
-				log_level = 3
 				# if state wasn't implied by another state (was one of the current 
-				# states) then make it a higher priorioty log msg
+				# states) then make it a higher priority log msg
 				if @is name
-					log_level = 2
-				@log "State #{name} removed by #{blocked_by.join(", ")}", log_level
+					@log "State #{name} dropped by #{blocked_by.join(", ")}", 2
+				else 
+					@log "State #{name} ignored because of #{blocked_by.join(", ")}", 3
 			not blocked_by.length and not ~exclude.indexOf name
 
 		@parseRequires_ states.reverse()

@@ -1,12 +1,11 @@
 /// <reference path="../d.ts/es5-shim.d.ts" />
 /// <reference path="../d.ts/rsvp.d.ts" />
 /// <reference path="../d.ts/lucidjs.d.ts" />
-
-declare module "asyncmachine" {
-	export import lucidjs = require("lucidjs");
-	export import rsvp = require("rsvp");
-	export var Promise: typeof rsvp.Promise;
-	export class AsyncMachine extends lucidjs.EventEmitter {
+/// <reference path="../d.ts/commonjs.d.ts" />
+import lucidjs = require("lucidjs");
+import rsvp = require("rsvp");
+export declare var Promise: typeof rsvp.Promise;
+export declare class AsyncMachine extends lucidjs.EventEmitter {
     public config: any;
     private states_all;
     private states_active;
@@ -71,19 +70,18 @@ declare module "asyncmachine" {
     private transitionEnter_(to, target_states, params);
     private transitionExec_(method, target_states, params?);
     private orderStates_(states);
-	}
-	export interface IState {
-	    depends?: string[];
-	    implies?: string[];
-	    blocks?: string[];
-	    requires?: string[];
-	    auto?: boolean;
-	}
-	export interface IConfig {
-	    debug: boolean;
-	}
-	export interface ITransition {
-	    call(states?: string[], state_params?: any[], callback_params?: any[]): boolean;
-	    apply(context: any, args: any): any;
-	}
+}
+export interface IState {
+    depends?: string[];
+    implies?: string[];
+    blocks?: string[];
+    requires?: string[];
+    auto?: boolean;
+}
+export interface IConfig {
+    debug: boolean;
+}
+export interface ITransition {
+    call(states?: string[], state_params?: any[], callback_params?: any[]): boolean;
+    apply(context: any, args: any): any;
 }
