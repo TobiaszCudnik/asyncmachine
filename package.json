@@ -12,10 +12,10 @@
   "dependencies": {
 	  "es5-shim": "latest",
 	  "rsvp": "latest",
-	  "lucidjs": "latest"
+	  "lucidjs": "TobiaszCudnik/LucidJS#patch-2"
   },
   "devDependencies": {
-	  "compiled-coffee": "latest",
+	  "compiled-coffee": "TobiaszCudnik/compiled-coffee",
     "browserify": "latest",
 	  "http-server": "latest",
     "chai": "latest",
