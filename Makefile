@@ -2,8 +2,8 @@ ASSETS = buid/test/assets
 ONEJS = node_modules/one/bin/onejs
 COFFEE = test/node_modules/coffee-script/bin/coffee
 NODE = node
-# CCOFFEE = node_modules/compiled-coffee/bin/ccoffee
-CCOFFEE = node_modules/compiled-coffee/bin/ccoffee-osx
+CCOFFEE = node_modules/compiled-coffee/bin/ccoffee
+# CCOFFEE = node_modules/compiled-coffee/bin/ccoffee-osx
 
 all:
 	make build

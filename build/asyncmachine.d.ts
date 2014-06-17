@@ -18,14 +18,15 @@ export declare class AsyncMachine extends lucidjs.EventEmitter {
     private clock_;
     private debug_;
     constructor(config?: any);
-    public register(...states: string[]): number[];
-    public get(state: string): IState;
     public is(state: string): boolean;
     public is(state: string[]): boolean;
     public is(): string[];
     public any(...names: string[]): boolean;
     public any(...names: string[][]): boolean;
     public every(...names: string[]): boolean;
+    public futureQueue(): Object[];
+    public register(...states: string[]): number[];
+    public get(state: string): IState;
     public set(states: string[], ...params: any[]): boolean;
     public set(states: string, ...params: any[]): boolean;
     public setLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;

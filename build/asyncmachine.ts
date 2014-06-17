@@ -1,6 +1,7 @@
-/// <reference path="../d.ts/lucidjs.d.ts" />
-/// <reference path="../d.ts/rsvp.d.ts" />
 /// <reference path="../d.ts/es5-shim.d.ts" />
+/// <reference path="../d.ts/rsvp.d.ts" />
+/// <reference path="../d.ts/lucidjs.d.ts" />
+/// <reference path="../d.ts/commonjs.d.ts" />
 "TODO:\n- queue enum\n- log enum";
 
 import lucidjs = require("lucidjs");
@@ -9,15 +10,15 @@ export var Promise = rsvp.Promise;
 require("es5-shim");
 
 export class AsyncMachine extends lucidjs.EventEmitter {
-    states_all = null;
+    private states_all: string[] = null;
 
-    states_active = null;
+    private states_active: string[] = null;
 
-    queue = null;
+    private queue: Object[] = null;
 
-    lock = false;
+    private lock: boolean = false;
 
-    last_promise = null;
+    public last_promise: rsvp.Promise = null;
 
     log_handler_ = null;
 
@@ -25,9 +26,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     debug_level = 1;
 
-    clock_ = null;
+    private clock_: { [state: string]: number } = null;
 
-    debug_ = false;
+    private debug_: boolean = false;
 
     constructor(public config : any = {}) {
         super();
@@ -38,14 +39,19 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         this.clock_ = {};
     }
 
-    is(state) {
+    public is(state: string): boolean;
+    public is(state: string[]): boolean;
+    public is(): string[];
+    public is(state?: any): any {
         if (!state) {
             return this.states_active;
         }
         return !!~this.states_active.indexOf(state);
     }
 
-    any(...names) {
+    public any(...names: string[]): boolean;
+    public any(...names: string[][]): boolean;
+    public any(...names: any[]): boolean {
         return names.some((name) => {
             if (Array.isArray(name)) {
                 return this.every(name);
@@ -55,7 +61,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         });
     }
 
-    every(...names) {
+    public every(...names: string[]): boolean {
         return names.every((name) => !!~this.states_active.indexOf(name));
     }
 
@@ -63,22 +69,26 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.queue;
     }
 
-    register(...states) {
+    public register(...states: string[]) {
         return states.map((state) => {
             this.states_all.push(state);
             return this.clock[state] = 0;
         });
     }
 
-    get(state) {
+    public get(state: string): IState {
         return this[state];
     }
 
-    set(states, ...params) {
+    public set(states: string[], ...params: any[]): boolean;
+    public set(states: string, ...params: any[]): boolean;
+    public set(states: any, ...params: any[]): boolean {
         return this.setState_(states, params);
     }
 
-    setLater(states, ...params) {
+    public setLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+    public setLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+    public setLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void {
         var deferred = rsvp.defer();
         deferred.promise.then((callback_params) => {
             params.push.apply(params, callback_params);
@@ -89,11 +99,15 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.createCallback(deferred);
     }
 
-    add(states, ...params) {
+    public add(states: string[], ...params: any[]): boolean;
+    public add(states: string, ...params: any[]): boolean;
+    public add(states: any, ...params: any[]): boolean {
         return this.addState_(states, params);
     }
 
-    addLater(states, ...params) {
+    public addLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+    public addLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+    public addLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void {
         var deferred = rsvp.defer();
         deferred.promise.then((callback_params) => {
             params.push.apply(params, callback_params);
@@ -104,11 +118,15 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.createCallback(deferred);
     }
 
-    drop(states, ...params) {
+    public drop(states: string[], ...params: any[]): boolean;
+    public drop(states: string, ...params: any[]): boolean;
+    public drop(states: any, ...params: any[]): boolean {
         return this.dropState_(states, params);
     }
 
-    dropLater(states, ...params) {
+    public dropLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+    public dropLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+    public dropLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void {
         var deferred = rsvp.defer();
         deferred.promise.then((callback_params) => {
             params.push.apply(params, callback_params);
@@ -119,7 +137,10 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.createCallback(deferred);
     }
 
-    pipeForward(state, machine, target_state) {
+    public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
+    public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
+    public pipeForward(state: AsyncMachine, machine?: string);
+    public pipeForward(state: any, machine?: any, target_state?: any) {
         if (state instanceof AsyncMachine) {
             return this.pipeForward(this.states_all, state, machine);
         }
@@ -145,22 +166,22 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.clock[state];
     }
 
-    pipeInvert(state, machine, target_state) {
+    public pipeInvert(state: string, machine: AsyncMachine, target_state: string) {
         state = this.namespaceName(state);
         this.on(state + ".enter", () => machine.drop(target_state));
 
         return this.on(state + ".exit", () => machine.add(target_state));
     }
 
-    pipeOff() {
+    public pipeOff(): void {
         throw new Error("not implemented yet");
     }
 
-    duringTransition() {
+    public duringTransition(): boolean {
         return this.lock;
     }
 
-    namespaceName(state) {
+    public namespaceName(state: string): string {
         return state.replace(/([a-zA-Z])([A-Z])/g, "$1.$2");
     }
 
@@ -171,7 +192,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return null;
     }
 
-    log(msg, level) {
+    public log(msg: string, level?: number): void {
         if (level == null) {
             level = 1;
         }
@@ -184,7 +205,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return console.log(this.debug_prefix + msg);
     }
 
-    processAutoStates(excluded) {
+    private processAutoStates(excluded?: string[]) {
         if (excluded == null) {
             excluded = [];
         }
@@ -200,7 +221,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.add(add);
     }
 
-    setState_(states, params) {
+    private setState_(states: string, params: any[]);
+    private setState_(states: string[], params: any[]);
+    private setState_(states: any, params: any[]): boolean {
         var states_to_set = [].concat(states);
         states_to_set.forEach((state) => {
             if (!~this.states_all.indexOf(state)) {
@@ -244,7 +267,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.allStatesSet(states_to_set);
     }
 
-    addState_(states, params) {
+    private addState_(states: string, params: any[]);
+    private addState_(states: string[], params: any[]);
+    private addState_(states: any, params: any[]): boolean {
         var states_to_add = [].concat(states);
         if (!states_to_add.length) {
             return;
@@ -286,7 +311,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         }
     }
 
-    dropState_(states, params) {
+    private dropState_(states: string, params: any[]);
+    private dropState_(states: string[], params: any[]);
+    private dropState_(states: any, params: any[]): boolean {
         var states_to_drop = [].concat(states);
         if (!states_to_drop.length) {
             return;
@@ -313,7 +340,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return ret === false || this.allStatesNotSet(states_to_drop);
     }
 
-    processQueue_(previous_ret) {
+    private processQueue_(previous_ret) {
         if (previous_ret === false) {
             this.queue = [];
             return false;
@@ -336,15 +363,15 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return !~ret.indexOf(false);
     }
 
-    allStatesSet(states) {
+    private allStatesSet(states): boolean {
         return states.every(this.is.bind(this));
     }
 
-    allStatesNotSet(states) {
+    private allStatesNotSet(states): boolean {
         return states.every((state) => !this.is(state));
     }
 
-    createCallback(deferred) {
+    private createCallback(deferred: rsvp.Defered): (err?, ...params) => void {
         return (err : any = null, ...params) => {
             if (err) {
                 return deferred.reject(err);
@@ -354,11 +381,11 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         };
     }
 
-    namespaceTransition_(transition) {
+    private namespaceTransition_(transition: string): string {
         return this.namespaceName(transition).replace(/_(exit|enter)$/, ".$1").replace("_", "._.");
     }
 
-    selfTransitionExec_(states, params) {
+    private selfTransitionExec_(states: string[], params?: any[]) {
         if (params == null) {
             params = [];
         }
@@ -380,7 +407,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return !ret;
     }
 
-    setupTargetStates_(states, exclude) {
+    private setupTargetStates_(states: string[], exclude?: string[]) {
         if (exclude == null) {
             exclude = [];
         }
@@ -413,7 +440,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.parseRequires_(states.reverse());
     }
 
-    parseImplies_(states) {
+    private parseImplies_(states: string[]): string[] {
         states.forEach((name) => {
             var state = this.get(name);
             if (!state.implies) {
@@ -425,7 +452,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return states;
     }
 
-    parseRequires_(states) {
+    private parseRequires_(states: string[]): string[] {
         var length_before = 0;
         while (length_before !== states.length) {
             length_before = states.length;
@@ -443,7 +470,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return states;
     }
 
-    removeDuplicateStates_(states) {
+    private removeDuplicateStates_(states: string[]): string[] {
         var states2 = [];
         states.forEach((name) => {
             if (!~states2.indexOf(name)) {
@@ -454,7 +481,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return states2;
     }
 
-    isStateBlocked_(states, name) {
+    private isStateBlocked_(states: string[], name: string): string[] {
         var blocked_by = [];
         states.forEach((name2) => {
             var state = this.get(name2);
@@ -466,7 +493,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return blocked_by;
     }
 
-    transition_(to, explicit_states, params) {
+    private transition_(to: string[], explicit_states: string[], params?: any[]) {
         if (params == null) {
             params = [];
         }
@@ -503,7 +530,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return true;
     }
 
-    setActiveStates_(target) {
+    private setActiveStates_(target: string[]) {
         var previous = this.states_active;
         var all = this.states_all;
         this.states_active = target;
@@ -512,6 +539,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 return this.clock[state]++;
             }
         });
+        this.log("[states] " + this.states_active);
         return all.forEach((state) => {
             if (~target.indexOf(state)) {
                 return this.unflag(state + ".exit");
@@ -521,7 +549,8 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         });
     }
 
-    transitionExit_(from, to, explicit_states, params) {
+    private transitionExit_(from: string, to: string[], 
+		explicit_states: string[], params: any[]) {
         if (~explicit_states.indexOf(from)) {
             var transition_params = params;
         }
@@ -556,7 +585,8 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return !ret;
     }
 
-    transitionEnter_(to, target_states, params) {
+    private transitionEnter_(to: string, target_states: string[], 
+		params: any[]) {
         var ret = this.transitionExec_("any_" + to, target_states, params);
         if (ret === false) {
             return false;
@@ -570,7 +600,8 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return ret;
     }
 
-    transitionExec_(method, target_states, params) {
+    private transitionExec_(method: string, target_states: string[], 
+		params?: string[]) {
         var _ref;
         if (params == null) {
             params = [];
@@ -606,7 +637,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return ret;
     }
 
-    orderStates_(states) {
+    private orderStates_(states: string[]): void {
         states.sort((e1, e2) => {
             var state1 = this.get(e1);
             var state2 = this.get(e2);
@@ -625,3 +656,18 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 }
 
 module.exports.AsyncMachine = AsyncMachine;
+
+export interface IState {
+	depends?: string[];
+	implies?: string[];
+	blocks?: string[];
+	requires?: string[];
+	auto?: boolean;
+}
+export interface IConfig {
+	debug: boolean;
+}
+export interface ITransition {
+	call(states?: string[], state_params?: any[], callback_params?: any[]): boolean;
+	apply(context, args): any;
+}

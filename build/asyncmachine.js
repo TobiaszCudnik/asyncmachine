@@ -1,6 +1,7 @@
-/// <reference path="../d.ts/lucidjs.d.ts" />
-/// <reference path="../d.ts/rsvp.d.ts" />
 /// <reference path="../d.ts/es5-shim.d.ts" />
+/// <reference path="../d.ts/rsvp.d.ts" />
+/// <reference path="../d.ts/lucidjs.d.ts" />
+/// <reference path="../d.ts/commonjs.d.ts" />
 "TODO:\n- queue enum\n- log enum";
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -596,6 +597,7 @@ var AsyncMachine = (function (_super) {
                 return _this.clock[state]++;
             }
         });
+        this.log("[states] " + this.states_active);
         return all.forEach(function (state) {
             if (~target.indexOf(state)) {
                 return _this.unflag(state + ".exit");
