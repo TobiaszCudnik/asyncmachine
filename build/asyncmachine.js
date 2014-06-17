@@ -35,22 +35,6 @@ var AsyncMachine = (function (_super) {
         this.states_active = [];
         this.clock_ = {};
     }
-    AsyncMachine.prototype.register = function () {
-        var _this = this;
-        var states = [];
-        for (var _i = 0; _i < (arguments.length - 0); _i++) {
-            states[_i] = arguments[_i + 0];
-        }
-        return states.map(function (state) {
-            _this.states_all.push(state);
-            return _this.clock[state] = 0;
-        });
-    };
-
-    AsyncMachine.prototype.get = function (state) {
-        return this[state];
-    };
-
     AsyncMachine.prototype.is = function (state) {
         if (!state) {
             return this.states_active;
@@ -82,6 +66,26 @@ var AsyncMachine = (function (_super) {
         return names.every(function (name) {
             return !!~_this.states_active.indexOf(name);
         });
+    };
+
+    AsyncMachine.prototype.futureQueue = function () {
+        return this.queue;
+    };
+
+    AsyncMachine.prototype.register = function () {
+        var _this = this;
+        var states = [];
+        for (var _i = 0; _i < (arguments.length - 0); _i++) {
+            states[_i] = arguments[_i + 0];
+        }
+        return states.map(function (state) {
+            _this.states_all.push(state);
+            return _this.clock[state] = 0;
+        });
+    };
+
+    AsyncMachine.prototype.get = function (state) {
+        return this[state];
     };
 
     AsyncMachine.prototype.set = function (states) {

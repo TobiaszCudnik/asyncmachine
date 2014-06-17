@@ -32,14 +32,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@states_all = []
 		@states_active = []
 		@clock_ = {}
-	  
-	# Prepare class'es states. Required to be called manually for inheriting classes.
-	register: (states...) ->
-		for state in states
-			@states_all.push state
-			@clock[state] = 0
-
-	get: (state) -> @[state]
 		
 	# Returns active states or if passed a state, returns if its set. 
 	is: (state) ->
@@ -59,6 +51,16 @@ class AsyncMachine extends lucidjs.EventEmitter
 	every: (names...) ->
 		names.every (name) =>
 			!!~@states_active.indexOf name
+			
+	futureQueue: -> @queue
+	  
+	# Prepare class'es states. Required to be called manually for inheriting classes.
+	register: (states...) ->
+		for state in states
+			@states_all.push state
+			@clock[state] = 0
+
+	get: (state) -> @[state]
 
 	# Activate certain states and deactivate the current ones.
 	# TODO this should be named #set, but lucidjs took it over

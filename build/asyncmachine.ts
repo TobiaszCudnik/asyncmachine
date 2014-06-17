@@ -38,17 +38,6 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         this.clock_ = {};
     }
 
-    register(...states) {
-        return states.map((state) => {
-            this.states_all.push(state);
-            return this.clock[state] = 0;
-        });
-    }
-
-    get(state) {
-        return this[state];
-    }
-
     is(state) {
         if (!state) {
             return this.states_active;
@@ -68,6 +57,21 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     every(...names) {
         return names.every((name) => !!~this.states_active.indexOf(name));
+    }
+
+    futureQueue() {
+        return this.queue;
+    }
+
+    register(...states) {
+        return states.map((state) => {
+            this.states_all.push(state);
+            return this.clock[state] = 0;
+        });
+    }
+
+    get(state) {
+        return this[state];
     }
 
     set(states, ...params) {
