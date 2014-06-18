@@ -33,11 +33,14 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@states_active = []
 		@clock_ = {}
 		
-	# Returns active states or if passed a state, returns if its set. 
-	is: (state) ->
+	# Returns active states or if passed a state, returns if its set.
+	# Additionally can assert on a certain tick of a given state.
+	is: (state, tick) ->
 		# TODO clone the array
 		return @states_active if not state
-		!!~@states_active.indexOf state
+		active = !!~@states_active.indexOf state
+		return no if not active
+		if not tick then yes else @clock state is tick
 
 	# Tells if any of the parameters is set, where if param is an array, checks if
 	#   all states in array are set.
