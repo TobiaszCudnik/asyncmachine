@@ -460,16 +460,19 @@ class AsyncMachine extends lucidjs.EventEmitter
 		# Tick all the new states.
 		for state in target
 			@clock[state]++ if not ~previous.indexOf state
+		@log "[states] #{@states_active}", 2
 		# Set states in LucidJS emitter
 		# TODO optimise these loops
 		all.forEach (state) =>
 			if ~target.indexOf state
 				# if ( ! ~previous.indexOf( state ) )
 				# this.set( state + '.enter' );
-				@unflag state + ".exit"
+				@log "[unflag] #{state}.exit", 3
+				@unflag "#{state}.exit"
 			else
 				# if ( ~previous.indexOf( state ) )
-				@unflag state + ".enter"
+				@log "[unflag] #{state}.enter", 3
+				@unflag "#{state}.enter"
 				# this.set( state + '.exit'
 
 	# Exit transition handles state-to-state methods.
