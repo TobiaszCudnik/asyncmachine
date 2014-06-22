@@ -43,8 +43,10 @@ class AsyncMachine {
 	public state(name?: any): any;
 	public is(state: string): boolean;
 	public is(state: string[]): boolean;
+	public is(state: string, tick?: number): boolean;
+	public is(state: string[], tick?: number): boolean;
 	public is(): string[];
-	public is(state?: any): any;
+	public is(state?: any, tick?: number): any;
 	public any(...names: string[]): boolean;
 	public any(...names: string[][]): boolean;
 	public any(...names: any[]): boolean;

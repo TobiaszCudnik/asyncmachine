@@ -1,10 +1,3 @@
-"""
-TODO:
-- queue enum
-- log enum
-"""
-
-
 lucidjs = require "lucidjs"
 rsvp = require "rsvp"
 Promise = rsvp.Promise
@@ -66,11 +59,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 	get: (state) -> @[state]
 
 	# Activate certain states and deactivate the current ones.
-	# TODO this should be named #set, but lucidjs took it over
 	set: (states, params...) ->
 		@setState_ states, params
 
-	# Curried version of set.
+	# Deferred version of #set, returning a callback to add the state.
+  # After the call, the responsible promise object is available as
+  # #last_promise
 	setLater: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
@@ -90,7 +84,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 	add: (states, params...) ->
 		@addState_ states, params
 
-	# Curried version of add
+	# Deferred version of #add, returning a callback to add the state.
+  # After the call, the responsible promise object is available as
+  # #last_promise
 	addLater: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
@@ -104,7 +100,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 	drop: (states, params...) ->
 		@dropState_ states, params
 
-	# Deactivate certain states.
+	# Deferred version of #drop, returning a callback to add the state.
+  # After the call, the responsible promise object is available as
+  # #last_promise
 	dropLater: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
@@ -466,6 +464,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@log "[states] #{@states_active}", 2
 		# Set states in LucidJS emitter
 		# TODO optimise these loops
+		@log "[states] #{@states_active}"
 		all.forEach (state) =>
 			if ~target.indexOf state
 				# if ( ! ~previous.indexOf( state ) )

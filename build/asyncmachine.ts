@@ -2,8 +2,6 @@
 /// <reference path="../d.ts/rsvp.d.ts" />
 /// <reference path="../d.ts/lucidjs.d.ts" />
 /// <reference path="../d.ts/commonjs.d.ts" />
-"TODO:\n- queue enum\n- log enum";
-
 import lucidjs = require("lucidjs");
 import rsvp = require("rsvp");
 export var Promise = rsvp.Promise;
@@ -41,12 +39,22 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     public is(state: string): boolean;
     public is(state: string[]): boolean;
+    public is(state: string, tick?: number): boolean;
+    public is(state: string[], tick?: number): boolean;
     public is(): string[];
-    public is(state?: any): any {
+    public is(state?: any, tick?: number): any {
         if (!state) {
             return this.states_active;
         }
-        return !!~this.states_active.indexOf(state);
+        var active = !!~this.states_active.indexOf(state);
+        if (!active) {
+            return false;
+        }
+        if (!tick) {
+            return true;
+        } else {
+            return this.clock(state === tick);
+        }
     }
 
     public any(...names: string[]): boolean;
@@ -539,11 +547,14 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 return this.clock[state]++;
             }
         });
+        this.log("[states] " + this.states_active, 2);
         this.log("[states] " + this.states_active);
         return all.forEach((state) => {
             if (~target.indexOf(state)) {
+                this.log("[unflag] " + state + ".exit", 3);
                 return this.unflag(state + ".exit");
             } else {
+                this.log("[unflag] " + state + ".enter", 3);
                 return this.unflag(state + ".enter");
             }
         });

@@ -20,6 +20,8 @@ export declare class AsyncMachine extends lucidjs.EventEmitter {
     constructor(config?: any);
     public is(state: string): boolean;
     public is(state: string[]): boolean;
+    public is(state: string, tick?: number): boolean;
+    public is(state: string[], tick?: number): boolean;
     public is(): string[];
     public any(...names: string[]): boolean;
     public any(...names: string[][]): boolean;

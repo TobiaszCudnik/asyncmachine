@@ -18,8 +18,7 @@
 	  "compiled-coffee": "TobiaszCudnik/compiled-coffee",
     "chai": "latest",
     "sinon": "latest",
-    "mocha": "latest",
-    "coffee-script": "latest"
+    "mocha": "latest"
   },
   "main": "lib/asyncmachine.js"
 }

@@ -1,14 +1,13 @@
-/// <reference path="../d.ts/es5-shim.d.ts" />
-/// <reference path="../d.ts/rsvp.d.ts" />
-/// <reference path="../d.ts/lucidjs.d.ts" />
-/// <reference path="../d.ts/commonjs.d.ts" />
-"TODO:\n- queue enum\n- log enum";
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/// <reference path="../d.ts/es5-shim.d.ts" />
+/// <reference path="../d.ts/rsvp.d.ts" />
+/// <reference path="../d.ts/lucidjs.d.ts" />
+/// <reference path="../d.ts/commonjs.d.ts" />
 var lucidjs = require("lucidjs");
 var rsvp = require("rsvp");
 exports.Promise = rsvp.Promise;
@@ -36,11 +35,19 @@ var AsyncMachine = (function (_super) {
         this.states_active = [];
         this.clock_ = {};
     }
-    AsyncMachine.prototype.is = function (state) {
+    AsyncMachine.prototype.is = function (state, tick) {
         if (!state) {
             return this.states_active;
         }
-        return !!~this.states_active.indexOf(state);
+        var active = !!~this.states_active.indexOf(state);
+        if (!active) {
+            return false;
+        }
+        if (!tick) {
+            return true;
+        } else {
+            return this.clock(state === tick);
+        }
     };
 
     AsyncMachine.prototype.any = function () {
@@ -597,11 +604,14 @@ var AsyncMachine = (function (_super) {
                 return _this.clock[state]++;
             }
         });
+        this.log("[states] " + this.states_active, 2);
         this.log("[states] " + this.states_active);
         return all.forEach(function (state) {
             if (~target.indexOf(state)) {
+                _this.log("[unflag] " + state + ".exit", 3);
                 return _this.unflag(state + ".exit");
             } else {
+                _this.log("[unflag] " + state + ".enter", 3);
                 return _this.unflag(state + ".enter");
             }
         });
