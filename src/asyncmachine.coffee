@@ -52,6 +52,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	  
 	# Prepare class'es states. Required to be called manually for inheriting classes.
 	register: (states...) ->
+    # TODO assert that the state exists
 		for state in states
 			@states_all.push state
 			@clock[state] = 0
