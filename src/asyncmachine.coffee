@@ -33,7 +33,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		return @states_active if not state
 		active = !!~@states_active.indexOf state
 		return no if not active
-		if not tick then yes else @clock state is tick
+		if tick is undefined then yes else (@clock state) is tick
 
 	# Tells if any of the parameters is set, where if param is an array, checks if
 	#   all states in array are set.
@@ -462,19 +462,18 @@ class AsyncMachine extends lucidjs.EventEmitter
 		# Tick all the new states.
 		for state in target
 			@clock[state]++ if not ~previous.indexOf state
-		@log "[states] #{@states_active}", 2
+		@log "[states] #{@states_active.join ', '}", 2
 		# Set states in LucidJS emitter
 		# TODO optimise these loops
-		@log "[states] #{@states_active}"
 		all.forEach (state) =>
 			if ~target.indexOf state
 				# if ( ! ~previous.indexOf( state ) )
 				# this.set( state + '.enter' );
-				@log "[unflag] #{state}.exit", 3
+#				@log "[unflag] #{state}.exit", 3
 				@unflag "#{state}.exit"
 			else
 				# if ( ~previous.indexOf( state ) )
-				@log "[unflag] #{state}.enter", 3
+#				@log "[unflag] #{state}.enter", 3
 				@unflag "#{state}.enter"
 				# this.set( state + '.exit'
 
@@ -528,10 +527,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 			if not ~event.indexOf "_"
 				# Unflag constraint states
 				if event[-5..-1] is '.exit'
-					@log "[unflag] #{event[0...-5]}.enter", 3
+#					@log "[unflag] #{event[0...-5]}.enter", 3
 					@unflag "#{event[0...-5]}.enter"
 				else if event[-5...-1] is '.enter'
-					@log "[unflag] #{event[0...-5]}.exit", 3
+#					@log "[unflag] #{event[0...-5]}.exit", 3
 					@unflag "#{event[0...-5]}.exit"
 				@log "[flag] #{event}", 3
 				@flag event
