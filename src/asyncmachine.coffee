@@ -14,7 +14,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# TODO change to log_prefix and log_level
 	debug_prefix: ''
 	debug_level: 1
-	clock_: null
+	clock_: {}
 	
 	debug_: no
 		
@@ -55,7 +55,7 @@ class AsyncMachine extends lucidjs.EventEmitter
     # TODO assert that the state exists
 		for state in states
 			@states_all.push state
-			@clock[state] = 0
+			@clock_[state] = 0
 
 	get: (state) -> @[state]
 
@@ -141,7 +141,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# Ticks are incemented by #set, for non-set states.
 	clock: (state) ->
 		# TODO assert an existing state
-		@clock[state]
+		@clock_[state]
 
 	pipeInvert: (state, machine, target_state) ->
 		state = @namespaceName state
@@ -461,7 +461,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@states_active = target
 		# Tick all the new states.
 		for state in target
-			@clock[state]++ if not ~previous.indexOf state
+			@clock_[state]++ if not ~previous.indexOf state
 		@log "[states] #{@states_active.join ', '}", 2
 		# Set states in LucidJS emitter
 		# TODO optimise these loops

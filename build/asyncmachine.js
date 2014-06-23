@@ -27,7 +27,7 @@ var AsyncMachine = (function (_super) {
         this.log_handler_ = null;
         this.debug_prefix = "";
         this.debug_level = 1;
-        this.clock_ = null;
+        this.clock_ = {};
         this.debug_ = false;
         this.debug_ = !!config.debug;
         this.queue = [];
@@ -43,10 +43,10 @@ var AsyncMachine = (function (_super) {
         if (!active) {
             return false;
         }
-        if (!tick) {
+        if (tick === void 0) {
             return true;
         } else {
-            return this.clock(state === tick);
+            return (this.clock(state)) === tick;
         }
     };
 
@@ -88,7 +88,7 @@ var AsyncMachine = (function (_super) {
         }
         return states.map(function (state) {
             _this.states_all.push(state);
-            return _this.clock[state] = 0;
+            return _this.clock_[state] = 0;
         });
     };
 
@@ -198,7 +198,7 @@ var AsyncMachine = (function (_super) {
     };
 
     AsyncMachine.prototype.clock = function (state) {
-        return this.clock[state];
+        return this.clock_[state];
     };
 
     AsyncMachine.prototype.pipeInvert = function (state, machine, target_state) {
@@ -601,17 +601,14 @@ var AsyncMachine = (function (_super) {
         this.states_active = target;
         target.forEach(function (state) {
             if (!~previous.indexOf(state)) {
-                return _this.clock[state]++;
+                return _this.clock_[state]++;
             }
         });
-        this.log("[states] " + this.states_active, 2);
-        this.log("[states] " + this.states_active);
+        this.log("[states] " + (this.states_active.join(", ")), 2);
         return all.forEach(function (state) {
             if (~target.indexOf(state)) {
-                _this.log("[unflag] " + state + ".exit", 3);
                 return _this.unflag(state + ".exit");
             } else {
-                _this.log("[unflag] " + state + ".enter", 3);
                 return _this.unflag(state + ".enter");
             }
         });
@@ -683,10 +680,8 @@ var AsyncMachine = (function (_super) {
         if (ret !== false) {
             if (!~event.indexOf("_")) {
                 if (event.slice(-5) === ".exit") {
-                    this.log("[unflag] " + event.slice(0, -5) + ".enter", 3);
                     this.unflag(event.slice(0, -5) + ".enter");
                 } else if (event.slice(-5, -1) === ".enter") {
-                    this.log("[unflag] " + event.slice(0, -5) + ".exit", 3);
                     this.unflag(event.slice(0, -5) + ".exit");
                 }
                 this.log("[flag] " + event, 3);

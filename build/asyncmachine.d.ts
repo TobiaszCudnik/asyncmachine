@@ -45,7 +45,7 @@ export declare class AsyncMachine extends lucidjs.EventEmitter {
     public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string): any;
     public pipeForward(state: AsyncMachine, machine?: string): any;
     public createChild(): any;
-    public clock(state: any): any;
+    public clock(state: any): number;
     public pipeInvert(state: string, machine: AsyncMachine, target_state: string): lucidjs.IBinding;
     public pipeOff(): void;
     public duringTransition(): boolean;

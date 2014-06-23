@@ -24,7 +24,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     debug_level = 1;
 
-    private clock_: { [state: string]: number } = null;
+    private clock_: { [state: string]: number } = {};
 
     private debug_: boolean = false;
 
@@ -50,10 +50,10 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (!active) {
             return false;
         }
-        if (!tick) {
+        if (tick === void 0) {
             return true;
         } else {
-            return this.clock(state === tick);
+            return (this.clock(state)) === tick;
         }
     }
 
@@ -80,7 +80,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     public register(...states: string[]) {
         return states.map((state) => {
             this.states_all.push(state);
-            return this.clock[state] = 0;
+            return this.clock_[state] = 0;
         });
     }
 
@@ -171,7 +171,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     }
 
     clock(state) {
-        return this.clock[state];
+        return this.clock_[state];
     }
 
     public pipeInvert(state: string, machine: AsyncMachine, target_state: string) {
@@ -544,17 +544,14 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         this.states_active = target;
         target.forEach((state) => {
             if (!~previous.indexOf(state)) {
-                return this.clock[state]++;
+                return this.clock_[state]++;
             }
         });
-        this.log("[states] " + this.states_active, 2);
-        this.log("[states] " + this.states_active);
+        this.log("[states] " + (this.states_active.join(", ")), 2);
         return all.forEach((state) => {
             if (~target.indexOf(state)) {
-                this.log("[unflag] " + state + ".exit", 3);
                 return this.unflag(state + ".exit");
             } else {
-                this.log("[unflag] " + state + ".enter", 3);
                 return this.unflag(state + ".enter");
             }
         });
@@ -628,10 +625,8 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (ret !== false) {
             if (!~event.indexOf("_")) {
                 if (event.slice(-5) === ".exit") {
-                    this.log("[unflag] " + event.slice(0, -5) + ".enter", 3);
                     this.unflag(event.slice(0, -5) + ".enter");
                 } else if (event.slice(-5, -1) === ".enter") {
-                    this.log("[unflag] " + event.slice(0, -5) + ".exit", 3);
                     this.unflag(event.slice(0, -5) + ".exit");
                 }
                 this.log("[flag] " + event, 3);
