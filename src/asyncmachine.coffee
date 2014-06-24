@@ -2,7 +2,7 @@ lucidjs = require "lucidjs"
 rsvp = require "rsvp"
 Promise = rsvp.Promise
 require "es5-shim"
-	  
+		
 class AsyncMachine extends lucidjs.EventEmitter
 						
 	states_all: null
@@ -49,10 +49,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 			!!~@states_active.indexOf name
 			
 	futureQueue: -> @queue
-	  
+		
 	# Prepare class'es states. Required to be called manually for inheriting classes.
 	register: (states...) ->
-    # TODO assert that the state exists
+		# TODO assert that the state exists
 		for state in states
 			@states_all.push state
 			@clock_[state] = 0
@@ -64,8 +64,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@setState_ states, params
 
 	# Deferred version of #set, returning a callback to add the state.
-  # After the call, the responsible promise object is available as
-  # #last_promise
+	# After the call, the responsible promise object is available as
+	# #last_promise
 	setLater: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
@@ -86,8 +86,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@addState_ states, params
 
 	# Deferred version of #add, returning a callback to add the state.
-  # After the call, the responsible promise object is available as
-  # #last_promise
+	# After the call, the responsible promise object is available as
+	# #last_promise
 	addLater: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
@@ -102,8 +102,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@dropState_ states, params
 
 	# Deferred version of #drop, returning a callback to add the state.
-  # After the call, the responsible promise object is available as
-  # #last_promise
+	# After the call, the responsible promise object is available as
+	# #last_promise
 	dropLater: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
@@ -171,7 +171,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		return unless @debug_
 		return if level > @debug_level
 		console.log @debug_prefix + msg
-	  
+		
 	#//////////////////////////
 	# PRIVATES
 	#//////////////////////////
@@ -215,7 +215,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@queue = if ret is no then queue else queue.concat @queue
 		@lock = no
 		ret = @processQueue_ ret
-		    
+				
 		# If length equals and all previous states are set, we assume there
 		# wasnt any change
 		length_equals = @is().length is states_before.length
@@ -251,7 +251,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@queue = if ret is no then queue else queue.concat @queue
 		@lock = no
 		ret = @processQueue_ ret
-		    
+				
 		# If length equals and all previous states are set, we assume there
 		# wasnt any change
 		length_equals = @is().length is states_before.length
@@ -271,12 +271,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@lock = yes
 		@log "[-] Drop state #{states_to_drop.join ", "}", 1
 		states_before = @is()
-		    
+				
 		# Invert states to target ones.
 		states = @states_active.filter (state) ->
 			not ~states_to_drop.indexOf(state)
 		states = @setupTargetStates_ states
-		    
+				
 		# TODO validate if transition still makes sense? like in set/add
 		queue = @queue
 		@queue = []
@@ -284,7 +284,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@queue = if ret is no then queue else queue.concat @queue
 		@lock = no
 		ret = @processQueue_(ret)
-		    
+				
 		# If length equals and all previous states are set, we assume there
 		# wasnt any change
 		length_equals = @is().length is states_before.length
@@ -350,7 +350,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	setupTargetStates_: (states, exclude) ->
 		exclude ?= []
-		    
+				
 		# Remove non existing states
 		states = states.filter (name) =>
 			ret = ~@states_all.indexOf name
@@ -360,7 +360,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		states = @parseImplies_ states
 		states = @removeDuplicateStates_ states
-    
+		
 		# Check if state is blocked or excluded
 		already_blocked = []
 
@@ -426,17 +426,17 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	transition_: (to, explicit_states, params) ->
 		params ?= []
-		    
+				
 		# TODO handle args
 		return yes unless to.length
-		    
+				
 		# Remove active states.
 		from = @states_active.filter (state) ->
 			not ~to.indexOf state
 			
 		@orderStates_ to
 		@orderStates_ from
-		    
+				
 		ret = from.some (state) =>
 			no is @transitionExit_ state, to, explicit_states, params
 			
@@ -484,7 +484,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		transition_params ?= []
 		ret = @transitionExec_ from + "_exit", to, transition_params
 		return no if ret is no
-		    
+				
 		# Duplicate event for namespacing.
 		transition = "exit." + @namespaceName from
 		ret = @transitionExec_ transition, to, transition_params
@@ -498,7 +498,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			ret is no
 			
 		return no if ret is yes
-		    
+				
 		# TODO pass args to explicitly dropped states
 		ret = (@transitionExec_ "#{from}_any", to) is no
 		not ret
@@ -508,7 +508,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		return no if ret is no
 		ret = @transitionExec_ "#{to}_enter", target_states, params
 		return no if ret is no
-		    
+				
 		# Duplicate event for namespacing.
 		event_args = ["enter.#{@namespaceName to}", target_states]
 		ret = @trigger.apply @, event_args.concat params
@@ -522,7 +522,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@log "[event] #{event}", 3
 		if @[method] instanceof Function
 			ret = @[method]?.apply? @, transition_params
-		    
+				
 		if ret isnt no
 			if not ~event.indexOf "_"
 				# Unflag constraint states
