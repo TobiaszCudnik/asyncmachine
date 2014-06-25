@@ -28,6 +28,8 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     private debug_: boolean = false;
 
+    Exception = {};
+
     constructor(public config : any = {}) {
         super();
         this.debug_ = !!config.debug;
@@ -35,6 +37,12 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         this.states_all = [];
         this.states_active = [];
         this.clock_ = {};
+
+        this.register("Exception");
+    }
+
+    Exception_enter(states, err) {
+        return console.log(err);
     }
 
     public is(state: string): boolean;
@@ -100,7 +108,12 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         var deferred = rsvp.defer();
         deferred.promise.then((callback_params) => {
             params.push.apply(params, callback_params);
-            return this.setState_(states, params);
+            try {
+                return this.setState_(states, params);
+            } catch (_error) {
+                var err = _error;
+                return this.add("Exception", err);
+            }
         });
 
         this.last_promise = deferred.promise;
@@ -119,7 +132,12 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         var deferred = rsvp.defer();
         deferred.promise.then((callback_params) => {
             params.push.apply(params, callback_params);
-            return this.addState_(states, params);
+            try {
+                return this.addState_(states, params);
+            } catch (_error) {
+                var err = _error;
+                return this.add("Exception", err);
+            }
         });
 
         this.last_promise = deferred.promise;
@@ -138,7 +156,12 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         var deferred = rsvp.defer();
         deferred.promise.then((callback_params) => {
             params.push.apply(params, callback_params);
-            return this.dropState_(states, params);
+            try {
+                return this.dropState_(states, params);
+            } catch (_error) {
+                var err = _error;
+                return this.add("Exception", err);
+            }
         });
 
         this.last_promise = deferred.promise;
@@ -245,25 +268,31 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             this.queue.push([2, states_to_set, params]);
             return;
         }
-        this.lock = true;
-        this.log("[=] Set state " + (states_to_set.join(", ")), 1);
-        var states_before = this.is();
-        var ret = this.selfTransitionExec_(states_to_set, params);
-        if (ret === false) {
-            return false;
-        }
-        states = this.setupTargetStates_(states_to_set);
-        var states_to_set_valid = states_to_set.some((state) => !!~states.indexOf(state));
+        try {
+            this.lock = true;
+            this.log("[=] Set state " + (states_to_set.join(", ")), 1);
+            var states_before = this.is();
+            var ret = this.selfTransitionExec_(states_to_set, params);
+            if (ret === false) {
+                return false;
+            }
+            states = this.setupTargetStates_(states_to_set);
+            var states_to_set_valid = states_to_set.some((state) => !!~states.indexOf(state));
 
-        if (!states_to_set_valid) {
-            this.log("Transition cancelled, as target states weren't accepted", 2);
-            return this.lock = false;
+            if (!states_to_set_valid) {
+                this.log("Transition cancelled, as target states weren't accepted", 2);
+                return this.lock = false;
+            }
+            var queue = this.queue;
+            this.queue = [];
+            ret = this.transition_(states, states_to_set, params);
+            this.queue = ret === false ? queue : queue.concat(this.queue);
+            this.lock = false;
+        } catch (_error) {
+            var err = _error;
+            this.lock = false;
+            throw err;
         }
-        var queue = this.queue;
-        this.queue = [];
-        ret = this.transition_(states, states_to_set, params);
-        this.queue = ret === false ? queue : queue.concat(this.queue);
-        this.lock = false;
         ret = this.processQueue_(ret);
         var length_equals = this.is().length === states_before.length;
         if (!(this.any(states_before)) || !length_equals) {
@@ -282,31 +311,37 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (!states_to_add.length) {
             return;
         }
-        if (this.lock) {
-            this.queue.push([1, states_to_add, params]);
-            return;
-        }
-        this.lock = true;
-        this.log("[+] Add state " + (states_to_add.join(", ")), 1);
-        var states_before = this.is();
-        var ret = this.selfTransitionExec_(states_to_add, params);
-        if (ret === false) {
-            return false;
-        }
-        states = states_to_add.concat(this.states_active);
-        states = this.setupTargetStates_(states);
-        var states_to_add_valid = states_to_add.some((state) => !!~states.indexOf(state));
+        try {
+            if (this.lock) {
+                this.queue.push([1, states_to_add, params]);
+                return;
+            }
+            this.lock = true;
+            this.log("[+] Add state " + (states_to_add.join(", ")), 1);
+            var states_before = this.is();
+            var ret = this.selfTransitionExec_(states_to_add, params);
+            if (ret === false) {
+                return false;
+            }
+            states = states_to_add.concat(this.states_active);
+            states = this.setupTargetStates_(states);
+            var states_to_add_valid = states_to_add.some((state) => !!~states.indexOf(state));
 
-        if (!states_to_add_valid) {
-            this.log("Transition cancelled, as target states weren't accepted", 2);
-            return this.lock = false;
-        }
+            if (!states_to_add_valid) {
+                this.log("Transition cancelled, as target states weren't accepted", 2);
+                return this.lock = false;
+            }
 
-        var queue = this.queue;
-        this.queue = [];
-        ret = this.transition_(states, states_to_add, params);
-        this.queue = ret === false ? queue : queue.concat(this.queue);
-        this.lock = false;
+            var queue = this.queue;
+            this.queue = [];
+            ret = this.transition_(states, states_to_add, params);
+            this.queue = ret === false ? queue : queue.concat(this.queue);
+            this.lock = false;
+        } catch (_error) {
+            var err = _error;
+            this.lock = false;
+            throw err;
+        }
         ret = this.processQueue_(ret);
         var length_equals = this.is().length === states_before.length;
         if (!(this.any(states_before)) || !length_equals) {
@@ -330,16 +365,22 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             this.queue.push([0, states_to_drop, params]);
             return;
         }
-        this.lock = true;
-        this.log("[-] Drop state " + (states_to_drop.join(", ")), 1);
-        var states_before = this.is();
-        states = this.states_active.filter((state) => !~states_to_drop.indexOf(state));
-        states = this.setupTargetStates_(states);
-        var queue = this.queue;
-        this.queue = [];
-        var ret = this.transition_(states, states_to_drop, params);
-        this.queue = ret === false ? queue : queue.concat(this.queue);
-        this.lock = false;
+        try {
+            this.lock = true;
+            this.log("[-] Drop state " + (states_to_drop.join(", ")), 1);
+            var states_before = this.is();
+            states = this.states_active.filter((state) => !~states_to_drop.indexOf(state));
+            states = this.setupTargetStates_(states);
+            var queue = this.queue;
+            this.queue = [];
+            var ret = this.transition_(states, states_to_drop, params);
+            this.queue = ret === false ? queue : queue.concat(this.queue);
+            this.lock = false;
+        } catch (_error) {
+            var err = _error;
+            this.lock = false;
+            throw err;
+        }
         ret = this.processQueue_(ret);
         var length_equals = this.is().length === states_before.length;
         if (!(this.any(states_before)) || !length_equals) {
@@ -380,6 +421,10 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     }
 
     private createCallback(deferred: rsvp.Defered): (err?, ...params) => void {
+        function cb(e) {
+            return console.log("e2", e);
+        }
+        deferred.promise["catch"](cb);
         return (err : any = null, ...params) => {
             if (err) {
                 return deferred.reject(err);

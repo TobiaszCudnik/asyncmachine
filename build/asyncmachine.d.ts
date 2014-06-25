@@ -17,7 +17,9 @@ export declare class AsyncMachine extends lucidjs.EventEmitter {
     public debug_level: number;
     private clock_;
     private debug_;
+    public Exception: {};
     constructor(config?: any);
+    public Exception_enter(states: any, err: any): any;
     public is(state: string): boolean;
     public is(state: string[]): boolean;
     public is(state: string, tick?: number): boolean;

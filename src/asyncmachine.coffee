@@ -17,6 +17,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 	clock_: {}
 	
 	debug_: no
+	
+	Exception: {}
 		
 	constructor: (@config = {}) ->
 		super()
@@ -25,6 +27,11 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@states_all = []
 		@states_active = []
 		@clock_ = {}
+		
+		@register 'Exception'
+	
+	Exception_enter: (states, err) ->
+		console.log err
 		
 	# Returns active states or if passed a state, returns if its set.
 	# Additionally can assert on a certain tick of a given state.
@@ -71,7 +78,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
 			params.push.apply params, callback_params
-			@setState_ states, params
+			try @setState_ states, params
+			catch err
+				@add 'Exception', err
 
 		@last_promise = deferred.promise
 		@createCallback deferred
@@ -94,7 +103,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
 			params.push.apply params, callback_params
-			@addState_ states, params
+			try @addState_ states, params
+			catch err
+				@add 'Exception', err
 
 		@last_promise = deferred.promise
 		@createCallback deferred
@@ -111,7 +122,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
 			params.push.apply params, callback_params
-			@dropState_ states, params
+			try @dropState_ states, params
+			catch err
+				@add 'Exception', err
 
 		@last_promise = deferred.promise
 		@createCallback deferred
@@ -198,25 +211,29 @@ class AsyncMachine extends lucidjs.EventEmitter
 		if @lock
 			@queue.push [2, states_to_set, params]
 			return
-		@lock = yes
-		@log "[=] Set state #{states_to_set.join ', '}", 1
-		states_before = @is()
-		ret = @selfTransitionExec_ states_to_set, params
-		return no if ret is no
-		states = @setupTargetStates_ states_to_set
-		states_to_set_valid = states_to_set.some (state) ->
-			!!~states.indexOf state
-			
-		unless states_to_set_valid
-			@log "Transition cancelled, as target states weren't accepted", 2
-			return @lock = no
-			
-		# Queue
-		queue = @queue
-		@queue = []
-		ret = @transition_ states, states_to_set, params
-		@queue = if ret is no then queue else queue.concat @queue
-		@lock = no
+		try
+			@lock = yes
+			@log "[=] Set state #{states_to_set.join ', '}", 1
+			states_before = @is()
+			ret = @selfTransitionExec_ states_to_set, params
+			return no if ret is no
+			states = @setupTargetStates_ states_to_set
+			states_to_set_valid = states_to_set.some (state) ->
+				!!~states.indexOf state
+				
+			unless states_to_set_valid
+				@log "Transition cancelled, as target states weren't accepted", 2
+				return @lock = no
+				
+			# Queue
+			queue = @queue
+			@queue = []
+			ret = @transition_ states, states_to_set, params
+			@queue = if ret is no then queue else queue.concat @queue
+			@lock = no
+		catch err
+			@lock = no
+			throw err
 		ret = @processQueue_ ret
 				
 		# If length equals and all previous states are set, we assume there
@@ -231,28 +248,32 @@ class AsyncMachine extends lucidjs.EventEmitter
 	addState_: (states, params) ->
 		states_to_add = [].concat states
 		return unless states_to_add.length
-		if @lock
-			@queue.push [1, states_to_add, params]
-			return
-		@lock = yes
-		@log "[+] Add state #{states_to_add.join ", "}", 1
-		states_before = @is()
-		ret = @selfTransitionExec_ states_to_add, params
-		return no if ret is no
-		states = states_to_add.concat @states_active
-		states = @setupTargetStates_ states
-		states_to_add_valid = states_to_add.some (state) ->
-			!!~states.indexOf(state)
-			
-		unless states_to_add_valid
-			@log "Transition cancelled, as target states weren't accepted", 2
-			return @lock = no
-			
-		queue = @queue
-		@queue = []
-		ret = @transition_ states, states_to_add, params
-		@queue = if ret is no then queue else queue.concat @queue
-		@lock = no
+		try
+			if @lock
+				@queue.push [1, states_to_add, params]
+				return
+			@lock = yes
+			@log "[+] Add state #{states_to_add.join ", "}", 1
+			states_before = @is()
+			ret = @selfTransitionExec_ states_to_add, params
+			return no if ret is no
+			states = states_to_add.concat @states_active
+			states = @setupTargetStates_ states
+			states_to_add_valid = states_to_add.some (state) ->
+				!!~states.indexOf(state)
+				
+			unless states_to_add_valid
+				@log "Transition cancelled, as target states weren't accepted", 2
+				return @lock = no
+				
+			queue = @queue
+			@queue = []
+			ret = @transition_ states, states_to_add, params
+			@queue = if ret is no then queue else queue.concat @queue
+			@lock = no
+		catch err
+			@lock = no
+			throw err
 		ret = @processQueue_ ret
 				
 		# If length equals and all previous states are set, we assume there
@@ -271,21 +292,25 @@ class AsyncMachine extends lucidjs.EventEmitter
 		if @lock
 			@queue.push [0, states_to_drop, params]
 			return
-		@lock = yes
-		@log "[-] Drop state #{states_to_drop.join ", "}", 1
-		states_before = @is()
-				
-		# Invert states to target ones.
-		states = @states_active.filter (state) ->
-			not ~states_to_drop.indexOf(state)
-		states = @setupTargetStates_ states
-				
-		# TODO validate if transition still makes sense? like in set/add
-		queue = @queue
-		@queue = []
-		ret = @transition_ states, states_to_drop, params
-		@queue = if ret is no then queue else queue.concat @queue
-		@lock = no
+		try
+			@lock = yes
+			@log "[-] Drop state #{states_to_drop.join ", "}", 1
+			states_before = @is()
+					
+			# Invert states to target ones.
+			states = @states_active.filter (state) ->
+				not ~states_to_drop.indexOf(state)
+			states = @setupTargetStates_ states
+					
+			# TODO validate if transition still makes sense? like in set/add
+			queue = @queue
+			@queue = []
+			ret = @transition_ states, states_to_drop, params
+			@queue = if ret is no then queue else queue.concat @queue
+			@lock = no
+		catch err
+			@lock = no
+			throw err
 		ret = @processQueue_(ret)
 				
 		# If length equals and all previous states are set, we assume there
@@ -322,6 +347,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		states.every (state) => not @is state
 		
 	createCallback: (deferred) ->
+		cb = (e) -> console.log 'e2', e
+		deferred.promise.catch cb
 		(err = null, params...) ->
 			if err
 				deferred.reject err

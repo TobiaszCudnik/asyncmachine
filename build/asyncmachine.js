@@ -29,12 +29,19 @@ var AsyncMachine = (function (_super) {
         this.debug_level = 1;
         this.clock_ = {};
         this.debug_ = false;
+        this.Exception = {};
         this.debug_ = !!config.debug;
         this.queue = [];
         this.states_all = [];
         this.states_active = [];
         this.clock_ = {};
+
+        this.register("Exception");
     }
+    AsyncMachine.prototype.Exception_enter = function (states, err) {
+        return console.log(err);
+    };
+
     AsyncMachine.prototype.is = function (state, tick) {
         if (!state) {
             return this.states_active;
@@ -113,7 +120,12 @@ var AsyncMachine = (function (_super) {
         var deferred = rsvp.defer();
         deferred.promise.then(function (callback_params) {
             params.push.apply(params, callback_params);
-            return _this.setState_(states, params);
+            try  {
+                return _this.setState_(states, params);
+            } catch (_error) {
+                var err = _error;
+                return _this.add("Exception", err);
+            }
         });
 
         this.last_promise = deferred.promise;
@@ -137,7 +149,12 @@ var AsyncMachine = (function (_super) {
         var deferred = rsvp.defer();
         deferred.promise.then(function (callback_params) {
             params.push.apply(params, callback_params);
-            return _this.addState_(states, params);
+            try  {
+                return _this.addState_(states, params);
+            } catch (_error) {
+                var err = _error;
+                return _this.add("Exception", err);
+            }
         });
 
         this.last_promise = deferred.promise;
@@ -161,7 +178,12 @@ var AsyncMachine = (function (_super) {
         var deferred = rsvp.defer();
         deferred.promise.then(function (callback_params) {
             params.push.apply(params, callback_params);
-            return _this.dropState_(states, params);
+            try  {
+                return _this.dropState_(states, params);
+            } catch (_error) {
+                var err = _error;
+                return _this.add("Exception", err);
+            }
         });
 
         this.last_promise = deferred.promise;
@@ -279,27 +301,33 @@ var AsyncMachine = (function (_super) {
             this.queue.push([2, states_to_set, params]);
             return;
         }
-        this.lock = true;
-        this.log("[=] Set state " + (states_to_set.join(", ")), 1);
-        var states_before = this.is();
-        var ret = this.selfTransitionExec_(states_to_set, params);
-        if (ret === false) {
-            return false;
-        }
-        states = this.setupTargetStates_(states_to_set);
-        var states_to_set_valid = states_to_set.some(function (state) {
-            return !!~states.indexOf(state);
-        });
+        try  {
+            this.lock = true;
+            this.log("[=] Set state " + (states_to_set.join(", ")), 1);
+            var states_before = this.is();
+            var ret = this.selfTransitionExec_(states_to_set, params);
+            if (ret === false) {
+                return false;
+            }
+            states = this.setupTargetStates_(states_to_set);
+            var states_to_set_valid = states_to_set.some(function (state) {
+                return !!~states.indexOf(state);
+            });
 
-        if (!states_to_set_valid) {
-            this.log("Transition cancelled, as target states weren't accepted", 2);
-            return this.lock = false;
+            if (!states_to_set_valid) {
+                this.log("Transition cancelled, as target states weren't accepted", 2);
+                return this.lock = false;
+            }
+            var queue = this.queue;
+            this.queue = [];
+            ret = this.transition_(states, states_to_set, params);
+            this.queue = ret === false ? queue : queue.concat(this.queue);
+            this.lock = false;
+        } catch (_error) {
+            var err = _error;
+            this.lock = false;
+            throw err;
         }
-        var queue = this.queue;
-        this.queue = [];
-        ret = this.transition_(states, states_to_set, params);
-        this.queue = ret === false ? queue : queue.concat(this.queue);
-        this.lock = false;
         ret = this.processQueue_(ret);
         var length_equals = this.is().length === states_before.length;
         if (!(this.any(states_before)) || !length_equals) {
@@ -316,33 +344,39 @@ var AsyncMachine = (function (_super) {
         if (!states_to_add.length) {
             return;
         }
-        if (this.lock) {
-            this.queue.push([1, states_to_add, params]);
-            return;
-        }
-        this.lock = true;
-        this.log("[+] Add state " + (states_to_add.join(", ")), 1);
-        var states_before = this.is();
-        var ret = this.selfTransitionExec_(states_to_add, params);
-        if (ret === false) {
-            return false;
-        }
-        states = states_to_add.concat(this.states_active);
-        states = this.setupTargetStates_(states);
-        var states_to_add_valid = states_to_add.some(function (state) {
-            return !!~states.indexOf(state);
-        });
+        try  {
+            if (this.lock) {
+                this.queue.push([1, states_to_add, params]);
+                return;
+            }
+            this.lock = true;
+            this.log("[+] Add state " + (states_to_add.join(", ")), 1);
+            var states_before = this.is();
+            var ret = this.selfTransitionExec_(states_to_add, params);
+            if (ret === false) {
+                return false;
+            }
+            states = states_to_add.concat(this.states_active);
+            states = this.setupTargetStates_(states);
+            var states_to_add_valid = states_to_add.some(function (state) {
+                return !!~states.indexOf(state);
+            });
 
-        if (!states_to_add_valid) {
-            this.log("Transition cancelled, as target states weren't accepted", 2);
-            return this.lock = false;
-        }
+            if (!states_to_add_valid) {
+                this.log("Transition cancelled, as target states weren't accepted", 2);
+                return this.lock = false;
+            }
 
-        var queue = this.queue;
-        this.queue = [];
-        ret = this.transition_(states, states_to_add, params);
-        this.queue = ret === false ? queue : queue.concat(this.queue);
-        this.lock = false;
+            var queue = this.queue;
+            this.queue = [];
+            ret = this.transition_(states, states_to_add, params);
+            this.queue = ret === false ? queue : queue.concat(this.queue);
+            this.lock = false;
+        } catch (_error) {
+            var err = _error;
+            this.lock = false;
+            throw err;
+        }
         ret = this.processQueue_(ret);
         var length_equals = this.is().length === states_before.length;
         if (!(this.any(states_before)) || !length_equals) {
@@ -364,18 +398,24 @@ var AsyncMachine = (function (_super) {
             this.queue.push([0, states_to_drop, params]);
             return;
         }
-        this.lock = true;
-        this.log("[-] Drop state " + (states_to_drop.join(", ")), 1);
-        var states_before = this.is();
-        states = this.states_active.filter(function (state) {
-            return !~states_to_drop.indexOf(state);
-        });
-        states = this.setupTargetStates_(states);
-        var queue = this.queue;
-        this.queue = [];
-        var ret = this.transition_(states, states_to_drop, params);
-        this.queue = ret === false ? queue : queue.concat(this.queue);
-        this.lock = false;
+        try  {
+            this.lock = true;
+            this.log("[-] Drop state " + (states_to_drop.join(", ")), 1);
+            var states_before = this.is();
+            states = this.states_active.filter(function (state) {
+                return !~states_to_drop.indexOf(state);
+            });
+            states = this.setupTargetStates_(states);
+            var queue = this.queue;
+            this.queue = [];
+            var ret = this.transition_(states, states_to_drop, params);
+            this.queue = ret === false ? queue : queue.concat(this.queue);
+            this.lock = false;
+        } catch (_error) {
+            var err = _error;
+            this.lock = false;
+            throw err;
+        }
         ret = this.processQueue_(ret);
         var length_equals = this.is().length === states_before.length;
         if (!(this.any(states_before)) || !length_equals) {
@@ -419,6 +459,10 @@ var AsyncMachine = (function (_super) {
     };
 
     AsyncMachine.prototype.createCallback = function (deferred) {
+        function cb(e) {
+            return console.log("e2", e);
+        }
+        deferred.promise["catch"](cb);
         return function (err) {
             if (typeof err === "undefined") { err = null; }
             var params = [];
