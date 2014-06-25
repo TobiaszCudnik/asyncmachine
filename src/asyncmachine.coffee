@@ -66,6 +66,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# Deferred version of #set, returning a callback to add the state.
 	# After the call, the responsible promise object is available as
 	# #last_promise
+	# TODO refactor to #setByCallback(err, data) and #setByListener(...params)
 	setLater: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
@@ -88,6 +89,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# Deferred version of #add, returning a callback to add the state.
 	# After the call, the responsible promise object is available as
 	# #last_promise
+	# TODO refactor to #addByCallback(err, data) and #addByListener(...params)
 	addLater: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
@@ -104,6 +106,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# Deferred version of #drop, returning a callback to add the state.
 	# After the call, the responsible promise object is available as
 	# #last_promise
+	# TODO refactor to #dropByCallback(err, data) and #dropByListener(...params)
 	dropLater: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
