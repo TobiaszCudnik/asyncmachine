@@ -18,7 +18,10 @@ declare module "asyncmachine" {
     public debug_level: number;
     private clock_;
     private debug_;
+	public Exception: IState;
     constructor(config?: any);
+    public Exception_enter(states: string[], err: Error): boolean;
+    public Exception_enter(states: string[], err: Error): void;
     public register(...states: string[]): number[];
     public get(state: string): IState;
     public is(state: string): boolean;
