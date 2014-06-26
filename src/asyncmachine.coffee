@@ -33,6 +33,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	Exception_enter: (states, err) ->
 		# Promises eat exceptions, so we need to jump-out-of the stacktrace
 		setTimeout (-> throw err), 0
+		yes
 		
 	# Returns active states or if passed a state, returns if its set.
 	# Additionally can assert on a certain tick of a given state.

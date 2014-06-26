@@ -35,6 +35,7 @@ class AsyncMachine {
 	private clock_: { [state: string]: number };
 	// TODO merge with the TS source
 	constructor(config?: IConfig);
+	public Exception_enter(states: string[], err: Error): boolean;
 	public register(...states: string[]);
 	public get(state: string): IState;
 	public state(name: string): boolean;
