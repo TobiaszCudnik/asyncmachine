@@ -42,7 +42,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     }
 
     Exception_enter(states, err) {
-        return console.log(err);
+        return setTimeout((() => {
+            throw err;
+        }), 0);
     }
 
     public is(state: string): boolean;
