@@ -1,3 +1,4 @@
+/// <reference path="../d.ts/settimeout.d.ts" />
 /// <reference path="../d.ts/es5-shim.d.ts" />
 /// <reference path="../d.ts/rsvp.d.ts" />
 /// <reference path="../d.ts/lucidjs.d.ts" />
@@ -19,7 +20,7 @@ export declare class AsyncMachine extends lucidjs.EventEmitter {
     private debug_;
     public Exception: {};
     constructor(config?: any);
-    public Exception_enter(states: any, err: any): any;
+    public Exception_enter(states: string[], err: Error): boolean;
     public is(state: string): boolean;
     public is(state: string[]): boolean;
     public is(state: string, tick?: number): boolean;

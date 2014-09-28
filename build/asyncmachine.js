@@ -4,6 +4,7 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/// <reference path="../d.ts/settimeout.d.ts" />
 /// <reference path="../d.ts/es5-shim.d.ts" />
 /// <reference path="../d.ts/rsvp.d.ts" />
 /// <reference path="../d.ts/lucidjs.d.ts" />
