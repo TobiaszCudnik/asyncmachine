@@ -708,6 +708,26 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         });
         return null;
     }
+
+    continueEnter(state, func) {
+        var tick = this.clock(state);
+        return () => {
+            if (!this.is(state, tick + 1)) {
+                return;
+            }
+            return func();
+        };
+    }
+
+    continueState(state, func) {
+        var tick = this.clock(state);
+        return () => {
+            if (!this.is(state, tick)) {
+                return;
+            }
+            return func();
+        };
+    }
 }
 
 module.exports.AsyncMachine = AsyncMachine;

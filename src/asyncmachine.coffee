@@ -589,4 +589,20 @@ class AsyncMachine extends lucidjs.EventEmitter
 			ret
 		null
 
+	# TODO support multiple states
+	# TODO automate & merge
+	continueEnter: (state, func) ->
+		tick = @clock state
+		=>
+			return if not @is state, tick + 1
+			do func
+
+	# TODO support multiple states
+	# TODO automate & merge
+	continueState: (state, func) ->
+		tick = @clock state
+		=>
+			return if not @is state, tick
+			do func
+
 module.exports.AsyncMachine = AsyncMachine

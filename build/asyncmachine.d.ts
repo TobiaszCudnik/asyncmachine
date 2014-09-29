@@ -76,6 +76,8 @@ export declare class AsyncMachine extends lucidjs.EventEmitter {
     private transitionEnter_(to, target_states, params);
     private transitionExec_(method, target_states, params?);
     private orderStates_(states);
+    public continueEnter(state: any, func: any): () => any;
+    public continueState(state: any, func: any): () => any;
 }
 export interface IState {
     depends?: string[];

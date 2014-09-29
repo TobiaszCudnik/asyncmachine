@@ -763,6 +763,28 @@ var AsyncMachine = (function (_super) {
         });
         return null;
     };
+
+    AsyncMachine.prototype.continueEnter = function (state, func) {
+        var _this = this;
+        var tick = this.clock(state);
+        return function () {
+            if (!_this.is(state, tick + 1)) {
+                return;
+            }
+            return func();
+        };
+    };
+
+    AsyncMachine.prototype.continueState = function (state, func) {
+        var _this = this;
+        var tick = this.clock(state);
+        return function () {
+            if (!_this.is(state, tick)) {
+                return;
+            }
+            return func();
+        };
+    };
     return AsyncMachine;
 })(lucidjs.EventEmitter);
 exports.AsyncMachine = AsyncMachine;
