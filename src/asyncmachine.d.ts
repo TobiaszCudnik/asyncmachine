@@ -30,7 +30,7 @@ class AsyncMachine {
 	private states_active: string[];
 	public last_promise: rsvp.Promise;
 	// TODO typeme
-	private queue: Object[];
+	private queue: Array<Array<any>>;
 	private lock: boolean;
 	public config: IConfig;
 	private clock_: { [state: string]: number };

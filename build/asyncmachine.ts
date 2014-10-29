@@ -13,7 +13,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     private states_active: string[] = null;
 
-    private queue: Object[] = null;
+    private queue: Array<Array<any>> = null;
 
     private lock: boolean = false;
 
