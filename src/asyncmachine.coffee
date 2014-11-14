@@ -22,6 +22,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		
 	constructor: (@config = {}) ->
 		super()
+		# TODO support debug prefix in settings
 		@debug_ = !!config.debug
 		@queue = []
 		@states_all = []
@@ -193,6 +194,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 	#//////////////////////////
 	# PRIVATES
 	#//////////////////////////
+
+	# TODO log it better
 	processAutoStates: (excluded) ->
 		excluded ?= []
 		add = []
