@@ -243,9 +243,15 @@ var AsyncMachine = (function (_super) {
         }
         var add = [];
         this.states_all.forEach(function (state) {
-            var is_excluded = ~excluded.indexOf(state);
-            var is_current = _this.is(state);
-            if (_this[state].auto && !is_excluded && !is_current) {
+            var is_excluded = function () { return ~excluded.indexOf(state); };
+            var is_current = function () { return _this.is(state); };
+            var is_blocked = function () { return _this.is().some(function (item) {
+                if (!(_this.get(item)).blocks) {
+                    return false;
+                }
+                return Boolean(~(_this.get(item)).blocks.indexOf(state));
+            }); };
+            if (_this[state].auto && !is_excluded() && !is_current() && !is_blocked()) {
                 return add.push(state);
             }
         });

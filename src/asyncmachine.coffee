@@ -200,9 +200,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 		excluded ?= []
 		add = []
 		@states_all.forEach (state) =>
-			is_excluded = ~excluded.indexOf state
-			is_current = @is state
-			if @[state].auto and not is_excluded and not is_current
+			is_excluded = => ~excluded.indexOf state
+			is_current = => @is state
+			is_blocked = => @is().some (item) =>
+				return no if not (@get item).blocks
+				Boolean ~(@get item).blocks.indexOf state
+			if @[state].auto and not is_excluded() and not is_current() \
+					and not is_blocked()
 				add.push state
 
 		@add add

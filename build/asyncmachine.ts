@@ -246,9 +246,15 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         }
         var add = [];
         this.states_all.forEach((state) => {
-            var is_excluded = ~excluded.indexOf(state);
-            var is_current = this.is(state);
-            if (this[state].auto && !is_excluded && !is_current) {
+            var is_excluded = () => ~excluded.indexOf(state);
+            var is_current = () => this.is(state);
+            var is_blocked = () => this.is().some((item) => {
+                    if (!(this.get(item)).blocks) {
+                        return false;
+                    }
+                    return Boolean(~(this.get(item)).blocks.indexOf(state));
+                });
+            if (this[state].auto && !is_excluded() && !is_current() && !is_blocked()) {
                 return add.push(state);
             }
         });
