@@ -28,13 +28,17 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@states_all = []
 		@states_active = []
 		@clock_ = {}
-		
+
+		@setTarget @
 		@register 'Exception'
 	
 	Exception_enter: (states, err) ->
 		# Promises eat exceptions, so we need to jump-out-of the stacktrace
 		setTimeout (-> throw err), 0
-		yes
+	yes
+
+	setTarget: (target) ->
+		@target = target
 		
 	# Returns active states or if passed a state, returns if its set.
 	# Additionally can assert on a certain tick of a given state.
@@ -559,8 +563,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		ret = undefined
 		event = @namespaceTransition_ method
 		@log "[event] #{event}", 3
-		if @[method] instanceof Function
-			ret = @[method]?.apply? @, transition_params
+		if @target[method] instanceof Function
+			ret = @@target[method]?.apply? @, transition_params
 				
 		if ret isnt no
 			if not ~event.indexOf "_"

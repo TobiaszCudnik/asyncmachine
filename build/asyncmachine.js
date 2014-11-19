@@ -35,13 +35,16 @@ var AsyncMachine = (function (_super) {
         this.states_all = [];
         this.states_active = [];
         this.clock_ = {};
+        this.setTarget(this);
         this.register("Exception");
     }
     AsyncMachine.prototype.Exception_enter = function (states, err) {
-        setTimeout((function () {
+        return setTimeout((function () {
             throw err;
         }), 0);
-        return true;
+    };
+    AsyncMachine.prototype.setTarget = function (target) {
+        return this.target = target;
     };
     AsyncMachine.prototype.is = function (state, tick) {
         if (!state) {

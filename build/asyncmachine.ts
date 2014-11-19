@@ -39,14 +39,22 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         this.states_active = [];
         this.clock_ = {};
 
+        this.setTarget(this);
         this.register("Exception");
     }
 
     public Exception_enter(states: string[], err: Error): boolean {
-        setTimeout((() => {
+        return setTimeout((() => {
             throw err;
         }), 0);
-        return true;
+    }
+
+true
+
+
+
+    setTarget(target) {
+        return this.target = target;
     }
 
     public is(state: string): boolean;
