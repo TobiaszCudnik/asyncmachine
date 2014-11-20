@@ -3,6 +3,8 @@
 /// <reference path="../d.ts/rsvp.d.ts" />
 /// <reference path="../d.ts/lucidjs.d.ts" />
 /// <reference path="../d.ts/commonjs.d.ts" />
+var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
 import lucidjs = require("lucidjs");
 import rsvp = require("rsvp");
 export var Promise = rsvp.Promise;
@@ -27,6 +29,10 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     private clock_: { [state: string]: number } = {};
 
+    internal_fields = [];
+
+    target = null;
+
     private debug_: boolean = false;
 
     Exception = {};
@@ -41,20 +47,47 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
         this.setTarget(this);
         this.register("Exception");
+        this.internal_fields = ["_listeners", "_eventEmitters", "_flags", "source", "event", "cancelBubble", "config", "states_all", "states_active", "queue", "lock", "last_promise", "log_handler_", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields"];
     }
 
     public Exception_enter(states: string[], err: Error): boolean {
-        return setTimeout((() => {
+        setTimeout((() => {
             throw err;
         }), 0);
+        return true;
     }
-
-true
-
-
 
     setTarget(target) {
         return this.target = target;
+    }
+
+    registerAll() {
+        var _results;
+        var name = "";
+        var value = null;
+        for (name in this) {
+            value = this[name];
+            if ((this.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0) {
+                this.register(name);
+            }
+        }
+        var constructor = this.constructor.prototype;
+        _results = [];
+        while (true) {
+            for (name in constructor) {
+                value = constructor[name];
+                if ((constructor.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0) {
+                    this.register(name);
+                }
+            }
+            constructor = Object.getPrototypeOf(constructor);
+            if (constructor === AsyncMachine.prototype) {
+                break;
+            } else {
+                _results.push(void 0);
+            }
+        }
+        return _results;
     }
 
     public is(state: string): boolean;
@@ -463,10 +496,14 @@ true
         var ret = states.some((state) => {
             ret = void 0;
             var name = state + "_" + state;
-            var method = this[name];
+            var method = this.target[name];
+            var context = this.target;
+            if (!method && this[name]) {
+                context = this;
+            }
             if (method && ~this.states_active.indexOf(state)) {
                 var transition_params = [states].concat(params);
-                ret = method.apply(this, transition_params);
+                ret = method.apply(context, transition_params);
                 if (ret === false) {
                     return true;
                 }
@@ -673,7 +710,7 @@ true
 
     private transitionExec_(method: string, target_states: string[], 
 		params?: string[]) {
-        var _ref;
+        var _ref, _ref1;
         if (params == null) {
             params = [];
         }
@@ -681,8 +718,10 @@ true
         var ret = void 0;
         var event = this.namespaceTransition_(method);
         this.log("[event] " + event, 3);
-        if (this[method] instanceof Function) {
-            ret = (_ref = this[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(this, transition_params) : void 0 : void 0;
+        if (this.target[method] instanceof Function) {
+            ret = (_ref = this.target[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(this.target, transition_params) : void 0 : void 0;
+        } else if (this[method] instanceof Function) {
+            ret = (_ref1 = this[method]) != null ? typeof _ref1.apply === "function" ? _ref1.apply(this, transition_params) : void 0 : void 0;
         }
 
         if (ret !== false) {

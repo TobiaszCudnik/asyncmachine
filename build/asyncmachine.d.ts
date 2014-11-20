@@ -17,10 +17,14 @@ export declare class AsyncMachine extends lucidjs.EventEmitter {
     debug_prefix: string;
     debug_level: number;
     private clock_;
+    internal_fields: any[];
+    target: any;
     private debug_;
     Exception: {};
     constructor(config?: any);
     Exception_enter(states: string[], err: Error): boolean;
+    setTarget(target: any): any;
+    registerAll(): any;
     is(state: string): boolean;
     is(state: string[]): boolean;
     is(state: string, tick?: number): boolean;

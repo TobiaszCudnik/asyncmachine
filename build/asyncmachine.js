@@ -9,6 +9,13 @@ var __extends = this.__extends || function (d, b) {
 /// <reference path="../d.ts/rsvp.d.ts" />
 /// <reference path="../d.ts/lucidjs.d.ts" />
 /// <reference path="../d.ts/commonjs.d.ts" />
+var __indexOf = [].indexOf || function (item) {
+    for (var i = 0, l = this.length; i < l; i++) {
+        if (i in this && this[i] === item)
+            return i;
+    }
+    return -1;
+};
 var lucidjs = require("lucidjs");
 var rsvp = require("rsvp");
 exports.Promise = rsvp.Promise;
@@ -28,6 +35,8 @@ var AsyncMachine = (function (_super) {
         this.debug_prefix = "";
         this.debug_level = 1;
         this.clock_ = {};
+        this.internal_fields = [];
+        this.target = null;
         this.debug_ = false;
         this.Exception = {};
         this.debug_ = !!config.debug;
@@ -37,14 +46,45 @@ var AsyncMachine = (function (_super) {
         this.clock_ = {};
         this.setTarget(this);
         this.register("Exception");
+        this.internal_fields = ["_listeners", "_eventEmitters", "_flags", "source", "event", "cancelBubble", "config", "states_all", "states_active", "queue", "lock", "last_promise", "log_handler_", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields"];
     }
     AsyncMachine.prototype.Exception_enter = function (states, err) {
-        return setTimeout((function () {
+        setTimeout((function () {
             throw err;
         }), 0);
+        return true;
     };
     AsyncMachine.prototype.setTarget = function (target) {
         return this.target = target;
+    };
+    AsyncMachine.prototype.registerAll = function () {
+        var _results;
+        var name = "";
+        var value = null;
+        for (name in this) {
+            value = this[name];
+            if ((this.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0) {
+                this.register(name);
+            }
+        }
+        var constructor = this.constructor.prototype;
+        _results = [];
+        while (true) {
+            for (name in constructor) {
+                value = constructor[name];
+                if ((constructor.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0) {
+                    this.register(name);
+                }
+            }
+            constructor = Object.getPrototypeOf(constructor);
+            if (constructor === AsyncMachine.prototype) {
+                break;
+            }
+            else {
+                _results.push(void 0);
+            }
+        }
+        return _results;
     };
     AsyncMachine.prototype.is = function (state, tick) {
         if (!state) {
@@ -449,10 +489,14 @@ var AsyncMachine = (function (_super) {
         var ret = states.some(function (state) {
             ret = void 0;
             var name = state + "_" + state;
-            var method = _this[name];
+            var method = _this.target[name];
+            var context = _this.target;
+            if (!method && _this[name]) {
+                context = _this;
+            }
             if (method && ~_this.states_active.indexOf(state)) {
                 var transition_params = [states].concat(params);
-                ret = method.apply(_this, transition_params);
+                ret = method.apply(context, transition_params);
                 if (ret === false) {
                     return true;
                 }
@@ -645,7 +689,7 @@ var AsyncMachine = (function (_super) {
         return ret;
     };
     AsyncMachine.prototype.transitionExec_ = function (method, target_states, params) {
-        var _ref;
+        var _ref, _ref1;
         if (params == null) {
             params = [];
         }
@@ -653,8 +697,11 @@ var AsyncMachine = (function (_super) {
         var ret = void 0;
         var event = this.namespaceTransition_(method);
         this.log("[event] " + event, 3);
-        if (this[method] instanceof Function) {
-            ret = (_ref = this[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(this, transition_params) : void 0 : void 0;
+        if (this.target[method] instanceof Function) {
+            ret = (_ref = this.target[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(this.target, transition_params) : void 0 : void 0;
+        }
+        else if (this[method] instanceof Function) {
+            ret = (_ref1 = this[method]) != null ? typeof _ref1.apply === "function" ? _ref1.apply(this, transition_params) : void 0 : void 0;
         }
         if (ret !== false) {
             if (!~event.indexOf("_")) {

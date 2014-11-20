@@ -4,7 +4,7 @@ Promise = rsvp.Promise
 require "es5-shim"
 		
 class AsyncMachine extends lucidjs.EventEmitter
-						
+
 	states_all: null
 	states_active: null
 	queue: null
@@ -15,11 +15,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 	debug_prefix: ''
 	debug_level: 1
 	clock_: {}
-	
+	internal_fields: []
+	target: null
+
 	debug_: no
-	
+
 	Exception: {}
-		
+
 	constructor: (@config = {}) ->
 		super()
 		# TODO support debug prefix in settings
@@ -31,15 +33,38 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		@setTarget @
 		@register 'Exception'
-	
+		# This is lame, where are the prototypes?
+		@internal_fields = ['_listeners', '_eventEmitters', '_flags'
+			'source', 'event', 'cancelBubble', 'config', 'states_all'
+			'states_active', 'queue', 'lock', 'last_promise', 'log_handler_'
+			'debug_prefix', 'debug_level', 'clock_', 'debug_'
+			'target', 'internal_fields']
+
 	Exception_enter: (states, err) ->
 		# Promises eat exceptions, so we need to jump-out-of the stacktrace
 		setTimeout (-> throw err), 0
-	yes
+		yes
 
 	setTarget: (target) ->
 		@target = target
-		
+
+	registerAll: ->
+		name = ''
+		value = null
+
+		# test the instance vars
+		for name, value of @
+			if (@hasOwnProperty name) and name not in @internal_fields
+				@register name
+		# test the prototype chain
+		constructor = @constructor.prototype
+		while yes
+			for name, value of constructor
+				if (constructor.hasOwnProperty name) and name not in @internal_fields
+					@register name
+			constructor = Object.getPrototypeOf constructor
+			break if constructor is AsyncMachine.prototype
+
 	# Returns active states or if passed a state, returns if its set.
 	# Additionally can assert on a certain tick of a given state.
 	is: (state, tick) ->
@@ -57,13 +82,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 				@every name
 			else
 				@is name
-		
+
 	every: (names...) ->
 		names.every (name) =>
 			!!~@states_active.indexOf name
-			
+
 	futureQueue: -> @queue
-		
+
 	# Prepare class'es states. Required to be called manually for inheriting classes.
 	register: (states...) ->
 		# TODO assert that the state exists
@@ -91,7 +116,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		@last_promise = deferred.promise
 		@createCallback deferred
-		
+
 	# Sets a state and fires a callback once it's fulfilled
 	# TODO types, tests
 #	onceSet: (state, listener) ->
@@ -140,12 +165,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 		# switch params order
 		if state instanceof AsyncMachine
 			return @pipeForward @states_all, state, machine
-		
+
 		# cast to an array
 		[].concat(state).forEach (state) =>
 			new_state = target_state or state
 			namespace = @namespaceName state
-			
+
 			@on namespace + ".enter", ->
 				machine.add new_state
 
@@ -159,7 +184,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		child.clock = {}
 		child.clock[state] = 0 for state in @states_all
 		child
-		
+
 	# Gets the current tick of a state.
 	# Ticks are incemented by #set, for non-set states.
 	clock: (state) ->
@@ -175,7 +200,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			machine.add target_state
 
 	pipeOff: -> throw new Error "not implemented yet"
-		
+
 	duringTransition: -> @lock
 
 	# TODO use a regexp lib for IE8's 'g' flag compat?
@@ -194,7 +219,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		return unless @debug_
 		return if level > @debug_level
 		console.log @debug_prefix + msg
-		
+
 	#//////////////////////////
 	# PRIVATES
 	#//////////////////////////
@@ -233,11 +258,11 @@ class AsyncMachine extends lucidjs.EventEmitter
 			states = @setupTargetStates_ states_to_set
 			states_to_set_valid = states_to_set.some (state) ->
 				!!~states.indexOf state
-				
+
 			unless states_to_set_valid
 				@log "Transition cancelled, as target states weren't accepted", 2
 				return @lock = no
-				
+
 			# Queue
 			queue = @queue
 			@queue = []
@@ -248,7 +273,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@lock = no
 			throw err
 		ret = @processQueue_ ret
-				
+
 		# If length equals and all previous states are set, we assume there
 		# wasnt any change
 		length_equals = @is().length is states_before.length
@@ -274,11 +299,11 @@ class AsyncMachine extends lucidjs.EventEmitter
 			states = @setupTargetStates_ states
 			states_to_add_valid = states_to_add.some (state) ->
 				!!~states.indexOf(state)
-				
+
 			unless states_to_add_valid
 				@log "Transition cancelled, as target states weren't accepted", 2
 				return @lock = no
-				
+
 			queue = @queue
 			@queue = []
 			ret = @transition_ states, states_to_add, params
@@ -288,13 +313,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@lock = no
 			throw err
 		ret = @processQueue_ ret
-				
+
 		# If length equals and all previous states are set, we assume there
 		# wasnt any change
 		length_equals = @is().length is states_before.length
 		if not (@any states_before) or not length_equals
-			@processAutoStates() 
-		if ret is no 
+			@processAutoStates()
+		if ret is no
 			no
 		else
 			@allStatesSet states_to_add
@@ -309,12 +334,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@lock = yes
 			@log "[-] Drop state #{states_to_drop.join ", "}", 1
 			states_before = @is()
-					
+
 			# Invert states to target ones.
 			states = @states_active.filter (state) ->
 				not ~states_to_drop.indexOf(state)
 			states = @setupTargetStates_ states
-					
+
 			# TODO validate if transition still makes sense? like in set/add
 			queue = @queue
 			@queue = []
@@ -325,7 +350,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@lock = no
 			throw err
 		ret = @processQueue_(ret)
-				
+
 		# If length equals and all previous states are set, we assume there
 		# wasnt any change
 		length_equals = @is().length is states_before.length
@@ -358,7 +383,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	allStatesNotSet: (states) ->
 		states.every (state) => not @is state
-		
+
 	createCallback: (deferred) ->
 		cb = (e) -> console.log 'e2', e
 		deferred.promise.catch cb
@@ -381,10 +406,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 		ret = states.some (state) =>
 			ret = undefined
 			name = state + "_" + state
-			method = @[name]
+			method = @target[name]
+			context = @target
+			if not method and @[name]
+				context = @
 			if method and ~@states_active.indexOf state
 				transition_params = [states].concat params
-				ret = method.apply @, transition_params
+				ret = method.apply context, transition_params
 				return yes if ret is no
 				event = @namespaceTransition_ name
 				transition_params2 = [event, states].concat params
@@ -393,7 +421,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	setupTargetStates_: (states, exclude) ->
 		exclude ?= []
-				
+
 		# Remove non existing states
 		states = states.filter (name) =>
 			ret = ~@states_all.indexOf name
@@ -403,7 +431,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		states = @parseImplies_ states
 		states = @removeDuplicateStates_ states
-		
+
 		# Check if state is blocked or excluded
 		already_blocked = []
 
@@ -412,14 +440,14 @@ class AsyncMachine extends lucidjs.EventEmitter
 			blocked_by = @isStateBlocked_ states, name
 			blocked_by = blocked_by.filter (blocker_name) ->
 				not ~already_blocked.indexOf blocker_name
-				
+
 			if blocked_by.length
 				already_blocked.push name
-				# if state wasn't implied by another state (was one of the current 
+				# if state wasn't implied by another state (was one of the current
 				# states) then make it a higher priority log msg
 				if @is name
 					@log "State #{name} dropped by #{blocked_by.join(", ")}", 2
-				else 
+				else
 					@log "State #{name} ignored because of #{blocked_by.join(", ")}", 3
 			not blocked_by.length and not ~exclude.indexOf name
 
@@ -463,26 +491,26 @@ class AsyncMachine extends lucidjs.EventEmitter
 		states.forEach (name2) =>
 			state = @get name2
 			if state.blocks and ~state.blocks.indexOf name
-				blocked_by.push name2 
+				blocked_by.push name2
 
 		blocked_by
 
 	transition_: (to, explicit_states, params) ->
 		params ?= []
-				
+
 		# TODO handle args
 		return yes unless to.length
-				
+
 		# Remove active states.
 		from = @states_active.filter (state) ->
 			not ~to.indexOf state
-			
+
 		@orderStates_ to
 		@orderStates_ from
-				
+
 		ret = from.some (state) =>
 			no is @transitionExit_ state, to, explicit_states, params
-			
+
 		return no if ret is yes
 		ret = to.some (state) =>
 			# Skip transition if state is already active.
@@ -493,7 +521,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 				transition_params = []
 			ret = @transitionEnter_ state, to, transition_params
 			ret is no
-			
+
 		return no if ret is yes
 		@setActiveStates_ to
 		yes
@@ -527,7 +555,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		transition_params ?= []
 		ret = @transitionExec_ from + "_exit", to, transition_params
 		return no if ret is no
-				
+
 		# Duplicate event for namespacing.
 		transition = "exit." + @namespaceName from
 		ret = @transitionExec_ transition, to, transition_params
@@ -539,9 +567,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 			transition_params ?= []
 			ret = @transitionExec_ transition, to, transition_params
 			ret is no
-			
+
 		return no if ret is yes
-				
+
 		# TODO pass args to explicitly dropped states
 		ret = (@transitionExec_ "#{from}_any", to) is no
 		not ret
@@ -551,7 +579,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		return no if ret is no
 		ret = @transitionExec_ "#{to}_enter", target_states, params
 		return no if ret is no
-				
+
 		# Duplicate event for namespacing.
 		event_args = ["enter.#{@namespaceName to}", target_states]
 		ret = @trigger.apply @, event_args.concat params
@@ -564,8 +592,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 		event = @namespaceTransition_ method
 		@log "[event] #{event}", 3
 		if @target[method] instanceof Function
-			ret = @@target[method]?.apply? @, transition_params
-				
+			ret = @target[method]?.apply? @target, transition_params
+		else if @[method] instanceof Function
+			ret = @[method]?.apply? @, transition_params
+
 		if ret isnt no
 			if not ~event.indexOf "_"
 				# Unflag constraint states
