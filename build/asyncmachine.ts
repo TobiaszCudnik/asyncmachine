@@ -300,7 +300,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             }
         });
 
-        return this.add(add);
+        return this.addState_(add, [], true);
     }
 
     private setState_(states: string, params: any[]);
@@ -355,9 +355,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.allStatesSet(states_to_set);
     }
 
-    private addState_(states: string, params: any[]);
-    private addState_(states: string[], params: any[]);
-    private addState_(states: any, params: any[]): boolean {
+    private addState_(states: string, params: any[], autostate?: boolean);
+    private addState_(states: string[], params: any[], autostate?: boolean);
+    private addState_(states: any, params: any[], autostate?: boolean): boolean {
         var states_to_add = [].concat(states);
         if (!states_to_add.length) {
             return;
@@ -368,7 +368,11 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 return;
             }
             this.lock = true;
-            this.log("[+] Add state " + (states_to_add.join(", ")), 1);
+            if (autostate) {
+                this.log("[+] Auto add state " + (states_to_add.join(", ")), 3);
+            } else {
+                this.log("[+] Add state " + (states_to_add.join(", ")), 2);
+            }
             var states_before = this.is();
             var ret = this.selfTransitionExec_(states_to_add, params);
             if (ret === false) {
@@ -530,7 +534,8 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         states = this.parseImplies_(states);
         states = this.removeDuplicateStates_(states);
         var already_blocked = [];
-        states = states.reverse().filter((name) => {
+        states = this.parseRequires_(states);
+        return states = states.reverse().filter((name) => {
             var blocked_by = this.isStateBlocked_(states, name);
             blocked_by = blocked_by.filter((blocker_name) => !~already_blocked.indexOf(blocker_name));
 
@@ -544,8 +549,6 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             }
             return !blocked_by.length && !~exclude.indexOf(name);
         });
-
-        return this.parseRequires_(states.reverse());
     }
 
     private parseImplies_(states: string[]): string[] {
@@ -641,13 +644,29 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     private setActiveStates_(target: string[]) {
         var previous = this.states_active;
         var all = this.states_all;
+        var new_states = this.diffStates(target, this.states_active);
+        var removed_states = this.diffStates(this.states_active, target);
+        var nochange_states = this.diffStates(target, new_states);
         this.states_active = target;
         target.forEach((state) => {
             if (!~previous.indexOf(state)) {
                 return this.clock_[state]++;
             }
         });
-        this.log("[states] " + (this.states_active.join(", ")), 2);
+        var log_msg = "[states] ";
+        if (new_states.length) {
+            log_msg += "+" + (new_states.join(" +"));
+        }
+        if (removed_states.length) {
+            log_msg += " -" + (removed_states.join(" -"));
+        }
+        if (nochange_states.length) {
+            if (new_states.length || removed_states.length) {
+                log_msg += "\n    ";
+            }
+            log_msg += nochange_states.join(", ");
+        }
+        this.log(log_msg, 1);
         return all.forEach((state) => {
             if (~target.indexOf(state)) {
                 return this.unflag(state + ".exit");
@@ -655,6 +674,10 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 return this.unflag(state + ".enter");
             }
         });
+    }
+
+    diffStates(states1, states2) {
+        return states1.filter((name) => __indexOf.call(states2, name) < 0).map((name) => name);
     }
 
     private transitionExit_(from: string, to: string[], 
@@ -780,6 +803,16 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             }
             return func();
         };
+    }
+
+    getInterrupt(state) {
+        var tick = this.clock(state);
+        return () => !this.is(state, tick);
+    }
+
+    getInterruptEnter(state) {
+        var tick = this.clock(state);
+        return () => !this.is(state, tick + 1);
     }
 }
 

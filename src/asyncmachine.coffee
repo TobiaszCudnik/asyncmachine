@@ -238,7 +238,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 					and not is_blocked()
 				add.push state
 
-		@add add
+		@addState_ add, [], yes
 
 	setState_: (states, params) ->
 		states_to_set = [].concat states
@@ -283,7 +283,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@allStatesSet states_to_set
 
 	# TODO Maybe avoid double concat of states_active
-	addState_: (states, params) ->
+	addState_: (states, params, autostate) ->
 		states_to_add = [].concat states
 		return unless states_to_add.length
 		try
@@ -291,7 +291,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 				@queue.push [1, states_to_add, params]
 				return
 			@lock = yes
-			@log "[+] Add state #{states_to_add.join ", "}", 1
+			if autostate
+				@log "[+] Auto add state #{states_to_add.join ", "}", 3
+			else
+				@log "[+] Add state #{states_to_add.join ", "}", 2
 			states_before = @is()
 			ret = @selfTransitionExec_ states_to_add, params
 			return no if ret is no
@@ -435,6 +438,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 		# Check if state is blocked or excluded
 		already_blocked = []
 
+		# parsing required states allows to avoid cross-dropping of states
+		states = @parseRequires_ states
+
 		# Remove states already blocked.
 		states = states.reverse().filter (name) =>
 			blocked_by = @isStateBlocked_ states, name
@@ -451,14 +457,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 					@log "State #{name} ignored because of #{blocked_by.join(", ")}", 3
 			not blocked_by.length and not ~exclude.indexOf name
 
-		@parseRequires_ states.reverse()
-
 	# Collect implied states
 	parseImplies_: (states) ->
 		states.forEach (name) =>
 			state = @get(name)
 			return unless state.implies
-			states = states.concat(state.implies)
+			states = states.concat state.implies
 
 		states
 
@@ -529,11 +533,23 @@ class AsyncMachine extends lucidjs.EventEmitter
 	setActiveStates_: (target) ->
 		previous = @states_active
 		all = @states_all
+		new_states = @diffStates target, @states_active
+		removed_states = @diffStates @states_active, target
+		nochange_states = @diffStates target, new_states
 		@states_active = target
 		# Tick all the new states.
 		for state in target
 			@clock_[state]++ if not ~previous.indexOf state
-		@log "[states] #{@states_active.join ', '}", 2
+		log_msg = "[states] "
+		if new_states.length
+			log_msg += "+#{new_states.join ' +'}"
+		if removed_states.length
+			log_msg += " -#{removed_states.join ' -'}"
+		if nochange_states.length
+			if new_states.length or removed_states.length
+				log_msg += "\n    "
+			log_msg += nochange_states.join ', '
+		@log log_msg, 1
 		# Set states in LucidJS emitter
 		# TODO optimise these loops
 		all.forEach (state) =>
@@ -547,6 +563,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 #				@log "[unflag] #{state}.enter", 3
 				@unflag "#{state}.enter"
 				# this.set( state + '.exit'
+
+	diffStates: (states1, states2) ->
+		name for name in states1 when name not in states2
 
 	# Exit transition handles state-to-state methods.
 	transitionExit_: (from, to, explicit_states, params) ->
@@ -607,6 +626,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 					@unflag "#{event[0...-5]}.exit"
 				@log "[flag] #{event}", 3
 				@flag event
+			# TODO this currently doesnt work like this in the newest lucidjs emitter
 			ret = @trigger event, transition_params
 			if ret is no
 				@log "Transition event #{event} cancelled", 2
@@ -645,5 +665,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 		=>
 			return if not @is state, tick
 			do func
+
+	getInterrupt: (state) ->
+		tick = @clock state
+		=> not @is state, tick
+
+	getInterruptEnter: (state) ->
+		tick = @clock state
+		=> not @is state, tick + 1
 
 module.exports.AsyncMachine = AsyncMachine

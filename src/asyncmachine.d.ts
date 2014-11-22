@@ -95,9 +95,9 @@ class AsyncMachine {
 	private setState_(states: string[], params: any[]);
 	private setState_(states: any, params: any[]): boolean;
 		
-	private addState_(states: string, params: any[]);
-	private addState_(states: string[], params: any[]);
-	private addState_(states: any, params: any[]): boolean;
+	private addState_(states: string, params: any[], autostate?: boolean);
+	private addState_(states: string[], params: any[], autostate?: boolean);
+	private addState_(states: any, params: any[], autostate?: boolean): boolean;
 		
 	private dropState_(states: string, params: any[]);
 	private dropState_(states: string[], params: any[]);

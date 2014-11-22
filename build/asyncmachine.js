@@ -298,7 +298,7 @@ var AsyncMachine = (function (_super) {
                 return add.push(state);
             }
         });
-        return this.add(add);
+        return this.addState_(add, [], true);
     };
     AsyncMachine.prototype.setState_ = function (states, params) {
         var _this = this;
@@ -350,7 +350,7 @@ var AsyncMachine = (function (_super) {
         }
         return this.allStatesSet(states_to_set);
     };
-    AsyncMachine.prototype.addState_ = function (states, params) {
+    AsyncMachine.prototype.addState_ = function (states, params, autostate) {
         var states_to_add = [].concat(states);
         if (!states_to_add.length) {
             return;
@@ -361,7 +361,12 @@ var AsyncMachine = (function (_super) {
                 return;
             }
             this.lock = true;
-            this.log("[+] Add state " + (states_to_add.join(", ")), 1);
+            if (autostate) {
+                this.log("[+] Auto add state " + (states_to_add.join(", ")), 3);
+            }
+            else {
+                this.log("[+] Add state " + (states_to_add.join(", ")), 2);
+            }
             var states_before = this.is();
             var ret = this.selfTransitionExec_(states_to_add, params);
             if (ret === false) {
@@ -522,7 +527,8 @@ var AsyncMachine = (function (_super) {
         states = this.parseImplies_(states);
         states = this.removeDuplicateStates_(states);
         var already_blocked = [];
-        states = states.reverse().filter(function (name) {
+        states = this.parseRequires_(states);
+        return states = states.reverse().filter(function (name) {
             var blocked_by = _this.isStateBlocked_(states, name);
             blocked_by = blocked_by.filter(function (blocker_name) { return !~already_blocked.indexOf(blocker_name); });
             if (blocked_by.length) {
@@ -536,7 +542,6 @@ var AsyncMachine = (function (_super) {
             }
             return !blocked_by.length && !~exclude.indexOf(name);
         });
-        return this.parseRequires_(states.reverse());
     };
     AsyncMachine.prototype.parseImplies_ = function (states) {
         var _this = this;
@@ -625,13 +630,29 @@ var AsyncMachine = (function (_super) {
         var _this = this;
         var previous = this.states_active;
         var all = this.states_all;
+        var new_states = this.diffStates(target, this.states_active);
+        var removed_states = this.diffStates(this.states_active, target);
+        var nochange_states = this.diffStates(target, new_states);
         this.states_active = target;
         target.forEach(function (state) {
             if (!~previous.indexOf(state)) {
                 return _this.clock_[state]++;
             }
         });
-        this.log("[states] " + (this.states_active.join(", ")), 2);
+        var log_msg = "[states] ";
+        if (new_states.length) {
+            log_msg += "+" + (new_states.join(" +"));
+        }
+        if (removed_states.length) {
+            log_msg += " -" + (removed_states.join(" -"));
+        }
+        if (nochange_states.length) {
+            if (new_states.length || removed_states.length) {
+                log_msg += "\n    ";
+            }
+            log_msg += nochange_states.join(", ");
+        }
+        this.log(log_msg, 1);
         return all.forEach(function (state) {
             if (~target.indexOf(state)) {
                 return _this.unflag(state + ".exit");
@@ -640,6 +661,9 @@ var AsyncMachine = (function (_super) {
                 return _this.unflag(state + ".enter");
             }
         });
+    };
+    AsyncMachine.prototype.diffStates = function (states1, states2) {
+        return states1.filter(function (name) { return __indexOf.call(states2, name) < 0; }).map(function (name) { return name; });
     };
     AsyncMachine.prototype.transitionExit_ = function (from, to, explicit_states, params) {
         var _this = this;
@@ -761,6 +785,16 @@ var AsyncMachine = (function (_super) {
             }
             return func();
         };
+    };
+    AsyncMachine.prototype.getInterrupt = function (state) {
+        var _this = this;
+        var tick = this.clock(state);
+        return function () { return !_this.is(state, tick); };
+    };
+    AsyncMachine.prototype.getInterruptEnter = function (state) {
+        var _this = this;
+        var tick = this.clock(state);
+        return function () { return !_this.is(state, tick + 1); };
     };
     return AsyncMachine;
 })(lucidjs.EventEmitter);
