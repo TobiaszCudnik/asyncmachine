@@ -112,7 +112,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			params.push.apply params, callback_params
 			try @setState_ states, params
 			catch err
-				@add 'Exception', err
+				@set 'Exception', err
 
 		@last_promise = deferred.promise
 		@createCallback deferred
@@ -156,7 +156,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			params.push.apply params, callback_params
 			try @dropState_ states, params
 			catch err
-				@add 'Exception', err
+				@drop 'Exception', err
 
 		@last_promise = deferred.promise
 		@createCallback deferred
@@ -388,8 +388,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 		states.every (state) => not @is state
 
 	createCallback: (deferred) ->
-		cb = (e) -> console.log 'e2', e
-		deferred.promise.catch cb
 		(err = null, params...) ->
 			if err
 				deferred.reject err
@@ -456,6 +454,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 				else
 					@log "State #{name} ignored because of #{blocked_by.join(", ")}", 3
 			not blocked_by.length and not ~exclude.indexOf name
+
+		# parsing required states allows to avoid cross-dropping of states
+		states = @parseRequires_ states
 
 	# Collect implied states
 	parseImplies_: (states) ->

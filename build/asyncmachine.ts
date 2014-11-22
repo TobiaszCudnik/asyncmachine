@@ -157,7 +157,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 return this.setState_(states, params);
             } catch (_error) {
                 var err = _error;
-                return this.add("Exception", err);
+                return this.set("Exception", err);
             }
         });
 
@@ -205,7 +205,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 return this.dropState_(states, params);
             } catch (_error) {
                 var err = _error;
-                return this.add("Exception", err);
+                return this.drop("Exception", err);
             }
         });
 
@@ -476,10 +476,6 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     }
 
     private createCallback(deferred: rsvp.Defered): (err?, ...params) => void {
-        function cb(e) {
-            return console.log("e2", e);
-        }
-        deferred.promise["catch"](cb);
         return (err : any = null, ...params) => {
             if (err) {
                 return deferred.reject(err);
@@ -535,7 +531,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         states = this.removeDuplicateStates_(states);
         var already_blocked = [];
         states = this.parseRequires_(states);
-        return states = states.reverse().filter((name) => {
+        states = states.reverse().filter((name) => {
             var blocked_by = this.isStateBlocked_(states, name);
             blocked_by = blocked_by.filter((blocker_name) => !~already_blocked.indexOf(blocker_name));
 
@@ -549,6 +545,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             }
             return !blocked_by.length && !~exclude.indexOf(name);
         });
+        return states = this.parseRequires_(states);
     }
 
     private parseImplies_(states: string[]): string[] {

@@ -162,7 +162,7 @@ var AsyncMachine = (function (_super) {
             }
             catch (_error) {
                 var err = _error;
-                return _this.add("Exception", err);
+                return _this.set("Exception", err);
             }
         });
         this.last_promise = deferred.promise;
@@ -216,7 +216,7 @@ var AsyncMachine = (function (_super) {
             }
             catch (_error) {
                 var err = _error;
-                return _this.add("Exception", err);
+                return _this.drop("Exception", err);
             }
         });
         this.last_promise = deferred.promise;
@@ -465,10 +465,6 @@ var AsyncMachine = (function (_super) {
         return states.every(function (state) { return !_this.is(state); });
     };
     AsyncMachine.prototype.createCallback = function (deferred) {
-        function cb(e) {
-            return console.log("e2", e);
-        }
-        deferred.promise["catch"](cb);
         return function (err) {
             if (err === void 0) { err = null; }
             var params = [];
@@ -528,7 +524,7 @@ var AsyncMachine = (function (_super) {
         states = this.removeDuplicateStates_(states);
         var already_blocked = [];
         states = this.parseRequires_(states);
-        return states = states.reverse().filter(function (name) {
+        states = states.reverse().filter(function (name) {
             var blocked_by = _this.isStateBlocked_(states, name);
             blocked_by = blocked_by.filter(function (blocker_name) { return !~already_blocked.indexOf(blocker_name); });
             if (blocked_by.length) {
@@ -542,6 +538,7 @@ var AsyncMachine = (function (_super) {
             }
             return !blocked_by.length && !~exclude.indexOf(name);
         });
+        return states = this.parseRequires_(states);
     };
     AsyncMachine.prototype.parseImplies_ = function (states) {
         var _this = this;
