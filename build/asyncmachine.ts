@@ -243,10 +243,12 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     }
 
     public pipeInvert(state: string, machine: AsyncMachine, target_state: string) {
-        state = this.namespaceName(state);
-        this.on(state + ".enter", () => machine.drop(target_state));
+        return [].concat(state).forEach((state) => {
+            state = this.namespaceName(state);
+            this.on(state + ".enter", () => machine.drop(target_state));
 
-        return this.on(state + ".exit", () => machine.add(target_state));
+            return this.on(state + ".exit", () => machine.add(target_state));
+        });
     }
 
     public pipeOff(): void {
@@ -657,7 +659,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (removed_states.length) {
             log_msg += " -" + (removed_states.join(" -"));
         }
-        if (nochange_states.length) {
+        if (nochange_states.length && this.config.debug > 1) {
             if (new_states.length || removed_states.length) {
                 log_msg += "\n    ";
             }
@@ -802,14 +804,48 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         };
     }
 
-    getInterrupt(state) {
+    getInterrupt(state, interrupt) {
         var tick = this.clock(state);
-        return () => !this.is(state, tick);
+        return () => {
+            if (interrupt && !interrupt()) {
+                return false;
+            }
+            return !this.is(state, tick);
+        };
     }
 
-    getInterruptEnter(state) {
+    getInterruptEnter(state, interrupt) {
         var tick = this.clock(state);
-        return () => !this.is(state, tick + 1);
+        return () => {
+            if (interrupt && !interrupt()) {
+                return false;
+            }
+            return !this.is(state, tick + 1);
+        };
+    }
+
+    when(states, listener) {
+        var fires = 0;
+        if (!states.length) {
+            states = [states];
+        }
+        if (!listener) {
+            return new RSVP.Promise((resolve, reject) => this.bindToStates(states, resolve));
+        } else {
+            return this.bindToStates(states, listener);
+        }
+    }
+
+    bindToStates(states, resolve) {
+        return states.map((state) => {
+            this.on(state + ".enter", () => {
+                fired += 1;
+                if (fires === states.length) {
+                    return listener();
+                }
+            });
+            return this.on(state + ".exit", () => fired -= 1);
+        });
     }
 }
 

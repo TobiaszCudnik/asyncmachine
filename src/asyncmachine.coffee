@@ -192,12 +192,13 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@clock_[state]
 
 	pipeInvert: (state, machine, target_state) ->
-		state = @namespaceName state
-		@on state + ".enter", ->
-			machine.drop target_state
+		[].concat(state).forEach (state) =>
+			state = @namespaceName state
+			@on state + ".enter", ->
+				machine.drop target_state
 
-		@on state + ".exit", ->
-			machine.add target_state
+			@on state + ".exit", ->
+				machine.add target_state
 
 	pipeOff: -> throw new Error "not implemented yet"
 
@@ -541,16 +542,19 @@ class AsyncMachine extends lucidjs.EventEmitter
 		# Tick all the new states.
 		for state in target
 			@clock_[state]++ if not ~previous.indexOf state
+
+		 # construct a logging msg
 		log_msg = "[states] "
 		if new_states.length
 			log_msg += "+#{new_states.join ' +'}"
 		if removed_states.length
 			log_msg += " -#{removed_states.join ' -'}"
-		if nochange_states.length
+		if nochange_states.length and @config.debug > 1
 			if new_states.length or removed_states.length
 				log_msg += "\n    "
 			log_msg += nochange_states.join ', '
 		@log log_msg, 1
+
 		# Set states in LucidJS emitter
 		# TODO optimise these loops
 		all.forEach (state) =>
@@ -667,12 +671,39 @@ class AsyncMachine extends lucidjs.EventEmitter
 			return if not @is state, tick
 			do func
 
-	getInterrupt: (state) ->
+	# TODO support multiple states
+	getInterrupt: (state, interrupt) ->
 		tick = @clock state
-		=> not @is state, tick
+		=>
+			return no if interrupt and not interrupt()
+			not @is state, tick
 
-	getInterruptEnter: (state) ->
+
+	# TODO support multiple states
+	getInterruptEnter: (state, interrupt) ->
 		tick = @clock state
-		=> not @is state, tick + 1
+		=>
+			return no if interrupt and not interrupt()
+			not @is state, tick + 1
+
+
+	# TODO implement also as an array param for piping methods
+	when: (states, listener) ->
+		fires = 0
+		states = [states] if not states.length
+		if not listener
+			new RSVP.Promise (resolve, reject) =>
+				@bindToStates states, resolve
+		else
+			@bindToStates states, listener
+
+	# private
+	bindToStates: (states, resolve) ->
+		for state in states
+			@on "#{state}.enter", =>
+				fired += 1
+				do listener if fires is states.length
+			@on "#{state}.exit", =>
+				fired -= 1
 
 module.exports.AsyncMachine = AsyncMachine

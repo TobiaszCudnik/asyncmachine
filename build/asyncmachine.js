@@ -245,9 +245,12 @@ var AsyncMachine = (function (_super) {
         return this.clock_[state];
     };
     AsyncMachine.prototype.pipeInvert = function (state, machine, target_state) {
-        state = this.namespaceName(state);
-        this.on(state + ".enter", function () { return machine.drop(target_state); });
-        return this.on(state + ".exit", function () { return machine.add(target_state); });
+        var _this = this;
+        return [].concat(state).forEach(function (state) {
+            state = _this.namespaceName(state);
+            _this.on(state + ".enter", function () { return machine.drop(target_state); });
+            return _this.on(state + ".exit", function () { return machine.add(target_state); });
+        });
     };
     AsyncMachine.prototype.pipeOff = function () {
         throw new Error("not implemented yet");
@@ -643,7 +646,7 @@ var AsyncMachine = (function (_super) {
         if (removed_states.length) {
             log_msg += " -" + (removed_states.join(" -"));
         }
-        if (nochange_states.length) {
+        if (nochange_states.length && this.config.debug > 1) {
             if (new_states.length || removed_states.length) {
                 log_msg += "\n    ";
             }
@@ -783,15 +786,50 @@ var AsyncMachine = (function (_super) {
             return func();
         };
     };
-    AsyncMachine.prototype.getInterrupt = function (state) {
+    AsyncMachine.prototype.getInterrupt = function (state, interrupt) {
         var _this = this;
         var tick = this.clock(state);
-        return function () { return !_this.is(state, tick); };
+        return function () {
+            if (interrupt && !interrupt()) {
+                return false;
+            }
+            return !_this.is(state, tick);
+        };
     };
-    AsyncMachine.prototype.getInterruptEnter = function (state) {
+    AsyncMachine.prototype.getInterruptEnter = function (state, interrupt) {
         var _this = this;
         var tick = this.clock(state);
-        return function () { return !_this.is(state, tick + 1); };
+        return function () {
+            if (interrupt && !interrupt()) {
+                return false;
+            }
+            return !_this.is(state, tick + 1);
+        };
+    };
+    AsyncMachine.prototype.when = function (states, listener) {
+        var _this = this;
+        var fires = 0;
+        if (!states.length) {
+            states = [states];
+        }
+        if (!listener) {
+            return new RSVP.Promise(function (resolve, reject) { return _this.bindToStates(states, resolve); });
+        }
+        else {
+            return this.bindToStates(states, listener);
+        }
+    };
+    AsyncMachine.prototype.bindToStates = function (states, resolve) {
+        var _this = this;
+        return states.map(function (state) {
+            _this.on(state + ".enter", function () {
+                fired += 1;
+                if (fires === states.length) {
+                    return listener();
+                }
+            });
+            return _this.on(state + ".exit", function () { return fired -= 1; });
+        });
     };
     return AsyncMachine;
 })(lucidjs.EventEmitter);
