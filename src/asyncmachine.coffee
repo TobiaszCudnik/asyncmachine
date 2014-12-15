@@ -7,6 +7,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	states_all: null
 	states_active: null
+	# TODO use an enum to type entry type
 	queue: null
 	lock: no
 	last_promise: null
@@ -127,11 +128,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 	add: (states, params...) ->
 		@addState_ states, params
 
+
 	# Deferred version of #add, returning a callback to add the state.
 	# After the call, the responsible promise object is available as
 	# #last_promise
 	# TODO refactor to #addByCallback(err, data) and #addByListener(...params)
-	addLater: (states, params...) ->
+	addByCallback: (states, params...) ->
 		deferred = rsvp.defer()
 		deferred.promise.then (callback_params) =>
 			params.push.apply params, callback_params
@@ -141,6 +143,23 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		@last_promise = deferred.promise
 		@createCallback deferred
+
+
+	addByListener: (states, params...) ->
+		deferred = rsvp.defer()
+		deferred.promise.then (listener_params) =>
+			params.push.apply params, listener_params
+			try @addState_ states, params
+			catch err
+				@add 'Exception', err
+
+		@last_promise = deferred.promise
+		@createListener deferred
+
+
+	# TODO Deprecated, align tests and propagate to other state-manipulation methods
+	addLater: (params...) -> @addByCallback.apply this, params
+
 
 	# Deactivate certain states.
 	drop: (states, params...) ->
@@ -389,11 +408,15 @@ class AsyncMachine extends lucidjs.EventEmitter
 		states.every (state) => not @is state
 
 	createCallback: (deferred) ->
-		(err = null, params...) ->
+		(err = null, params...) =>
 			if err
+				@add 'Exception', err
 				deferred.reject err
 			else
 				deferred.resolve params
+
+	createListener: (deferred) ->
+		(params...) -> deferred.resolve params
 
 	namespaceTransition_: (transition) ->
 		# CamelCase to Camel.Case
@@ -687,23 +710,41 @@ class AsyncMachine extends lucidjs.EventEmitter
 			not @is state, tick + 1
 
 
-	# TODO implement also as an array param for piping methods
+	# Accepts state names and triggers the listener or resolves a returned
+	# promise if no listener passed.
 	when: (states, listener) ->
-		fires = 0
 		states = [states] if not states.length
 		if not listener
-			new RSVP.Promise (resolve, reject) =>
+			new rsvp.Promise (resolve, reject) =>
 				@bindToStates states, resolve
 		else
 			@bindToStates states, listener
 
+
+	# Accepts state names and triggers the listener or resolves a returned
+	# promise if no listener passed. Disposes internal listeners once triggered.
+	whenOnce: (states, listener) ->
+		states = [states] if not states.length
+		if not listener
+			new rsvp.Promise (resolve, reject) =>
+				@bindToStates states, resolve, yes
+		else
+			@bindToStates states, listener, yes
+
+
 	# private
-	bindToStates: (states, resolve) ->
+	bindToStates: (states, listener, once) ->
+		fired = 0
+		enter = =>
+			fired += 1
+			do listener if fired is states.length
+			if once
+				for state in states
+					@removeListener "#{state}.enter", enter
+					@removeListener "#{state}.exit", exit
+		exit = => fired -= 1
 		for state in states
-			@on "#{state}.enter", =>
-				fired += 1
-				do listener if fires is states.length
-			@on "#{state}.exit", =>
-				fired -= 1
+			@on "#{state}.enter", enter
+			@on "#{state}.exit", exit
 
 module.exports.AsyncMachine = AsyncMachine
