@@ -215,10 +215,10 @@ var AsyncMachine = (function (_super) {
         this.last_promise = deferred.promise;
         return this.createListener(deferred);
     };
-    AsyncMachine.prototype.addLater = function (states) {
+    AsyncMachine.prototype.addLater = function () {
         var params = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            params[_i - 1] = arguments[_i];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            params[_i - 0] = arguments[_i];
         }
         return this.addByCallback.apply(this, params);
     };
@@ -443,7 +443,7 @@ var AsyncMachine = (function (_super) {
         }
         try {
             this.lock = true;
-            this.log("[-] Drop state " + (states_to_drop.join(", ")), 1);
+            this.log("[-] Drop state " + (states_to_drop.join(", ")), 2);
             var states_before = this.is();
             states = this.states_active.filter(function (state) { return !~states_to_drop.indexOf(state); });
             states = this.setupTargetStates_(states);
@@ -677,7 +677,7 @@ var AsyncMachine = (function (_super) {
                 return _this.clock_[state]++;
             }
         });
-        var log_msg = "[states] ";
+        var log_msg = "";
         if (new_states.length) {
             log_msg += "+" + (new_states.join(" +"));
         }
@@ -690,7 +690,9 @@ var AsyncMachine = (function (_super) {
             }
             log_msg += nochange_states.join(", ");
         }
-        this.log(log_msg, 1);
+        if (log_msg) {
+            this.log("[states] " + log_msg, 1);
+        }
         return all.forEach(function (state) {
             if (~target.indexOf(state)) {
                 return _this.unflag(state + ".exit");
@@ -829,9 +831,14 @@ var AsyncMachine = (function (_super) {
         var tick = this.clock(state);
         return function () {
             if (interrupt && !interrupt()) {
-                return false;
+                var should_abort = true;
             }
-            return !_this.is(state, tick);
+            if (should_abort == null) {
+                should_abort = !_this.is(state, tick);
+            }
+            if (should_abort) {
+                return _this.log("Interruping " + state + " enter", 2);
+            }
         };
     };
     AsyncMachine.prototype.getInterruptEnter = function (state, interrupt) {
@@ -839,14 +846,19 @@ var AsyncMachine = (function (_super) {
         var tick = this.clock(state);
         return function () {
             if (interrupt && !interrupt()) {
-                return false;
+                var should_abort = true;
             }
-            return !_this.is(state, tick + 1);
+            if (should_abort == null) {
+                should_abort = !_this.is(state, tick + 1);
+            }
+            if (should_abort) {
+                return _this.log("Interruping " + state + " enter", 2);
+            }
         };
     };
     AsyncMachine.prototype.when = function (states, listener) {
         var _this = this;
-        if (!states.length) {
+        if (!(states instanceof Array)) {
             states = [states];
         }
         if (!listener) {
@@ -856,22 +868,18 @@ var AsyncMachine = (function (_super) {
             return this.bindToStates(states, listener);
         }
     };
-    AsyncMachine.prototype.whenOnce = function (states, listener) {
+    AsyncMachine.prototype.whenOnce = function (states, abort) {
         var _this = this;
-        if (!states.length) {
+        if (!(states instanceof Array)) {
             states = [states];
         }
-        if (!listener) {
-            return new rsvp.Promise(function (resolve, reject) { return _this.bindToStates(states, resolve, true); });
-        }
-        else {
-            return this.bindToStates(states, listener, true);
-        }
+        return new rsvp.Promise(function (resolve, reject) { return _this.bindToStates(states, resolve, true); });
     };
     AsyncMachine.prototype.bindToStates = function (states, listener, once) {
         var _this = this;
         var fired = 0;
         var enter = function () {
+            _this.log("enter " + fired + " + 1", 1);
             fired += 1;
             if (fired === states.length) {
                 listener();
@@ -883,8 +891,11 @@ var AsyncMachine = (function (_super) {
                 });
             }
         };
-        var exit = function () { return fired -= 1; };
+        function exit() {
+            return fired -= 1;
+        }
         return states.map(function (state) {
+            state = _this.namespaceName(state);
             _this.on(state + ".enter", enter);
             return _this.on(state + ".exit", exit);
         });

@@ -355,7 +355,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			return
 		try
 			@lock = yes
-			@log "[-] Drop state #{states_to_drop.join ", "}", 1
+			@log "[-] Drop state #{states_to_drop.join ", "}", 2
 			states_before = @is()
 
 			# Invert states to target ones.
@@ -407,6 +407,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	allStatesNotSet: (states) ->
 		states.every (state) => not @is state
 
+	# TODO states
 	createCallback: (deferred) ->
 		(err = null, params...) =>
 			if err
@@ -567,7 +568,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@clock_[state]++ if not ~previous.indexOf state
 
 		 # construct a logging msg
-		log_msg = "[states] "
+		log_msg = ""
 		if new_states.length
 			log_msg += "+#{new_states.join ' +'}"
 		if removed_states.length
@@ -576,7 +577,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			if new_states.length or removed_states.length
 				log_msg += "\n    "
 			log_msg += nochange_states.join ', '
-		@log log_msg, 1
+		@log "[states] #{log_msg}", 1 if log_msg
 
 		# Set states in LucidJS emitter
 		# TODO optimise these loops
@@ -698,22 +699,26 @@ class AsyncMachine extends lucidjs.EventEmitter
 	getInterrupt: (state, interrupt) ->
 		tick = @clock state
 		=>
-			return no if interrupt and not interrupt()
-			not @is state, tick
+			should_abort = yes if interrupt and not interrupt()
+			should_abort ?= not @is state, tick
+			if should_abort
+				@log "Interruping #{state} enter", 2
 
 
 	# TODO support multiple states
 	getInterruptEnter: (state, interrupt) ->
 		tick = @clock state
 		=>
-			return no if interrupt and not interrupt()
-			not @is state, tick + 1
+			should_abort = yes if interrupt and not interrupt()
+			should_abort ?= not @is state, tick + 1
+			if should_abort
+				@log "Interruping #{state} enter", 2
 
 
 	# Accepts state names and triggers the listener or resolves a returned
 	# promise if no listener passed.
 	when: (states, listener) ->
-		states = [states] if not states.length
+		states = [states] if states not instanceof Array
 		if not listener
 			new rsvp.Promise (resolve, reject) =>
 				@bindToStates states, resolve
@@ -723,27 +728,27 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	# Accepts state names and triggers the listener or resolves a returned
 	# promise if no listener passed. Disposes internal listeners once triggered.
-	whenOnce: (states, listener) ->
-		states = [states] if not states.length
-		if not listener
-			new rsvp.Promise (resolve, reject) =>
-				@bindToStates states, resolve, yes
-		else
-			@bindToStates states, listener, yes
+	whenOnce: (states, abort) ->
+		states = [states] if states not instanceof Array
+		new rsvp.Promise (resolve, reject) =>
+			@bindToStates states, resolve, yes
 
 
 	# private
 	bindToStates: (states, listener, once) ->
 		fired = 0
 		enter = =>
+			@log "enter #{fired} + 1", 1
 			fired += 1
 			do listener if fired is states.length
 			if once
 				for state in states
 					@removeListener "#{state}.enter", enter
 					@removeListener "#{state}.exit", exit
-		exit = => fired -= 1
+		exit = -> fired -= 1
+		# TODO this should be bound to states, not negotiation listeners
 		for state in states
+			state = @namespaceName state
 			@on "#{state}.enter", enter
 			@on "#{state}.exit", exit
 

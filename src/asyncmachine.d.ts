@@ -64,9 +64,12 @@ class AsyncMachine {
 	public add(states: string[], ...params: any[]): boolean;
 	public add(states: string, ...params: any[]): boolean;
 	public add(states: any, ...params: any[]): boolean;
-	public addLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-	public addLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-	public addLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+	public addByCallback(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+	public addByCallback(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+	public addByCallback(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+	public addByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+	public addByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+	public addByListener(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
 		
 	public drop(states: string[], ...params: any[]): boolean;
 	public drop(states: string, ...params: any[]): boolean;

@@ -171,9 +171,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.addState_(states, params);
     }
 
-    public addLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-    public addLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-    public addLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void {
+    public addByCallback(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+    public addByCallback(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+    public addByCallback(states: any, ...params: any[]): (err?: any, ...params: any[]) => void {
         var deferred = rsvp.defer();
         deferred.promise.then((callback_params) => {
             params.push.apply(params, callback_params);
@@ -187,6 +187,28 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
         this.last_promise = deferred.promise;
         return this.createCallback(deferred);
+    }
+
+    public addByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+    public addByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+    public addByListener(states: any, ...params: any[]): (err?: any, ...params: any[]) => void {
+        var deferred = rsvp.defer();
+        deferred.promise.then((listener_params) => {
+            params.push.apply(params, listener_params);
+            try {
+                return this.addState_(states, params);
+            } catch (_error) {
+                var err = _error;
+                return this.add("Exception", err);
+            }
+        });
+
+        this.last_promise = deferred.promise;
+        return this.createListener(deferred);
+    }
+
+    addLater(...params) {
+        return this.addByCallback.apply(this, params);
     }
 
     public drop(states: string[], ...params: any[]): boolean;
@@ -424,7 +446,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         }
         try {
             this.lock = true;
-            this.log("[-] Drop state " + (states_to_drop.join(", ")), 1);
+            this.log("[-] Drop state " + (states_to_drop.join(", ")), 2);
             var states_before = this.is();
             states = this.states_active.filter((state) => !~states_to_drop.indexOf(state));
             states = this.setupTargetStates_(states);
@@ -480,11 +502,16 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     private createCallback(deferred: rsvp.Defered): (err?, ...params) => void {
         return (err : any = null, ...params) => {
             if (err) {
+                this.add("Exception", err);
                 return deferred.reject(err);
             } else {
                 return deferred.resolve(params);
             }
         };
+    }
+
+    createListener(deferred) {
+        return (...params) => deferred.resolve(params);
     }
 
     private namespaceTransition_(transition: string): string {
@@ -652,7 +679,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 return this.clock_[state]++;
             }
         });
-        var log_msg = "[states] ";
+        var log_msg = "";
         if (new_states.length) {
             log_msg += "+" + (new_states.join(" +"));
         }
@@ -665,7 +692,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             }
             log_msg += nochange_states.join(", ");
         }
-        this.log(log_msg, 1);
+        if (log_msg) {
+            this.log("[states] " + log_msg, 1);
+        }
         return all.forEach((state) => {
             if (~target.indexOf(state)) {
                 return this.unflag(state + ".exit");
@@ -808,9 +837,14 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         var tick = this.clock(state);
         return () => {
             if (interrupt && !interrupt()) {
-                return false;
+                var should_abort = true;
             }
-            return !this.is(state, tick);
+            if (should_abort == null) {
+                should_abort = !this.is(state, tick);
+            }
+            if (should_abort) {
+                return this.log("Interruping " + state + " enter", 2);
+            }
         };
     }
 
@@ -818,33 +852,57 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         var tick = this.clock(state);
         return () => {
             if (interrupt && !interrupt()) {
-                return false;
+                var should_abort = true;
             }
-            return !this.is(state, tick + 1);
+            if (should_abort == null) {
+                should_abort = !this.is(state, tick + 1);
+            }
+            if (should_abort) {
+                return this.log("Interruping " + state + " enter", 2);
+            }
         };
     }
 
     when(states, listener) {
-        var fires = 0;
-        if (!states.length) {
+        if (!(states instanceof Array)) {
             states = [states];
         }
         if (!listener) {
-            return new RSVP.Promise((resolve, reject) => this.bindToStates(states, resolve));
+            return new rsvp.Promise((resolve, reject) => this.bindToStates(states, resolve));
         } else {
             return this.bindToStates(states, listener);
         }
     }
 
-    bindToStates(states, resolve) {
+    whenOnce(states, abort) {
+        if (!(states instanceof Array)) {
+            states = [states];
+        }
+        return new rsvp.Promise((resolve, reject) => this.bindToStates(states, resolve, true));
+    }
+
+    bindToStates(states, listener, once) {
+        var fired = 0;
+        var enter = () => {
+            this.log("enter " + fired + " + 1", 1);
+            fired += 1;
+            if (fired === states.length) {
+                listener();
+            }
+            if (once) {
+                return states.map((state) => {
+                    this.removeListener(state + ".enter", enter);
+                    return this.removeListener(state + ".exit", exit);
+                });
+            }
+        };
+        function exit() {
+            return fired -= 1;
+        }
         return states.map((state) => {
-            this.on(state + ".enter", () => {
-                fired += 1;
-                if (fires === states.length) {
-                    return listener();
-                }
-            });
-            return this.on(state + ".exit", () => fired -= 1);
+            state = this.namespaceName(state);
+            this.on(state + ".enter", enter);
+            return this.on(state + ".exit", exit);
         });
     }
 }
