@@ -46,8 +46,16 @@ setup:
 test:
 	#rm test/build/*/**
 	./node_modules/mocha/bin/mocha \
-		--compilers coffee:coffee-script \
+		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
+		test/*.coffee
+
+test-grep:
+	#rm test/build/*/**
+	./node_modules/mocha/bin/mocha \
+		--compilers mocha --compilers coffee:coffee-script/register \
+		--reporter spec \
+		--grep "$(GREP)"
 		test/*.coffee
 
 test-debug:
@@ -56,6 +64,15 @@ test-debug:
 		--debug-brk \
 		--compilers coffee:coffee-script \
 		--reporter spec \
+		test/*.coffee
+
+test-grep-debug:
+	#rm test/build/*/**
+	./node_modules/mocha/bin/mocha \
+		--debug-brk \
+		--compilers mocha --compilers coffee:coffee-script/register \
+		--reporter spec \
+		--grep "$(GREP)"
 		test/*.coffee
 	
 .PHONY: build test

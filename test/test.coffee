@@ -78,6 +78,7 @@ describe "asyncmachine", ->
 			instance.constructor["#{state}_#{state}"] = do sinon.spy
 			instance["#{state}_enter"] = do sinon.spy
 			instance["#{state}_exit"] = do sinon.spy
+			instance["#{state}_state"] = do sinon.spy
 			instance["#{state}_any"] = do sinon.spy
 			instance["any_#{state}"] = do sinon.spy
 			for inner in states
@@ -146,7 +147,7 @@ describe "asyncmachine", ->
 			expect( @machine.any_B.calledOnce ).to.be.ok
 		it 'should set the correct state', ->
 			expect( @machine.is() ).to.eql ['B']
-		it "should remain the correct order", ->
+		it "should remain the correct transition order", ->
 			order = [
 				@machine.A_exit
 				@machine.A_B
@@ -177,6 +178,9 @@ describe "asyncmachine", ->
 		it "should trigger the transition from \"Any\" state", ->
 			expect( @machine.any_B.calledOnce ).to.be.ok
 			expect( @machine.any_C.calledOnce ).to.be.ok
+		it "should trigger the states' handlers", ->
+			expect( @machine.B_state.calledOnce ).to.be.ok
+			expect( @machine.C_state.calledOnce ).to.be.ok
 		it 'should set the correct state', ->
 			expect( @machine.is() ).to.eql ['B', 'C']
 		it "should remain the correct order", ->
@@ -189,6 +193,8 @@ describe "asyncmachine", ->
 				@machine.B_enter
 				@machine.any_C
 				@machine.C_enter
+				@machine.B_state
+				@machine.C_state
 			]
 			assert_order order
 
@@ -215,7 +221,7 @@ describe "asyncmachine", ->
 			expect( @machine.any_C.calledOnce ).to.be.ok
 		it 'should set the correct state', ->
 			expect( @machine.is() ).to.eql ['C']
-		it "should remain the correct order", ->
+		it "should remain the correct transition order", ->
 			order = [
 				@machine.A_exit
 				@machine.A_C
@@ -255,7 +261,7 @@ describe "asyncmachine", ->
 			expect( @machine.any_D.calledOnce ).to.be.ok
 		it 'should set the correct state', ->
 			expect( @machine.is() ).to.eql ['D', 'C']
-		it "should remain the correct order", ->
+		it "should remain the correct transition order", ->
 			order = [
 				@machine.A_exit
 				@machine.A_D

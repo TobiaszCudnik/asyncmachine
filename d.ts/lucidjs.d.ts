@@ -11,6 +11,7 @@ declare module "lucidjs" {
 		trigger(event: string, ...args: any[]): boolean;
 		flag(event: string, ...args: any[]): IBinding;
 		unflag(event: string, ...args: any[]);
+		removeListener(event: string, listener: Function);
 	}
 	
 	export interface IBinding {

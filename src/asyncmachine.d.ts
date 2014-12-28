@@ -36,7 +36,7 @@ class AsyncMachine {
 	private clock_: { [state: string]: number };
 	// TODO merge with the TS source
 	constructor(config?: IConfig);
-	public Exception_enter(states: string[], err: Error): boolean;
+	public Exception_enter(states: string[], err: Error, exception_states?: string[]): boolean;
 	public register(...states: string[]);
 	public get(state: string): IState;
 	public state(name: string): boolean;
@@ -61,9 +61,11 @@ class AsyncMachine {
 	public setLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
 	public setLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
 		
-	public add(states: string[], ...params: any[]): boolean;
-	public add(states: string, ...params: any[]): boolean;
-	public add(states: any, ...params: any[]): boolean;
+	public add(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
+	public add(target: AsyncMachine, states?: string, ...params: any[]): boolean;
+	public add(target: string[], states?: any, ...params: any[]): boolean;
+	public add(target: string, states?: any, ...params: any[]): boolean;
+	public add(target: any, states?: any, ...params: any[]): boolean;
 	public addByCallback(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
 	public addByCallback(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
 	public addByCallback(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
@@ -88,25 +90,25 @@ class AsyncMachine {
 	public namespaceName(state: string): string;
 	public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
 	public log(msg: string, level?: number): void;
-	static merge(name: string): void;
-		
+
+	public when(states: string, abort?: Function): rsvp.Promise;
+	public when(states: string[], abort?: Function): rsvp.Promise;
+	public when(states: any, abort?: Function): rsvp.Promise;
+	public whenOnce(states: string, abort?: Function): rsvp.Promise;
+	public whenOnce(states: string[], abort?: Function): rsvp.Promise;
+	public whenOnce(states: any, abort?: Function): rsvp.Promise;
+
 	private createCallback(deferred: rsvp.Defered): (err?, ...params) => void;
-		
+	private createListener(deferred: rsvp.Defered): (...params) => void;
+
 	private processAutoStates(excluded?: string[]);
 		
-	private setState_(states: string, params: any[]);
-	private setState_(states: string[], params: any[]);
-	private setState_(states: any, params: any[]): boolean;
+	private processStateChange_(type: number, states: string, params: any[], autostate?: boolean, skip_queue?: boolean);
+	private processStateChange_(type: number, states: string[], params: any[], autostate?: boolean, skip_queue?: boolean);
+	private processStateChange_(type: number, states: any, params: any[], autostate?: boolean, skip_queue?: boolean): boolean;
 		
-	private addState_(states: string, params: any[], autostate?: boolean);
-	private addState_(states: string[], params: any[], autostate?: boolean);
-	private addState_(states: any, params: any[], autostate?: boolean): boolean;
-		
-	private dropState_(states: string, params: any[]);
-	private dropState_(states: string[], params: any[]);
-	private dropState_(states: any, params: any[]): boolean;
-		
-	private processQueue_(previous_ret);
+	private processQueue_();
+	private statesChanged(states_before: string[]): boolean;
 	private allStatesSet(states): boolean;
 	private allStatesNotSet(states): boolean;
 	private namespaceTransition_(transition: string): string;
@@ -125,4 +127,5 @@ class AsyncMachine {
 	private transitionExec_(method: string, target_states: string[], 
 		params?: string[]);
 	private orderStates_(states: string[]): void;
+	private bindToStates(states: string[], listener: Function, abort?: Function, once?: boolean);
 }
