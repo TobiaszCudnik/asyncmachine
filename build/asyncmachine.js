@@ -348,7 +348,7 @@ var AsyncMachine = (function (_super) {
             return func();
         };
     };
-    AsyncMachine.prototype.getInterrupt = function (state, interrupt) {
+    AsyncMachine.prototype.getAbort = function (state, interrupt) {
         var _this = this;
         var tick = this.clock(state);
         return function () {
@@ -363,7 +363,7 @@ var AsyncMachine = (function (_super) {
             }
         };
     };
-    AsyncMachine.prototype.getInterruptEnter = function (state, interrupt) {
+    AsyncMachine.prototype.getAbortEnter = function (state, interrupt) {
         var _this = this;
         var tick = this.clock(state);
         return function () {
@@ -463,10 +463,10 @@ var AsyncMachine = (function (_super) {
             var states_before = this.is();
             var type_label = exports.STATE_CHANGE_LABELS[type];
             if (autostate) {
-                this.log("[+] " + type_label + " AUTO state " + (states.join(", ")), 3);
+                this.log("[" + type_label + "] AUTO state " + (states.join(", ")), 3);
             }
             else {
-                this.log("[+] " + type_label + " state " + (states.join(", ")), 2);
+                this.log("[" + type_label + "] state " + (states.join(", ")), 2);
             }
             var ret = this.selfTransitionExec_(states, params);
             if (ret === false) {

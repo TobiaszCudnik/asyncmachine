@@ -298,7 +298,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 
 	# TODO support multiple states
-	getInterrupt: (state, interrupt) ->
+	getAbort: (state, interrupt) ->
 		tick = @clock state
 		=>
 			should_abort = yes if interrupt and not interrupt()
@@ -308,7 +308,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 
 	# TODO support multiple states
-	getInterruptEnter: (state, interrupt) ->
+	getAbortEnter: (state, interrupt) ->
 		tick = @clock state
 		=>
 			should_abort = yes if interrupt and not interrupt()
@@ -406,9 +406,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 			states_before = @is()
 			type_label = STATE_CHANGE_LABELS[type]
 			if autostate
-				@log "[+] #{type_label} AUTO state #{states.join ", "}", 3
+				@log "[#{type_label}] AUTO state #{states.join ", "}", 3
 			else
-				@log "[+] #{type_label} state #{states.join ", "}", 2
+				@log "[#{type_label}] state #{states.join ", "}", 2
 			ret = @selfTransitionExec_ states, params
 			return no if ret is no
 			states_to_set = switch type
@@ -788,7 +788,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		null
 
 
-	# private
+	# TODO bind to .enter and .exit as well to support the negatiation phase in
+	# piped events. Requires an emitter with return values!
 	bindToStates: (states, listener, abort, once) ->
 		fired = 0
 		enter = =>
