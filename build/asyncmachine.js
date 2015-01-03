@@ -348,11 +348,11 @@ var AsyncMachine = (function (_super) {
             return func();
         };
     };
-    AsyncMachine.prototype.getAbort = function (state, interrupt) {
+    AsyncMachine.prototype.getAbort = function (state, abort) {
         var _this = this;
         var tick = this.clock(state);
         return function () {
-            if (interrupt && !interrupt()) {
+            if (abort && !(typeof abort === "function" ? abort() : void 0)) {
                 var should_abort = true;
             }
             if (should_abort == null) {
@@ -363,11 +363,11 @@ var AsyncMachine = (function (_super) {
             }
         };
     };
-    AsyncMachine.prototype.getAbortEnter = function (state, interrupt) {
+    AsyncMachine.prototype.getAbortEnter = function (state, abort) {
         var _this = this;
         var tick = this.clock(state);
         return function () {
-            if (interrupt && !interrupt()) {
+            if (abort && !(typeof abort === "function" ? abort() : void 0)) {
                 var should_abort = true;
             }
             if (should_abort == null) {
@@ -582,8 +582,8 @@ var AsyncMachine = (function (_super) {
                     return true;
                 }
                 var event = _this.namespaceTransition_(name);
-                _this.transition_events.push(event);
                 var transition_params2 = [event, states].concat(params);
+                _this.transition_events.push([event, params]);
                 return (_this.trigger.apply(_this, transition_params2)) === false;
             }
         });
@@ -755,23 +755,25 @@ var AsyncMachine = (function (_super) {
             this.log("[states] " + (log_msg.join(" ")), 1);
         }
         this.transition_events.forEach(function (transition) {
+            transition = transition[0];
+            var params = [previous].concat(transition[1]);
             if (transition.slice(-5) === ".exit") {
                 var event = transition.slice(0, -5);
                 var state = event.replace(/\./g, "");
                 _this.unflag(event);
                 _this.flag(event + ".end");
-                _this.trigger(event + ".end");
+                _this.trigger(event + ".end", params);
                 _this.log("[flag] " + event + ".end", 2);
-                return typeof (_base = _this.target)[_name = state + "_end"] === "function" ? _base[_name](previous) : void 0;
+                return typeof (_base = _this.target)[_name = state + "_end"] === "function" ? _base[_name](previous, params) : void 0;
             }
             else if (transition.slice(-6) === ".enter") {
                 event = transition.slice(0, -6);
                 state = event.replace(/\./g, "");
                 _this.unflag(event + ".end");
                 _this.flag(event);
-                _this.trigger(event);
+                _this.trigger(event, params);
                 _this.log("[flag] " + event, 2);
-                return typeof (_base1 = _this.target)[_name1 = state + "_state"] === "function" ? _base1[_name1](previous) : void 0;
+                return typeof (_base1 = _this.target)[_name1 = state + "_state"] === "function" ? _base1[_name1](previous, params) : void 0;
             }
         });
         return this.transition_events = [];
@@ -843,7 +845,7 @@ var AsyncMachine = (function (_super) {
         }
         if (ret !== false) {
             if (!~event.indexOf("_")) {
-                this.transition_events.push(event);
+                this.transition_events.push([event, params]);
                 if (event.slice(-5) === ".exit") {
                     this.unflag(event.slice(0, -5) + ".enter");
                 }

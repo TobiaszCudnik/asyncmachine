@@ -349,10 +349,10 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         };
     }
 
-    getInterrupt(state, interrupt) {
+    getAbort(state, abort) {
         var tick = this.clock(state);
         return () => {
-            if (interrupt && !interrupt()) {
+            if (abort && !(typeof abort === "function" ? abort() : void 0)) {
                 var should_abort = true;
             }
             if (should_abort == null) {
@@ -364,10 +364,10 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         };
     }
 
-    getInterruptEnter(state, interrupt) {
+    getAbortEnter(state, abort) {
         var tick = this.clock(state);
         return () => {
-            if (interrupt && !interrupt()) {
+            if (abort && !(typeof abort === "function" ? abort() : void 0)) {
                 var should_abort = true;
             }
             if (should_abort == null) {
@@ -469,9 +469,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             var states_before = this.is();
             var type_label = STATE_CHANGE_LABELS[type];
             if (autostate) {
-                this.log("[+] " + type_label + " AUTO state " + (states.join(", ")), 3);
+                this.log("[" + type_label + "] AUTO state " + (states.join(", ")), 3);
             } else {
-                this.log("[+] " + type_label + " state " + (states.join(", ")), 2);
+                this.log("[" + type_label + "] state " + (states.join(", ")), 2);
             }
             var ret = this.selfTransitionExec_(states, params);
             if (ret === false) {
@@ -579,8 +579,8 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                     return true;
                 }
                 var event = this.namespaceTransition_(name);
-                this.transition_events.push(event);
                 var transition_params2 = [event, states].concat(params);
+                this.transition_events.push([event, params]);
                 return (this.trigger.apply(this, transition_params2)) === false;
             }
         });
@@ -764,24 +764,25 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (log_msg.length) {
             this.log("[states] " + (log_msg.join(" ")), 1);
         }
-
         this.transition_events.forEach((transition) => {
+            transition = transition[0];
+            var params = [previous].concat(transition[1]);
             if (transition.slice(-5) === ".exit") {
                 var event = transition.slice(0, -5);
                 var state = event.replace(/\./g, "");
                 this.unflag(event);
                 this.flag(event + ".end");
-                this.trigger(event + ".end");
+                this.trigger(event + ".end", params);
                 this.log("[flag] " + event + ".end", 2);
-                return typeof (_base = this.target)[_name = state + "_end"] === "function" ? _base[_name](previous) : void 0;
+                return typeof (_base = this.target)[_name = state + "_end"] === "function" ? _base[_name](previous, params) : void 0;
             } else if (transition.slice(-6) === ".enter") {
                 event = transition.slice(0, -6);
                 state = event.replace(/\./g, "");
                 this.unflag(event + ".end");
                 this.flag(event);
-                this.trigger(event);
+                this.trigger(event, params);
                 this.log("[flag] " + event, 2);
-                return typeof (_base1 = this.target)[_name1 = state + "_state"] === "function" ? _base1[_name1](previous) : void 0;
+                return typeof (_base1 = this.target)[_name1 = state + "_state"] === "function" ? _base1[_name1](previous, params) : void 0;
             }
         });
 
@@ -861,7 +862,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
         if (ret !== false) {
             if (!~event.indexOf("_")) {
-                this.transition_events.push(event);
+                this.transition_events.push([event, params]);
                 if (event.slice(-5) === ".exit") {
                     this.unflag(event.slice(0, -5) + ".enter");
                 } else if (event.slice(-6) === ".enter") {

@@ -22,7 +22,8 @@ QUEUE =
 	PARAMS: 2
 	TARGET: 3
 
-		
+
+
 class AsyncMachine extends lucidjs.EventEmitter
 
 	states_all: null
@@ -298,20 +299,20 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 
 	# TODO support multiple states
-	getAbort: (state, interrupt) ->
+	getAbort: (state, abort) ->
 		tick = @clock state
 		=>
-			should_abort = yes if interrupt and not interrupt()
+			should_abort = yes if abort and not abort?()
 			should_abort ?= not @is state, tick
 			if should_abort
 				@log "Aborted #{state} listener, while in states (#{@is().join ', '})", 1
 
 
 	# TODO support multiple states
-	getAbortEnter: (state, interrupt) ->
+	getAbortEnter: (state, abort) ->
 		tick = @clock state
 		=>
-			should_abort = yes if interrupt and not interrupt()
+			should_abort = yes if abort and not abort?()
 			should_abort ?= not @is state, tick + 1
 			if should_abort
 				@log "Aborted #{state}.enter listener, while in states " +
@@ -367,6 +368,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		else
 			setTimeout (fn.apply null, params), 0
 
+
 	# TODO log it better
 	processAutoStates: (excluded) ->
 		excluded ?= []
@@ -377,7 +379,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			is_blocked = => @is().some (item) =>
 				return no if not (@get item).blocks
 				Boolean ~(@get item).blocks.indexOf state
-			if @[state].auto and not is_excluded() and not is_current() \
+			if this[state].auto and not is_excluded() and not is_current() \
 					and not is_blocked()
 				add.push state
 
@@ -515,8 +517,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 				ret = method.apply context, transition_params
 				return yes if ret is no
 				event = @namespaceTransition_ name
-				@transition_events.push event
 				transition_params2 = [event, states].concat params
+				# TODO this is hacky
+				@transition_events.push [event, params]
 				(@trigger.apply @, transition_params2) is no
 
 		not ret
@@ -676,25 +679,28 @@ class AsyncMachine extends lucidjs.EventEmitter
 			log_msg.push nochange_states.join ', '
 		@log "[states] #{log_msg.join ' '}", 1 if log_msg.length
 
+		# TODO this is hacky, should be integrated into the transition somehow
 		for transition in @transition_events
+			transition = transition[0]
+			params = [previous].concat transition[1]
 			if transition[-5..-1] is '.exit'
 				event = transition[0...-5]
 				state = event.replace /\./g, ''
 				@unflag event
 				@flag "#{event}.end"
-				@trigger "#{event}.end"
+				@trigger "#{event}.end", params
 				@log "[flag] #{event}.end", 2
 				# TODO params!
-				@target[state + '_end']? previous
+				@target[state + '_end']? previous, params
 			else if transition[-6..-1] is '.enter'
 				event = transition[0...-6]
 				state = event.replace /\./g, ''
 				@unflag "#{event}.end"
 				@flag event
-				@trigger event
+				@trigger event, params
 				@log "[flag] #{event}", 2
 				# TODO params!
-				@target[state + '_state']? previous
+				@target[state + '_state']? previous, params
 
 		@transition_events = []
 
@@ -753,7 +759,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		if ret isnt no
 			if not ~event.indexOf "_"
-				@transition_events.push event
+				# TODO this is hacky
+				@transition_events.push [event, params]
 				# Unflag constraint states
 				if event[-5..-1] is '.exit'
 #					@log "[unflag] #{event[0...-5]}.enter", 3
