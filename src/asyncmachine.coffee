@@ -160,9 +160,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# Activate certain states and keep the current ones.
 	add: (target, states, params...) ->
 		if target instanceof AsyncMachine
-			return if @duringTransition()
+			if @duringTransition()
+				@log "Queued state(s) #{states} in an external machine", 2
 				@queue.push [STATE_CHANGE.ADD, states, params, target]
-				yes
+				return yes
 			else
 				target.add states, params
 
@@ -210,7 +211,16 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 
 	# Deactivate certain states.
-	drop: (states, params...) ->
+	drop: (target, states, params...) ->
+		if target instanceof AsyncMachine
+			return if @duringTransition()
+				@queue.push [STATE_CHANGE.DROP, states, params, target]
+				yes
+			else
+				target.drop states, params
+
+		states = target
+		params = [states].concat params
 		@processStateChange_ STATE_CHANGE.DROP, states, params
 
 
@@ -242,10 +252,10 @@ class AsyncMachine extends lucidjs.EventEmitter
 			new_state = target_state or state
 			namespace = @namespaceName state
 
-			@on namespace, =>
+			@on namespace + ".state", =>
 				@add machine, new_state
 
-			@on namespace + ".end", ->
+			@on namespace + ".end", =>
 				@drop machine, new_state
 
 
@@ -355,12 +365,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 	#//////////////////////////
 
 
-	# TODO use a regexp lib for IE8's 'g' flag compat?
-	# CamelCase to Camel.Case
-	namespaceName: (state) ->
-		state.replace /([a-zA-Z])([A-Z])/g, "$1.$2"
-
-
 	# TODO make it cancellable
 	setImmediate: (fn, params...) ->
 		if setImmediate
@@ -397,10 +401,23 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# type: 0: drop, 1: add, 2: set # TODO enum this
 	processStateChange_: (type, states, params, autostate, skip_queue) ->
 		states = [].concat states
-		# TODO handle non existing states
+		# TODO merge with setupTargetStates
+		states = states.filter (state) =>
+			if typeof state isnt 'string'
+				@log state + " isnt a string (state name)"
+				# TODO dont use console
+				console.dir state
+				return no
+			if not @get state
+				@log "State #{state} doesnt exist"
+				return no
+
+			yes
+
 		return unless states.length
 		try
 			if @lock
+				@log "Queued state(s) #{states.join ', '}", 2
 				# TODO encapsulate
 				@queue.push [type, states, params]
 				return
@@ -464,9 +481,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 		while row = @queue.shift()
 			target = row[QUEUE.TARGET] or this
 			params = [
-				row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], no, yes
+				row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], no
 			]
-			# Trigger the transition on the target without processing the queue
+			# Trigger the transition on the target machine
 			ret.push target.processStateChange_.apply target, params
 
 		not ~ret.indexOf no
@@ -494,12 +511,23 @@ class AsyncMachine extends lucidjs.EventEmitter
 		(params...) -> deferred.resolve params
 
 
+	# TODO use a regexp lib for IE8's 'g' flag compat?
+	# CamelCase to Camel.Case
+	namespaceName: (state) ->
+		state
+	# TODO namespaces seems to cause a lot of duplicated listener calls
+#		state.replace /([a-zA-Z])([A-Z])/g, "$1.$2"
+
+
 	namespaceTransition_: (transition) ->
+		transition
+		# TODO namespaces seems to cause a lot of duplicated listener calls
 		# CamelCase to Camel.Case
 		# A_exit -> A.exit
 		# A_B -> A._.B
 		@namespaceName(transition)
-			.replace(/_(exit|enter)$/, ".$1").replace "_", "._."
+			.replace(/_(exit|enter|state|end)$/, ".$1")
+#			.replace "_", "._."
 
 
 	# Executes self transitions (eg ::A_A) based on active states.
@@ -508,21 +536,24 @@ class AsyncMachine extends lucidjs.EventEmitter
 		ret = states.some (state) =>
 			ret = undefined
 			name = state + "_" + state
-			method = @target[name]
+			method = @target[name] or this[name]
 			context = @target
-			if not method and @[name]
-				context = @
 			if method and ~@states_active.indexOf state
 				transition_params = [states].concat params
 				ret = method.apply context, transition_params
-				return yes if ret is no
+				@log "[transition] #{name}", 3
+				if ret is no
+					@log "Self transition for #{state} cancelled", 2
+					return yes
 				event = @namespaceTransition_ name
 				transition_params2 = [event, states].concat params
 				# TODO this is hacky
 				@transition_events.push [event, params]
+				@log "[event] #{event}", 3
 				(@trigger.apply @, transition_params2) is no
 
 		not ret
+
 
 	setupTargetStates_: (states, exclude) ->
 		exclude ?= []
@@ -686,20 +717,18 @@ class AsyncMachine extends lucidjs.EventEmitter
 			if transition[-5..-1] is '.exit'
 				event = transition[0...-5]
 				state = event.replace /\./g, ''
-				@unflag event
-				@flag "#{event}.end"
+				@unflag "#{event}.state"
+				@log "[event] #{event}.end", 2
+#				@flag "#{event}.end"
 				@trigger "#{event}.end", params
-				@log "[flag] #{event}.end", 2
-				# TODO params!
 				@target[state + '_end']? previous, params
 			else if transition[-6..-1] is '.enter'
 				event = transition[0...-6]
 				state = event.replace /\./g, ''
 				@unflag "#{event}.end"
-				@flag event
-				@trigger event, params
-				@log "[flag] #{event}", 2
-				# TODO params!
+				@log "[event] #{event}.state", 2
+				@flag "#{event}.state"
+				@trigger "#{event}.state", params
 				@target[state + '_state']? previous, params
 
 		@transition_events = []
@@ -717,10 +746,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 		ret = @transitionExec_ from + "_exit", to, transition_params
 		return no if ret is no
 
-		# Duplicate event for namespacing.
-		transition = "exit." + @namespaceName from
-		ret = @transitionExec_ transition, to, transition_params
-		return no if ret is no
 		ret = to.some (state) =>
 			transition = from + "_" + state
 			if ~explicit_states.indexOf state
@@ -739,19 +764,14 @@ class AsyncMachine extends lucidjs.EventEmitter
 		ret = @transitionExec_ "any_#{to}", target_states, params
 		return no if ret is no
 		ret = @transitionExec_ "#{to}_enter", target_states, params
-		return no if ret is no
 
-		# Duplicate event for namespacing.
-		event_args = ["enter.#{@namespaceName to}", target_states]
-		ret = @trigger.apply @, event_args.concat params
-		ret
 
 	transitionExec_: (method, target_states, params) ->
 		params ?= []
 		transition_params = [target_states].concat params
 		ret = undefined
 		event = @namespaceTransition_ method
-		@log "[event] #{event}", 3
+		@log "[transition] #{event}", 3
 		if @target[method] instanceof Function
 			ret = @target[method]?.apply? @target, transition_params
 		else if @[method] instanceof Function
@@ -768,7 +788,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 				else if event[-6..-1] is '.enter'
 #					@log "[unflag] #{event[0...-5]}.exit", 3
 					@unflag "#{event[0...-6]}.exit"
-				@log "[flag] #{event}", 3
+				@log "[event] #{event}", 3
 				@flag event
 			# TODO this currently doesnt work like this in the newest lucidjs emitter
 			ret = @trigger event, transition_params
@@ -800,21 +820,20 @@ class AsyncMachine extends lucidjs.EventEmitter
 	bindToStates: (states, listener, abort, once) ->
 		fired = 0
 		enter = =>
-#			@log "enter #{fired} + 1", 1
 			fired += 1
-			if not abort?()
-				do listener if fired is states.length
+			if not abort?() and fired is states.length
+				listener()
 			if once or abort?()
 				for state in states
-					@removeListener "#{state}", enter
-					@removeListener "#{state}.end", exit
+					event = @namespaceName state
+					@removeListener "#{event}.state", enter
+					@removeListener "#{event}.end", exit
 		exit = -> fired -= 1
-		# TODO this should be bound to states, not negotiation listeners
 		for state in states
 			event = @namespaceName state
 			@log "Binding to event #{event}", 3
 #			console.log "state #{state}"
-			@on event, enter
+			@on "#{event}.state", enter
 			@on "#{event}.end", exit
 
 module.exports.AsyncMachine = AsyncMachine

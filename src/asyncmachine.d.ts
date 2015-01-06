@@ -72,10 +72,12 @@ class AsyncMachine {
 	public addByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
 	public addByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
 	public addByListener(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
-		
-	public drop(states: string[], ...params: any[]): boolean;
-	public drop(states: string, ...params: any[]): boolean;
-	public drop(states: any, ...params: any[]): boolean;
+
+	public drop(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
+	public drop(target: AsyncMachine, states?: string, ...params: any[]): boolean;
+	public drop(target: string[], states?: any, ...params: any[]): boolean;
+	public drop(target: string, states?: any, ...params: any[]): boolean;
+	public drop(target: any, states?: any, ...params: any[]): boolean;
 	public dropLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
 	public dropLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
 	public dropLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;

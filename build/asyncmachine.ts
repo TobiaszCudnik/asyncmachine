@@ -197,10 +197,11 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     public add(target: any, states?: any, ...params: any[]): boolean {
         if (target instanceof AsyncMachine) {
             if (this.duringTransition()) {
+                this.log("Queued state(s) " + states + " in an external machine", 2);
                 this.queue.push([STATE_CHANGE.ADD, states, params, target]);
                 return true;
             } else {
-                return target.add(states, params);
+                target.add(states, params);
             }
         }
 
@@ -254,9 +255,22 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.addByCallback.apply(this, params);
     }
 
-    public drop(states: string[], ...params: any[]): boolean;
-    public drop(states: string, ...params: any[]): boolean;
-    public drop(states: any, ...params: any[]): boolean {
+    public drop(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
+    public drop(target: AsyncMachine, states?: string, ...params: any[]): boolean;
+    public drop(target: string[], states?: any, ...params: any[]): boolean;
+    public drop(target: string, states?: any, ...params: any[]): boolean;
+    public drop(target: any, states?: any, ...params: any[]): boolean {
+        if (target instanceof AsyncMachine) {
+            if (this.duringTransition()) {
+                this.queue.push([STATE_CHANGE.DROP, states, params, target]);
+                return true;
+            } else {
+                return target.drop(states, params);
+            }
+        }
+
+        states = target;
+        params = [states].concat(params);
         return this.processStateChange_(STATE_CHANGE.DROP, states, params);
     }
 
@@ -291,11 +305,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             var new_state = target_state || state;
             var namespace = this.namespaceName(state);
 
-            this.on(namespace, () => this.add(machine, new_state));
+            this.on(namespace + ".state", () => this.add(machine, new_state));
 
-            return this.on(namespace + ".end", function() {
-                return this.drop(machine, new_state);
-            });
+            return this.on(namespace + ".end", () => this.drop(machine, new_state));
         });
     }
 
@@ -413,10 +425,6 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return console.log(this.debug_prefix + msg);
     }
 
-    public namespaceName(state: string): string {
-        return state.replace(/([a-zA-Z])([A-Z])/g, "$1.$2");
-    }
-
     setImmediate(fn, ...params) {
         if (setImmediate) {
             return setImmediate(fn.apply(null, params));
@@ -457,11 +465,26 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     private processStateChange_(type: number, states: string[], params: any[], autostate?: boolean, skip_queue?: boolean);
     private processStateChange_(type: number, states: any, params: any[], autostate?: boolean, skip_queue?: boolean): boolean {
         states = [].concat(states);
+        states = states.filter((state) => {
+            if (typeof state !== "string") {
+                this.log(state + " isnt a string (state name)");
+                console.dir(state);
+                return false;
+            }
+            if (!this.get(state)) {
+                this.log("State " + state + " doesnt exist");
+                return false;
+            }
+
+            return true;
+        });
+
         if (!states.length) {
             return;
         }
         try {
             if (this.lock) {
+                this.log("Queued state(s) " + (states.join(", ")), 2);
                 this.queue.push([type, states, params]);
                 return;
             }
@@ -526,7 +549,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         var row = void 0;
         while (row = this.queue.shift()) {
             var target = row[QUEUE.TARGET] || this;
-            var params = [row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], false, true];
+            var params = [row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], false];
             ret.push(target.processStateChange_.apply(target, params));
         }
 
@@ -556,8 +579,13 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return (...params) => deferred.resolve(params);
     }
 
+    public namespaceName(state: string): string {
+        return state;
+    }
+
     private namespaceTransition_(transition: string): string {
-        return this.namespaceName(transition).replace(/_(exit|enter)$/, ".$1").replace("_", "._.");
+        transition;
+        return this.namespaceName(transition).replace(/_(exit|enter|state|end)$/, ".$1");
     }
 
     private selfTransitionExec_(states: string[], params?: any[]) {
@@ -567,20 +595,20 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         var ret = states.some((state) => {
             ret = void 0;
             var name = state + "_" + state;
-            var method = this.target[name];
+            var method = this.target[name] || this[name];
             var context = this.target;
-            if (!method && this[name]) {
-                context = this;
-            }
             if (method && ~this.states_active.indexOf(state)) {
                 var transition_params = [states].concat(params);
                 ret = method.apply(context, transition_params);
+                this.log("[transition] " + name, 3);
                 if (ret === false) {
+                    this.log("Self transition for " + state + " cancelled", 2);
                     return true;
                 }
                 var event = this.namespaceTransition_(name);
                 var transition_params2 = [event, states].concat(params);
                 this.transition_events.push([event, params]);
+                this.log("[event] " + event, 3);
                 return (this.trigger.apply(this, transition_params2)) === false;
             }
         });
@@ -770,18 +798,17 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             if (transition.slice(-5) === ".exit") {
                 var event = transition.slice(0, -5);
                 var state = event.replace(/\./g, "");
-                this.unflag(event);
-                this.flag(event + ".end");
+                this.unflag(event + ".state");
+                this.log("[event] " + event + ".end", 2);
                 this.trigger(event + ".end", params);
-                this.log("[flag] " + event + ".end", 2);
                 return typeof (_base = this.target)[_name = state + "_end"] === "function" ? _base[_name](previous, params) : void 0;
             } else if (transition.slice(-6) === ".enter") {
                 event = transition.slice(0, -6);
                 state = event.replace(/\./g, "");
                 this.unflag(event + ".end");
-                this.flag(event);
-                this.trigger(event, params);
-                this.log("[flag] " + event, 2);
+                this.log("[event] " + event + ".state", 2);
+                this.flag(event + ".state");
+                this.trigger(event + ".state", params);
                 return typeof (_base1 = this.target)[_name1 = state + "_state"] === "function" ? _base1[_name1](previous, params) : void 0;
             }
         });
@@ -805,13 +832,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (ret === false) {
             return false;
         }
-        var transition = "exit." + this.namespaceName(from);
-        ret = this.transitionExec_(transition, to, transition_params);
-        if (ret === false) {
-            return false;
-        }
+
         ret = to.some((state) => {
-            transition = from + "_" + state;
+            var transition = from + "_" + state;
             if (~explicit_states.indexOf(state)) {
                 transition_params = params;
             }
@@ -835,13 +858,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (ret === false) {
             return false;
         }
-        ret = this.transitionExec_(to + "_enter", target_states, params);
-        if (ret === false) {
-            return false;
-        }
-        var event_args = ["enter." + (this.namespaceName(to)), target_states];
-        ret = this.trigger.apply(this, event_args.concat(params));
-        return ret;
+        return ret = this.transitionExec_(to + "_enter", target_states, params);
     }
 
     private transitionExec_(method: string, target_states: string[], 
@@ -853,7 +870,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         var transition_params = [target_states].concat(params);
         var ret = void 0;
         var event = this.namespaceTransition_(method);
-        this.log("[event] " + event, 3);
+        this.log("[transition] " + event, 3);
         if (this.target[method] instanceof Function) {
             ret = (_ref = this.target[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(this.target, transition_params) : void 0 : void 0;
         } else if (this[method] instanceof Function) {
@@ -868,7 +885,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 } else if (event.slice(-6) === ".enter") {
                     this.unflag(event.slice(0, -6) + ".exit");
                 }
-                this.log("[flag] " + event, 3);
+                this.log("[event] " + event, 3);
                 this.flag(event);
             }
             ret = this.trigger(event, transition_params);
@@ -903,15 +920,14 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         var fired = 0;
         var enter = () => {
             fired += 1;
-            if (!(typeof abort === "function" ? abort() : void 0)) {
-                if (fired === states.length) {
-                    listener();
-                }
+            if (!(typeof abort === "function" ? abort() : void 0) && fired === states.length) {
+                listener();
             }
             if (once || (typeof abort === "function" ? abort() : void 0)) {
                 return states.map((state) => {
-                    this.removeListener(state, enter);
-                    return this.removeListener(state + ".end", exit);
+                    var event = this.namespaceName(state);
+                    this.removeListener(event + ".state", enter);
+                    return this.removeListener(event + ".end", exit);
                 });
             }
         };
@@ -921,7 +937,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return states.map((state) => {
             var event = this.namespaceName(state);
             this.log("Binding to event " + event, 3);
-            this.on(event, enter);
+            this.on(event + ".state", enter);
             return this.on(event + ".end", exit);
         });
     }
