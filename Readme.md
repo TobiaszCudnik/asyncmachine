@@ -2,13 +2,17 @@
 
   Multi state machine for declarative async logic.
   
+# OUTDATED
+
+The master branch is outdated, take a look at the ongoing work in the [coffee branch](https://github.com/TobiaszCudnik/asyncmachine/tree/coffee), which will soon became the v2.
+  
 ## Disclaimer
 
 Motivation behind AsyncMachine was to make creating complex asynchronous systems 
-easier, more predictable and to reduce code redundancy. It's loosely based on 
+easier, more predictable and to reduce the code redundancy. It's loosely based on 
 finite state machine and isn't backed up with any formalized theory. 
 
-Target of this project is to extend or replace such patterns as promise, 
+Purpose of this project is to extend and/or replace such patterns as promise, 
 event emitter and callback passing style. 
   
 ## Sample code (in Coffee)
