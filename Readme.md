@@ -2,20 +2,24 @@
 
   Multi state machine for declarative async logic.
   
+# OUTDATED
+
+The master branch is outdated, take a look at the ongoing work in the [coffee branch](https://github.com/TobiaszCudnik/asyncmachine/tree/coffee), which will soon became the v2.
+  
 ## Disclaimer
 
 Motivation behind AsyncMachine was to make creating complex asynchronous systems 
-easier, more predictable and to reduce code redundancy. It's loosely based on 
+easier, more predictable and to reduce the code redundancy. It's loosely based on 
 finite state machine and isn't backed up with any formalized theory. 
 
-Target of this project is to extend or replace such patterns as promise, 
+Purpose of this project is to extend and/or replace such patterns as promise, 
 event emitter and callback passing style. 
   
 ## Sample code (in Coffee)
   
 ```coffeescript
 class Foo extends AsyncMachine {
-    state_A:
+    A:
         # Decides about the order of activations (transitions).
         depends: []
         # Activates also following states.
@@ -26,7 +30,8 @@ class Foo extends AsyncMachine {
         blocks: []
         # Defines if the state should be tried to be set each time active states are changed.
         auto: false
-    state_B: {}
+    B: {}
+    
     A_enter: ->
     A_exit: ->
     A_B: ->
@@ -56,24 +61,24 @@ class Foo extends AsyncMachine {
 ## Order of transitions:
 
 Example presents a transition from StateA to StateB:
-- StateA_exit
-- StateA_StateB
-- StateA_any
-- any_StateB
-- StateB_enter
+- A_exit
+- A_B
+- A_any
+- any_B
+- B_enter
 
 ## Events
 
 AsyncMachine has an event emitter based on LucidJS, which supports states and 
 sub events. Following events are emitted from the above example transition:
 
-- State.A.exit
-- exit.A.exit (alias)
-- State.A._.State.B
-- State.A._.any
-- any._.State.B
-- State.B._.enter
-- enter.State.B (alias)
+- A.exit
+- exit.A (alias)
+- A._.B
+- A._.any
+- any._.B
+- B._.enter
+- enter.B (alias)
 
 Notice the '.' dot convention. It allows you to namespace sub events. This means,
 once bound to 'State.A' it'll be emitted for `enter`, `exit` events and all transitions.
@@ -81,6 +86,18 @@ You can understand it as if there would be a wildcard at the end.
 
 Additionally, all states emit `enter` or `exit` event at once when you bind to 
 them, depending if it's set or not.
+
+## Change log
+
+2.0:
+- rewritten to CompiledCoffee
+- dropped inheritance in flavor of composition
+- dropped state name prefixes
+- added a clock for states
+- added prototype children support
+- updated to lucidjs 2.0
+- updated to rsvp 3.0
+- experimental Closure Compiler dist version (with warnings)
 
 ## Asynchronous solutions
 
@@ -329,22 +346,15 @@ export class AsyncMachine extends asyncmachine.AsyncMachine {}
 
 - more examples
 - broken tests :)
-- break for Array#some and Array#every (or replace with a normal loop)
-- exception support (includes promise rejections)
- - promises eat exceptions
 - travis CI
 - make logging better
- - pass thou a method (namespaced)
  - log only executed transitions
 - try to auto drop the implied state when dropping a state
-- tests for the mixin api (traits.js support & examples?)
 - method for generating all possible transition permutations (honoring the relations)
-- customizable naming convention
- - STATE_STATE to StateState or state_
 
 ## Design concerns
 
-- [add|set]StateLater works only once
+- #add and #set works only once (?)
 - dropped state transitions to all currently active states, not only newly added ones
 - state change during a state change is queued after current one finishes
 - auto states that drops other states? should not be allowed?
@@ -356,11 +366,11 @@ export class AsyncMachine extends asyncmachine.AsyncMachine {}
 ## Distributions
 
 There are several ways you can incorporate AsyncMachine into your codebase
-- TypeScript sources
+- CoffeeScript sources (typed via d.ts file)
+- TypeScript sources (typed)
 - JavaScript CommonJS module
-- JavaScript staticaly linked file (means deps included)
- - CommonJS interface
- - Browser compatible
+- JavaScript staticaly linked file (means deps included / browserify)
+- Closure Compiler sources (experimental, w/ warnings)
 
 ## Tests / Specs
 
