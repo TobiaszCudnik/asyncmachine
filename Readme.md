@@ -10,13 +10,13 @@ npm install asyncmachine
 
 ## Disclaimer
  
-AsyncMachine is simply a multi-state machine thus can also be used for other purposes than managing async.
- 
 State-based async systems are easier to understand and to track down issues than other approaches.
-Code can react based on the current and the next state or the execution can be aborted if the state has changed
+Code can react on the current and the next state or the execution can be aborted if the state has changed
 or has been re-set (prevents double callback execution problem). Joining parallel actions is a matter of
 defining states relations. Same goes for extending already implemented behaviors, because responsibility
 is decoupled. State exit transitions are a great place for garbage collection.
+
+AsyncMachine is simply a multi-state machine thus can also be used for other purposes than managing async.
 
 ## Basic API
 
@@ -240,7 +240,7 @@ class AsyncMachine {
 	public last_promise: rsvp.Promise;
 	public config: IConfig;
 	constructor(config?: IConfig);
-	public Exception_enter(states: string[], err: Error, exception_states?: string[]): boolean;
+	public Exception_state(states: string[], err: Error, exception_states?: string[]): boolean;
 
 	public register(...states: string[]);
 	public get(state: string): IState;
@@ -299,7 +299,7 @@ class AsyncMachine {
  
 ## Change log
  
-### 2.0:
+### v2.0
  
 - states clock
 - synchronous queue across composed asyncmachines
