@@ -690,10 +690,10 @@ describe "asyncmachine", ->
 				# mock
 				mock_states @machine, [ 'A', 'B', 'C', 'D' ]
 				@machine.set [ 'A', 'C' ]
-				@machine.on 'A._.A', @A_A
-				@machine.on 'B.enter', @B_enter
-				@machine.on 'C.exit', @C_exit
-				@machine.on 'D.exit', -> no
+				@machine.on 'A_A', @A_A
+				@machine.on 'B_enter', @B_enter
+				@machine.on 'C_exit', @C_exit
+				@machine.on 'D_exit', -> no
 				# lucid emitter event
 				@machine.on 'emitter.flag', @set
 				@machine.on 'state.cancel', @cancelTransition
@@ -734,26 +734,26 @@ describe "asyncmachine", ->
 			
 		describe 'should support states', ->
 
-			it 'by triggering the *.enter listener at once for active states', ->
+			it 'by triggering the *_enter listener at once for active states', ->
 				l = []
 				# init spies
 				l[ i ] = sinon.stub() for i in [ 0..2 ]
 				i = 0
 				@machine.set 'B'
-				@machine.on 'A.enter', l[ i++ ]
-				@machine.on 'B.enter', l[ i++ ]
+				@machine.on 'A_enter', l[ i++ ]
+				@machine.on 'B_enter', l[ i++ ]
 				i = 0
 				expect( l[ i++ ].called ).not.to.be.ok
 				expect( l[ i++ ].calledOnce ).to.be.ok
 
-			it 'by triggering the *.exit listeners at once for non active states', ->
+			it 'by triggering the *_exit listeners at once for non active states', ->
 				l = []
 				# init spies
 				l[ i ] = sinon.stub() for i in [ 0..2 ]
 				i = 0
 				@machine.set 'B'
-				@machine.on 'A.exit', l[ i++ ]
-				@machine.on 'B.exit', l[ i++ ]
+				@machine.on 'A_exit', l[ i++ ]
+				@machine.on 'B_exit', l[ i++ ]
 				i = 0
 				expect( l[ i++ ].calledOnce ).to.be.ok
 				expect( l[ i++ ].called ).not.to.be.ok
@@ -784,8 +784,8 @@ describe "asyncmachine", ->
 				l1 = sinon.stub()
 				l2 = sinon.stub()
 
-				@machine.on('Test.Namespace.enter', l1)
-				@machine.on('A._.Test.Namespace', l2)
+				@machine.on('Test.Namespace_enter', l1)
+				@machine.on('A_Test.Namespace', l2)
 				@machine.set('TestNamespace')
 
 				expect( l1.calledOnce ).to.be.ok

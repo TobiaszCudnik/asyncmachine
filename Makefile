@@ -17,28 +17,14 @@ build-watch:
 	$(CCOFFEE) -o build -i src --watch
 	
 package:
-	./node_modules/browserify/bin/cmd.js -r ./build/dist/asyncmachine.js:asyncmachine \
-		--no-builtins > \
-		build/dist-pkg/asyncmachine.js
-
-build-test:
-	$(CCOFFEE) -o build/test -i test
-
-build-test-watch:
-	$(CCOFFEE) -o build/test -i test \
-		--watch
-
-browser-test:
-	make build-test
-	make server
-	echo "Open http://localhost:8080/build/dist-pkg/test.html"
-	# TODO open URL
+	# TODO compiled coffee browserify flag
 
 server:
 	node_modules/http-server/bin/http-server
 	
 example-basic:
-	$(NODE) examples/basic-javascript/basic.js
+	6to5 examples/basic/basic.js --out-file examples/basic/basic.es5.js
+	node examples/basic/basic.es5.js
 	
 setup:
 	npm install

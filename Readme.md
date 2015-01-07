@@ -1,402 +1,326 @@
 # AsyncMachine
+ 
+  Swiss army knife for complex async systems.
 
-  Multi state machine for declarative async logic.
-  
-# OUTDATED
+## Install
+ 
+```
+npm install asyncmachine
+```
 
-The master branch is outdated, take a look at the ongoing work in the [coffee branch](https://github.com/TobiaszCudnik/asyncmachine/tree/coffee), which will soon became the v2.
-  
 ## Disclaimer
+ 
+AsyncMachine is simply a multi-state machine thus can also be used for other purposes than managing async.
+ 
+State-based async systems are easier to understand and to track down issues than other approaches.
+Code can react based on the current and the next state or the execution can be aborted if the state has changed
+or has been re-set (prevents double callback execution problem). Joining parallel actions is a matter of
+defining states relations. Same goes for extending already implemented behaviors, because responsibility
+is decoupled. State exit transitions are a great place for garbage collection.
 
-Motivation behind AsyncMachine was to make creating complex asynchronous systems 
-easier, more predictable and to reduce the code redundancy. It's loosely based on 
-finite state machine and isn't backed up with any formalized theory. 
+## Basic API
 
-Purpose of this project is to extend and/or replace such patterns as promise, 
-event emitter and callback passing style. 
-  
-## Sample code (in Coffee)
-  
 ```coffeescript
-class Foo extends AsyncMachine {
+# CoffeeScript
+class Foo extends AsyncMachine
     A:
+        # When true, a state will be set automatically if it's not blocked.
+        auto: no
+        # State will be rejected if any of those aren't set.
+        requires: []
         # Decides about the order of activations (transitions).
         depends: []
-        # Activates also following states.
+        # When activated, activates also following states.
         implies: ['B']
-        # Will be activated only if following are met.
-        requires: []
-        # When active, blocks activation (or deactivates) of following states.
+        # When active, blocks activation (or deactivates) of given states.
         blocks: []
-        # Defines if the state should be tried to be set each time active states are changed.
-        auto: false
     B: {}
-    
+
+    # Transitions are simply methods, executed in the order like below:
+
+    # negotiation transitions
     A_enter: ->
     A_exit: ->
     A_B: ->
     any_A: ->
     A_any: ->
-}
-```
 
+    # non-negotiation transitions
+    A_state: ->
+    A_end: ->
+ ```
+ 
 ## Features
+ 
+- state negotiation
+- states clock
+- synchronous nested transitions queueing
+- exceptions support
+- transition exposed as events
+- callbacks/promises/yield compatible
+- expressive logging system
+ 
+## Transitions
+ 
+Example of an order of listeners during a transition between states A and B. All methods *and events* with these
+names will be called.
 
-- always synchronous state
- - transition can cancel a change of the state
-- states definitions in OO manner
-- state relations: blocks, implies, requires, depends
-- state transitions (methods) in OO manner (prototype-level)
- - obj#A_enter, obj#A_B, obj#any_A, etc
-- transitions exposed via an event emitter
- - with sub events (superEvent.subEvent)
- - with event piping
-- nested transitions queued in a sync way, executed in a series
-- promises support for deferred state changes
-- logging system for free
-- mixin support
-- written in TypeScript
-- lots of tests (in Coffee)
-
-## Order of transitions:
-
-Example presents a transition from StateA to StateB:
 - A_exit
 - A_B
 - A_any
 - any_B
 - B_enter
-
-## Events
-
-AsyncMachine has an event emitter based on LucidJS, which supports states and 
-sub events. Following events are emitted from the above example transition:
-
-- A.exit
-- exit.A (alias)
-- A._.B
-- A._.any
-- any._.B
-- B._.enter
-- enter.B (alias)
-
-Notice the '.' dot convention. It allows you to namespace sub events. This means,
-once bound to 'State.A' it'll be emitted for `enter`, `exit` events and all transitions.
-You can understand it as if there would be a wildcard at the end.
-
-Additionally, all states emit `enter` or `exit` event at once when you bind to 
-them, depending if it's set or not.
-
-## Change log
-
-2.0:
-- rewritten to CompiledCoffee
-- dropped inheritance in flavor of composition
-- dropped state name prefixes
-- added a clock for states
-- added prototype children support
-- updated to lucidjs 2.0
-- updated to rsvp 3.0
-- experimental Closure Compiler dist version (with warnings)
-
-## Asynchronous solutions
-
-We have several ways of dealing with asynchronous code in JS/ECMAScript:
-- Callbacks
-- Events
-- Promises
-
-Although all of them doesn't scale well with a complicated relations between 
-async actions. Consider a following relation between DB queries:
-
-- Query 1 has no deps
-- Query 2 has no deps
-- Query 3 relies on Query 1 and query 2
-- Query 4 relies on Query 1
-
-This simple example shows how Query 3 and Query 4 can't be easily abstracted in a
-lineral way. Thanks to AsyncMachine, such code can look like this:
-
+- A_end
+- B_state
+ 
+## Example
+ 
+ 
 ```javascript
-var am = require('../../build/pkg/build.js').main()
-
-function QueryFetcher() {
-	this.results = {}
-	// Call the super contructor.
-	am.AsyncMachine.call(this)
-	// Turn on logging with a prefix.
-	this.debugStates('[fetcher]')
-	// Init states when logging is on or pass to the super contructor.
-	this.initStates( ['ExecQuery1', 'ExecQuery2'] )
+// EcmaScript 6
+var asyncmachine = require('../../lib/asyncmachine')
+require('object-mixin')
+ 
+ 
+class QueryFetcherStates extends asyncmachine.AsyncMachine {
+	constructor() {
+		super()
+		this.registerAll()
+		// Enable a basic debug
+		this.debug('[fetcher]')
+	}
 }
-function Inherit() {
-	this.constructor = QueryFetcher
-}
-Inherit.prototype = am.AsyncMachine.prototype
-var p = QueryFetcher.prototype = new Inherit 
-
-p.state_Start = {}
-p.state_ExecQuery1 = {}
-p.state_ExecQuery2 = {}
-p.state_ExecQuery3 = {
-	auto: true,
-	requires: [ 'Query1Done', 'Query2Done' ]
-}
-p.state_ExecQuery4 = {
-	auto: true,
-	requires: [ 'Query1Done' ]
-}	
-p.state_Done = {
-	auto: true,
-	requires: [ 'Query1Done', 'Query2Done', 'Query3Done', 'Query4Done' ]
-}	
-
-p.state_Query1Done = {}
-p.state_Query2Done = {}
-p.state_Query3Done = {}
-p.state_Query4Done = {}
-p.state_Result = {}
-
-p.ExecQuery1_enter = function() {
-	this.query( 'foo bar baz', this.addStateLater( ['Query1Done', 'Result']) )
-}
-p.ExecQuery2_enter = function() {
-	this.query( 'foo bar baz', this.addStateLater( ['Query2Done', 'Result']) )
-}
-p.ExecQuery3_enter = function() {
-	this.query( 'foo bar baz', this.addStateLater( ['Query3Done', 'Result']) )
-}
-p.ExecQuery4_enter = function() {
-	this.query( 'foo bar baz', this.addStateLater( ['Query4Done', 'Result']) )
-}
-
-// Collect results from every callback.
-p.Result_enter = function(states, params, callback_params) {
-	this.results[ states[0] ] = callback_params[0]
-}
-// Result to Result state transition
-p.Result_Result = function(states, params, callback_params) {
-	this.results[ states[0] ] = callback_params[0]
-}
-
-// Mocked method
-p.query = function( query, next ) {
-	setTimeout(function() {
-		next( query )
-	}, 0)
-}
-
-// Usage outside of an AM object (eg a dynamic one)
-var fetcher = new QueryFetcher()
-// This will work even if fetcher is already done.
-fetcher.on('Done.enter', function() {
-	console.log( fetcher.results )
+ 
+Object.mixin(QueryFetcherStates.prototype, {
+	Enabled: {},
+ 
+	Query1Running: {auto: true, requires: ['Enabled']},
+	Query1Done: {},
+ 
+	Query2Running: {auto: true, requires: ['Enabled']},
+	Query2Done: {},
+ 
+	Query3Running: {
+		auto: true,
+		requires: ['Query1Done', 'Query2Done', 'Enabled']
+	},
+	Query3Done: {},
+ 
+	Query4Running: {
+		auto: true,
+		requires: ['Query1Done', 'Enabled']
+	},
+	Query4Done: {},
+ 
+	Done: {
+		auto: true,
+		requires: ['Query1Done', 'Query2Done', 'Query3Done', 'Query4Done']
+	}
 })
-```
+ 
+ 
+class QueryFetcher {
+	constructor() {
+		this.results = {}
+ 
+		this.states = new QueryFetcherStates()
+		// Redirect transitions to this object
+		this.states.setTarget(this)
+	}
+ 
+	ExecQuery1_state() {
+		this.query('foo',
+			this.states.addByCallback(['Query1Done', 'Result'])
+		)
+	}
+	ExecQuery2_state() {
+		this.query('bar',
+			this.states.addByCallback(['Query2Done', 'Result'])
+		)
+	}
+	ExecQuery3_state() {
+		this.query('foo bar',
+			this.states.addByCallback(['Query3Done', 'Result'])
+		)
+	}
+	ExecQuery4_state() {
+		this.query('baz',
+			this.states.addByCallback(['Query4Done', 'Result'])
+		)
+	}
+ 
+	// Collect results from every callback.
+	Result_state() {
+		// Redirect to self transition, to keep it concise.
+		this.Result_Result.apply(this, arguments)
+	}
 
-You can run it yourself with `make example-basic`.
-
-Like you see in the above implementation, the code isn't the shortes one, but
-you gain an important information thanks to this approach - **you put an address 
-on a timeline of a lifecycle of your object**. Using auto states you don't have to 
-trigger states manually. Bonus to that, you can easily overload these methods and
-extend by additional logic in sub classes.
-
-This declarative approach gives integrity of behavior accross different scenarios 
-easily.
-
-There's a more complicated example with throttling while 
-[monitoring gmail threads](https://github.com/TobiaszCudnik/asyncmachine/blob/master/examples/gmail-query/monitor.ts).
-
-## Logging system
-
-After executing a following method
-```javascript
-this.debugStates('[prefix]')
-```
-preferably before calling the `constructor` (or `initStates`) you turn on an 
-expressive logging system. Here's the output of the simple example available above:
-
-```
-node examples/basic-javascript/basic.js
-[fetcher] [*] Set state ExecQuery1, ExecQuery2
-[fetcher] any._.Exec.Query1
-[fetcher] Exec.Query1.enter
-[fetcher] any._.Exec.Query2
-[fetcher] Exec.Query2.enter
-[fetcher] [*] Add state ExecQuery3, ExecQuery4, Done
-[fetcher] [i] State ExecQuery3 dropped as required state Query1Done is missing
-[fetcher] [i] State ExecQuery3 dropped as required state Query2Done is missing
-[fetcher] [i] State ExecQuery4 dropped as required state Query1Done is missing
-[fetcher] [i] State Done dropped as required state Query1Done is missing
-[fetcher] [i] State Done dropped as required state Query2Done is missing
-[fetcher] [i] State Done dropped as required state Query3Done is missing
-[fetcher] [i] State Done dropped as required state Query4Done is missing
-[fetcher] [i] Transition cancelled, as target states wasn't accepted
-[fetcher] [*] Add state Query1Done, Result
-[fetcher] any._.Query1Done
-[fetcher] Query1Done.enter
-[fetcher] any._.Result
-[fetcher] Result.enter
-[fetcher] [*] Add state ExecQuery3, ExecQuery4, Done
-[fetcher] [i] State ExecQuery3 dropped as required state Query2Done is missing
-[fetcher] [i] State Done dropped as required state Query2Done is missing
-[fetcher] [i] State Done dropped as required state Query3Done is missing
-[fetcher] [i] State Done dropped as required state Query4Done is missing
-[fetcher] any._.Exec.Query4
-[fetcher] Exec.Query4.enter
-[fetcher] [*] Add state ExecQuery3, Done
-[fetcher] [i] State ExecQuery3 dropped as required state Query2Done is missing
-[fetcher] [i] State Done dropped as required state Query2Done is missing
-[fetcher] [i] State Done dropped as required state Query3Done is missing
-[fetcher] [i] State Done dropped as required state Query4Done is missing
-[fetcher] [i] Transition cancelled, as target states wasn't accepted
-[fetcher] [*] Add state Query2Done, Result
-[fetcher] any._.Query2Done
-[fetcher] Query2Done.enter
-[fetcher] [*] Add state ExecQuery3, Done
-[fetcher] [i] State Done dropped as required state Query3Done is missing
-[fetcher] [i] State Done dropped as required state Query4Done is missing
-[fetcher] any._.Exec.Query3
-[fetcher] Exec.Query3.enter
-[fetcher] [*] Add state Done
-[fetcher] [i] State Done dropped as required state Query3Done is missing
-[fetcher] [i] State Done dropped as required state Query4Done is missing
-[fetcher] [i] Transition cancelled, as target states wasn't accepted
-[fetcher] [*] Add state Query4Done, Result
-[fetcher] any._.Query4Done
-[fetcher] Query4Done.enter
-[fetcher] [*] Add state Done
-[fetcher] [i] State Done dropped as required state Query3Done is missing
-[fetcher] [i] Transition cancelled, as target states wasn't accepted
-[fetcher] [*] Add state Query3Done, Result
-[fetcher] any._.Query3Done
-[fetcher] Query3Done.enter
-[fetcher] [*] Add state Done
-[fetcher] any._.Done
-[fetcher] Done.enter
-{ Query1Done: 'foo bar baz',
-  Query2Done: 'foo bar baz',
-  Query4Done: 'foo bar baz',
-  Query3Done: 'foo bar baz' }
-```
-
-# API headers
-
-```javascript
-export module asyncmachine {
-    interface IState {
-        depends?: string[];
-        implies?: string[];
-        blocks?: string[];
-        requires?: string[];
-        auto?: bool;
-    }
-    interface IConfig {
-        debug: bool;
-    }
-    interface ITransition {
-        call(states?: string[], state_params?: any[], callback_params?: any[]): bool;
-        call(states?: string[], state_params?: any[], callback_params?: any[]): any;
-        apply(context, args): any;
-    }
-    class AsyncMachine {
-        public last_promise: rsvp.Promise;
-        public config: IConfig;
-        constructor (state?: string, config?: IConfig);
-        constructor (state?: string[], config?: IConfig);
-        public initStates(state: string);
-        public initStates(state: string[]);
-        public getState(name): IState;
-        public state(name: string): bool;
-        public state(name: string[]): bool;
-        public state(): string[];
-        public setState(states: string[], ...params: any[]): bool;
-        public setState(states: string, ...params: any[]): bool;
-        public setStateLater(states: string[], ...params: any[]): (...params: any[]) => void;
-        public setStateLater(states: string, ...params: any[]): (...params: any[]) => void;
-        public addState(states: string[], ...params: any[]): bool;
-        public addState(states: string, ...params: any[]): bool;
-        public addStateLater(states: string[], ...params: any[]): (...params: any[]) => void;
-        public addStateLater(states: string, ...params: any[]): (...params: any[]) => void;
-        public dropState(states: string[], ...params: any[]): bool;
-        public dropState(states: string, ...params: any[]): bool;
-        public dropStateLater(states: string[], ...params: any[]): (...params: any[]) => void;
-        public dropStateLater(states: string, ...params: any[]): (...params: any[]) => void;
-        public pipeForward(state: AsyncMachine, machine?: string);
-        public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
-        public pipeInvert(state: string, machine: AsyncMachine, target_state: string): void;
-        public pipeOff(): void;
-        public namespaceStateName(state: string): string;
-        public defineState(name: string, config: IState): void;
-        public debugStates(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
-        public initAsyncMachine(state: string, config?: IConfig): void;
-        static mixin(prototype: Object): void;
-        static mergeState(name: string): void;
-        public on(event: string, VarArgsBoolFn): LucidJS.IBinding;
-        public once(event: string, VarArgsBoolFn): LucidJS.IBinding;
-        public trigger(event: string, ...args: any[]): bool;
-        public set(event: string, ...args: any[]): LucidJS.IBinding;
-    }
+	Result_Result(states, params, callback_params) {
+		this.results[ states[0] ] = callback_params[0]
+	}
+ 
+	// Mocked method
+	query(query, next) {
+		setTimeout(() => {
+			next( null, query )
+		}, 0)
+	}
 }
-export class AsyncMachine extends asyncmachine.AsyncMachine {}
-```
+ 
 
-## TODO / Ideas
+ var fetcher = new QueryFetcher()
 
-- more examples
-- broken tests :)
-- travis CI
-- make logging better
- - log only executed transitions
-- try to auto drop the implied state when dropping a state
-- method for generating all possible transition permutations (honoring the relations)
-
-## Design concerns
-
-- #add and #set works only once (?)
-- dropped state transitions to all currently active states, not only newly added ones
-- state change during a state change is queued after current one finishes
-- auto states that drops other states? should not be allowed?
-- parsing auto states before state change? what if a new state relays on an auto state?
-- typescript properties implementation prevents the visibility of sub 
-  class states in the super constructor (need for calling this.initStates() )
-- polluted stack trace
-
-## Distributions
-
-There are several ways you can incorporate AsyncMachine into your codebase
-- CoffeeScript sources (typed via d.ts file)
-- TypeScript sources (typed)
-- JavaScript CommonJS module
-- JavaScript staticaly linked file (means deps included / browserify)
-- Closure Compiler sources (experimental, w/ warnings)
-
-## Tests / Specs
-
-![alt text](http://tobiaszcudnik.github.com/asyncmachine/tests.png "Test results")
-
-## Dependencies
-
-- [es5-shim](https://github.com/kriskowal/es5-shim)
-- [LucidJS](https://github.com/RobertWHurst/LucidJS)
-- [RSVP](https://github.com/tildeio/rsvp.js)
-
-## Development
+ // This will work even if fetcher is already done.
+fetcher.on('Done.state', () => {
+ 	console.log( fetcher.results )
+ })
+ ```
+ 
+## Log
+ 
+Every AsyncMachine produces an expressive log of state transitions, which includes state changes, state negotiation
+process, triggered listeners, aborts and state queuing. Log level can be adjusted from basic to verbose. An example log
+can look like this:
 
 ```
-make setup
-make test
+[states] +Enabled
+[states] +Query1Running +Query2Running
+[states] +Query1Done +Result
+[states] +Query4Running
+[states] +Query2Done
+[states] +Query3Running
+[states] +Query4Done
+[states] +Query3Done
 ```
 
-## Inspirations
+Logging with level == 2 gives you more insight into whats happening:
 
-- [node-disorder](https://github.com/substack/node-disorder)
-- JS FSM work from [Tomasz Paczkowski](https://github.com/oinopion)
-- [CKEditor](https://github.com/ckeditor)'s dependency calculation
-- years of writing async systems
+```
+[add] state Enabled
+[states] +Enabled
+Can't set following states Query3Running(-Query1Done), Query4Running(-Query1Done), Done(-Query1Done)
+[states] +Query1Running +Query2Running
+[transition] Query1Running_state
+[transition] Query2Running_state
+Can't set following states Query3Running(-Query1Done), Query4Running(-Query1Done), Done(-Query1Done)
+[add] state Query1Done, Result
+[states] +Query1Done +Result
+[transition] Result_state
+Can't set following states Query3Running(-Query2Done), Done(-Query2Done)
+[states] +Query4Running
+[transition] Query4Running_state
+Can't set following states Query3Running(-Query2Done), Done(-Query2Done)
+[add] state Query2Done, Result
+[transition] undefined
+[states] +Query2Done
+Can't set following states Done(-Query3Done)
+[states] +Query3Running
+[transition] Query3Running_state
+Can't set following states Done(-Query3Done)
+[add] state Query4Done, Result
+[transition] undefined
+[states] +Query4Done
+Can't set following states Done(-Query3Done)
+[add] state Query3Done, Result
+[transition] undefined
+[states] +Query3Done
+[states] +Done
+```
 
-## Related URLs
+There's level 3 as well!
+ 
+## API
+ 
+AsyncMachine's source code is transpiled from CoffeeScript to TypeScript and merged with external static types definitions.
+Public API looks like this:
+ 
+```typescript
+class AsyncMachine {
+	public last_promise: rsvp.Promise;
+	public config: IConfig;
+	constructor(config?: IConfig);
+	public Exception_enter(states: string[], err: Error, exception_states?: string[]): boolean;
+
+	public register(...states: string[]);
+	public get(state: string): IState;
+	public state(name: string): boolean;
+	public state(name: string[]): boolean;
+	public state(): string[];
+	public is(state: string): boolean;
+	public is(state: string[]): boolean;
+	public is(state: string, tick?: number): boolean;
+	public is(state: string[], tick?: number): boolean;
+	public is(): string[];
+	public any(...names: string[]): boolean;
+	public any(...names: string[][]): boolean;
+	public every(...names: string[]): boolean;
+ 
+	public add(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
+	public add(target: AsyncMachine, states?: string, ...params: any[]): boolean;
+	public add(target: string[], states?: any, ...params: any[]): boolean;
+	public add(target: string, states?: any, ...params: any[]): boolean;
+	public addByCallback(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+	public addByCallback(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+	public addByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+	public addByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+ 
+	public drop(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
+	public drop(target: AsyncMachine, states?: string, ...params: any[]): boolean;
+	public drop(target: string[], states?: any, ...params: any[]): boolean;
+	public drop(target: string, states?: any, ...params: any[]): boolean;
+	public dropByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+	public dropByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+
+	public set(states: string[], ...params: any[]): boolean;
+	public set(states: string, ...params: any[]): boolean;
+	public setByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+	public setByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+ 
+	public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
+	public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
+	public pipeForward(state: AsyncMachine, machine?: string);
+	public pipeInvert(state: string, machine: AsyncMachine, target_state: string);
+	public pipeOff(): void;
+	public duringTransition(): boolean;
+	public namespaceName(state: string): string;
+	public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
+	public log(msg: string, level?: number): void;
+ 
+	public when(states: string, abort?: Function): rsvp.Promise;
+	public when(states: string[], abort?: Function): rsvp.Promise;
+	public whenOnce(states: string, abort?: Function): rsvp.Promise;
+	public whenOnce(states: string[], abort?: Function): rsvp.Promise;
+
+	public getAbort(state: string, abort, abort: () => boolean): boolean;
+	public getAbortEnter(state: string, abort: () => boolean): boolean;
+}
+```
+ 
+## Change log
+ 
+### 2.0:
+ 
+- states clock
+- synchronous queue across composed asyncmachines
+- abort functions
+- exception handling
+- state negotiation fixes
+- state piping fixes
+- event namespaces are gone
+- non-negotiation transitions
+- updated and extended API
+- log readability optimized
+- composition over inheritance
+- (almost) backwards compatible
+ 
+## Related work
+ 
+#### Inspiration
+ 
+ - [node-disorder](https://github.com/substack/node-disorder)
+ - JS FSM work from [Tomasz Paczkowski](https://github.com/oinopion)
+ - [CKEditor](https://github.com/ckeditor)'s dependency calculation
+ - years of writing async systems
 
 #### Papers
 
@@ -411,7 +335,7 @@ make test
 - [javascript-state-machine](https://github.com/jakesgordon/javascript-state-machine)
 - [skinny-coffee-machine](https://github.com/fredwu/skinny-coffee-machine)
 
-## License 
+## License
 
 (The MIT License)
 
@@ -434,4 +358,4 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

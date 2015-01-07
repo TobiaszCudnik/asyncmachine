@@ -54,13 +54,6 @@ class AsyncMachine {
 	public any(...names: any[]): boolean;
 	public every(...names: string[]): boolean;
 		
-	public set(states: string[], ...params: any[]): boolean;
-	public set(states: string, ...params: any[]): boolean;
-	public set(states: any, ...params: any[]): boolean;
-	public setLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-	public setLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-	public setLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
-		
 	public add(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
 	public add(target: AsyncMachine, states?: string, ...params: any[]): boolean;
 	public add(target: string[], states?: any, ...params: any[]): boolean;
@@ -81,6 +74,13 @@ class AsyncMachine {
 	public dropLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
 	public dropLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
 	public dropLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+
+	public set(states: string[], ...params: any[]): boolean;
+	public set(states: string, ...params: any[]): boolean;
+	public set(states: any, ...params: any[]): boolean;
+	public setLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
+	public setLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+	public setLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
 		
 	public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
 	public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
@@ -99,6 +99,9 @@ class AsyncMachine {
 	public whenOnce(states: string, abort?: Function): rsvp.Promise;
 	public whenOnce(states: string[], abort?: Function): rsvp.Promise;
 	public whenOnce(states: any, abort?: Function): rsvp.Promise;
+
+	public getAbort(state: string, abort, abort: () => boolean): boolean;
+	public getAbortEnter(state: string, abort: () => boolean): boolean;
 
 	private createCallback(deferred: rsvp.Defered): (err?, ...params) => void;
 	private createListener(deferred: rsvp.Defered): (...params) => void;

@@ -6,16 +6,18 @@
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
   "url" : "https://github.com/TobiaszCudnik/asyncmachine",
   "repository" : {
-	  "type" : "git",
-	  "url" : "http://github.com/TobiaszCudnik/asyncmachine.git"
+    "type" : "git",
+    "url" : "http://github.com/TobiaszCudnik/asyncmachine.git"
   },
   "dependencies": {
-	  "es5-shim": "latest",
-	  "rsvp": "latest",
-	  "lucidjs": "TobiaszCudnik/LucidJS#patch-2"
+    "es5-shim": "latest",
+    "rsvp": "latest",
+    "lucidjs": "latest",
+    "eventemitter3": "latest",
+    "object-mixin": "latest"
   },
   "devDependencies": {
-	  "compiled-coffee": "TobiaszCudnik/compiled-coffee",
+    "compiled-coffee": "TobiaszCudnik/compiled-coffee",
     "chai": "latest",
     "sinon": "latest",
     "mocha": "latest"
