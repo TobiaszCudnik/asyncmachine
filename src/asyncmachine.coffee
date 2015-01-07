@@ -161,7 +161,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	add: (target, states, params...) ->
 		if target instanceof AsyncMachine
 			if @duringTransition()
-				@log "Queued state(s) #{states} in an external machine", 2
+				@log "Queued ADD state(s) #{states} for an external machine", 2
 				@queue.push [STATE_CHANGE.ADD, states, params, target]
 				return yes
 			else
@@ -214,6 +214,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	drop: (target, states, params...) ->
 		if target instanceof AsyncMachine
 			return if @duringTransition()
+				@log "Queued DROP state(s) #{states} for an external machine", 2
 				@queue.push [STATE_CHANGE.DROP, states, params, target]
 				yes
 			else
@@ -368,7 +369,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# TODO make it cancellable
 	setImmediate: (fn, params...) ->
 		if setImmediate
-			setImmediate fn.apply null, params
+			setImmediate.apply null, [fn].concat params
 		else
 			setTimeout (fn.apply null, params), 0
 
@@ -416,51 +417,57 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		return unless states.length
 		try
+			type_label = STATE_CHANGE_LABELS[type]
 			if @lock
-				@log "Queued state(s) #{states.join ', '}", 2
+				@log "Queued #{type_label} state(s) #{states.join ', '}", 2
 				# TODO encapsulate
 				@queue.push [type, states, params]
 				return
 			@lock = yes
+			queue = @queue
+			@queue = []
 			states_before = @is()
-			type_label = STATE_CHANGE_LABELS[type]
 			if autostate
 				@log "[#{type_label}] AUTO state #{states.join ", "}", 3
 			else
 				@log "[#{type_label}] state #{states.join ", "}", 2
+			# TODO shouldn't this be after setting up the target states?
 			ret = @selfTransitionExec_ states, params
-			return no if ret is no
-			states_to_set = switch type
-				when STATE_CHANGE.DROP
-					@states_active.filter (state) ->
-						not ~states.indexOf state
-				when STATE_CHANGE.ADD
-					states.concat @states_active
-				when STATE_CHANGE.SET
-					states
-			states_to_set = @setupTargetStates_ states_to_set
 
-			# Dropping states doesnt require an acceptance
-			if type isnt STATE_CHANGE.DROP
-				states_accepted = states_to_set.some (state) ->
-					~states.indexOf state
-				unless states_accepted
-					@log "Transition cancelled, as target states weren't accepted", 3
-					return @lock = no
+			if ret isnt no
+				states_to_set = switch type
+					when STATE_CHANGE.DROP
+						@states_active.filter (state) ->
+							not ~states.indexOf state
+					when STATE_CHANGE.ADD
+						states.concat @states_active
+					when STATE_CHANGE.SET
+						states
+				states_to_set = @setupTargetStates_ states_to_set
 
-			queue = @queue
-			@queue = []
-			# Execute the transition
-			ret = @transition_ states_to_set, states, params
+				# Dropping states doesnt require an acceptance
+				# Autostates can be set partially (TODO check if any is a target?)
+				if type isnt STATE_CHANGE.DROP and not autostate
+					states_accepted = states.every (state) ->
+						~states_to_set.indexOf state
+					unless states_accepted
+						@log "Transition cancelled, as target states weren't accepted", 3
+						ret = no
+
+			if ret isnt no
+				# Execute the transition
+				ret = @transition_ states_to_set, states, params
+				# drop the queue created during the transition
 			@queue = if ret is no then queue else queue.concat @queue
 			@lock = no
 		catch err
+			@queue = queue
 			@lock = no
 			@add 'Exception', err, states
 			throw err
 
 		# TODO only for local target???
-		if @statesChanged states_before
+		if ret isnt no and @statesChanged states_before
 			@processAutoStates states_before
 
 #		@setImmediate @processQueue_.bind this
@@ -481,7 +488,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		while row = @queue.shift()
 			target = row[QUEUE.TARGET] or this
 			params = [
-				row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], no
+				row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], no,
+				target is this or target.duringTransition()
 			]
 			# Trigger the transition on the target machine
 			ret.push target.processStateChange_.apply target, params
@@ -657,9 +665,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	transition_: (to, explicit_states, params) ->
 		params ?= []
-
-		# TODO handle args
-		return yes unless to.length
+		@transition_events = []
 
 		# Remove active states.
 		from = @states_active.filter (state) ->
@@ -746,6 +752,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 		ret = @transitionExec_ from + "_exit", to, transition_params
 		return no if ret is no
 
+		# TODO executes transitions which are beeing dropped now
 		ret = to.some (state) =>
 			transition = from + "_" + state
 			if ~explicit_states.indexOf state
@@ -790,13 +797,16 @@ class AsyncMachine extends lucidjs.EventEmitter
 					@unflag "#{event[0...-6]}.exit"
 				@log "[event] #{event}", 3
 				@flag event
-			# TODO this currently doesnt work like this in the newest lucidjs emitter
+			# TODO this currently doesnt work like this in the newest
+			# lucidjs emitter
 			ret = @trigger event, transition_params
 			if ret is no
-				@log "Transition event #{event} cancelled", 2
+				@log "Cancelled transition to #{target_states.join ', '} by " +
+					"the event #{event}", 2
 				# TODO broadcast the event, add a test
 		if ret is no
-			@log "Transition method #{method} cancelled", 2
+			@log "Cancelled transition to #{target_states.join ', '} by " +
+				"method #{method}", 2
 			# TODO broadcast the event, add a test
 		ret
 

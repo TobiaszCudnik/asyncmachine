@@ -195,7 +195,7 @@ var AsyncMachine = (function (_super) {
         }
         if (target instanceof AsyncMachine) {
             if (this.duringTransition()) {
-                this.log("Queued state(s) " + states + " in an external machine", 2);
+                this.log("Queued ADD state(s) " + states + " for an external machine", 2);
                 this.queue.push([exports.STATE_CHANGE.ADD, states, params, target]);
                 return true;
             }
@@ -269,6 +269,7 @@ var AsyncMachine = (function (_super) {
         }
         if (target instanceof AsyncMachine) {
             if (this.duringTransition()) {
+                this.log("Queued DROP state(s) " + states + " for an external machine", 2);
                 this.queue.push([exports.STATE_CHANGE.DROP, states, params, target]);
                 return true;
             }
@@ -425,7 +426,7 @@ var AsyncMachine = (function (_super) {
             params[_i - 1] = arguments[_i];
         }
         if (setImmediate) {
-            return setImmediate(fn.apply(null, params));
+            return setImmediate.apply(null, [fn].concat(params));
         }
         else {
             return setTimeout(fn.apply(null, params), 0);
@@ -475,14 +476,16 @@ var AsyncMachine = (function (_super) {
             return;
         }
         try {
+            var type_label = exports.STATE_CHANGE_LABELS[type];
             if (this.lock) {
-                this.log("Queued state(s) " + (states.join(", ")), 2);
+                this.log("Queued " + type_label + " state(s) " + (states.join(", ")), 2);
                 this.queue.push([type, states, params]);
                 return;
             }
             this.lock = true;
+            var queue = this.queue;
+            this.queue = [];
             var states_before = this.is();
-            var type_label = exports.STATE_CHANGE_LABELS[type];
             if (autostate) {
                 this.log("[" + type_label + "] AUTO state " + (states.join(", ")), 3);
             }
@@ -490,40 +493,40 @@ var AsyncMachine = (function (_super) {
                 this.log("[" + type_label + "] state " + (states.join(", ")), 2);
             }
             var ret = this.selfTransitionExec_(states, params);
-            if (ret === false) {
-                return false;
-            }
-            var states_to_set = (function () {
-                switch (type) {
-                    case exports.STATE_CHANGE.DROP:
-                        return this.states_active.filter(function (state) { return !~states.indexOf(state); });
-                    case exports.STATE_CHANGE.ADD:
-                        return states.concat(this.states_active);
-                    case exports.STATE_CHANGE.SET:
-                        return states;
+            if (ret !== false) {
+                var states_to_set = (function () {
+                    switch (type) {
+                        case exports.STATE_CHANGE.DROP:
+                            return this.states_active.filter(function (state) { return !~states.indexOf(state); });
+                        case exports.STATE_CHANGE.ADD:
+                            return states.concat(this.states_active);
+                        case exports.STATE_CHANGE.SET:
+                            return states;
+                    }
+                }).call(this);
+                states_to_set = this.setupTargetStates_(states_to_set);
+                if (type !== exports.STATE_CHANGE.DROP && !autostate) {
+                    var states_accepted = states.every(function (state) { return ~states_to_set.indexOf(state); });
+                    if (!states_accepted) {
+                        this.log("Transition cancelled, as target states weren't accepted", 3);
+                        ret = false;
+                    }
                 }
-            }).call(this);
-            states_to_set = this.setupTargetStates_(states_to_set);
-            if (type !== exports.STATE_CHANGE.DROP) {
-                var states_accepted = states_to_set.some(function (state) { return ~states.indexOf(state); });
-                if (!states_accepted) {
-                    this.log("Transition cancelled, as target states weren't accepted", 3);
-                    return this.lock = false;
-                }
             }
-            var queue = this.queue;
-            this.queue = [];
-            ret = this.transition_(states_to_set, states, params);
+            if (ret !== false) {
+                ret = this.transition_(states_to_set, states, params);
+            }
             this.queue = ret === false ? queue : queue.concat(this.queue);
             this.lock = false;
         }
         catch (_error) {
             var err = _error;
+            this.queue = queue;
             this.lock = false;
             this.add("Exception", err, states);
             throw err;
         }
-        if (this.statesChanged(states_before)) {
+        if (ret !== false && this.statesChanged(states_before)) {
             this.processAutoStates(states_before);
         }
         if (!skip_queue) {
@@ -541,7 +544,7 @@ var AsyncMachine = (function (_super) {
         var row = void 0;
         while (row = this.queue.shift()) {
             var target = row[exports.QUEUE.TARGET] || this;
-            var params = [row[exports.QUEUE.STATE_CHANGE], row[exports.QUEUE.STATES], row[exports.QUEUE.PARAMS], false];
+            var params = [row[exports.QUEUE.STATE_CHANGE], row[exports.QUEUE.STATES], row[exports.QUEUE.PARAMS], false, target === this || target.duringTransition()];
             ret.push(target.processStateChange_.apply(target, params));
         }
         return !~ret.indexOf(false);
@@ -720,9 +723,7 @@ var AsyncMachine = (function (_super) {
         if (params == null) {
             params = [];
         }
-        if (!to.length) {
-            return true;
-        }
+        this.transition_events = [];
         var from = this.states_active.filter(function (state) { return !~to.indexOf(state); });
         this.orderStates_(to);
         this.orderStates_(from);
@@ -870,11 +871,11 @@ var AsyncMachine = (function (_super) {
             }
             ret = this.trigger(event, transition_params);
             if (ret === false) {
-                this.log("Transition event " + event + " cancelled", 2);
+                this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the event " + event), 2);
             }
         }
         if (ret === false) {
-            this.log("Transition method " + method + " cancelled", 2);
+            this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("method " + method), 2);
         }
         return ret;
     };
