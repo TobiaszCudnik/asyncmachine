@@ -10,7 +10,7 @@
     "url" : "http://github.com/TobiaszCudnik/asyncmachine.git"
   },
   "dependencies": {
-    "eventemitter3-abortable": "TobiaszCudnik/eventemitter3-abortable",
+    "eventemitter3-abortable": "latest",
     "object-mixin": "latest",
     "es6-promise": "latest"
   },
