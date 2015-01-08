@@ -37,7 +37,6 @@ test:
 		test/*.coffee
 
 test-grep:
-	#rm test/build/*/**
 	./node_modules/mocha/bin/mocha \
 		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
@@ -45,7 +44,6 @@ test-grep:
 		test/*.coffee
 
 test-debug:
-	#rm test/build/*/**
 	./node_modules/mocha/bin/mocha \
 		--debug-brk \
 		--compilers coffee:coffee-script \
@@ -53,7 +51,6 @@ test-debug:
 		test/*.coffee
 
 test-grep-debug:
-	#rm test/build/*/**
 	./node_modules/mocha/bin/mocha \
 		--debug-brk \
 		--compilers mocha --compilers coffee:coffee-script/register \

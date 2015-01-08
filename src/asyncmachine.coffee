@@ -1,8 +1,6 @@
-lucidjs = require "lucidjs"
-rsvp = require "rsvp"
-Promise = rsvp.Promise
-require "es5-shim"
-
+eventemitter = require "eventemitter3-abortable"
+promise = require 'es6-promise'
+Promise = promise.Promise
 
 STATE_CHANGE =
 	DROP: 0
@@ -23,12 +21,17 @@ QUEUE =
 	TARGET: 3
 
 
+class Deferred
+	promise: null
+	resolve: null
+	reject: null
+	constructor: -> @promise = new Promise (@resolve, @reject) =>
 
-class AsyncMachine extends lucidjs.EventEmitter
+
+class AsyncMachine extends eventemitter.EventEmitter
 
 	states_all: null
 	states_active: null
-	# TODO use an enum to type entry type
 	queue: null
 	lock: no
 	last_promise: null
@@ -46,20 +49,17 @@ class AsyncMachine extends lucidjs.EventEmitter
 	Exception: {}
 
 
-	constructor: (@config = {}) ->
+	constructor: (target) ->
 		super()
-		# TODO support debug prefix in settings
-		@debug_ = !!config.debug
 		@queue = []
 		@states_all = []
 		@states_active = []
 		@clock_ = {}
 
-		@setTarget @
+		@setTarget target or this
 		@register 'Exception'
-		# This is lame, where are the prototypes?
-		@internal_fields = ['_listeners', '_eventEmitters', '_flags'
-			'source', 'event', 'cancelBubble', 'config', 'states_all'
+		# TODO this is lame, where are the prototypes?
+		@internal_fields = ['_events', 'states_all'
 			'states_active', 'queue', 'lock', 'last_promise', 'log_handler_'
 			'debug_prefix', 'debug_level', 'clock_', 'debug_'
 			'target', 'internal_fields']
@@ -71,8 +71,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 				exception_states.join ', '
 		# Promises eat exceptions, so we need to jump-out-of the stacktrace
 		@setImmediate -> throw err
-
-		yes
 
 
 	setTarget: (target) ->
@@ -138,24 +136,35 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	# Activate certain states and deactivate the current ones.
 	# TODO target param
-	set: (states, params...) ->
+	set: (target, states, params...) ->
+		if target instanceof AsyncMachine
+			if @duringTransition()
+				@log "Queued SET state(s) #{states} for an external machine", 2
+				@queue.push [STATE_CHANGE.SET, states, params, target]
+				return yes
+			else
+				target.add states, params
+
+		params = [states].concat params
+		states = target
+
 		@processStateChange_ STATE_CHANGE.SET, states, params
 
 
 	# Deferred version of #set, returning a callback to add the state.
 	# After the call, the responsible promise object is available as
 	# #last_promise
-	# TODO refactor to #setByCallback(err, data) and #setByListener(...params)
-	setByListener: (states, params...) ->
-		deferred = rsvp.defer()
-		deferred.promise.then (callback_params) =>
-			params.push.apply params, callback_params
-			try @processStateChange_ STATE_CHANGE.SET, states, params
-			catch err
-				@add 'Exception', err, states
+	setByCallback: (target, states, params...) ->
+		@createCallback @createDeferred (@set.bind this), target, states, params
 
-		@last_promise = deferred.promise
-		@createCallback deferred
+
+	setByListener: (target, states, params...) ->
+		@createListener @createDeferred (@set.bind this), target, states, params
+
+
+	setNext: (target, states, params...) ->
+		fn = @set.bind this
+		@setImmediate fn, target, states, params
 
 
 	# Activate certain states and keep the current ones.
@@ -176,35 +185,17 @@ class AsyncMachine extends lucidjs.EventEmitter
 	# Deferred version of #add, returning a callback to add the state.
 	# After the call, the responsible promise object is available as
 	# #last_promise
-	# TODO refactor to #addByCallback(err, data) and #addByListener(...params)
-	addByCallback: (states, params...) ->
-		deferred = rsvp.defer()
-		deferred.promise.then (callback_params) =>
-			params.push.apply params, callback_params
-			try @processStateChange_ STATE_CHANGE.ADD, states, params
-			catch err
-				@add 'Exception', err, states
-
-		@last_promise = deferred.promise
-		@createCallback deferred
+	addByCallback: (target, states, params...) ->
+		@createCallback @createDeferred (@add.bind this), target, states, params
 
 
-	# TODO optimize with addByCallback
 	addByListener: (target, states, params...) ->
-		deferred = rsvp.defer()
-		deferred.promise.then (listener_params) =>
-			params.push.apply params, listener_params
-			try @processStateChange_ STATE_CHANGE.ADD, states, params
-			catch err
-				@add 'Exception', err, states
-
-		@last_promise = deferred.promise
-		@createListener deferred
+		@createListener @createDeferred (@add.bind this), target, states, params
 
 
-	addNext: (states, params...) ->
-		fn = @processStateChange_.bind this, STATE_CHANGE.ADD
-		@setImmediate fn, states, params
+	addNext: (target, states, params...) ->
+		fn = @add.bind this
+		@setImmediate fn, target, states, params
 
 
 	# Deactivate certain states.
@@ -219,23 +210,24 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		params = [states].concat params
 		states = target
+
 		@processStateChange_ STATE_CHANGE.DROP, states, params
 
 
 	# Deferred version of #drop, returning a callback to add the state.
 	# After the call, the responsible promise object is available as
 	# #last_promise
-	# TODO refactor to #dropByCallback(err, data) and #dropByListener(...params)
-	dropByListener: (states, params...) ->
-		deferred = rsvp.defer()
-		deferred.promise.then (callback_params) =>
-			params.push.apply params, callback_params
-			try @processStateChange_ STATE_CHANGE.DROP, states, params
-			catch err
-				@add 'Exception', err, states
+	dropByCallback: (target, states, params...) ->
+		@createCallback @createDeferred (@drop.bind this), target, states, params
 
-		@last_promise = deferred.promise
-		@createCallback deferred
+
+	dropByListener: (target, states, params...) ->
+		@createListener @createDeferred (@drop.bind this), target, states, params
+
+
+	dropNext: (target, states, params...) ->
+		fn = @drop.bind this
+		@setImmediate fn, target, states, params
 
 
 	pipeForward: (state, machine, target_state) ->
@@ -248,24 +240,30 @@ class AsyncMachine extends lucidjs.EventEmitter
 		# cast to an array
 		[].concat(state).forEach (state) =>
 			new_state = target_state or state
-			namespace = @namespaceName state
 
-			@on namespace + "_state", =>
+			@on "#{state}_state", =>
 				@add machine, new_state
 
-			@on namespace + "_end", =>
+			@on "#{state}_end", =>
 				@drop machine, new_state
 
 
 	pipeInvert: (state, machine, target_state) ->
-		throw new Error "not implemented yet"
-		[].concat(state).forEach (state) =>
-			state = @namespaceName state
-			@on state + "_enter", ->
-				machine.drop target_state
+		# switch params order
+		if state instanceof AsyncMachine
+			return @pipeInvert @states_all, state, machine
 
-			@on state + "_exit", ->
-				machine.add target_state
+		@log "Piping inverted state #{state}", 3
+
+		# cast to an array
+		[].concat(state).forEach (state) =>
+			new_state = target_state or state
+
+			@on "#{state}_state", =>
+				@drop machine, new_state
+
+			@on "#{state}_end", =>
+				@add machine, new_state
 
 
 	pipeOff: -> throw new Error "not implemented yet"
@@ -299,6 +297,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 			if should_abort
 				@log "Aborted #{state} listener, while in states (#{@is().join ', '})", 1
 
+			should_abort
+
 
 	# TODO support multiple states
 	getAbortEnter: (state, abort) ->
@@ -310,25 +310,27 @@ class AsyncMachine extends lucidjs.EventEmitter
 				@log "Aborted #{state}_enter listener, while in states " +
 					"(#{@is().join ', '})", 1
 
+			should_abort
 
-	# Accepts state event names (namespaced) and triggers the listener or
-	# resolves a returned # promise if no listener passed.
+
+	# Resolves the returned promise when all passed states are set (in the same time).
+	# TODO support push cancellation
 	when: (states, abort) ->
 		states = [].concat states
-		new rsvp.Promise (resolve, reject) =>
+		new Promise (resolve, reject) =>
 			@bindToStates states, resolve, abort
 
 
-	# Accepts state event names (namespaced) and triggers the listener or
-	# resolves a returned # promise if no listener passed.
-	# Disposes internal listeners once triggered.
+	# Resolves the returned promise when all passed states are set (in the same time).
+	# Triggers only once.
+	# TODO support push cancellation
 	whenOnce: (states, abort) ->
 		states = [].concat states
-		new rsvp.Promise (resolve, reject) =>
+		new Promise (resolve, reject) =>
 			@bindToStates states, resolve, abort, yes
 
 
-	debug: (prefix = '', level = 1, handler = null) ->
+	debug: (prefix = '', level = 1) ->
 		@debug_ = not @debug_
 		@debug_prefix = prefix
 		@debug_level = level
@@ -340,6 +342,25 @@ class AsyncMachine extends lucidjs.EventEmitter
 		return unless @debug_
 		return if level > @debug_level
 		console.log @debug_prefix + msg
+
+
+	on: (event, listener, context) ->
+		# is event is a NAME_state event, fire at once if the state is set
+		# TODO last state params
+		if event[-6..-1] is '_state' and @is event[0...-6]
+			listener.call context
+
+		super(event, listener, context)
+
+
+	once: (event, listener, context) ->
+		# is event is a NAME_state event, fire at once if the state is set
+		# and dont register the listener
+		# TODO last state params
+		if event[-6..-1] is '_state' and @is event[0...-6]
+			listener.call context
+		else
+			super(event, listener, context)
 
 
 	#//////////////////////////
@@ -372,21 +393,20 @@ class AsyncMachine extends lucidjs.EventEmitter
 		@processStateChange_ STATE_CHANGE.ADD, add, [], yes
 
 
-	statesChanged: (states_before) ->
+	hasStateChanged: (states_before) ->
 		length_equals = @is().length is states_before.length
 		# if not autostate and not ((@any states_before) and length_equals)
 
 		not length_equals or @diffStates(states_before, @is()).length
 
 
+	# TODO this is quite too long
 	processStateChange_: (type, states, params, autostate, skip_queue) ->
 		states = [].concat states
 		# TODO merge with setupTargetStates
 		states = states.filter (state) =>
 			if typeof state isnt 'string'
 				@log state + " isnt a string (state name)"
-				# TODO dont use console
-				console.dir state
 				return no
 			if not @get state
 				@log "State #{state} doesnt exist"
@@ -430,7 +450,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 					states_accepted = states.every (state) ->
 						~states_to_set.indexOf state
 					unless states_accepted
-						@log "Transition cancelled, as target states weren't accepted", 3
+						@log "Cancelled the transition, as target states weren't accepted", 3
 						ret = no
 
 			if ret isnt no
@@ -447,10 +467,9 @@ class AsyncMachine extends lucidjs.EventEmitter
 			return
 
 		# TODO only for local target???
-		if ret isnt no and @statesChanged states_before
+		if ret isnt no and @hasStateChanged states_before
 			@processAutoStates states_before
 
-#		@setImmediate @processQueue_.bind this
 		if not skip_queue
 			@processQueue_()
 
@@ -460,7 +479,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 			@allStatesSet states
 
 
-	# Goes through the whole queue collecting returns. Triggers processing of
+	# Goes through the whole queue collecting returns. emits processing of
 	# auto states on each tick.
 	processQueue_: ->
 		ret = []
@@ -471,7 +490,7 @@ class AsyncMachine extends lucidjs.EventEmitter
 				row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], no,
 				target is this or target.duringTransition()
 			]
-			# Trigger the transition on the target machine
+			# emit the transition on the target machine
 			ret.push target.processStateChange_.apply target, params
 
 		not ~ret.indexOf no
@@ -483,6 +502,16 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	allStatesNotSet: (states) ->
 		states.every (state) => not @is state
+
+
+	createDeferred: (fn, target, states, params...) ->
+		deferred = new Deferred
+		deferred.promise.then (callback_params) =>
+			params.push.apply params, callback_params
+			fn.apply null, [target, states].concat params
+		@last_promise = deferred.promise
+
+		deferred
 
 
 	# TODO push states to the exception
@@ -499,52 +528,29 @@ class AsyncMachine extends lucidjs.EventEmitter
 		(params...) -> deferred.resolve params
 
 
-	# TODO use a regexp lib for IE8's 'g' flag compat?
-	# CamelCase to Camel.Case
-	namespaceName: (state) ->
-		state
-	# TODO namespaces seems to cause a lot of duplicated listener calls
-#		state.replace /([a-zA-Z])([A-Z])/g, "$1.$2"
-
-
-	namespaceTransition_: (transition) ->
-		transition
-		# TODO namespaces seems to cause a lot of duplicated listener calls
-		# CamelCase to Camel.Case
-		# A_exit -> A_exit
-		# A_B -> A._.B
-		@namespaceName(transition)
-#			.replace(/_(exit|enter|state|end)$/, ".$1")
-#			.replace "_", "._."
-
-
 	# Executes self transitions (eg ::A_A) based on active states.
 	selfTransitionExec_: (states, params) ->
 		params ?= []
 		ret = states.some (state) =>
 			ret = undefined
 			name = state + "_" + state
-			method = @target[name] or this[name]
-			context = @target
-			if method and ~@states_active.indexOf state
+			if ~@states_active.indexOf state
 				transition_params = [states].concat params
-				if @target[name]
-					@log "[transition] #{event}", 2
-					ret = @target[name].apply @target, transition_params
-				else if @[name]
-					@log "[transition] #{event}", 2
-					ret = @[name].apply this, transition_params
+				context = @getMethodContext name
+				if context
+					@log "[transition] #{name}", 2
+					ret = context[name].apply context, transition_params
 				else
 					@log "[transition] #{name}", 3
+
 				if ret is no
 					@log "Self transition for #{state} cancelled", 2
 					return yes
-				event = @namespaceTransition_ name
-				transition_params2 = [event, states].concat params
-				ret = (@trigger.apply @, transition_params2)
+
+				ret = @emit.apply this, [name].concat params
 				if ret isnt no
 					# TODO this is hacky
-					@transition_events.push [event, transition_params2]
+					@transition_events.push [name, transition_params]
 
 				ret is no
 
@@ -633,7 +639,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 
 	removeDuplicateStates_: (states) ->
-		# Remove duplicates.
 		states2 = []
 		states.forEach (name) ->
 			states2.push name unless ~states2.indexOf name
@@ -683,7 +688,6 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 	setActiveStates_: (target) ->
 		previous = @states_active
-		all = @states_all
 		new_states = @diffStates target, @states_active
 		removed_states = @diffStates @states_active, target
 		nochange_states = @diffStates target, new_states
@@ -699,47 +703,46 @@ class AsyncMachine extends lucidjs.EventEmitter
 		if removed_states.length
 			log_msg.push "-#{removed_states.join ' -'}"
 		# TODO fix
-		if nochange_states.length and @config.debug > 1
+		if nochange_states.length and @debug_level > 2
 			if new_states.length or removed_states.length
 				log_msg.push "\n    "
 			log_msg.push nochange_states.join ', '
 		@log "[states] #{log_msg.join ' '}", 1 if log_msg.length
 
-		# TODO this is hacky, should be integrated into the transition somehow
+		@processPostTransition()
+		@emit 'change', previous
+
+
+	# TODO this is hacky, should be integrated into the transition somehow
+	processPostTransition: ->
 		for transition in @transition_events
 			name = transition[0]
 			params = transition[1]
+
 			if name[-5..-1] is '_exit'
-				event = name[0...-5]
-				state = event.replace /\./g, ''
-				@unflag "#{event}_state"
-				# TODO
-#				@flag "#{event}_end"
-				if @target[state + '_end']
-					@log "[transition] #{event}_end", 2
-					@target[state + '_end']?.apply @target, params
-				else if @[state + '_end']
-					@log "[transition] #{event}_end", 2
-					@[state + '_end']?.apply @, params
-				else
-					@log "[transition] #{event}_end", 3
-				@trigger.apply this, ["#{event}_end"].concat params
+				state = name[0...-5]
+				method = "#{state}_end"
 			else if name[-6..-1] is '_enter'
-				event = name[0...-6]
-				state = event.replace /\./g, ''
-				@unflag "#{event}_end"
-				@flag "#{event}_state"
-				if @target[state + '_state']
-					@log "[transition] #{event}_state", 2
-					@target[state + '_state']?.apply @target, params
-				else if @[state + '_state']
-					@log "[transition] #{event}_state", 2
-					@[state + '_state']?.apply @, params
-				else
-					@log "[transition] #{event}_state", 3
-				@trigger.apply this, ["#{event}_state"].concat params
+				state = name[0...-6]
+				method = "#{state}_state"
+
+			context = @getMethodContext method
+			if context
+				@log "[transition] #{state}_end", 2
+				context[method]?.apply context, params
+			else
+				@log "[transition] #{state}_end", 3
+
+			@emit.apply this, [method].concat params
 
 		@transition_events = []
+
+
+	getMethodContext: (name) ->
+		if @target[name]
+			@target
+		else if @[name]
+			this
 
 
 	# Returns states from states1 not present in states2
@@ -767,58 +770,49 @@ class AsyncMachine extends lucidjs.EventEmitter
 
 		# TODO pass args to explicitly dropped states
 		ret = (@transitionExec_ "#{from}_any", to) is no
+
 		not ret
+
 
 	transitionEnter_: (to, target_states, params) ->
 		ret = @transitionExec_ "any_#{to}", target_states, params
 		return no if ret is no
-		ret = @transitionExec_ "#{to}_enter", target_states, params
+
+		@transitionExec_ "#{to}_enter", target_states, params
 
 
 	transitionExec_: (method, target_states, params) ->
 		params ?= []
 		transition_params = [target_states].concat params
 		ret = undefined
-		event = @namespaceTransition_ method
-		if @target[method] instanceof Function
-			@log "[transition] #{event}", 2
-			ret = @target[method]?.apply? @target, transition_params
-		else if @[method] instanceof Function
-			@log "[transition] #{event}", 2
-			ret = @[method]?.apply? @, transition_params
+
+		context = @getMethodContext method
+		if context
+			@log "[transition] #{method}", 2
+			ret = context[method]?.apply? context, transition_params
 		else
-			@log "[transition] #{event}", 3
+			@log "[transition] #{method}", 3
 
 		if ret isnt no
-			is_exit = event[-5..-1] is '_exit'
-			is_enter = not is_exit and event[-6..-1] is '_enter'
+			is_exit = method[-5..-1] is '_exit'
+			is_enter = not is_exit and method[-6..-1] is '_enter'
 			if is_exit or is_enter
 				# TODO this is hacky
-				@transition_events.push [event, transition_params]
-				# Unflag constraint states
-				if is_exit
-#					@log "[unflag] #{event[0...-5]}_enter", 3
-					@unflag "#{event[0...-5]}_enter"
-				else if is_enter
-#					@log "[unflag] #{event[0...-5]}_exit", 3
-					@unflag "#{event[0...-6]}_exit"
-				@flag event
-			# TODO this currently doesnt work like this in the newest
-			# lucidjs emitter
-			ret = @trigger event, transition_params
+				@transition_events.push [method, transition_params]
+			ret = @emit method, transition_params
 			if ret is no
 				@log "Cancelled transition to #{target_states.join ', '} by " +
-					"the event #{event}", 2
-				# TODO broadcast the event, add a test
-		if ret is no
+					"the event #{method}", 2
+				# TODO broadcast the event
+		else if ret is no
 			@log "Cancelled transition to #{target_states.join ', '} by " +
-				"method #{method}", 2
-			# TODO broadcast the event, add a test
+				"the method #{method}", 2
+			# TODO broadcast the event
+
 		ret
 
 	# is_exit tells that the order is exit transitions
 	orderStates_: (states) ->
-		# TODO curry?
 		states.sort (e1, e2) =>
 			state1 = @get e1
 			state2 = @get e2
@@ -831,8 +825,8 @@ class AsyncMachine extends lucidjs.EventEmitter
 		null
 
 
-	# TODO bind to _enter and _exit as well to support the negatiation phase in
-	# piped events. Requires an emitter with return values!
+	# TODO bind to _enter and _exit as well to support the negotiation phase in
+	# piped events
 	bindToStates: (states, listener, abort, once) ->
 		fired = 0
 		enter = =>
@@ -841,15 +835,12 @@ class AsyncMachine extends lucidjs.EventEmitter
 				listener()
 			if once or abort?()
 				for state in states
-					event = @namespaceName state
-					@removeListener "#{event}_state", enter
-					@removeListener "#{event}_end", exit
+					@removeListener "#{state}_state", enter
+					@removeListener "#{state}_end", exit
 		exit = -> fired -= 1
 		for state in states
-			event = @namespaceName state
-			@log "Binding to event #{event}", 3
-#			console.log "state #{state}"
-			@on "#{event}_state", enter
-			@on "#{event}_end", exit
+			@log "Binding to event #{state}", 3
+			@on "#{state}_state", enter
+			@on "#{state}_end", exit
 
 module.exports.AsyncMachine = AsyncMachine

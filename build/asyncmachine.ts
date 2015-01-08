@@ -1,14 +1,19 @@
-/// <reference path="../d.ts/settimeout.d.ts" />
-/// <reference path="../d.ts/es5-shim.d.ts" />
-/// <reference path="../d.ts/rsvp.d.ts" />
-/// <reference path="../d.ts/lucidjs.d.ts" />
-/// <reference path="../d.ts/commonjs.d.ts" />
+/// <reference path="../typings/es6-promise/es6-promise.d.ts" />
+/// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
+/// <reference path="../typings/settimeout.d.ts" />
+/// <reference path="../typings/commonjs.d.ts" />
+/*
+TODO
+- fix lucidjs to get safe listeners calling
+- make event return results
+*/
+
+
 var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-import lucidjs = require("lucidjs");
-import rsvp = require("rsvp");
-export var Promise = rsvp.Promise;
-require("es5-shim");
+import eventemitter = require("eventemitter3-abortable");
+import promise = require('es6-promise');
+export var Promise = promise.Promise;
 
 export var STATE_CHANGE = {
     DROP: 0,
@@ -29,7 +34,22 @@ export var QUEUE = {
     TARGET: 3
 };
 
-export class AsyncMachine extends lucidjs.EventEmitter {
+export class Deferred {
+    promise: Promise<any> = null;
+
+    resolve: Function = null;
+
+    reject: Function = null;
+
+    constructor() {
+        this.promise = new Promise((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject;
+        });
+    }
+}
+
+export class AsyncMachine extends eventemitter.EventEmitter {
     private states_all: string[] = null;
 
     private states_active: string[] = null;
@@ -38,7 +58,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     private lock: boolean = false;
 
-    public last_promise: rsvp.Promise = null;
+    public last_promise: Promise<any> = null;
 
     log_handler_ = null;
 
@@ -58,28 +78,25 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     Exception = {};
 
-    constructor(public config : any = {}) {
+    constructor(target?: AsyncMachine) {
         super();
-        this.debug_ = !!config.debug;
         this.queue = [];
         this.states_all = [];
         this.states_active = [];
         this.clock_ = {};
 
-        this.setTarget(this);
+        this.setTarget(target || this);
         this.register("Exception");
-        this.internal_fields = ["_listeners", "_eventEmitters", "_flags", "source", "event", "cancelBubble", "config", "states_all", "states_active", "queue", "lock", "last_promise", "log_handler_", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields"];
+        this.internal_fields = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "log_handler_", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields"];
     }
 
-    public Exception_enter(states: string[], err: Error, exception_states?: string[]): boolean {
-        if (exception_states != null ? exception_states.length : void 0) {
-            this.log("Exception when tried to set the following states: " + exception_states.join(", "));
+    public Exception_state(states: string[], err: Error, exception_states?: string[]): boolean {
+        if (exception_states.length != null) {
+            this.log("Exception when tried to set following states: " + exception_states.join(", "));
         }
-        this.setImmediate(() => {
+        return this.setImmediate(() => {
             throw err;
         });
-
-        return true;
     }
 
     setTarget(target) {
@@ -166,32 +183,54 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this[state];
     }
 
-    public set(states: string[], ...params: any[]): boolean;
-    public set(states: string, ...params: any[]): boolean;
-    public set(states: any, ...params: any[]): boolean {
+    public set(target: AsyncMachine, states: string[], ...params: any[]): boolean;
+    public set(target: AsyncMachine, states: string, ...params: any[]): boolean;
+    public set(target: string[], states?: any, ...params: any[]): boolean;
+    public set(target: string, states?: any, ...params: any[]): boolean;
+    public set(target: any, states?: any, ...params: any[]): boolean {
+        if (target instanceof AsyncMachine) {
+            if (this.duringTransition()) {
+                this.log("Queued SET state(s) " + states + " for an external machine", 2);
+                this.queue.push([STATE_CHANGE.SET, states, params, target]);
+                return true;
+            } else {
+                target.add(states, params);
+            }
+        }
+
+        params = [states].concat(params);
+        states = target;
+
         return this.processStateChange_(STATE_CHANGE.SET, states, params);
     }
 
-    public setLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-    public setLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-    public setLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void {
-        var deferred = rsvp.defer();
-        deferred.promise.then((callback_params) => {
-            params.push.apply(params, callback_params);
-            try {
-                return this.processStateChange_(STATE_CHANGE.SET, states, params);
-            } catch (_error) {
-                var err = _error;
-                return this.set("Exception", err, states);
-            }
-        });
-
-        this.last_promise = deferred.promise;
-        return this.createCallback(deferred);
+    public setByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+    public setByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+    public setByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public setByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public setByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
+        return this.createCallback(this.createDeferred(this.set.bind(this), target, states, params));
     }
 
-    public add(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
-    public add(target: AsyncMachine, states?: string, ...params: any[]): boolean;
+    public setByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+    public setByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+    public setByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public setByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public setByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
+        return this.createListener(this.createDeferred(this.set.bind(this), target, states, params));
+    }
+
+    public setNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+    public setNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+    public setNext(target: string, states: any, ...params: any[]): (...params) => void;
+    public setNext(target: string[], states: any, ...params: any[]): (...params) => void;
+    public setNext(target: any, states: any, ...params: any[]): (...params) => void {
+        var fn = this.set.bind(this);
+        return this.setImmediate(fn, target, states, params);
+    }
+
+    public add(target: AsyncMachine, states: string[], ...params: any[]): boolean;
+    public add(target: AsyncMachine, states: string, ...params: any[]): boolean;
     public add(target: string[], states?: any, ...params: any[]): boolean;
     public add(target: string, states?: any, ...params: any[]): boolean;
     public add(target: any, states?: any, ...params: any[]): boolean {
@@ -205,58 +244,38 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             }
         }
 
-        states = target;
         params = [states].concat(params);
+        states = target;
         return this.processStateChange_(STATE_CHANGE.ADD, states, params);
     }
 
-    public addByCallback(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-    public addByCallback(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-    public addByCallback(states: any, ...params: any[]): (err?: any, ...params: any[]) => void {
-        var deferred = rsvp.defer();
-        deferred.promise.then((callback_params) => {
-            params.push.apply(params, callback_params);
-            try {
-                return this.processStateChange_(STATE_CHANGE.ADD, states, params);
-            } catch (_error) {
-                var err = _error;
-                return this.add("Exception", err, states);
-            }
-        });
-
-        this.last_promise = deferred.promise;
-        return this.createCallback(deferred);
+    public addByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+    public addByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+    public addByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public addByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public addByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
+        return this.createCallback(this.createDeferred(this.add.bind(this), target, states, params));
     }
 
-    public addByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-    public addByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-    public addByListener(states: any, ...params: any[]): (err?: any, ...params: any[]) => void {
-        var deferred = rsvp.defer();
-        deferred.promise.then((listener_params) => {
-            params.push.apply(params, listener_params);
-            try {
-                return this.processStateChange_(STATE_CHANGE.ADD, states, params);
-            } catch (_error) {
-                var err = _error;
-                return this.add("Exception", err, states);
-            }
-        });
-
-        this.last_promise = deferred.promise;
-        return this.createListener(deferred);
+    public addByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+    public addByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+    public addByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public addByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public addByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
+        return this.createListener(this.createDeferred(this.add.bind(this), target, states, params));
     }
 
-    addNext(states, ...params) {
-        var fn = this.processStateChange_.bind(this, STATE_CHANGE.ADD);
-        return this.setImmediate(fn, states, params);
+    public addNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+    public addNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+    public addNext(target: string, states: any, ...params: any[]): (...params) => void;
+    public addNext(target: string[], states: any, ...params: any[]): (...params) => void;
+    public addNext(target: any, states: any, ...params: any[]): (...params) => void {
+        var fn = this.add.bind(this);
+        return this.setImmediate(fn, target, states, params);
     }
 
-    addLater(...params) {
-        return this.addByCallback.apply(this, params);
-    }
-
-    public drop(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
-    public drop(target: AsyncMachine, states?: string, ...params: any[]): boolean;
+    public drop(target: AsyncMachine, states: string[], ...params: any[]): boolean;
+    public drop(target: AsyncMachine, states: string, ...params: any[]): boolean;
     public drop(target: string[], states?: any, ...params: any[]): boolean;
     public drop(target: string, states?: any, ...params: any[]): boolean;
     public drop(target: any, states?: any, ...params: any[]): boolean {
@@ -270,27 +289,35 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             }
         }
 
-        states = target;
         params = [states].concat(params);
+        states = target;
+
         return this.processStateChange_(STATE_CHANGE.DROP, states, params);
     }
 
-    public dropLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-    public dropLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-    public dropLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void {
-        var deferred = rsvp.defer();
-        deferred.promise.then((callback_params) => {
-            params.push.apply(params, callback_params);
-            try {
-                return this.processStateChange_(STATE_CHANGE.DROP, states, params);
-            } catch (_error) {
-                var err = _error;
-                return this.drop("Exception", err, states);
-            }
-        });
+    public dropByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+    public dropByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+    public dropByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public dropByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public dropByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
+        return this.createCallback(this.createDeferred(this.drop.bind(this), target, states, params));
+    }
 
-        this.last_promise = deferred.promise;
-        return this.createCallback(deferred);
+    public dropByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+    public dropByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+    public dropByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public dropByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    public dropByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
+        return this.createListener(this.createDeferred(this.drop.bind(this), target, states, params));
+    }
+
+    public dropNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+    public dropNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+    public dropNext(target: string, states: any, ...params: any[]): (...params) => void;
+    public dropNext(target: string[], states: any, ...params: any[]): (...params) => void;
+    public dropNext(target: any, states: any, ...params: any[]): (...params) => void {
+        var fn = this.drop.bind(this);
+        return this.setImmediate(fn, target, states, params);
     }
 
     public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
@@ -304,21 +331,28 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         this.log("Piping state " + state, 3);
         return [].concat(state).forEach((state) => {
             var new_state = target_state || state;
-            var namespace = this.namespaceName(state);
 
-            this.on(namespace + ".state", () => this.add(machine, new_state));
+            this.on(state + "_state", () => this.add(machine, new_state));
 
-            return this.on(namespace + ".end", () => this.drop(machine, new_state));
+            return this.on(state + "_end", () => this.drop(machine, new_state));
         });
     }
 
-    public pipeInvert(state: string, machine: AsyncMachine, target_state: string) {
-        throw new Error("not implemented yet");
-        return [].concat(state).forEach((state) => {
-            state = this.namespaceName(state);
-            this.on(state + ".enter", () => machine.drop(target_state));
+    public pipeInvert(state: string, machine?: AsyncMachine, target_state?: string);
+    public pipeInvert(state: string[], machine?: AsyncMachine, target_state?: string);
+    public pipeInvert(state: AsyncMachine, machine?: string);
+    public pipeInvert(state: any, machine?: any, target_state?: any) {
+        if (state instanceof AsyncMachine) {
+            return this.pipeInvert(this.states_all, state, machine);
+        }
 
-            return this.on(state + ".exit", () => machine.add(target_state));
+        this.log("Piping inverted state " + state, 3);
+        return [].concat(state).forEach((state) => {
+            var new_state = target_state || state;
+
+            this.on(state + "_state", () => this.drop(machine, new_state));
+
+            return this.on(state + "_end", () => this.add(machine, new_state));
         });
     }
 
@@ -332,7 +366,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
 
     createChild() {
         var child = Object.create(this);
-        child.states_active = [];
+        var child_states_active = [];
         child.clock = {};
         this.states_all.forEach((state) => child.clock[state] = 0);
         return child;
@@ -342,27 +376,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.lock;
     }
 
-    continueEnter(state, func) {
-        var tick = this.clock(state);
-        return () => {
-            if (!this.is(state, tick + 1)) {
-                return;
-            }
-            return func();
-        };
-    }
-
-    continueState(state, func) {
-        var tick = this.clock(state);
-        return () => {
-            if (!this.is(state, tick)) {
-                return;
-            }
-            return func();
-        };
-    }
-
-    getAbort(state, abort) {
+    public getAbort(state: string, abort?: () => boolean): () => boolean {
         var tick = this.clock(state);
         return () => {
             if (abort && !(typeof abort === "function" ? abort() : void 0)) {
@@ -372,12 +386,14 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 should_abort = !this.is(state, tick);
             }
             if (should_abort) {
-                return this.log("Aborted " + state + " listener, while in states (" + (this.is().join(", ")) + ")", 1);
+                this.log("Aborted " + state + " listener, while in states (" + (this.is().join(", ")) + ")", 1);
             }
+
+            return should_abort;
         };
     }
 
-    getAbortEnter(state, abort) {
+    public getAbortEnter(state: string, abort?: () => boolean): () => boolean {
         var tick = this.clock(state);
         return () => {
             if (abort && !(typeof abort === "function" ? abort() : void 0)) {
@@ -387,26 +403,28 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 should_abort = !this.is(state, tick + 1);
             }
             if (should_abort) {
-                return this.log(("Aborted " + state + ".enter listener, while in states ") + ("(" + (this.is().join(", ")) + ")"), 1);
+                this.log(("Aborted " + state + "_enter listener, while in states ") + ("(" + (this.is().join(", ")) + ")"), 1);
             }
+
+            return should_abort;
         };
     }
 
-    public when(states: string, abort?: Function): rsvp.Promise;
-    public when(states: string[], abort?: Function): rsvp.Promise;
-    public when(states: any, abort?: Function): rsvp.Promise {
+    public when(states: string, abort?: Function): Promise<any>;
+    public when(states: string[], abort?: Function): Promise<any>;
+    public when(states: any, abort?: Function): Promise<any> {
         states = [].concat(states);
-        return new rsvp.Promise((resolve, reject) => this.bindToStates(states, resolve, abort));
+        return new Promise((resolve, reject) => this.bindToStates(states, resolve, abort));
     }
 
-    public whenOnce(states: string, abort?: Function): rsvp.Promise;
-    public whenOnce(states: string[], abort?: Function): rsvp.Promise;
-    public whenOnce(states: any, abort?: Function): rsvp.Promise {
+    public whenOnce(states: string, abort?: Function): Promise<any>;
+    public whenOnce(states: string[], abort?: Function): Promise<any>;
+    public whenOnce(states: any, abort?: Function): Promise<any> {
         states = [].concat(states);
-        return new rsvp.Promise((resolve, reject) => this.bindToStates(states, resolve, abort, true));
+        return new Promise((resolve, reject) => this.bindToStates(states, resolve, abort, true));
     }
 
-    debug(prefix : any = "", level : any = 1, handler : any = null) {
+    debug(prefix : any = "", level : any = 1) {
         this.debug_ = !this.debug_;
         this.debug_prefix = prefix;
         this.debug_level = level;
@@ -424,6 +442,22 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             return;
         }
         return console.log(this.debug_prefix + msg);
+    }
+
+    on(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter {
+        if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
+            listener.call(context);
+        }
+
+        return super.on(event, listener, context);
+    }
+
+    once(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter {
+        if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
+            return listener.call(context);
+        } else {
+            return super.once(event, listener, context);
+        }
     }
 
     setImmediate(fn, ...params) {
@@ -456,7 +490,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return this.processStateChange_(STATE_CHANGE.ADD, add, [], true);
     }
 
-    private statesChanged(states_before: string[]): boolean {
+    hasStateChanged(states_before) {
         var length_equals = this.is().length === states_before.length;
 
         return !length_equals || this.diffStates(states_before, this.is()).length;
@@ -469,7 +503,6 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         states = states.filter((state) => {
             if (typeof state !== "string") {
                 this.log(state + " isnt a string (state name)");
-                console.dir(state);
                 return false;
             }
             if (!this.get(state)) {
@@ -484,7 +517,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             return;
         }
         try {
-            var type_label = STATE_CHANGE_LABELS[type];
+            var type_label = STATE_CHANGE_LABELS[type].toLowerCase();
             if (this.lock) {
                 this.log("Queued " + type_label + " state(s) " + (states.join(", ")), 2);
                 this.queue.push([type, states, params]);
@@ -516,7 +549,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
                 if (type !== STATE_CHANGE.DROP && !autostate) {
                     var states_accepted = states.every((state) => ~states_to_set.indexOf(state));
                     if (!states_accepted) {
-                        this.log("Transition cancelled, as target states weren't accepted", 3);
+                        this.log("Cancelled the transition, as target states weren't accepted", 3);
                         ret = false;
                     }
                 }
@@ -532,11 +565,12 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             this.queue = queue;
             this.lock = false;
             this.add("Exception", err, states);
-            throw err;
+            return;
         }
-        if (ret !== false && this.statesChanged(states_before)) {
+        if (ret !== false && this.hasStateChanged(states_before)) {
             this.processAutoStates(states_before);
         }
+
         if (!skip_queue) {
             this.processQueue_();
         }
@@ -568,7 +602,18 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         return states.every((state) => !this.is(state));
     }
 
-    private createCallback(deferred: rsvp.Defered): (err?, ...params) => void {
+    private createDeferred(fn: Function, target, states, ...params: any[]): Deferred {
+        var deferred = new Deferred;
+        deferred.promise.then((callback_params) => {
+            params.push.apply(params, callback_params);
+            return fn.apply(null, [target, states].concat(params));
+        });
+        this.last_promise = deferred.promise;
+
+        return deferred;
+    }
+
+    private createCallback(deferred: Deferred): (err?, ...params) => void {
         return (err : any = null, ...params) => {
             if (err) {
                 this.add("Exception", err);
@@ -579,17 +624,8 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         };
     }
 
-    private createListener(deferred: rsvp.Defered): (...params) => void {
+    private createListener(deferred: Deferred): (...params) => void {
         return (...params) => deferred.resolve(params);
-    }
-
-    public namespaceName(state: string): string {
-        return state;
-    }
-
-    private namespaceTransition_(transition: string): string {
-        transition;
-        return this.namespaceName(transition).replace(/_(exit|enter|state|end)$/, ".$1");
     }
 
     private selfTransitionExec_(states: string[], params?: any[]) {
@@ -599,21 +635,27 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         var ret = states.some((state) => {
             ret = void 0;
             var name = state + "_" + state;
-            var method = this.target[name] || this[name];
-            var context = this.target;
-            if (method && ~this.states_active.indexOf(state)) {
+            if (~this.states_active.indexOf(state)) {
                 var transition_params = [states].concat(params);
-                ret = method.apply(context, transition_params);
-                this.log("[transition] " + name, 3);
+                var context = this.getMethodContext(name);
+                if (context) {
+                    this.log("[transition] " + name, 2);
+                    ret = context[name].apply(context, transition_params);
+                } else {
+                    this.log("[transition] " + name, 3);
+                }
+
                 if (ret === false) {
                     this.log("Self transition for " + state + " cancelled", 2);
                     return true;
                 }
-                var event = this.namespaceTransition_(name);
-                var transition_params2 = [event, states].concat(params);
-                this.transition_events.push([event, params]);
-                this.log("[event] " + event, 3);
-                return (this.trigger.apply(this, transition_params2)) === false;
+
+                ret = this.emit.apply(this, [name].concat(params));
+                if (ret !== false) {
+                    this.transition_events.push([name, transition_params]);
+                }
+
+                return ret === false;
             }
         });
 
@@ -766,9 +808,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
     }
 
     private setActiveStates_(target: string[]) {
-        var _base, _base1, _name, _name1;
         var previous = this.states_active;
-        var all = this.states_all;
         var new_states = this.diffStates(target, this.states_active);
         var removed_states = this.diffStates(this.states_active, target);
         var nochange_states = this.diffStates(target, new_states);
@@ -785,7 +825,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (removed_states.length) {
             log_msg.push("-" + (removed_states.join(" -")));
         }
-        if (nochange_states.length && this.config.debug > 1) {
+        if (nochange_states.length && this.debug_level > 2) {
             if (new_states.length || removed_states.length) {
                 log_msg.push("\n    ");
             }
@@ -794,28 +834,47 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (log_msg.length) {
             this.log("[states] " + (log_msg.join(" ")), 1);
         }
+
+        this.processPostTransition();
+        return this.emit("change", previous);
+    }
+
+    processPostTransition() {
+        var _ref;
         this.transition_events.forEach((transition) => {
-            transition = transition[0];
-            var params = [previous].concat(transition[1]);
-            if (transition.slice(-5) === ".exit") {
-                var event = transition.slice(0, -5);
-                var state = event.replace(/\./g, "");
-                this.unflag(event + ".state");
-                this.log("[event] " + event + ".end", 2);
-                this.trigger(event + ".end", params);
-                return typeof (_base = this.target)[_name = state + "_end"] === "function" ? _base[_name](previous, params) : void 0;
-            } else if (transition.slice(-6) === ".enter") {
-                event = transition.slice(0, -6);
-                state = event.replace(/\./g, "");
-                this.unflag(event + ".end");
-                this.log("[event] " + event + ".state", 2);
-                this.flag(event + ".state");
-                this.trigger(event + ".state", params);
-                return typeof (_base1 = this.target)[_name1 = state + "_state"] === "function" ? _base1[_name1](previous, params) : void 0;
+            var name = transition[0];
+            var params = transition[1];
+
+            if (name.slice(-5) === "_exit") {
+                var state = name.slice(0, -5);
+                var method = state + "_end";
+            } else if (name.slice(-6) === "_enter") {
+                state = name.slice(0, -6);
+                method = state + "_state";
             }
+
+            var context = this.getMethodContext(method);
+            if (context) {
+                this.log("[transition] " + state + "_end", 2);
+                if ((_ref = context[method]) != null) {
+                    _ref.apply(context, params);
+                }
+            } else {
+                this.log("[transition] " + state + "_end", 3);
+            }
+
+            return this.emit.apply(this, [method].concat(params));
         });
 
         return this.transition_events = [];
+    }
+
+    getMethodContext(name) {
+        if (this.target[name]) {
+            return this.target;
+        } else if (this[name]) {
+            return this;
+        }
     }
 
     diffStates(states1, states2) {
@@ -850,6 +909,7 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             return false;
         }
         ret = (this.transitionExec_(from + "_any", to)) === false;
+
         return !ret;
     }
 
@@ -859,44 +919,41 @@ export class AsyncMachine extends lucidjs.EventEmitter {
         if (ret === false) {
             return false;
         }
-        return ret = this.transitionExec_(to + "_enter", target_states, params);
+
+        return this.transitionExec_(to + "_enter", target_states, params);
     }
 
     private transitionExec_(method: string, target_states: string[], 
 		params?: string[]) {
-        var _ref, _ref1;
+        var _ref;
         if (params == null) {
             params = [];
         }
         var transition_params = [target_states].concat(params);
         var ret = void 0;
-        var event = this.namespaceTransition_(method);
-        this.log("[transition] " + event, 3);
-        if (this.target[method] instanceof Function) {
-            ret = (_ref = this.target[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(this.target, transition_params) : void 0 : void 0;
-        } else if (this[method] instanceof Function) {
-            ret = (_ref1 = this[method]) != null ? typeof _ref1.apply === "function" ? _ref1.apply(this, transition_params) : void 0 : void 0;
+
+        var context = this.getMethodContext(method);
+        if (context) {
+            this.log("[transition] " + method, 2);
+            ret = (_ref = context[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(context, transition_params) : void 0 : void 0;
+        } else {
+            this.log("[transition] " + method, 3);
         }
 
         if (ret !== false) {
-            if (!~event.indexOf("_")) {
-                this.transition_events.push([event, params]);
-                if (event.slice(-5) === ".exit") {
-                    this.unflag(event.slice(0, -5) + ".enter");
-                } else if (event.slice(-6) === ".enter") {
-                    this.unflag(event.slice(0, -6) + ".exit");
-                }
-                this.log("[event] " + event, 3);
-                this.flag(event);
+            var is_exit = method.slice(-5) === "_exit";
+            var is_enter = !is_exit && method.slice(-6) === "_enter";
+            if (is_exit || is_enter) {
+                this.transition_events.push([method, transition_params]);
             }
-            ret = this.trigger(event, transition_params);
+            ret = this.emit(method, transition_params);
             if (ret === false) {
-                this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the event " + event), 2);
+                this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the event " + method), 2);
             }
+        } else if (ret === false) {
+            this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the method " + method), 2);
         }
-        if (ret === false) {
-            this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("method " + method), 2);
-        }
+
         return ret;
     }
 
@@ -926,9 +983,8 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             }
             if (once || (typeof abort === "function" ? abort() : void 0)) {
                 return states.map((state) => {
-                    var event = this.namespaceName(state);
-                    this.removeListener(event + ".state", enter);
-                    return this.removeListener(event + ".end", exit);
+                    this.removeListener(state + "_state", enter);
+                    return this.removeListener(state + "_end", exit);
                 });
             }
         };
@@ -936,10 +992,9 @@ export class AsyncMachine extends lucidjs.EventEmitter {
             return fired -= 1;
         }
         return states.map((state) => {
-            var event = this.namespaceName(state);
-            this.log("Binding to event " + event, 3);
-            this.on(event + ".state", enter);
-            return this.on(event + ".end", exit);
+            this.log("Binding to event " + state, 3);
+            this.on(state + "_state", enter);
+            return this.on(state + "_end", exit);
         });
     }
 }
@@ -952,9 +1007,6 @@ export interface IState {
 	blocks?: string[];
 	requires?: string[];
 	auto?: boolean;
-}
-export interface IConfig {
-	debug: boolean;
 }
 export interface ITransition {
 	call(states?: string[], state_params?: any[], callback_params?: any[]): boolean;

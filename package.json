@@ -10,11 +10,9 @@
     "url" : "http://github.com/TobiaszCudnik/asyncmachine.git"
   },
   "dependencies": {
-    "es5-shim": "latest",
-    "rsvp": "latest",
-    "lucidjs": "latest",
-    "eventemitter3": "latest",
-    "object-mixin": "latest"
+    "eventemitter3-abortable": "TobiaszCudnik/eventemitter3-abortable",
+    "object-mixin": "latest",
+    "es6-promise": "latest"
   },
   "devDependencies": {
     "compiled-coffee": "TobiaszCudnik/compiled-coffee",

@@ -1,11 +1,10 @@
-/// <reference path="../d.ts/commonjs.d.ts" />
-/// <reference path="../d.ts/lucidjs.d.ts" />
-/// <reference path="../d.ts/rsvp.d.ts" />
-/// <reference path="../d.ts/es5-shim.d.ts" />
-/// <reference path="../d.ts/settimeout.d.ts" />
+/// <reference path="../typings/commonjs.d.ts" />
+/// <reference path="../typings/settimeout.d.ts" />
+/// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
+/// <reference path="../typings/es6-promise/es6-promise.d.ts" />
 
-import lucidjs = module ('lucidjs');
-import rsvp = module ('rsvp');
+import promise = module ('es6-promise');
+import eventemitter = module ('eventemitter3-abortable');
 
 export interface IState {
 	depends?: string[];
@@ -15,28 +14,29 @@ export interface IState {
 	auto?: boolean;
 }
 
-export interface IConfig {
-	debug: boolean;
-}
-
 export interface ITransition {
 	call(states?: string[], state_params?: any[], callback_params?: any[]): boolean;
 	apply(context, args): any;
 }
 
-class AsyncMachine {
+class Deferred {
+	promise: Promise<any>;
+	resolve: Function;
+	reject: Function;
+}
+
+class AsyncMachine extends EventEmitter {
 	private debug_: boolean;
 	private states_all: string[];
 	private states_active: string[];
-	public last_promise: rsvp.Promise;
+	public last_promise: Promise<any>;
 	// TODO typeme
 	private queue: Array<Array<any>>;
 	private lock: boolean;
-	public config: IConfig;
 	private clock_: { [state: string]: number };
 	// TODO merge with the TS source
-	constructor(config?: IConfig);
-	public Exception_enter(states: string[], err: Error, exception_states?: string[]): boolean;
+	constructor(target?: AsyncMachine);
+	public Exception_state(states: string[], err: Error, exception_states?: string[]): boolean;
 	public register(...states: string[]);
 	public get(state: string): IState;
 	public state(name: string): boolean;
@@ -54,57 +54,100 @@ class AsyncMachine {
 	public any(...names: any[]): boolean;
 	public every(...names: string[]): boolean;
 		
-	public add(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
-	public add(target: AsyncMachine, states?: string, ...params: any[]): boolean;
+	public add(target: AsyncMachine, states: string[], ...params: any[]): boolean;
+	public add(target: AsyncMachine, states: string, ...params: any[]): boolean;
 	public add(target: string[], states?: any, ...params: any[]): boolean;
 	public add(target: string, states?: any, ...params: any[]): boolean;
 	public add(target: any, states?: any, ...params: any[]): boolean;
-	public addByCallback(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-	public addByCallback(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-	public addByCallback(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
-	public addByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-	public addByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-	public addByListener(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+	public addByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+	public addByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+	public addByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public addByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public addByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public addByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+	public addByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+	public addByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public addByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public addByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public addNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+	public addNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+	public addNext(target: string, states: any, ...params: any[]): (...params) => void;
+	public addNext(target: string[], states: any, ...params: any[]): (...params) => void;
+	public addNext(target: any, states: any, ...params: any[]): (...params) => void;
 
-	public drop(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
-	public drop(target: AsyncMachine, states?: string, ...params: any[]): boolean;
+	public drop(target: AsyncMachine, states: string[], ...params: any[]): boolean;
+	public drop(target: AsyncMachine, states: string, ...params: any[]): boolean;
 	public drop(target: string[], states?: any, ...params: any[]): boolean;
 	public drop(target: string, states?: any, ...params: any[]): boolean;
 	public drop(target: any, states?: any, ...params: any[]): boolean;
-	public dropLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-	public dropLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-	public dropLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+	public dropByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+	public dropByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+	public dropByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public dropByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public dropByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public dropByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+	public dropByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+	public dropByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public dropByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public dropByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public dropNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+	public dropNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+	public dropNext(target: string, states: any, ...params: any[]): (...params) => void;
+	public dropNext(target: string[], states: any, ...params: any[]): (...params) => void;
+	public dropNext(target: any, states: any, ...params: any[]): (...params) => void;
 
-	public set(states: string[], ...params: any[]): boolean;
-	public set(states: string, ...params: any[]): boolean;
-	public set(states: any, ...params: any[]): boolean;
-	public setLater(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-	public setLater(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-	public setLater(states: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+	public set(target: AsyncMachine, states: string[], ...params: any[]): boolean;
+	public set(target: AsyncMachine, states: string, ...params: any[]): boolean;
+	public set(target: string[], states?: any, ...params: any[]): boolean;
+	public set(target: string, states?: any, ...params: any[]): boolean;
+	public set(target: any, states?: any, ...params: any[]): boolean;
+	public setByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+	public setByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+	public setByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public setByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public setByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public setByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+	public setByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+	public setByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public setByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public setByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public setNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+	public setNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+	public setNext(target: string, states: any, ...params: any[]): (...params) => void;
+	public setNext(target: string[], states: any, ...params: any[]): (...params) => void;
+	public setNext(target: any, states: any, ...params: any[]): (...params) => void;
 		
 	public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
 	public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
 	public pipeForward(state: AsyncMachine, machine?: string);
 	public pipeForward(state: any, machine?: any, target_state?: any);
-	public pipeInvert(state: string, machine: AsyncMachine, target_state: string);
+	public pipeInvert(state: string, machine?: AsyncMachine, target_state?: string);
+	public pipeInvert(state: string[], machine?: AsyncMachine, target_state?: string);
+	public pipeInvert(state: AsyncMachine, machine?: string);
+	public pipeInvert(state: any, machine?: any, target_state?: any);
 	public pipeOff(): void;
 	public duringTransition(): boolean;
-	public namespaceName(state: string): string;
 	public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
 	public log(msg: string, level?: number): void;
 
-	public when(states: string, abort?: Function): rsvp.Promise;
-	public when(states: string[], abort?: Function): rsvp.Promise;
-	public when(states: any, abort?: Function): rsvp.Promise;
-	public whenOnce(states: string, abort?: Function): rsvp.Promise;
-	public whenOnce(states: string[], abort?: Function): rsvp.Promise;
-	public whenOnce(states: any, abort?: Function): rsvp.Promise;
+	on(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;
+	once(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;
 
-	public getAbort(state: string, abort, abort: () => boolean): boolean;
-	public getAbortEnter(state: string, abort: () => boolean): boolean;
+	public when(states: string, abort?: Function): Promise<any>;
+	public when(states: string[], abort?: Function): Promise<any>;
+	public when(states: any, abort?: Function): Promise<any>;
+	public whenOnce(states: string, abort?: Function): Promise<any>;
+	public whenOnce(states: string[], abort?: Function): Promise<any>;
+	public whenOnce(states: any, abort?: Function): Promise<any>;
 
-	private createCallback(deferred: rsvp.Defered): (err?, ...params) => void;
-	private createListener(deferred: rsvp.Defered): (...params) => void;
+	public getAbort(state: string, abort?: () => boolean): () => boolean;
+	public getAbortEnter(state: string, abort?: () => boolean): () => boolean;
+
+	// ----- PRIVATES -----
+
+	private createDeferred(fn: Function, target, states, ...params: any[]): Deferred;
+	private createCallback(deferred: Deferred): (err?, ...params) => void;
+	private createListener(deferred: Deferred): (...params) => void;
 
 	private processAutoStates(excluded?: string[]);
 		
@@ -116,7 +159,6 @@ class AsyncMachine {
 	private statesChanged(states_before: string[]): boolean;
 	private allStatesSet(states): boolean;
 	private allStatesNotSet(states): boolean;
-	private namespaceTransition_(transition: string): string;
 	private selfTransitionExec_(states: string[], params?: any[]);
 	private setupTargetStates_(states: string[], exclude?: string[]);
 	private parseImplies_(states: string[]): string[];

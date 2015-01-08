@@ -1,7 +1,7 @@
-// Type definitions for Sinon 1.5
+// Type definitions for Sinon 1.8.1
 // Project: http://sinonjs.org/
 // Definitions by: William Sears <https://github.com/mrbigdog2u>
-// DefinitelyTyped: https://github.com/borisyankov/DefinitelyTyped
+// Definitions: https://github.com/borisyankov/DefinitelyTyped
 
 interface SinonSpyCallApi {
 	// Properties
@@ -83,6 +83,10 @@ interface SinonSpyStatic {
 	(obj: any, method: string): SinonSpy;
 }
 
+interface SinonStatic {
+	spy: SinonSpyStatic;
+}
+
 interface SinonStub extends SinonSpy {
 	resetBehavior(): void;
 	returns(obj: any): SinonStub;
@@ -97,6 +101,10 @@ interface SinonStub extends SinonSpy {
 	callsArgOnAsync(index: number, context: any): SinonStub;
 	callsArgWithAsync(index: number, ...args: any[]): SinonStub;
 	callsArgOnWithAsync(index: number, context: any, ...args: any[]): SinonStub;
+	onCall(n: number): SinonStub;
+	onFirstCall(): SinonStub;
+	onSecondCall(): SinonStub;
+	onThirdCall(): SinonStub;
 	yields(...args: any[]): SinonStub;
 	yieldsOn(context: any, ...args: any[]): SinonStub;
 	yieldsTo(property: string, ...args: any[]): SinonStub;
@@ -113,6 +121,10 @@ interface SinonStubStatic {
 	(obj: any): SinonStub;
 	(obj: any, method: string): SinonStub;
 	(obj: any, method: string, func: any): SinonStub;
+}
+
+interface SinonStatic {
+	stub: SinonStubStatic;
 }
 
 interface SinonExpectation extends SinonStub {
@@ -145,6 +157,11 @@ interface SinonMockStatic {
 	(obj: any): SinonMock;
 }
 
+interface SinonStatic {
+	expectation: SinonExpectationStatic;
+	mock: SinonMockStatic;
+}
+
 interface SinonFakeTimers {
 	now: number;
 	create(now: number): SinonFakeTimers;
@@ -171,6 +188,24 @@ interface SinonFakeTimersStatic {
 	(now: number, ...timers: string[]): SinonFakeTimers;
 }
 
+interface SinonStatic {
+	useFakeTimers: SinonFakeTimersStatic;
+	clock: SinonFakeTimers;
+}
+
+interface SinonFakeUploadProgress {
+    eventListeners: {
+        progress: any[];
+        load: any[];
+        abort: any[];
+        error: any[];
+    };
+
+    addEventListener(event: string, listener: (e: Event) => any): void;
+    removeEventListener(event: string, listener: (e: Event) => any): void;
+    dispatchEvent(event: Event): void;
+}
+
 interface SinonFakeXMLHttpRequest {
 	// Properties
 	onCreate: (xhr: SinonFakeXMLHttpRequest) => void;
@@ -182,8 +217,10 @@ interface SinonFakeXMLHttpRequest {
 	statusText: string;
 	async: boolean;
 	username: string;
-	password: string;
-//	responseXML: Document;
+    password: string;
+    withCredentials: boolean;
+    upload: SinonFakeUploadProgress;
+	responseXML: Document;
 	getResponseHeader(header: string): string;
 	getAllResponseHeaders(): any;
 
@@ -201,12 +238,18 @@ interface SinonFakeXMLHttpRequestStatic {
 	(): SinonFakeXMLHttpRequest;
 }
 
+interface SinonStatic {
+	useFakeXMLHttpRequest: SinonFakeXMLHttpRequestStatic;
+	FakeXMLHttpRequest: SinonFakeXMLHttpRequest;
+}
+
 interface SinonFakeServer {
 	// Properties
 	autoRespond: boolean;
 	autoRespondAfter: number;
 	fakeHTTPMethods: boolean;
 	getHTTPMethod: (request: SinonFakeXMLHttpRequest) => string;
+	requests: SinonFakeXMLHttpRequest[];
 
 	// Methods
 	respondWith(body: string): void;
@@ -230,6 +273,11 @@ interface SinonFakeServer {
 
 interface SinonFakeServerStatic {
 	create(): SinonFakeServer;
+}
+
+interface SinonStatic {
+	fakeServer: SinonFakeServerStatic;
+	fakeServerWithClock: SinonFakeServerStatic;
 }
 
 interface SinonExposeOptions {
@@ -270,6 +318,10 @@ interface SinonAssert {
 	expose(obj: any, options?: SinonExposeOptions): void;
 }
 
+interface SinonStatic {
+	assert: SinonAssert;
+}
+
 interface SinonMatcher {
 	and(expr: SinonMatcher): SinonMatcher;
 	or(expr: SinonMatcher): SinonMatcher;
@@ -300,6 +352,10 @@ interface SinonMatch {
 	hasOwn(property: string, expect?: any): SinonMatcher;
 }
 
+interface SinonStatic {
+	match: SinonMatch;
+}
+
 interface SinonSandboxConfig {
 	injectInto?: any;
 	properties?: string[];
@@ -325,6 +381,10 @@ interface SinonSandboxStatic {
 	create(config: SinonSandboxConfig): SinonSandbox;
 }
 
+interface SinonStatic {
+	sandbox: SinonSandboxStatic;
+}
+
 interface SinonTestConfig {
 	injectIntoThis?: boolean;
 	injectInto?: any;
@@ -337,26 +397,22 @@ interface SinonTestWrapper extends SinonSandbox {
 	(...args: any[]): any;
 }
 
-// Utility overridables
-declare module "sinon" {
-	var stub: SinonStubStatic;
-	var expectation: SinonExpectationStatic;
-	var mock: SinonMockStatic;
-	var useFakeTimers: SinonFakeTimersStatic;
-	var clock: SinonFakeTimers;
-	var useFakeXMLHttpRequest: SinonFakeXMLHttpRequestStatic;
-	var FakeXMLHttpRequest: SinonFakeXMLHttpRequest;
-	var fakeServer: SinonFakeServerStatic;
-	var fakeServerWithClock: SinonFakeServerStatic;
-	var assert: SinonAssert;
-	var match: SinonMatch;
-	var sandbox: SinonSandboxStatic;
-	var config: SinonTestConfig;
-	function test(fn: (...args: any[]) => any): SinonTestWrapper;
-	function testCase(tests: any): any;
-	var spy: SinonSpyStatic;
-	var format: (obj: any) => string;
-	var format: (obj: any) => string;
-	var log: (message: string) => void;
+interface SinonStatic {
+    config: SinonTestConfig;
+    test(fn: (...args: any[]) => any): SinonTestWrapper;
+    testCase(tests: any): any;
 }
 
+// Utility overridables
+interface SinonStatic {
+    createStubInstance: (constructor: any) => SinonStub;
+	format: (obj: any) => string;
+	log: (message: string) => void;
+    restore(object: any): void;
+}
+
+declare var sinon: SinonStatic;
+
+declare module "sinon" {
+    export = sinon;
+}
