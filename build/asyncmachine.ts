@@ -2,13 +2,6 @@
 /// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
 /// <reference path="../typings/settimeout.d.ts" />
 /// <reference path="../typings/commonjs.d.ts" />
-/*
-TODO
-- fix lucidjs to get safe listeners calling
-- make event return results
-*/
-
-
 var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 import eventemitter = require("eventemitter3-abortable");

@@ -1,18 +1,13 @@
-/// <reference path="../typings/es6-promise/es6-promise.d.ts" />
-/// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
-/// <reference path="../typings/settimeout.d.ts" />
-/// <reference path="../typings/commonjs.d.ts" />
-/*
-TODO
-- fix lucidjs to get safe listeners calling
-- make event return results
-*/
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/// <reference path="../typings/es6-promise/es6-promise.d.ts" />
+/// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
+/// <reference path="../typings/settimeout.d.ts" />
+/// <reference path="../typings/commonjs.d.ts" />
 var __indexOf = [].indexOf || function (item) {
     for (var i = 0, l = this.length; i < l; i++) {
         if (i in this && this[i] === item)
