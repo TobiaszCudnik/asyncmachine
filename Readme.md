@@ -3,9 +3,15 @@
   Swiss army knife for complex async systems.
 
 ## Install
- 
+
+NPM, build systems, browserify:
 ```
 npm install asyncmachine
+```
+
+Browser ready version is at `build-pkg/asyncmachine.js`. You can use the CDN directly:
+```
+https://cdn.rawgit.com/TobiaszCudnik/asyncmachine/coffee/build-pkg/asyncmachine.js
 ```
 
 ## Disclaimer
