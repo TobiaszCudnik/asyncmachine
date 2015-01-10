@@ -414,12 +414,9 @@ class AsyncMachine extends eventemitter.EventEmitter
 		states = [].concat states
 		# TODO merge with setupTargetStates
 		states = states.filter (state) =>
-			if typeof state isnt 'string'
-				@log state + " isnt a string (state name)"
-				return no
-			if not @get state
-				@log "State #{state} doesnt exist"
-				return no
+			if typeof state isnt 'string' or not @get state
+				# TODO trow a specific class once TS will stop complaining
+				throw new Error "Non existing state: #{state}"
 
 			yes
 

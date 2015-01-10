@@ -120,6 +120,7 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
     whenOnce(states: string, abort?: Function): Promise<any>;
     whenOnce(states: string[], abort?: Function): Promise<any>;
     debug(prefix?: any, level?: any): any;
+    debugOff(): boolean;
     log(msg: string, level?: number): void;
     on(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;
     once(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;

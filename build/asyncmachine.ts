@@ -417,10 +417,14 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     }
 
     debug(prefix : any = "", level : any = 1) {
-        this.debug_ = !this.debug_;
+        this.debug_ = true;
         this.debug_prefix = prefix;
         this.debug_level = level;
         return null;
+    }
+
+    debugOff() {
+        return this.debug_ = false;
     }
 
     public log(msg: string, level?: number): void {
@@ -497,13 +501,8 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     private processStateChange_(type: number, states: any, params: any[], autostate?: boolean, skip_queue?: boolean): boolean {
         states = [].concat(states);
         states = states.filter((state) => {
-            if (typeof state !== "string") {
-                this.log(state + " isnt a string (state name)");
-                return false;
-            }
-            if (!this.get(state)) {
-                this.log("State " + state + " doesnt exist");
-                return false;
+            if (typeof state !== "string" || !this.get(state)) {
+                throw new Error("Non existing state: " + state);
             }
 
             return true;
@@ -545,7 +544,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                 if (type !== STATE_CHANGE.DROP && !autostate) {
                     var states_accepted = states.every((state) => ~states_to_set.indexOf(state));
                     if (!states_accepted) {
-                        this.log("Cancelled the transition, as target states weren't accepted", 3);
+                        this.log("Cancelled the transition, as not all target states were accepted", 3);
                         ret = false;
                     }
                 }
@@ -563,7 +562,10 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             this.add("Exception", err, states);
             return;
         }
-        if (ret !== false && this.hasStateChanged(states_before)) {
+
+        if (ret === false) {
+            this.emit("cancelled");
+        } else if (this.hasStateChanged(states_before)) {
             this.processAutoStates(states_before);
         }
 
@@ -746,7 +748,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                 }
                 return _results;
             })();
-            this.log("Can't set following states " + (names.join(", ")) + " ", 2);
+            this.log("Can't set following states " + (names.join(", ")), 2);
         }
 
         return states;
@@ -800,6 +802,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                 transition_params = [];
             }
             ret = this.transitionEnter_(state, to, transition_params);
+
             return ret === false;
         });
 
@@ -807,6 +810,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             return false;
         }
         this.setActiveStates_(to);
+
         return true;
     }
 
@@ -953,7 +957,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             if (ret === false) {
                 this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the event " + method), 2);
             }
-        } else if (ret === false) {
+        } else {
             this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the method " + method), 2);
         }
 
