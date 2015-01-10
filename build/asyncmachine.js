@@ -376,10 +376,13 @@ var AsyncMachine = (function (_super) {
     AsyncMachine.prototype.debug = function (prefix, level) {
         if (prefix === void 0) { prefix = ""; }
         if (level === void 0) { level = 1; }
-        this.debug_ = !this.debug_;
+        this.debug_ = true;
         this.debug_prefix = prefix;
         this.debug_level = level;
         return null;
+    };
+    AsyncMachine.prototype.debugOff = function () {
+        return this.debug_ = false;
     };
     AsyncMachine.prototype.log = function (msg, level) {
         if (level == null) {
@@ -451,13 +454,8 @@ var AsyncMachine = (function (_super) {
         var _this = this;
         states = [].concat(states);
         states = states.filter(function (state) {
-            if (typeof state !== "string") {
-                _this.log(state + " isnt a string (state name)");
-                return false;
-            }
-            if (!_this.get(state)) {
-                _this.log("State " + state + " doesnt exist");
-                return false;
+            if (typeof state !== "string" || !_this.get(state)) {
+                throw new Error("Non existing state: " + state);
             }
             return true;
         });
@@ -497,7 +495,7 @@ var AsyncMachine = (function (_super) {
                 if (type !== exports.STATE_CHANGE.DROP && !autostate) {
                     var states_accepted = states.every(function (state) { return ~states_to_set.indexOf(state); });
                     if (!states_accepted) {
-                        this.log("Cancelled the transition, as target states weren't accepted", 3);
+                        this.log("Cancelled the transition, as not all target states were accepted", 3);
                         ret = false;
                     }
                 }
@@ -515,7 +513,10 @@ var AsyncMachine = (function (_super) {
             this.add("Exception", err, states);
             return;
         }
-        if (ret !== false && this.hasStateChanged(states_before)) {
+        if (ret === false) {
+            this.emit("cancelled");
+        }
+        else if (this.hasStateChanged(states_before)) {
             this.processAutoStates(states_before);
         }
         if (!skip_queue) {
@@ -695,7 +696,7 @@ var AsyncMachine = (function (_super) {
                 }
                 return _results;
             })();
-            this.log("Can't set following states " + (names.join(", ")) + " ", 2);
+            this.log("Can't set following states " + (names.join(", ")), 2);
         }
         return states;
     };
@@ -883,7 +884,7 @@ var AsyncMachine = (function (_super) {
                 this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the event " + method), 2);
             }
         }
-        else if (ret === false) {
+        else {
             this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the method " + method), 2);
         }
         return ret;

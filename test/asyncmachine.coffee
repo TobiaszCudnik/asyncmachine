@@ -18,7 +18,7 @@ class FooMachine extends asyncmachine.AsyncMachine
 	D: {}
 
 	constructor: (initialState = null, config = {}) ->
-		super config
+		super()
 		@register 'A', 'B', 'C', 'D'
 		@set initialState if initialState
 
@@ -26,7 +26,7 @@ class EventMachine extends FooMachine
 	TestNamespace: {}
 	
 	constructor: (initial, config = {}) ->
-		super null, config
+		super()
 		@register 'TestNamespace'
 		@set initial if initial
 
@@ -39,9 +39,9 @@ class Sub extends asyncmachine.AsyncMachine
 	constructor: (initial, a_spy, b_spy) ->
 		super()
 		@register 'A', 'B'
-		@set initial if initial
 		@A_enter = a_spy
 		@B_enter = b_spy
+		@set initial if initial
 
 class SubCrossBlockedByImplied extends asyncmachine.AsyncMachine
 	A:
@@ -52,7 +52,7 @@ class SubCrossBlockedByImplied extends asyncmachine.AsyncMachine
 		implies: [ 'B' ]
 
 	constructor: (config = {}) ->
-		super config
+		super()
 		@register 'A', 'B', 'C'
 		@set 'C'
 		
@@ -63,7 +63,7 @@ class CrossBlocked extends asyncmachine.AsyncMachine
 		blocks: [ 'A' ]
 
 	constructor: (config = {}) ->
-		super config
+		super()
 		@register 'A', 'B'
 		@set 'A'
 		@set 'B'
@@ -125,7 +125,12 @@ describe "asyncmachine", ->
 			machine.set "unknown"
 		expect( func ).to.throw()
 
-	it 'should allow to define a new state'
+	it 'should allow to define a new state', ->
+		machine = new asyncmachine.AsyncMachine
+		machine.A = {}
+		machine.register 'A'
+		machine.add 'A'
+		expect(machine.is()).eql ['A']
 
 	describe "when single to single state transition", ->
 		beforeEach ->
@@ -723,62 +728,19 @@ describe "asyncmachine", ->
 			
 		describe 'should support states', ->
 
-			it 'by triggering the *_enter listener at once for active states', ->
+			it 'by triggering the *_state bindings immediately', ->
 				l = []
 				# init spies
 				l[ i ] = sinon.stub() for i in [ 0..2 ]
 				i = 0
 				@machine.set 'B'
-				@machine.on 'A_enter', l[ i++ ]
-				@machine.on 'B_enter', l[ i++ ]
+				@machine.on 'A_state', l[ i++ ]
+				@machine.on 'B_state', l[ i++ ]
 				i = 0
 				expect( l[ i++ ].called ).not.to.be.ok
 				expect( l[ i++ ].calledOnce ).to.be.ok
-
-			it 'by triggering the *_exit listeners at once for non active states', ->
-				l = []
-				# init spies
-				l[ i ] = sinon.stub() for i in [ 0..2 ]
-				i = 0
-				@machine.set 'B'
-				@machine.on 'A_exit', l[ i++ ]
-				@machine.on 'B_exit', l[ i++ ]
-				i = 0
-				expect( l[ i++ ].calledOnce ).to.be.ok
-				expect( l[ i++ ].called ).not.to.be.ok
 								
 			it 'shouldn\'t duplicate events'
-
-		describe 'should support namespaces', ->
-			describe 'with wildcards', ->
-				beforeEach ->
-					@listeners = []
-					@listeners.push sinon.stub()
-					@listeners.push sinon.stub()
-					@listeners.push sinon.stub()
-					@machine.on 'enter.Test', @listeners[0]
-					# TODO FIXME * fails to conver 2 namespaces
-					@machine.on 'enter', @listeners[1]
-					@machine.on 'A', @listeners[2]
-					@machine.set [ 'TestNamespace', 'B' ]
-
-				it 'should handle "enter.Test" sub event', ->
-					expect( @listeners[0].callCount ).to.eql 1
-				it 'should handle "enter.*" sub event', ->
-					expect( @listeners[1].calledTwice ).to.be.ok
-				it 'should handle "A" sub events', ->
-					expect( @listeners[2].callCount ).to.eql 4
-
-			it 'for all transitions', ->
-				l1 = sinon.stub()
-				l2 = sinon.stub()
-
-				@machine.on('Test.Namespace_enter', l1)
-				@machine.on('A_Test.Namespace', l2)
-				@machine.set('TestNamespace')
-
-				expect( l1.calledOnce ).to.be.ok
-				expect( l2.calledOnce ).to.be.ok
 				
 		describe 'clock', ->
 			beforeEach ->
@@ -846,6 +808,10 @@ describe "asyncmachine", ->
 	# @machine.pipeForward machine2
 	# @machine.set [ 'B', 'C' ]
 	# expect( machine2.is() ).to.eql [ 'D', 'B', 'C' ]
+
+
+	describe 'queue', ->
+	describe 'nested queue', ->
 
 	describe 'bugs', ->
 		# TODO use a constructor in Sub
