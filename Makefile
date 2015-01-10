@@ -11,13 +11,10 @@ all:
 
 
 build:
-	$(CCOFFEE) -o build -i src
+	$(CCOFFEE) -o build -i src -p "asyncmachine.js:asyncmachine"
 
 build-watch:
-	$(CCOFFEE) -o build -i src --watch
-	
-package:
-	# TODO compiled coffee browserify flag
+	$(CCOFFEE) -o build -i src --watch -p "asyncmachine.js:asyncmachine"
 
 server:
 	node_modules/http-server/bin/http-server

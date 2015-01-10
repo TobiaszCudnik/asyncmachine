@@ -6,7 +6,6 @@ var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; 
 
 import eventemitter = require("eventemitter3-abortable");
 import promise = require('es6-promise');
-export var Promise = promise.Promise;
 
 export var STATE_CHANGE = {
     DROP: 0,
@@ -35,7 +34,7 @@ export class Deferred {
     reject: Function = null;
 
     constructor() {
-        this.promise = new Promise((resolve, reject) => {
+        this.promise = new promise.Promise((resolve, reject) => {
             this.resolve = resolve;
             this.reject = reject;
         });
@@ -106,7 +105,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                 this.register(name);
             }
         }
-        var constructor = this.constructor.prototype;
+        var constructor = this.getInstance().constructor.prototype;
         _results = [];
         while (true) {
             for (name in constructor) {
@@ -187,7 +186,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                 this.queue.push([STATE_CHANGE.SET, states, params, target]);
                 return true;
             } else {
-                target.add(states, params);
+                return target.add(states, params);
             }
         }
 
@@ -233,7 +232,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                 this.queue.push([STATE_CHANGE.ADD, states, params, target]);
                 return true;
             } else {
-                target.add(states, params);
+                return target.add(states, params);
             }
         }
 
@@ -407,14 +406,14 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     public when(states: string[], abort?: Function): Promise<any>;
     public when(states: any, abort?: Function): Promise<any> {
         states = [].concat(states);
-        return new Promise((resolve, reject) => this.bindToStates(states, resolve, abort));
+        return new promise.Promise((resolve, reject) => this.bindToStates(states, resolve, abort));
     }
 
     public whenOnce(states: string, abort?: Function): Promise<any>;
     public whenOnce(states: string[], abort?: Function): Promise<any>;
     public whenOnce(states: any, abort?: Function): Promise<any> {
         states = [].concat(states);
-        return new Promise((resolve, reject) => this.bindToStates(states, resolve, abort, true));
+        return new promise.Promise((resolve, reject) => this.bindToStates(states, resolve, abort, true));
     }
 
     debug(prefix : any = "", level : any = 1) {
@@ -451,6 +450,10 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         } else {
             return super.once(event, listener, context);
         }
+    }
+
+    private getInstance(): any {
+        return this;
     }
 
     setImmediate(fn, ...params) {
@@ -595,11 +598,18 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         return states.every((state) => !this.is(state));
     }
 
-    private createDeferred(fn: Function, target, states, ...params: any[]): Deferred {
+    private createDeferred(fn: Function, target, states, state_params: any[]): Deferred {
         var deferred = new Deferred;
+
         deferred.promise.then((callback_params) => {
-            params.push.apply(params, callback_params);
-            return fn.apply(null, [target, states].concat(params));
+            var params = [target];
+            if (states) {
+                params.push(states);
+            }
+            if (state_params.length) {
+                params.push.apply(params, state_params);
+            }
+            return fn.apply(null, params.concat(callback_params));
         });
         this.last_promise = deferred.promise;
 

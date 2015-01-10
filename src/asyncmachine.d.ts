@@ -145,7 +145,9 @@ class AsyncMachine extends EventEmitter {
 
 	// ----- PRIVATES -----
 
-	private createDeferred(fn: Function, target, states, ...params: any[]): Deferred;
+	private getInstance(): any;
+
+	private createDeferred(fn: Function, target, states, state_params: any[]): Deferred;
 	private createCallback(deferred: Deferred): (err?, ...params) => void;
 	private createListener(deferred: Deferred): (...params) => void;
 

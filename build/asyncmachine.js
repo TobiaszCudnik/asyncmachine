@@ -17,7 +17,6 @@ var __indexOf = [].indexOf || function (item) {
 };
 var eventemitter = require("eventemitter3-abortable");
 var promise = require('es6-promise');
-exports.Promise = promise.Promise;
 exports.STATE_CHANGE = {
     DROP: 0,
     ADD: 1,
@@ -40,7 +39,7 @@ var Deferred = (function () {
         this.promise = null;
         this.resolve = null;
         this.reject = null;
-        this.promise = new exports.Promise(function (resolve, reject) {
+        this.promise = new promise.Promise(function (resolve, reject) {
             _this.resolve = resolve;
             _this.reject = reject;
         });
@@ -95,7 +94,7 @@ var AsyncMachine = (function (_super) {
                 this.register(name);
             }
         }
-        var constructor = this.constructor.prototype;
+        var constructor = this.getInstance().constructor.prototype;
         _results = [];
         while (true) {
             for (name in constructor) {
@@ -181,7 +180,7 @@ var AsyncMachine = (function (_super) {
                 return true;
             }
             else {
-                target.add(states, params);
+                return target.add(states, params);
             }
         }
         params = [states].concat(params);
@@ -222,7 +221,7 @@ var AsyncMachine = (function (_super) {
                 return true;
             }
             else {
-                target.add(states, params);
+                return target.add(states, params);
             }
         }
         params = [states].concat(params);
@@ -367,12 +366,12 @@ var AsyncMachine = (function (_super) {
     AsyncMachine.prototype.when = function (states, abort) {
         var _this = this;
         states = [].concat(states);
-        return new exports.Promise(function (resolve, reject) { return _this.bindToStates(states, resolve, abort); });
+        return new promise.Promise(function (resolve, reject) { return _this.bindToStates(states, resolve, abort); });
     };
     AsyncMachine.prototype.whenOnce = function (states, abort) {
         var _this = this;
         states = [].concat(states);
-        return new exports.Promise(function (resolve, reject) { return _this.bindToStates(states, resolve, abort, true); });
+        return new promise.Promise(function (resolve, reject) { return _this.bindToStates(states, resolve, abort, true); });
     };
     AsyncMachine.prototype.debug = function (prefix, level) {
         if (prefix === void 0) { prefix = ""; }
@@ -407,6 +406,9 @@ var AsyncMachine = (function (_super) {
         else {
             return _super.prototype.once.call(this, event, listener, context);
         }
+    };
+    AsyncMachine.prototype.getInstance = function () {
+        return this;
     };
     AsyncMachine.prototype.setImmediate = function (fn) {
         var params = [];
@@ -544,15 +546,17 @@ var AsyncMachine = (function (_super) {
         var _this = this;
         return states.every(function (state) { return !_this.is(state); });
     };
-    AsyncMachine.prototype.createDeferred = function (fn, target, states) {
-        var params = [];
-        for (var _i = 3; _i < arguments.length; _i++) {
-            params[_i - 3] = arguments[_i];
-        }
+    AsyncMachine.prototype.createDeferred = function (fn, target, states, state_params) {
         var deferred = new Deferred;
         deferred.promise.then(function (callback_params) {
-            params.push.apply(params, callback_params);
-            return fn.apply(null, [target, states].concat(params));
+            var params = [target];
+            if (states) {
+                params.push(states);
+            }
+            if (state_params.length) {
+                params.push.apply(params, state_params);
+            }
+            return fn.apply(null, params.concat(callback_params));
         });
         this.last_promise = deferred.promise;
         return deferred;

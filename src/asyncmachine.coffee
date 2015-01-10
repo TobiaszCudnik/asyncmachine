@@ -1,6 +1,5 @@
 eventemitter = require "eventemitter3-abortable"
 promise = require 'es6-promise'
-Promise = promise.Promise
 
 STATE_CHANGE =
 	DROP: 0
@@ -25,7 +24,7 @@ class Deferred
 	promise: null
 	resolve: null
 	reject: null
-	constructor: -> @promise = new Promise (@resolve, @reject) =>
+	constructor: -> @promise = new promise.Promise (@resolve, @reject) =>
 
 
 class AsyncMachine extends eventemitter.EventEmitter
@@ -69,7 +68,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		if exception_states.length?
 			@log "Exception when tried to set following states: " +
 				exception_states.join ', '
-		# Promises eat exceptions, so we need to jump-out-of the stacktrace
+		# promise.Promises eat exceptions, so we need to jump-out-of the stacktrace
 		@setImmediate -> throw err
 
 
@@ -86,7 +85,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			if (@hasOwnProperty name) and name not in @internal_fields
 				@register name
 		# test the prototype chain
-		constructor = @constructor.prototype
+		constructor = @getInstance().constructor.prototype
 		while yes
 			for name, value of constructor
 				if (constructor.hasOwnProperty name) and name not in @internal_fields
@@ -138,12 +137,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 	# TODO target param
 	set: (target, states, params...) ->
 		if target instanceof AsyncMachine
+			# TODO merge
 			if @duringTransition()
 				@log "Queued SET state(s) #{states} for an external machine", 2
 				@queue.push [STATE_CHANGE.SET, states, params, target]
 				return yes
 			else
-				target.add states, params
+				return target.add states, params
 
 		params = [states].concat params
 		states = target
@@ -170,12 +170,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 	# Activate certain states and keep the current ones.
 	add: (target, states, params...) ->
 		if target instanceof AsyncMachine
+			# TODO merge
 			if @duringTransition()
 				@log "Queued ADD state(s) #{states} for an external machine", 2
 				@queue.push [STATE_CHANGE.ADD, states, params, target]
 				return yes
 			else
-				target.add states, params
+				return target.add states, params
 
 		params = [states].concat params
 		states = target
@@ -201,12 +202,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 	# Deactivate certain states.
 	drop: (target, states, params...) ->
 		if target instanceof AsyncMachine
+			# TODO merge
 			return if @duringTransition()
 				@log "Queued DROP state(s) #{states} for an external machine", 2
 				@queue.push [STATE_CHANGE.DROP, states, params, target]
 				yes
 			else
-				target.drop states, params
+				return target.drop states, params
 
 		params = [states].concat params
 		states = target
@@ -317,7 +319,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	# TODO support push cancellation
 	when: (states, abort) ->
 		states = [].concat states
-		new Promise (resolve, reject) =>
+		new promise.Promise (resolve, reject) =>
 			@bindToStates states, resolve, abort
 
 
@@ -326,7 +328,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	# TODO support push cancellation
 	whenOnce: (states, abort) ->
 		states = [].concat states
-		new Promise (resolve, reject) =>
+		new promise.Promise (resolve, reject) =>
 			@bindToStates states, resolve, abort, yes
 
 
@@ -366,6 +368,10 @@ class AsyncMachine extends eventemitter.EventEmitter
 	#//////////////////////////
 	# PRIVATES
 	#//////////////////////////
+
+
+	# used only for casting in static typing
+	getInstance: -> @
 
 
 	# TODO make it cancellable
@@ -504,11 +510,16 @@ class AsyncMachine extends eventemitter.EventEmitter
 		states.every (state) => not @is state
 
 
-	createDeferred: (fn, target, states, params...) ->
+	createDeferred: (fn, target, states, state_params) ->
 		deferred = new Deferred
+
 		deferred.promise.then (callback_params) =>
-			params.push.apply params, callback_params
-			fn.apply null, [target, states].concat params
+			params = [target]
+			if states
+				params.push states
+			if state_params.length
+				params.push.apply params, state_params
+			fn.apply null, params.concat callback_params
 		@last_promise = deferred.promise
 
 		deferred
@@ -713,7 +724,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@emit 'change', previous
 
 
-	# TODO this is hacky, should be integrated into the transition somehow
+	# TODO this is hacky, should be integrated into processTransition
 	processPostTransition: ->
 		for transition in @transition_events
 			name = transition[0]
