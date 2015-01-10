@@ -1,14 +1,15 @@
-#/<reference path="../../../d.ts/mocha.d.ts" />
-#/<reference path="../../../d.ts/chai.d.ts" />
-#/<reference path="../../../d.ts/sinon.d.ts" />
-#/<reference path="../../../d.ts/underscore.d.ts" />
+#/ <reference path="../typings/commonjs.d.ts" />
+#/ <reference path="../typings/settimeout.d.ts" />
+#/ <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
+#/ <reference path="../typings/es6-promise/es6-promise.d.ts" />
+
+debugger
 
 asyncmachine = require '../build/asyncmachine'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
-rsvp = require 'rsvp'
-Promise = require 'es6-promise'
+promise = require 'es6-promise'
 
 class FooMachine extends asyncmachine.AsyncMachine
 	A: {}
@@ -338,7 +339,7 @@ describe "asyncmachine", ->
 		beforeEach ->
 			@log = []
 			@machine = new FooMachine [ 'A', 'B' ]
-			@machine.debug()
+			@machine.debug '', 3
 			@machine.log = (msg) =>
 				@log.push msg
 			# mock
@@ -350,14 +351,14 @@ describe "asyncmachine", ->
 			beforeEach ->
 				@ret = @machine.set [ 'C', 'D' ]
 
-			it 'should skip the second state', ->
-				expect( @machine.is() ).to.eql [ 'C' ]
+			it 'should cancel the transition', ->
+				expect( @machine.is() ).to.eql [ 'D' ]
 
 			it 'should return false', ->
 				expect( @ret ).to.eql no
 
-			it 'should explain the reson in the log', ->
-				expect( ~@log.indexOf '[i] State D blocked by C').to.be.ok
+			it 'should explain the reason in the log', ->
+				expect(@log).to.contain 'State D dropped by C'
 
 			afterEach ->
 				delete @ret
@@ -412,8 +413,8 @@ describe "asyncmachine", ->
 			expect( @machine.is() ).to.eql [ 'C', 'D' ]
 
 		it 'should be skipped if blocked at the same time', ->
-			@machine.set [ 'A', 'D' ]
-			expect( @machine.is() ).to.eql [ 'A' ]
+			@machine.set [ 'A', 'C' ]
+			expect( @machine.is() ).to.eql [ 'A', 'C' ]
 	#expect( fn ).to.throw
 
 	describe 'when state requires another one', ->
@@ -445,7 +446,7 @@ describe "asyncmachine", ->
 				expect( @machine.is() ).to.eql [ 'A' ]
 
 			it 'should explain the reason in the log', ->
-				msg = '[i] State C dropped as required state D is missing'
+				msg = "Can't set following states C(-D)"
 				expect( @log ).to.contain msg
 
 	describe 'when state is changed', ->
@@ -472,12 +473,13 @@ describe "asyncmachine", ->
 		describe 'and transition is canceled', ->
 			beforeEach ->
 				@machine.D_enter = -> no
+				@log = []
+				@machine.debug()
+				@machine.log = (msg) =>
+					@log.push msg
+
 			describe 'when setting a new state', ->
 				beforeEach ->
-					@log = []
-					@machine.debug()
-					@machine.log = (msg) =>
-						@log.push msg
 					@ret = @machine.set 'D'
 
 				it 'should return false', ->
@@ -487,7 +489,7 @@ describe "asyncmachine", ->
 					expect( @machine.is() ).to.eql [ 'A' ]
 
 				it 'should explain the reason in the log', ->
-					expect( ~@log.indexOf '[i] Transition method D_enter cancelled').to.be.ok
+					expect(@log).to.contain 'Cancelled transition to D by the method D_enter'
 
 				it 'should not change the auto states'
 
@@ -501,12 +503,9 @@ describe "asyncmachine", ->
 				it 'should not change the previous state', ->
 					expect( @machine.is() ).to.eql [ 'A' ]
 
-				it 'should explain the reason in the log', ->
-					expect( ~@log.indexOf '[i] Transition method D_enter cancelled').to.be.ok
-
 				it 'should not change the auto states'
 
-			describe 'when droppping a current state', ->
+			describe 'when droping a current state', ->
 				it 'should return false'
 
 				it 'should not change the previous state'
@@ -576,21 +575,11 @@ describe "asyncmachine", ->
 						expect( @machine.A_B.calledWith ['D', 'B'] ).to.be.ok
 
 			describe 'and delayed', ->
-				beforeEach (done) ->
-					resolve = @machine.setLater [ 'A', 'C' ], 'foo'
-					resolve null
-					@machine.last_promise
-						.then( =>
-							do @machine.setLater 'D', 'foo', 2
-							@machine.last_promise
-						).then( =>
-							do @machine.setLater 'D', 'foo', 2
-							@machine.last_promise
-						).then( =>
-							do @machine.dropLater 'D', 'foo', 2
-							@machine.last_promise
-						).then ->
-							do done
+				beforeEach ->
+					do @machine.setByListener [ 'A', 'C' ], 'foo'
+					do @machine.setByListener 'D', 'foo', 2
+					do @machine.setByListener 'D', 'foo', 2
+					do @machine.dropByListener 'D', 'foo', 2
 
 				describe 'and is explicit', ->
 
@@ -619,15 +608,17 @@ describe "asyncmachine", ->
 						expect( @machine.A_B.calledWith ['D', 'B'] ).to.be.ok
 
 		describe 'and delayed', ->
-			beforeEach ->
-				@callback = @machine.setLater 'D'
+			beforeEach (done) ->
+				@callback = @machine.setByCallback 'D'
 				@promise = @machine.last_promise
-				
+				# TODO without some action after beforeEach, we'd hit a timeout
+				done()
+
 			afterEach ->
 				delete @promise
 
 			it 'should return a promise', ->
-				expect( @promise instanceof Promise ).to.be.ok
+				expect( @promise instanceof promise.Promise ).to.be.ok
 
 			it 'should execute the change', (done) ->
 				# call without an error
@@ -640,20 +631,22 @@ describe "asyncmachine", ->
 			it 'should expose a ref to the last promise', ->
 				expect( @machine.last_promise ).to.equal @promise
 
-			it 'should be called with params passed to the delayed function', 
-				(done) ->
-					@machine.D_enter = (params...) ->
-						expect( params ).to.be.eql [ [ 'D' ], 'foo', 2 ]
-						do done
-					@callback null, 'foo', 2
+			it 'should be called with params passed to the delayed function', (done) ->
+				@machine.D_enter = (params...) ->
+					expect( params ).to.be.eql [ [ 'D' ], 'foo', 2 ]
+					do done
+				@callback null, 'foo', 2
 
-			describe 'and then canceled', ->
+			describe 'and then cancelled', ->
 				beforeEach ->
 					# call with an error
 					@callback yes
-				it 'should not execute the change', ->
-					expect( @machine.any_D.called ).not.to.be.ok
-					expect( @machine.D_enter.called ).not.to.be.ok
+
+				it 'should not execute the change', (done) ->
+					@promise.catch =>
+						expect( @machine.any_D.called ).not.to.be.ok
+						expect( @machine.D_enter.called ).not.to.be.ok
+						do done
 
 		describe 'and active state is also the target one', ->
 			it 'should trigger self transition at the very beginning', ->
@@ -678,11 +671,11 @@ describe "asyncmachine", ->
 		describe 'should trigger events', ->
 			
 			beforeEach ->
+
 				@A_A = sinon.spy()
 				@B_enter = sinon.spy()
 				@C_exit = sinon.spy()
-				@set = sinon.spy()
-				@add = sinon.spy()
+				@change = sinon.spy()
 				@cancelTransition = sinon.spy()
 				
 				@machine = new FooMachine 'A'
@@ -692,11 +685,11 @@ describe "asyncmachine", ->
 				@machine.on 'A_A', @A_A
 				@machine.on 'B_enter', @B_enter
 				@machine.on 'C_exit', @C_exit
-				@machine.on 'D_exit', -> no
+				@machine.on 'D_exit', ->
+					no
 				# lucid emitter event
-				@machine.on 'emitter.flag', @set
-				@machine.on 'state.cancel', @cancelTransition
-				@machine.on 'state.add', @add
+				@machine.on 'change', @change
+				@machine.on 'cancelled', @cancelTransition
 				@machine.set [ 'A', 'B' ]
 				@machine.add [ 'C' ]
 				@machine.add [ 'D' ]
@@ -713,17 +706,14 @@ describe "asyncmachine", ->
 				expect( @A_A.called ).to.be.ok
 			it 'for enter transitions', ->
 				expect( @B_enter.called ).to.be.ok
-			it 'for exit transtions', ->
+			it 'for exit transitions', ->
 				expect( @C_exit.called ).to.be.ok
 			it 'which can cancel the transition', ->
-				@machine.on 'D_enter', sinon.stub().returns no
-				@machine.set 'D'
 				expect( @machine.D_any.called ).not.to.be.ok
-			it 'for setting a new state', ->
-				expect( @set.called ).to.be.ok
-			it 'for adding a new state', ->
-				expect( @add.called ).to.be.ok
+			it 'for changing states', ->
+				expect( @change.called ).to.be.ok
 			it 'for cancelling the transition', ->
+				@machine.drop 'D'
 				expect( @cancelTransition.called ).to.be.ok
 
 	describe 'Events', ->

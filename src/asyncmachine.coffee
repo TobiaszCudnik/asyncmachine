@@ -333,10 +333,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	debug: (prefix = '', level = 1) ->
-		@debug_ = not @debug_
+		@debug_ = yes
 		@debug_prefix = prefix
 		@debug_level = level
 		null
+
+
+	debugOff: -> @debug_ = no
 
 
 	log: (msg, level) ->
@@ -456,7 +459,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 					states_accepted = states.every (state) ->
 						~states_to_set.indexOf state
 					unless states_accepted
-						@log "Cancelled the transition, as target states weren't accepted", 3
+						@log "Cancelled the transition, as not all target states were accepted", 3
 						ret = no
 
 			if ret isnt no
@@ -472,8 +475,10 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@add 'Exception', err, states
 			return
 
-		# TODO only for local target???
-		if ret isnt no and @hasStateChanged states_before
+		if ret is no
+			@emit 'cancelled'
+		else if @hasStateChanged states_before
+			# TODO only for local target???
 			@processAutoStates states_before
 
 		if not skip_queue
@@ -644,7 +649,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			not_found = []
 			names = for state, not_found of not_found_by_states
 				"#{state}(-#{not_found.join '-'})"
-			@log "Can't set following states #{names.join ', '} ", 2
+			@log "Can't set following states #{names.join ', '}", 2
 
 		states
 
@@ -690,10 +695,12 @@ class AsyncMachine extends eventemitter.EventEmitter
 			else
 				transition_params = []
 			ret = @transitionEnter_ state, to, transition_params
+
 			ret is no
 
 		return no if ret is yes
 		@setActiveStates_ to
+
 		yes
 
 
@@ -814,11 +821,9 @@ class AsyncMachine extends eventemitter.EventEmitter
 			if ret is no
 				@log "Cancelled transition to #{target_states.join ', '} by " +
 					"the event #{method}", 2
-				# TODO broadcast the event
-		else if ret is no
+		else
 			@log "Cancelled transition to #{target_states.join ', '} by " +
 				"the method #{method}", 2
-			# TODO broadcast the event
 
 		ret
 
