@@ -1,7 +1,7 @@
 {
   "name": "asyncmachine",
-  "version": "2.0.0",
-  "description": "Multi State Machine for a declarative async logic.",
+  "version": "2.0.1",
+  "description": "Swiss army knife for complex async systems",
   "keywords": ["async", "statemachine", "eventemitter", "states"],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
   "url" : "https://github.com/TobiaszCudnik/asyncmachine",

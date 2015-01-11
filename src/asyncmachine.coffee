@@ -339,7 +339,9 @@ class AsyncMachine extends eventemitter.EventEmitter
 		null
 
 
-	debugOff: -> @debug_ = no
+	debugOff: ->
+		@debug_ = no
+		null
 
 
 	log: (msg, level) ->
@@ -631,21 +633,21 @@ class AsyncMachine extends eventemitter.EventEmitter
 			states = states.filter (name) =>
 				state = @get name
 				not_found = []
-				ret = not state.requires?.some (req) =>
+				not state.requires?.forEach (req) =>
 					found = ~states.indexOf req
 					if not found
 						not_found.push req
-					not found
 
 				if not_found.length
 					not_found_by_states[name] = not_found
-				ret
+
+				not not_found.length
 
 		if Object.keys(not_found_by_states).length
 			state = ''
 			not_found = []
 			names = for state, not_found of not_found_by_states
-				"#{state}(-#{not_found.join '-'})"
+				"#{state}(-#{not_found.join ' -'})"
 			@log "Can't set following states #{names.join ', '}", 2
 
 		states

@@ -382,7 +382,8 @@ var AsyncMachine = (function (_super) {
         return null;
     };
     AsyncMachine.prototype.debugOff = function () {
-        return this.debug_ = false;
+        this.debug_ = false;
+        return null;
     };
     AsyncMachine.prototype.log = function (msg, level) {
         if (level == null) {
@@ -671,17 +672,16 @@ var AsyncMachine = (function (_super) {
             states = states.filter(function (name) {
                 var state = _this.get(name);
                 var not_found = [];
-                var ret = !(state.requires != null ? state.requires.some(function (req) {
+                !(state.requires != null ? state.requires.forEach(function (req) {
                     var found = ~states.indexOf(req);
                     if (!found) {
-                        not_found.push(req);
+                        return not_found.push(req);
                     }
-                    return !found;
                 }) : void 0);
                 if (not_found.length) {
                     not_found_by_states[name] = not_found;
                 }
-                return ret;
+                return !not_found.length;
             });
         }
         if (Object.keys(not_found_by_states).length) {
@@ -692,7 +692,7 @@ var AsyncMachine = (function (_super) {
                 _results = [];
                 for (state in not_found_by_states) {
                     not_found = not_found_by_states[state];
-                    _results.push(state + "(-" + (not_found.join("-")) + ")");
+                    _results.push(state + "(-" + (not_found.join(" -")) + ")");
                 }
                 return _results;
             })();

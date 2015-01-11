@@ -3,10 +3,9 @@ require('object-mixin')
 
 
 class QueryFetcherStates extends asyncmachine.AsyncMachine {
-	constructor() {
-		super()
+	constructor(target) {
+		super(target)
 		this.registerAll()
-		// Enable a basic debug
 		this.debug('', 1)
 	}
 }
@@ -45,9 +44,7 @@ class QueryFetcher {
 	constructor() {
 		this.results = {}
 
-		this.states = new QueryFetcherStates()
-		// Redirect transitions to this object
-		this.states.setTarget(this)
+		this.states = new QueryFetcherStates(this)
 		this.states.add('Enabled')
 	}
 
@@ -73,15 +70,18 @@ class QueryFetcher {
 	}
 
 	// Collect results from every callback.
+
+	// First state enter
 	Result_state(states, result) {
 		this.results[states[0]] = result
 	}
 
+	// Active state self transition
 	Result_Result(states, result) {
 		this.Result_state(states, result)
 	}
 
-	// Mocked method
+	// Mocked async method
 	query(query, next) {
 		setTimeout(() => {
 			next( null, query )

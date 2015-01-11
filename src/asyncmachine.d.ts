@@ -64,11 +64,11 @@ class AsyncMachine extends EventEmitter {
 	public addByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
 	public addByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
 	public addByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void;
-	public addByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
-	public addByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
-	public addByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
-	public addByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
-	public addByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void;
+	public addByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+	public addByListener(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+	public addByListener(target: string[], states?: any, ...params: any[]): (...params) => void;
+	public addByListener(target: string, states?: any, ...params: any[]): (...params) => void;
+	public addByListener(target: any, states?: any, ...params: any[]): (...params) => void;
 	public addNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
 	public addNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
 	public addNext(target: string, states: any, ...params: any[]): (...params) => void;
@@ -127,7 +127,8 @@ class AsyncMachine extends EventEmitter {
 	public pipeInvert(state: any, machine?: any, target_state?: any);
 	public pipeOff(): void;
 	public duringTransition(): boolean;
-	public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
+	public debug(prefix?: string, level?: number): void;
+	public debugOff(): void;
 	public log(msg: string, level?: number): void;
 
 	on(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;

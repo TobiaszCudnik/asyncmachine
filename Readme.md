@@ -9,9 +9,9 @@ NPM, build systems, browserify:
 npm install asyncmachine
 ```
 
-Browser ready version is at `build-pkg/asyncmachine.js`. You can use the CDN directly:
-```
-https://cdn.rawgit.com/TobiaszCudnik/asyncmachine/coffee/build-pkg/asyncmachine.js
+Browser ready version is at [build-pkg/asyncmachine.js](https://github.com/TobiaszCudnik/asyncmachine/blob/master/build-pkg/asyncmachine.js) or use the CDN:
+```html
+<script src="https://cdn.rawgit.com/TobiaszCudnik/asyncmachine/coffee/build-pkg/asyncmachine.js" type="application/javascript"></script>
 ```
 
 ## Disclaimer
@@ -83,15 +83,15 @@ names will be called.
  
  
 ```javascript
+// EcmaScript 6
 var asyncmachine = require('../../lib/asyncmachine')
 require('object-mixin')
 
 
 class QueryFetcherStates extends asyncmachine.AsyncMachine {
-	constructor() {
-		super()
+	constructor(target) {
+		super(target)
 		this.registerAll()
-		// Enable a basic debug
 		this.debug('', 1)
 	}
 }
@@ -130,9 +130,7 @@ class QueryFetcher {
 	constructor() {
 		this.results = {}
 
-		this.states = new QueryFetcherStates()
-		// Redirect transitions to this object
-		this.states.setTarget(this)
+		this.states = new QueryFetcherStates(this)
 		this.states.add('Enabled')
 	}
 
@@ -158,15 +156,18 @@ class QueryFetcher {
 	}
 
 	// Collect results from every callback.
+
+	// First state enter
 	Result_state(states, result) {
 		this.results[states[0]] = result
 	}
 
+	// Active state self transition
 	Result_Result(states, result) {
 		this.Result_state(states, result)
 	}
 
-	// Mocked method
+	// Mocked async method
 	query(query, next) {
 		setTimeout(() => {
 			next( null, query )
@@ -205,31 +206,31 @@ Logging with level == 2 gives you more insight into whats happening:
 ```
 [add] state Enabled
 [states] +Enabled
-Can't set following states Query3Running(-Query1Done), Query4Running(-Query1Done), Done(-Query1Done)
+Can't set following states Query3Running(-Query1Done -Query2Done), Query4Running(-Query1Done), Done(-Query1Done -Query2Done -Query3Done -Query4Done)
 [states] +Query1Running +Query2Running
-[transition] Query1Running_state
-[transition] Query2Running_state
-Can't set following states Query3Running(-Query1Done), Query4Running(-Query1Done), Done(-Query1Done)
+[transition] Query1Running_end
+[transition] Query2Running_end
+Can't set following states Query3Running(-Query1Done -Query2Done), Query4Running(-Query1Done), Done(-Query1Done -Query2Done -Query3Done -Query4Done)
 [add] state Query1Done, Result
 [states] +Query1Done +Result
-[transition] Result_state
-Can't set following states Query3Running(-Query2Done), Done(-Query2Done)
+[transition] Result_end
+Can't set following states Query3Running(-Query2Done), Done(-Query2Done -Query3Done -Query4Done)
 [states] +Query4Running
-[transition] Query4Running_state
-Can't set following states Query3Running(-Query2Done), Done(-Query2Done)
+[transition] Query4Running_end
+Can't set following states Query3Running(-Query2Done), Done(-Query2Done -Query3Done -Query4Done)
 [add] state Query2Done, Result
-[transition] undefined
+[transition] Result_Result
 [states] +Query2Done
-Can't set following states Done(-Query3Done)
+Can't set following states Done(-Query3Done -Query4Done)
 [states] +Query3Running
-[transition] Query3Running_state
-Can't set following states Done(-Query3Done)
+[transition] Query3Running_end
+Can't set following states Done(-Query3Done -Query4Done)
 [add] state Query4Done, Result
-[transition] undefined
+[transition] Result_Result
 [states] +Query4Done
 Can't set following states Done(-Query3Done)
 [add] state Query3Done, Result
-[transition] undefined
+[transition] Result_Result
 [states] +Query3Done
 [states] +Done
 ```
@@ -243,7 +244,7 @@ Public API looks like this:
  
 ```typescript
 class AsyncMachine {
-	public last_promise: rsvp.Promise;
+	public last_promise: Promise<any>;
 	public config: IConfig;
 	constructor(config?: IConfig);
 	public Exception_state(states: string[], err: Error, exception_states?: string[]): boolean;
@@ -262,41 +263,73 @@ class AsyncMachine {
 	public any(...names: string[][]): boolean;
 	public every(...names: string[]): boolean;
  
-	public add(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
-	public add(target: AsyncMachine, states?: string, ...params: any[]): boolean;
-	public add(target: string[], states?: any, ...params: any[]): boolean;
-	public add(target: string, states?: any, ...params: any[]): boolean;
-	public addByCallback(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-	public addByCallback(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-	public addByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-	public addByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+ 	public add(target: AsyncMachine, states: string[], ...params: any[]): boolean;
+ 	public add(target: AsyncMachine, states: string, ...params: any[]): boolean;
+ 	public add(target: string[], states?: any, ...params: any[]): boolean;
+ 	public add(target: string, states?: any, ...params: any[]): boolean;
+ 	public addByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+ 	public addByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+ 	public addByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+ 	public addByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+ 	public addByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+ 	public addByListener(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+ 	public addByListener(target: string[], states?: any, ...params: any[]): (...params) => void;
+ 	public addByListener(target: string, states?: any, ...params: any[]): (...params) => void;
+ 	public addNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+ 	public addNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+ 	public addNext(target: string, states: any, ...params: any[]): (...params) => void;
+ 	public addNext(target: string[], states: any, ...params: any[]): (...params) => void;
  
-	public drop(target: AsyncMachine, states?: string[], ...params: any[]): boolean;
-	public drop(target: AsyncMachine, states?: string, ...params: any[]): boolean;
-	public drop(target: string[], states?: any, ...params: any[]): boolean;
-	public drop(target: string, states?: any, ...params: any[]): boolean;
-	public dropByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-	public dropByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-
-	public set(states: string[], ...params: any[]): boolean;
-	public set(states: string, ...params: any[]): boolean;
-	public setByListener(states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-	public setByListener(states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
+ 	public drop(target: AsyncMachine, states: string[], ...params: any[]): boolean;
+ 	public drop(target: AsyncMachine, states: string, ...params: any[]): boolean;
+ 	public drop(target: string[], states?: any, ...params: any[]): boolean;
+ 	public drop(target: string, states?: any, ...params: any[]): boolean;
+ 	public dropByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+ 	public dropByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+ 	public dropByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+ 	public dropByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+ 	public dropByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+ 	public dropByListener(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+ 	public dropByListener(target: string[], states?: any, ...params: any[]): (...params) => void;
+ 	public dropByListener(target: string, states?: any, ...params: any[]): (...params) => void;
+ 	public dropNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+ 	public dropNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+ 	public dropNext(target: string, states: any, ...params: any[]): (...params) => void;
+ 	public dropNext(target: string[], states: any, ...params: any[]): (...params) => void;
+ 
+ 	public set(target: AsyncMachine, states: string[], ...params: any[]): boolean;
+ 	public set(target: AsyncMachine, states: string, ...params: any[]): boolean;
+ 	public set(target: string[], states?: any, ...params: any[]): boolean;
+ 	public set(target: string, states?: any, ...params: any[]): boolean;
+ 	public setByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
+ 	public setByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
+ 	public setByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
+ 	public setByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+ 	public setByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+ 	public setByListener(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+ 	public setByListener(target: string[], states?: any, ...params: any[]): (...params) => void;
+ 	public setByListener(target: string, states?: any, ...params: any[]): (...params) => void;
+ 	public setNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+ 	public setNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+ 	public setNext(target: string, states: any, ...params: any[]): (...params) => void;
+ 	public setNext(target: string[], states: any, ...params: any[]): (...params) => void;
  
 	public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
 	public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
 	public pipeForward(state: AsyncMachine, machine?: string);
-	public pipeInvert(state: string, machine: AsyncMachine, target_state: string);
-	public pipeOff(): void;
+	public pipeInvert(state: string, machine?: AsyncMachine, target_state?: string);
+	public pipeInvert(state: string[], machine?: AsyncMachine, target_state?: string);
+	public pipeInvert(state: AsyncMachine, machine?: string);
 	public duringTransition(): boolean;
 	public namespaceName(state: string): string;
-	public debug(prefix?: string, log_handler?: (...msgs: string[]) => void): void;
+	public debug(prefix?: string, level?: number): void;
+	public debugOff(): void;
 	public log(msg: string, level?: number): void;
  
-	public when(states: string, abort?: Function): rsvp.Promise;
-	public when(states: string[], abort?: Function): rsvp.Promise;
-	public whenOnce(states: string, abort?: Function): rsvp.Promise;
-	public whenOnce(states: string[], abort?: Function): rsvp.Promise;
+	public when(states: string, abort?: Function): Promise<any>;
+	public when(states: string[], abort?: Function): Promise<any>;
+	public whenOnce(states: string, abort?: Function): Promise<any>;
+	public whenOnce(states: string[], abort?: Function): Promise<any>;
 
 	public getAbort(state: string, abort, abort: () => boolean): boolean;
 	public getAbortEnter(state: string, abort: () => boolean): boolean;

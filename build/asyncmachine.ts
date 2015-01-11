@@ -249,11 +249,11 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         return this.createCallback(this.createDeferred(this.add.bind(this), target, states, params));
     }
 
-    public addByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
-    public addByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
-    public addByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
-    public addByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
-    public addByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
+    public addByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
+    public addByListener(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
+    public addByListener(target: string[], states?: any, ...params: any[]): (...params) => void;
+    public addByListener(target: string, states?: any, ...params: any[]): (...params) => void;
+    public addByListener(target: any, states?: any, ...params: any[]): (...params) => void {
         return this.createListener(this.createDeferred(this.add.bind(this), target, states, params));
     }
 
@@ -423,8 +423,9 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         return null;
     }
 
-    debugOff() {
-        return this.debug_ = false;
+    public debugOff(): void {
+        this.debug_ = false;
+        return null;
     }
 
     public log(msg: string, level?: number): void {
@@ -721,18 +722,18 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             states = states.filter((name) => {
                 var state = this.get(name);
                 var not_found = [];
-                var ret = !(state.requires != null ? state.requires.some((req) => {
+                !(state.requires != null ? state.requires.forEach((req) => {
                     var found = ~states.indexOf(req);
                     if (!found) {
-                        not_found.push(req);
+                        return not_found.push(req);
                     }
-                    return !found;
                 }) : void 0);
 
                 if (not_found.length) {
                     not_found_by_states[name] = not_found;
                 }
-                return ret;
+
+                return !not_found.length;
             });
         }
 
@@ -744,7 +745,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                 _results = [];
                 for (state in not_found_by_states) {
                     not_found = not_found_by_states[state];
-                    _results.push(state + "(-" + (not_found.join("-")) + ")");
+                    _results.push(state + "(-" + (not_found.join(" -")) + ")");
                 }
                 return _results;
             })();

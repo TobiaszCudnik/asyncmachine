@@ -21,10 +21,9 @@ require("object-mixin");
 
 var QueryFetcherStates = (function () {
   var _asyncmachine$AsyncMachine = asyncmachine.AsyncMachine;
-  var QueryFetcherStates = function QueryFetcherStates() {
-    _asyncmachine$AsyncMachine.call(this);
+  var QueryFetcherStates = function QueryFetcherStates(target) {
+    _asyncmachine$AsyncMachine.call(this, target);
     this.registerAll();
-    // Enable a basic debug
     this.debug("", 1);
   };
 
@@ -66,9 +65,7 @@ Object.mixin(QueryFetcherStates.prototype, {
 var QueryFetcher = function QueryFetcher() {
   this.results = {};
 
-  this.states = new QueryFetcherStates();
-  // Redirect transitions to this object
-  this.states.setTarget(this);
+  this.states = new QueryFetcherStates(this);
   this.states.add("Enabled");
 };
 
@@ -89,15 +86,18 @@ QueryFetcher.prototype.Query4Running_state = function () {
 };
 
 // Collect results from every callback.
+
+// First state enter
 QueryFetcher.prototype.Result_state = function (states, result) {
   this.results[states[0]] = result;
 };
 
+// Active state self transition
 QueryFetcher.prototype.Result_Result = function (states, result) {
   this.Result_state(states, result);
 };
 
-// Mocked method
+// Mocked async method
 QueryFetcher.prototype.query = function (query, next) {
   setTimeout(function () {
     next(null, query);

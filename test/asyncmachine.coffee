@@ -812,6 +812,7 @@ describe "asyncmachine", ->
 
 	describe 'queue', ->
 	describe 'nested queue', ->
+	describe 'exceptions', ->
 
 	describe 'bugs', ->
 		# TODO use a constructor in Sub
