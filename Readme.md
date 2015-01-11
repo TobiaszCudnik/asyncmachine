@@ -245,8 +245,8 @@ Public API looks like this:
 ```typescript
 class AsyncMachine {
 	public last_promise: Promise<any>;
-	public config: IConfig;
-	constructor(config?: IConfig);
+
+	constructor(target?:AsyncMachine);
 	public Exception_state(states: string[], err: Error, exception_states?: string[]): boolean;
 
 	public register(...states: string[]);
