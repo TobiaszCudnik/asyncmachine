@@ -84,7 +84,7 @@ names will be called.
  
 ```javascript
 // EcmaScript 6
-var asyncmachine = require('../../lib/asyncmachine')
+var asyncmachine = require('asyncmachine')
 require('object-mixin')
 
 
