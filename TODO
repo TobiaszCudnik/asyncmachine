@@ -1,7 +1,0 @@
-TODO:
-- enum for queue types
-- enum for log messages types
-- memory leak tests
-
-- MAYBE: generating definitions for state changing methods based on transition 
-	methods signatures (and states string values)
