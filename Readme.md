@@ -331,8 +331,8 @@ class AsyncMachine {
 	public whenOnce(states: string, abort?: Function): Promise<any>;
 	public whenOnce(states: string[], abort?: Function): Promise<any>;
 
-	public getAbort(state: string, abort, abort: () => boolean): boolean;
-	public getAbortEnter(state: string, abort: () => boolean): boolean;
+	public getAbort(state: string, abort?: () => boolean): () => boolean;
+    public getAbortEnter(state: string, abort?: () => boolean): () => boolean;
 }
 ```
  
