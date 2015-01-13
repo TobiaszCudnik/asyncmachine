@@ -152,7 +152,7 @@ class AsyncMachine extends EventEmitter {
 	private createCallback(deferred: Deferred): (err?, ...params) => void;
 	private createListener(deferred: Deferred): (...params) => void;
 
-	private processAutoStates(excluded?: string[]);
+	private processAutoStates(skip_queue: boolean);
 		
 	private processStateChange_(type: number, states: string, params: any[], autostate?: boolean, skip_queue?: boolean);
 	private processStateChange_(type: number, states: string[], params: any[], autostate?: boolean, skip_queue?: boolean);

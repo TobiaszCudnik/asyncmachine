@@ -388,20 +388,18 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	# TODO log it better
-	processAutoStates: (excluded) ->
-		excluded ?= []
+	processAutoStates: (skip_queue) ->
 		add = []
 		@states_all.forEach (state) =>
-			is_excluded = => ~excluded.indexOf state
+#			is_excluded = => ~excluded.indexOf state
 			is_current = => @is state
 			is_blocked = => @is().some (item) =>
 				return no if not (@get item).blocks
 				Boolean ~(@get item).blocks.indexOf state
-			if this[state].auto and not is_excluded() and not is_current() \
-					and not is_blocked()
+			if this[state].auto and not is_current() and not is_blocked()
 				add.push state
 
-		@processStateChange_ STATE_CHANGE.ADD, add, [], yes
+		@processStateChange_ STATE_CHANGE.ADD, add, [], yes, skip_queue
 
 
 	hasStateChanged: (states_before) ->
@@ -478,7 +476,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@emit 'cancelled'
 		else if @hasStateChanged states_before
 			# TODO only for local target???
-			@processAutoStates states_before
+			@processAutoStates skip_queue
 
 		if not skip_queue
 			@processQueue_()
@@ -489,8 +487,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@allStatesSet states
 
 
-	# Goes through the whole queue collecting returns. emits processing of
-	# auto states on each tick.
+	# Goes through the whole queue collecting return values.
 	processQueue_: ->
 		ret = []
 		row = undefined
@@ -498,7 +495,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			target = row[QUEUE.TARGET] or this
 			params = [
 				row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], no,
-				target is this or target.duringTransition()
+				target is this
 			]
 			# emit the transition on the target machine
 			ret.push target.processStateChange_.apply target, params
