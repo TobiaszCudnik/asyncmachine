@@ -79,10 +79,10 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
     addByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
     addByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params: any[]) => void;
     addByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params: any[]) => void;
-    addByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params: any[]) => void;
-    addByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params: any[]) => void;
-    addByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params: any[]) => void;
-    addByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+    addByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params: any[]) => void;
+    addByListener(target: AsyncMachine, states: string, ...params: any[]): (...params: any[]) => void;
+    addByListener(target: string[], states?: any, ...params: any[]): (...params: any[]) => void;
+    addByListener(target: string, states?: any, ...params: any[]): (...params: any[]) => void;
     addNext(target: AsyncMachine, states: string, ...params: any[]): (...params: any[]) => void;
     addNext(target: AsyncMachine, states: string[], ...params: any[]): (...params: any[]) => void;
     addNext(target: string, states: any, ...params: any[]): (...params: any[]) => void;
@@ -120,7 +120,7 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
     whenOnce(states: string, abort?: Function): Promise<any>;
     whenOnce(states: string[], abort?: Function): Promise<any>;
     debug(prefix?: any, level?: any): any;
-    debugOff(): boolean;
+    debugOff(): void;
     log(msg: string, level?: number): void;
     on(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;
     once(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;
