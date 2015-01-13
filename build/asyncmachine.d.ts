@@ -126,7 +126,7 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
     once(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;
     private getInstance();
     setImmediate(fn: any, ...params: any[]): any;
-    private processAutoStates(excluded?);
+    private processAutoStates(skip_queue);
     hasStateChanged(states_before: any): any;
     private processStateChange_(type, states, params, autostate?, skip_queue?);
     private processStateChange_(type, states, params, autostate?, skip_queue?);

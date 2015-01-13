@@ -426,14 +426,10 @@ var AsyncMachine = (function (_super) {
             return setTimeout(fn.apply(null, params), 0);
         }
     };
-    AsyncMachine.prototype.processAutoStates = function (excluded) {
+    AsyncMachine.prototype.processAutoStates = function (skip_queue) {
         var _this = this;
-        if (excluded == null) {
-            excluded = [];
-        }
         var add = [];
         this.states_all.forEach(function (state) {
-            var is_excluded = function () { return ~excluded.indexOf(state); };
             var is_current = function () { return _this.is(state); };
             var is_blocked = function () { return _this.is().some(function (item) {
                 if (!(_this.get(item)).blocks) {
@@ -441,11 +437,11 @@ var AsyncMachine = (function (_super) {
                 }
                 return Boolean(~(_this.get(item)).blocks.indexOf(state));
             }); };
-            if (_this[state].auto && !is_excluded() && !is_current() && !is_blocked()) {
+            if (_this[state].auto && !is_current() && !is_blocked()) {
                 return add.push(state);
             }
         });
-        return this.processStateChange_(exports.STATE_CHANGE.ADD, add, [], true);
+        return this.processStateChange_(exports.STATE_CHANGE.ADD, add, [], true, skip_queue);
     };
     AsyncMachine.prototype.hasStateChanged = function (states_before) {
         var length_equals = this.is().length === states_before.length;
@@ -518,9 +514,9 @@ var AsyncMachine = (function (_super) {
             this.emit("cancelled");
         }
         else if (this.hasStateChanged(states_before)) {
-            this.processAutoStates(states_before);
+            this.processAutoStates(skip_queue);
         }
-        if (!skip_queue) {
+        if (!(skip_queue || this.duringTransition())) {
             this.processQueue_();
         }
         if (type === exports.STATE_CHANGE.DROP) {
@@ -535,7 +531,7 @@ var AsyncMachine = (function (_super) {
         var row = void 0;
         while (row = this.queue.shift()) {
             var target = row[exports.QUEUE.TARGET] || this;
-            var params = [row[exports.QUEUE.STATE_CHANGE], row[exports.QUEUE.STATES], row[exports.QUEUE.PARAMS], false, target === this || target.duringTransition()];
+            var params = [row[exports.QUEUE.STATE_CHANGE], row[exports.QUEUE.STATES], row[exports.QUEUE.PARAMS], false, target === this];
             ret.push(target.processStateChange_.apply(target, params));
         }
         return !~ret.indexOf(false);

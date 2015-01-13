@@ -478,7 +478,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			# TODO only for local target???
 			@processAutoStates skip_queue
 
-		if not skip_queue
+		if not (skip_queue or @duringTransition())
 			@processQueue_()
 
 		return if type is STATE_CHANGE.DROP

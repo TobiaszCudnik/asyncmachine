@@ -469,13 +469,9 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         }
     }
 
-    private processAutoStates(excluded?: string[]) {
-        if (excluded == null) {
-            excluded = [];
-        }
+    private processAutoStates(skip_queue: boolean) {
         var add = [];
         this.states_all.forEach((state) => {
-            var is_excluded = () => ~excluded.indexOf(state);
             var is_current = () => this.is(state);
             var is_blocked = () => this.is().some((item) => {
                     if (!(this.get(item)).blocks) {
@@ -483,12 +479,12 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                     }
                     return Boolean(~(this.get(item)).blocks.indexOf(state));
                 });
-            if (this[state].auto && !is_excluded() && !is_current() && !is_blocked()) {
+            if (this[state].auto && !is_current() && !is_blocked()) {
                 return add.push(state);
             }
         });
 
-        return this.processStateChange_(STATE_CHANGE.ADD, add, [], true);
+        return this.processStateChange_(STATE_CHANGE.ADD, add, [], true, skip_queue);
     }
 
     hasStateChanged(states_before) {
@@ -567,10 +563,10 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         if (ret === false) {
             this.emit("cancelled");
         } else if (this.hasStateChanged(states_before)) {
-            this.processAutoStates(states_before);
+            this.processAutoStates(skip_queue);
         }
 
-        if (!skip_queue) {
+        if (!(skip_queue || this.duringTransition())) {
             this.processQueue_();
         }
 
@@ -586,7 +582,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         var row = void 0;
         while (row = this.queue.shift()) {
             var target = row[QUEUE.TARGET] || this;
-            var params = [row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], false, target === this || target.duringTransition()];
+            var params = [row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], false, target === this];
             ret.push(target.processStateChange_.apply(target, params));
         }
 
