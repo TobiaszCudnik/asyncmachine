@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Swiss army knife for complex async systems",
   "keywords": ["async", "statemachine", "eventemitter", "states"],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
