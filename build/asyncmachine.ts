@@ -84,7 +84,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
     public Exception_state(states: string[], err: Error, exception_states?: string[]): boolean {
         if (exception_states.length != null) {
-            this.log("Exception when tried to set following states: " + exception_states.join(", "));
+            this.log("Exception when tried to set the following states: " + exception_states.join(", "));
         }
         return this.setImmediate(() => {
             throw err;
@@ -761,7 +761,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                 }
                 return _results;
             })();
-            this.log("Can't set following states " + (names.join(", ")), 2);
+            this.log("Can't set the following states " + (names.join(", ")), 2);
         }
 
         return states;

@@ -66,7 +66,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 	Exception_state: (states, err, exception_states) ->
 		if exception_states.length?
-			@log "Exception when tried to set following states: " +
+			@log "Exception when tried to set the following states: " +
 				exception_states.join ', '
 		# promise.Promises eat exceptions, so we need to jump-out-of the stacktrace
 		@setImmediate -> throw err
@@ -663,7 +663,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			not_found = []
 			names = for state, not_found of not_found_by_states
 				"#{state}(-#{not_found.join ' -'})"
-			@log "Can't set following states #{names.join ', '}", 2
+			@log "Can't set the following states #{names.join ', '}", 2
 
 		states
 
