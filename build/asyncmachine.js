@@ -401,15 +401,26 @@ var AsyncMachine = (function (_super) {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
             listener.call(context);
         }
-        return _super.prototype.on.call(this, event, listener, context);
+        return this.handlePromise(_super.prototype.on.call(this, event, listener, context));
     };
     AsyncMachine.prototype.once = function (event, listener, context) {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
-            return listener.call(context);
+            var ret = listener.call(context);
         }
         else {
-            return _super.prototype.once.call(this, event, listener, context);
+            ret = _super.prototype.once.call(this, event, listener, context);
         }
+        return this.handlePromise(ret);
+    };
+    AsyncMachine.prototype.callListener = function (listener, context, params) {
+        var ret = listener.apply(context, params);
+        return this.handlePromise(ret, params[0]);
+    };
+    AsyncMachine.prototype.handlePromise = function (ret, target_states) {
+        if (ret && ret.then && ret["catch"]) {
+            ret["catch"](this.addLater("Exception", target_states));
+        }
+        return ret;
     };
     AsyncMachine.prototype.getInstance = function () {
         return this;
@@ -599,6 +610,7 @@ var AsyncMachine = (function (_super) {
                 if (context) {
                     _this.log("[transition] " + name, 2);
                     ret = context[name].apply(context, transition_params);
+                    _this.handlePromise(ret, states);
                 }
                 else {
                     _this.log("[transition] " + name, 3);
@@ -795,13 +807,12 @@ var AsyncMachine = (function (_super) {
             }
             var context = _this.getMethodContext(method);
             if (context) {
-                _this.log("[transition] " + state + "_end", 2);
-                if ((_ref = context[method]) != null) {
-                    _ref.apply(context, params);
-                }
+                _this.log("[transition] " + method, 2);
+                var ret = (_ref = context[method]) != null ? _ref.apply(context, params) : void 0;
+                _this.handlePromise(ret, _this.is());
             }
             else {
-                _this.log("[transition] " + state + "_end", 3);
+                _this.log("[transition] " + method, 3);
             }
             return _this.emit.apply(_this, [method].concat(params));
         });
@@ -865,6 +876,7 @@ var AsyncMachine = (function (_super) {
         if (context) {
             this.log("[transition] " + method, 2);
             ret = (_ref = context[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(context, transition_params) : void 0 : void 0;
+            this.handlePromise(ret, target_states);
         }
         else {
             this.log("[transition] " + method, 3);

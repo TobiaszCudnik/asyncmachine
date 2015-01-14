@@ -446,15 +446,30 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             listener.call(context);
         }
 
-        return super.on(event, listener, context);
+        return this.handlePromise(super.on(event, listener, context));
     }
 
     once(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
-            return listener.call(context);
+            var ret = listener.call(context);
         } else {
-            return super.once(event, listener, context);
+            ret = super.once(event, listener, context);
         }
+
+        return this.handlePromise(ret);
+    }
+
+    callListener(listener, context, params) {
+        var ret = listener.apply(context, params);
+        return this.handlePromise(ret, params[0]);
+    }
+
+    handlePromise(ret, target_states) {
+        if (ret && ret.then && ret["catch"]) {
+            ret["catch"](this.addLater("Exception", target_states));
+        }
+
+        return ret;
     }
 
     private getInstance(): any {
@@ -643,6 +658,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                 if (context) {
                     this.log("[transition] " + name, 2);
                     ret = context[name].apply(context, transition_params);
+                    this.handlePromise(ret, states);
                 } else {
                     this.log("[transition] " + name, 3);
                 }
@@ -859,12 +875,11 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
             var context = this.getMethodContext(method);
             if (context) {
-                this.log("[transition] " + state + "_end", 2);
-                if ((_ref = context[method]) != null) {
-                    _ref.apply(context, params);
-                }
+                this.log("[transition] " + method, 2);
+                var ret = (_ref = context[method]) != null ? _ref.apply(context, params) : void 0;
+                this.handlePromise(ret, this.is());
             } else {
-                this.log("[transition] " + state + "_end", 3);
+                this.log("[transition] " + method, 3);
             }
 
             return this.emit.apply(this, [method].concat(params));
@@ -940,6 +955,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         if (context) {
             this.log("[transition] " + method, 2);
             ret = (_ref = context[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(context, transition_params) : void 0 : void 0;
+            this.handlePromise(ret, target_states);
         } else {
             this.log("[transition] " + method, 3);
         }

@@ -357,7 +357,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		if event[-6..-1] is '_state' and @is event[0...-6]
 			listener.call context
 
-		super(event, listener, context)
+		@handlePromise super event, listener, context
 
 
 	once: (event, listener, context) ->
@@ -365,14 +365,31 @@ class AsyncMachine extends eventemitter.EventEmitter
 		# and dont register the listener
 		# TODO last state params
 		if event[-6..-1] is '_state' and @is event[0...-6]
-			listener.call context
+			ret = listener.call context
 		else
-			super(event, listener, context)
+			ret = super event, listener, context
+
+		@handlePromise ret
 
 
 	#//////////////////////////
 	# PRIVATES
 	#//////////////////////////
+
+
+	callListener: (listener, context, params) ->
+		ret = listener.apply context, params
+
+		# assume params[0] are the target states of the transition
+		@handlePromise ret, params[0]
+
+
+	handlePromise: (ret, target_states) ->
+		if ret and ret.then and ret.catch
+			# TODO add target states
+			ret.catch @addLater 'Exception', target_states
+
+		ret
 
 
 	# used only for casting in static typing
@@ -552,6 +569,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 				if context
 					@log "[transition] #{name}", 2
 					ret = context[name].apply context, transition_params
+					@handlePromise ret, states
 				else
 					@log "[transition] #{name}", 3
 
@@ -742,10 +760,11 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 			context = @getMethodContext method
 			if context
-				@log "[transition] #{state}_end", 2
-				context[method]?.apply context, params
+				@log "[transition] #{method}", 2
+				ret = context[method]?.apply context, params
+				@handlePromise ret, @is()
 			else
-				@log "[transition] #{state}_end", 3
+				@log "[transition] #{method}", 3
 
 			@emit.apply this, [method].concat params
 
@@ -804,6 +823,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		if context
 			@log "[transition] #{method}", 2
 			ret = context[method]?.apply? context, transition_params
+			@handlePromise ret, target_states
 		else
 			@log "[transition] #{method}", 3
 

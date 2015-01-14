@@ -3,8 +3,6 @@
 #/ <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
 #/ <reference path="../typings/es6-promise/es6-promise.d.ts" />
 
-debugger
-
 asyncmachine = require '../build/asyncmachine'
 chai = require 'chai'
 expect = chai.expect
