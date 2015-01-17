@@ -52,8 +52,10 @@ describe "Exceptions", ->
       delayed @foo.addByListener 'A'
       @foo.Exception_state = -> done()
 
-    it 'from transitions divided by generators', (done) ->
+    it 'from transitions returning promises', (done) ->
+      @foo.debug '', 2
       @foo.Exception_state = (states, exception, target_states) ->
+        console.log 'Exception_state', states, exception, target_states
         expect(target_states).to.eql ['A']
         expect(exception).to.be.instanceOf Error
         done()
@@ -62,13 +64,13 @@ describe "Exceptions", ->
         throw new Error
       @foo.add 'A'
 
-    it 'from event listeners divided by generators', (done) ->
-      error = new Error
+    it 'from event listeners returning promises', (done) ->
       @foo.Exception_state = (states, exception, target_states) ->
+        console.log 'Exception_state', states, exception, target_states
         expect(target_states).to.eql ['A']
         expect(exception).to.be.instanceOf Error
         done()
       @foo.on 'A_enter', bluebird.coroutine ->
         yield bluebird.delay 0
-        throw error
+        throw new Error
       @foo.add 'A'

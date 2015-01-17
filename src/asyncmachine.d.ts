@@ -117,22 +117,22 @@ class AsyncMachine extends EventEmitter {
 	public setNext(target: string[], states: any, ...params: any[]): (...params) => void;
 	public setNext(target: any, states: any, ...params: any[]): (...params) => void;
 		
-	public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
-	public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
-	public pipeForward(state: AsyncMachine, machine?: string);
-	public pipeForward(state: any, machine?: any, target_state?: any);
-	public pipeInvert(state: string, machine?: AsyncMachine, target_state?: string);
-	public pipeInvert(state: string[], machine?: AsyncMachine, target_state?: string);
-	public pipeInvert(state: AsyncMachine, machine?: string);
-	public pipeInvert(state: any, machine?: any, target_state?: any);
+	public pipe(state: string, machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
+	public pipe(state: string[], machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
+	public pipe(state: AsyncMachine, machine?: string, target_state?: boolean);
+	public pipe(state: any, machine?: any, target_state?: any, local_queue?: any);
+	public pipeInvert(state: string, machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
+	public pipeInvert(state: string[], machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
+	public pipeInvert(state: AsyncMachine, machine?: string, target_state?: boolean);
+	public pipeInvert(state: any, machine?: any, target_state?: any, local_queue?: any);
 	public pipeOff(): void;
 	public duringTransition(): boolean;
 	public debug(prefix?: string, level?: number): void;
 	public debugOff(): void;
 	public log(msg: string, level?: number): void;
 
-	on(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;
-	once(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;
+	public on(event: string, listener: Function, context?: Object): AsyncMachine;
+	public once(event: string, listener: Function, context?: Object): AsyncMachine;
 
 	public when(states: string, abort?: Function): Promise<any>;
 	public when(states: string[], abort?: Function): Promise<any>;
@@ -145,6 +145,9 @@ class AsyncMachine extends EventEmitter {
 	public getAbortEnter(state: string, abort?: () => boolean): () => boolean;
 
 	// ----- PRIVATES -----
+
+	private handlePromise(ret: Promise<any>, target_states?: string[]): Promise<any>;
+	private handlePromise(ret: any, target_states?: string[]): any;
 
 	private getInstance(): any;
 
@@ -178,4 +181,5 @@ class AsyncMachine extends EventEmitter {
 		params?: string[]);
 	private orderStates_(states: string[]): void;
 	private bindToStates(states: string[], listener: Function, abort?: Function, once?: boolean);
+	private getAbortFunction(state: string, tick: number, abort?: () => boolean): () => boolean;
 }

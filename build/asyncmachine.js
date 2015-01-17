@@ -115,9 +115,9 @@ var AsyncMachine = (function (_super) {
     };
     AsyncMachine.prototype.is = function (state, tick) {
         if (!state) {
-            return this.states_active;
+            return [].concat(this.states_active);
         }
-        var active = !!~this.states_active.indexOf(state);
+        var active = Boolean(~this.states_active.indexOf(state));
         if (!active) {
             return false;
         }
@@ -183,7 +183,9 @@ var AsyncMachine = (function (_super) {
                 return target.add(states, params);
             }
         }
-        params = [states].concat(params);
+        if (states) {
+            params = [states].concat(params);
+        }
         states = target;
         return this.processStateChange_(exports.STATE_CHANGE.SET, states, params);
     };
@@ -224,7 +226,9 @@ var AsyncMachine = (function (_super) {
                 return target.add(states, params);
             }
         }
-        params = [states].concat(params);
+        if (states) {
+            params = [states].concat(params);
+        }
         states = target;
         return this.processStateChange_(exports.STATE_CHANGE.ADD, states, params);
     };
@@ -265,7 +269,9 @@ var AsyncMachine = (function (_super) {
                 return target.drop(states, params);
             }
         }
-        params = [states].concat(params);
+        if (states) {
+            params = [states].concat(params);
+        }
         states = target;
         return this.processStateChange_(exports.STATE_CHANGE.DROP, states, params);
     };
@@ -291,28 +297,68 @@ var AsyncMachine = (function (_super) {
         var fn = this.drop.bind(this);
         return this.setImmediate(fn, target, states, params);
     };
-    AsyncMachine.prototype.pipeForward = function (state, machine, target_state) {
+    AsyncMachine.prototype.pipe = function (state, machine, target_state, local_queue) {
         var _this = this;
         if (state instanceof AsyncMachine) {
-            return this.pipeForward(this.states_all, state, machine);
+            if (target_state == null) {
+                target_state = true;
+            }
+            return this.pipe(this.states_all, state, machine, target_state);
+        }
+        if (local_queue == null) {
+            local_queue = true;
         }
         this.log("Piping state " + state, 3);
         return [].concat(state).forEach(function (state) {
             var new_state = target_state || state;
-            _this.on(state + "_state", function () { return _this.add(machine, new_state); });
-            return _this.on(state + "_end", function () { return _this.drop(machine, new_state); });
+            _this.on(state + "_state", function () {
+                if (local_queue) {
+                    return _this.add(machine, new_state);
+                }
+                else {
+                    return machine.add(new_state);
+                }
+            });
+            return _this.on(state + "_end", function () {
+                if (local_queue) {
+                    return _this.drop(machine, new_state);
+                }
+                else {
+                    return machine.drop(new_state);
+                }
+            });
         });
     };
-    AsyncMachine.prototype.pipeInvert = function (state, machine, target_state) {
+    AsyncMachine.prototype.pipeInvert = function (state, machine, target_state, local_queue) {
         var _this = this;
         if (state instanceof AsyncMachine) {
-            return this.pipeInvert(this.states_all, state, machine);
+            if (target_state == null) {
+                target_state = true;
+            }
+            return this.pipeInvert(this.states_all, state, machine, target_state);
+        }
+        if (local_queue == null) {
+            local_queue = true;
         }
         this.log("Piping inverted state " + state, 3);
         return [].concat(state).forEach(function (state) {
             var new_state = target_state || state;
-            _this.on(state + "_state", function () { return _this.drop(machine, new_state); });
-            return _this.on(state + "_end", function () { return _this.add(machine, new_state); });
+            _this.on(state + "_state", function () {
+                if (local_queue) {
+                    return _this.drop(machine, new_state);
+                }
+                else {
+                    return machine.drop(new_state);
+                }
+            });
+            return _this.on(state + "_end", function () {
+                if (local_queue) {
+                    return _this.add(machine, new_state);
+                }
+                else {
+                    return machine.add(new_state);
+                }
+            });
         });
     };
     AsyncMachine.prototype.pipeOff = function () {
@@ -332,36 +378,13 @@ var AsyncMachine = (function (_super) {
         return this.lock;
     };
     AsyncMachine.prototype.getAbort = function (state, abort) {
-        var _this = this;
         var tick = this.clock(state);
-        return function () {
-            if (abort && !(typeof abort === "function" ? abort() : void 0)) {
-                var should_abort = true;
-            }
-            if (should_abort == null) {
-                should_abort = !_this.is(state, tick);
-            }
-            if (should_abort) {
-                _this.log("Aborted " + state + " listener, while in states (" + (_this.is().join(", ")) + ")", 1);
-            }
-            return should_abort;
-        };
+        return this.getAbortFunction(state, tick, abort);
     };
     AsyncMachine.prototype.getAbortEnter = function (state, abort) {
-        var _this = this;
         var tick = this.clock(state);
-        return function () {
-            if (abort && !(typeof abort === "function" ? abort() : void 0)) {
-                var should_abort = true;
-            }
-            if (should_abort == null) {
-                should_abort = !_this.is(state, tick + 1);
-            }
-            if (should_abort) {
-                _this.log(("Aborted " + state + "_enter listener, while in states ") + ("(" + (_this.is().join(", ")) + ")"), 1);
-            }
-            return should_abort;
-        };
+        tick++;
+        return this.getAbortFunction(state, tick, abort);
     };
     AsyncMachine.prototype.when = function (states, abort) {
         var _this = this;
@@ -399,26 +422,28 @@ var AsyncMachine = (function (_super) {
     };
     AsyncMachine.prototype.on = function (event, listener, context) {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
-            listener.call(context);
+            this.handlePromise(listener.call(context));
         }
-        return this.handlePromise(_super.prototype.on.call(this, event, listener, context));
+        _super.prototype.on.call(this, event, listener, context);
+        return this;
     };
     AsyncMachine.prototype.once = function (event, listener, context) {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
-            var ret = listener.call(context);
+            this.handlePromise(listener.call(context));
         }
         else {
-            ret = _super.prototype.once.call(this, event, listener, context);
+            _super.prototype.once.call(this, event, listener, context);
         }
-        return this.handlePromise(ret);
+        return this;
     };
     AsyncMachine.prototype.callListener = function (listener, context, params) {
         var ret = listener.apply(context, params);
         return this.handlePromise(ret, params[0]);
     };
     AsyncMachine.prototype.handlePromise = function (ret, target_states) {
-        if (ret && ret.then && ret["catch"]) {
-            ret["catch"](this.addLater("Exception", target_states));
+        var _this = this;
+        if ((ret != null ? ret.then : void 0) && (ret != null ? ret["catch"] : void 0)) {
+            ret["catch"](function (error) { return _this.add("Exception", error, target_states); });
         }
         return ret;
     };
@@ -524,7 +549,7 @@ var AsyncMachine = (function (_super) {
         if (ret === false) {
             this.emit("cancelled");
         }
-        else if (this.hasStateChanged(states_before)) {
+        else if ((this.hasStateChanged(states_before)) && !autostate) {
             this.processAutoStates(skip_queue);
         }
         if (!(skip_queue || this.duringTransition())) {
@@ -619,7 +644,7 @@ var AsyncMachine = (function (_super) {
                     _this.log("Self transition for " + state + " cancelled", 2);
                     return true;
                 }
-                ret = _this.emit.apply(_this, [name].concat(params));
+                ret = _this.emit.apply(_this, [name].concat(transition_params));
                 if (ret !== false) {
                     _this.transition_events.push([name, transition_params]);
                 }
@@ -887,7 +912,7 @@ var AsyncMachine = (function (_super) {
             if (is_exit || is_enter) {
                 this.transition_events.push([method, transition_params]);
             }
-            ret = this.emit(method, transition_params);
+            ret = this.emit.apply(this, [method].concat(transition_params));
             if (ret === false) {
                 this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the event " + method), 2);
             }
@@ -938,6 +963,23 @@ var AsyncMachine = (function (_super) {
             _this.on(state + "_state", enter);
             return _this.on(state + "_end", exit);
         });
+    };
+    AsyncMachine.prototype.getAbortFunction = function (state, tick, abort) {
+        var _this = this;
+        return function () {
+            if (typeof abort === "function" ? abort() : void 0) {
+                return true;
+            }
+            else if (!_this.is(state)) {
+                _this.log(("Aborted " + state + " listener as the state is not set. ") + ("Current states:\n    (" + (_this.is().join(", ")) + ")"), 1);
+                return true;
+            }
+            else if (!_this.is(state, tick)) {
+                _this.log(("Aborted " + state + " listener as the tick changed. Current states:") + ("\n    (" + (_this.is().join(", ")) + ")"), 1);
+                return true;
+            }
+            return false;
+        };
     };
     return AsyncMachine;
 })(eventemitter.EventEmitter);

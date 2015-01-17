@@ -449,7 +449,7 @@ describe "asyncmachine", ->
 				expect( @machine.is() ).to.eql [ 'A' ]
 
 			it 'should explain the reason in the log', ->
-				msg = "Can't set following states C(-D)"
+				msg = "Can't set the following states C(-D)"
 				expect( @log ).to.contain msg
 
 	describe 'when state is changed', ->
@@ -776,14 +776,14 @@ describe "asyncmachine", ->
 
 			it 'should forward a specific state', ->
 				emitter = new EventMachine 'A'
-				@machine.pipeForward 'B', emitter
+				@machine.pipe 'B', emitter
 				@machine.set 'B'
 				# TODO order inverted?
 				expect( emitter.is() ).to.eql [ 'B', 'A' ]
 
 			it 'should forward a specific state as a different one', ->
 				emitter = new EventMachine 'A'
-				@machine.pipeForward 'B', emitter, 'C'
+				@machine.pipe 'B', emitter, 'C'
 				@machine.set 'B'
 				expect( emitter.is() ).to.eql [ 'C', 'A' ]
 
@@ -796,14 +796,14 @@ describe "asyncmachine", ->
 			it 'should forward a whole machine', ->
 				machine2 = new EventMachine [ 'A', 'D' ]
 				expect( machine2.is() ).to.eql [ 'A', 'D' ]
-				@machine.pipeForward machine2
+				@machine.pipe machine2
 				@machine.set [ 'B', 'C' ]
 				expect( machine2.is() ).to.eql [ 'C', 'B', 'D' ]
 
 			it 'can be turned off'
 	# machine2 = new EventMachine [ 'A', 'D' ]
 	# @machine.pipeOff 'B', emitter #, 'BB'
-	# @machine.pipeForward machine2
+	# @machine.pipe machine2
 	# @machine.set [ 'B', 'C' ]
 	# expect( machine2.is() ).to.eql [ 'D', 'B', 'C' ]
 

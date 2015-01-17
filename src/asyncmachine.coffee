@@ -97,9 +97,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 	# Returns active states or if passed a state, returns if its set.
 	# Additionally can assert on a certain tick of a given state.
 	is: (state, tick) ->
-		# TODO clone the array
-		return @states_active if not state
-		active = !!~@states_active.indexOf state
+		return [].concat @states_active if not state
+		active = Boolean ~@states_active.indexOf state
 		return no if not active
 		if tick is undefined then yes else (@clock state) is tick
 
@@ -145,7 +144,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 			else
 				return target.add states, params
 
-		params = [states].concat params
+		if states
+			params = [states].concat params
 		states = target
 
 		@processStateChange_ STATE_CHANGE.SET, states, params
@@ -178,8 +178,10 @@ class AsyncMachine extends eventemitter.EventEmitter
 			else
 				return target.add states, params
 
-		params = [states].concat params
+		if states
+			params = [states].concat params
 		states = target
+
 		@processStateChange_ STATE_CHANGE.ADD, states, params
 
 
@@ -210,7 +212,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 			else
 				return target.drop states, params
 
-		params = [states].concat params
+		if states
+			params = [states].concat params
 		states = target
 
 		@processStateChange_ STATE_CHANGE.DROP, states, params
@@ -232,10 +235,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@setImmediate fn, target, states, params
 
 
-	pipeForward: (state, machine, target_state) ->
+	pipe: (state, machine, target_state, local_queue) ->
 		# switch params order
 		if state instanceof AsyncMachine
-			return @pipeForward @states_all, state, machine
+			target_state ?= yes
+			return @pipe @states_all, state, machine, target_state
+
+		local_queue ?= yes
 
 		@log "Piping state #{state}", 3
 
@@ -244,16 +250,25 @@ class AsyncMachine extends eventemitter.EventEmitter
 			new_state = target_state or state
 
 			@on "#{state}_state", =>
-				@add machine, new_state
+				if local_queue
+					@add machine, new_state
+				else
+					machine.add new_state
 
 			@on "#{state}_end", =>
-				@drop machine, new_state
+				if local_queue
+					@drop machine, new_state
+				else
+					machine.drop new_state
 
 
-	pipeInvert: (state, machine, target_state) ->
+	pipeInvert: (state, machine, target_state, local_queue) ->
 		# switch params order
 		if state instanceof AsyncMachine
-			return @pipeInvert @states_all, state, machine
+			target_state ?= yes
+			return @pipeInvert @states_all, state, machine, target_state
+
+		local_queue ?= yes
 
 		@log "Piping inverted state #{state}", 3
 
@@ -262,10 +277,16 @@ class AsyncMachine extends eventemitter.EventEmitter
 			new_state = target_state or state
 
 			@on "#{state}_state", =>
-				@drop machine, new_state
+				if local_queue
+					@drop machine, new_state
+				else
+					machine.drop new_state
 
 			@on "#{state}_end", =>
-				@add machine, new_state
+				if local_queue
+					@add machine, new_state
+				else
+					machine.add new_state
 
 
 	pipeOff: -> throw new Error "not implemented yet"
@@ -293,26 +314,16 @@ class AsyncMachine extends eventemitter.EventEmitter
 	# TODO support multiple states
 	getAbort: (state, abort) ->
 		tick = @clock state
-		=>
-			should_abort = yes if abort and not abort?()
-			should_abort ?= not @is state, tick
-			if should_abort
-				@log "Aborted #{state} listener, while in states (#{@is().join ', '})", 1
 
-			should_abort
+		@getAbortFunction state, tick, abort
 
 
 	# TODO support multiple states
 	getAbortEnter: (state, abort) ->
 		tick = @clock state
-		=>
-			should_abort = yes if abort and not abort?()
-			should_abort ?= not @is state, tick + 1
-			if should_abort
-				@log "Aborted #{state}_enter listener, while in states " +
-					"(#{@is().join ', '})", 1
+		tick++
 
-			should_abort
+		@getAbortFunction state, tick, abort
 
 
 	# Resolves the returned promise when all passed states are set (in the same time).
@@ -355,9 +366,10 @@ class AsyncMachine extends eventemitter.EventEmitter
 		# is event is a NAME_state event, fire at once if the state is set
 		# TODO last state params
 		if event[-6..-1] is '_state' and @is event[0...-6]
-			listener.call context
+			@handlePromise listener.call context
 
-		@handlePromise super event, listener, context
+		super event, listener, context
+		this
 
 
 	once: (event, listener, context) ->
@@ -365,11 +377,11 @@ class AsyncMachine extends eventemitter.EventEmitter
 		# and dont register the listener
 		# TODO last state params
 		if event[-6..-1] is '_state' and @is event[0...-6]
-			ret = listener.call context
+			@handlePromise listener.call context
 		else
-			ret = super event, listener, context
+			super event, listener, context
 
-		@handlePromise ret
+		this
 
 
 	#//////////////////////////
@@ -385,9 +397,9 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	handlePromise: (ret, target_states) ->
-		if ret and ret.then and ret.catch
-			# TODO add target states
-			ret.catch @addLater 'Exception', target_states
+		if ret?.then and ret?.catch
+			ret.catch (error) =>
+				@add 'Exception', error, target_states
 
 		ret
 
@@ -491,7 +503,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 		if ret is no
 			@emit 'cancelled'
-		else if @hasStateChanged states_before
+		else if (@hasStateChanged states_before) and not autostate
 			# TODO only for local target???
 			@processAutoStates skip_queue
 
@@ -538,8 +550,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 			if state_params.length
 				params.push.apply params, state_params
 			fn.apply null, params.concat callback_params
-		@last_promise = deferred.promise
 
+		@last_promise = deferred.promise
 		deferred
 
 
@@ -577,7 +589,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 					@log "Self transition for #{state} cancelled", 2
 					return yes
 
-				ret = @emit.apply this, [name].concat params
+				ret = @emit.apply this, [name].concat transition_params
 				if ret isnt no
 					# TODO this is hacky
 					@transition_events.push [name, transition_params]
@@ -833,7 +845,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			if is_exit or is_enter
 				# TODO this is hacky
 				@transition_events.push [method, transition_params]
-			ret = @emit method, transition_params
+			ret = @emit.apply this, [method].concat transition_params
 			if ret is no
 				@log "Cancelled transition to #{target_states.join ', '} by " +
 					"the event #{method}", 2
@@ -874,5 +886,23 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@log "Binding to event #{state}", 3
 			@on "#{state}_state", enter
 			@on "#{state}_end", exit
+
+
+	getAbortFunction: (state, tick, abort) ->
+		=>
+			if abort?()
+				return yes
+			else if not @is state
+				@log "Aborted #{state} listener as the state is not set. " +
+					"Current states:\n    (#{@is().join ', '})", 1
+				return yes
+			else if not @is state, tick
+				@log "Aborted #{state} listener as the tick changed. Current states:" +
+					"\n    (#{@is().join ', '})", 1
+				return yes
+
+			return no
+
+
 
 module.exports.AsyncMachine = AsyncMachine

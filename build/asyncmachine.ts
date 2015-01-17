@@ -131,9 +131,9 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     public is(): string[];
     public is(state?: any, tick?: number): any {
         if (!state) {
-            return this.states_active;
+            return [].concat(this.states_active);
         }
-        var active = !!~this.states_active.indexOf(state);
+        var active = Boolean(~this.states_active.indexOf(state));
         if (!active) {
             return false;
         }
@@ -190,7 +190,9 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             }
         }
 
-        params = [states].concat(params);
+        if (states) {
+            params = [states].concat(params);
+        }
         states = target;
 
         return this.processStateChange_(STATE_CHANGE.SET, states, params);
@@ -236,8 +238,11 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             }
         }
 
-        params = [states].concat(params);
+        if (states) {
+            params = [states].concat(params);
+        }
         states = target;
+
         return this.processStateChange_(STATE_CHANGE.ADD, states, params);
     }
 
@@ -281,7 +286,9 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             }
         }
 
-        params = [states].concat(params);
+        if (states) {
+            params = [states].concat(params);
+        }
         states = target;
 
         return this.processStateChange_(STATE_CHANGE.DROP, states, params);
@@ -312,39 +319,77 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         return this.setImmediate(fn, target, states, params);
     }
 
-    public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
-    public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
-    public pipeForward(state: AsyncMachine, machine?: string);
-    public pipeForward(state: any, machine?: any, target_state?: any) {
+    public pipe(state: string, machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
+    public pipe(state: string[], machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
+    public pipe(state: AsyncMachine, machine?: string, target_state?: boolean);
+    public pipe(state: any, machine?: any, target_state?: any, local_queue?: any) {
         if (state instanceof AsyncMachine) {
-            return this.pipeForward(this.states_all, state, machine);
+            if (target_state == null) {
+                target_state = true;
+            }
+            return this.pipe(this.states_all, state, machine, target_state);
+        }
+
+        if (local_queue == null) {
+            local_queue = true;
         }
 
         this.log("Piping state " + state, 3);
         return [].concat(state).forEach((state) => {
             var new_state = target_state || state;
 
-            this.on(state + "_state", () => this.add(machine, new_state));
+            this.on(state + "_state", () => {
+                if (local_queue) {
+                    return this.add(machine, new_state);
+                } else {
+                    return machine.add(new_state);
+                }
+            });
 
-            return this.on(state + "_end", () => this.drop(machine, new_state));
+            return this.on(state + "_end", () => {
+                if (local_queue) {
+                    return this.drop(machine, new_state);
+                } else {
+                    return machine.drop(new_state);
+                }
+            });
         });
     }
 
-    public pipeInvert(state: string, machine?: AsyncMachine, target_state?: string);
-    public pipeInvert(state: string[], machine?: AsyncMachine, target_state?: string);
-    public pipeInvert(state: AsyncMachine, machine?: string);
-    public pipeInvert(state: any, machine?: any, target_state?: any) {
+    public pipeInvert(state: string, machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
+    public pipeInvert(state: string[], machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
+    public pipeInvert(state: AsyncMachine, machine?: string, target_state?: boolean);
+    public pipeInvert(state: any, machine?: any, target_state?: any, local_queue?: any) {
         if (state instanceof AsyncMachine) {
-            return this.pipeInvert(this.states_all, state, machine);
+            if (target_state == null) {
+                target_state = true;
+            }
+            return this.pipeInvert(this.states_all, state, machine, target_state);
+        }
+
+        if (local_queue == null) {
+            local_queue = true;
         }
 
         this.log("Piping inverted state " + state, 3);
         return [].concat(state).forEach((state) => {
             var new_state = target_state || state;
 
-            this.on(state + "_state", () => this.drop(machine, new_state));
+            this.on(state + "_state", () => {
+                if (local_queue) {
+                    return this.drop(machine, new_state);
+                } else {
+                    return machine.drop(new_state);
+                }
+            });
 
-            return this.on(state + "_end", () => this.add(machine, new_state));
+            return this.on(state + "_end", () => {
+                if (local_queue) {
+                    return this.add(machine, new_state);
+                } else {
+                    return machine.add(new_state);
+                }
+            });
         });
     }
 
@@ -370,36 +415,15 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
     public getAbort(state: string, abort?: () => boolean): () => boolean {
         var tick = this.clock(state);
-        return () => {
-            if (abort && !(typeof abort === "function" ? abort() : void 0)) {
-                var should_abort = true;
-            }
-            if (should_abort == null) {
-                should_abort = !this.is(state, tick);
-            }
-            if (should_abort) {
-                this.log("Aborted " + state + " listener, while in states (" + (this.is().join(", ")) + ")", 1);
-            }
 
-            return should_abort;
-        };
+        return this.getAbortFunction(state, tick, abort);
     }
 
     public getAbortEnter(state: string, abort?: () => boolean): () => boolean {
         var tick = this.clock(state);
-        return () => {
-            if (abort && !(typeof abort === "function" ? abort() : void 0)) {
-                var should_abort = true;
-            }
-            if (should_abort == null) {
-                should_abort = !this.is(state, tick + 1);
-            }
-            if (should_abort) {
-                this.log(("Aborted " + state + "_enter listener, while in states ") + ("(" + (this.is().join(", ")) + ")"), 1);
-            }
+        tick++;
 
-            return should_abort;
-        };
+        return this.getAbortFunction(state, tick, abort);
     }
 
     public when(states: string, abort?: Function): Promise<any>;
@@ -441,22 +465,23 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         return console.log(this.debug_prefix + msg);
     }
 
-    on(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter {
+    public on(event: string, listener: Function, context?: Object): AsyncMachine {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
-            listener.call(context);
+            this.handlePromise(listener.call(context));
         }
 
-        return this.handlePromise(super.on(event, listener, context));
+        super.on(event, listener, context);
+        return this;
     }
 
-    once(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter {
+    public once(event: string, listener: Function, context?: Object): AsyncMachine {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
-            var ret = listener.call(context);
+            this.handlePromise(listener.call(context));
         } else {
-            ret = super.once(event, listener, context);
+            super.once(event, listener, context);
         }
 
-        return this.handlePromise(ret);
+        return this;
     }
 
     callListener(listener, context, params) {
@@ -464,9 +489,10 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         return this.handlePromise(ret, params[0]);
     }
 
-    handlePromise(ret, target_states) {
-        if (ret && ret.then && ret["catch"]) {
-            ret["catch"](this.addLater("Exception", target_states));
+    private handlePromise(ret: Promise<any>, target_states?: string[]): Promise<any>;
+    private handlePromise(ret: any, target_states?: string[]): any {
+        if ((ret != null ? ret.then : void 0) && (ret != null ? ret["catch"] : void 0)) {
+            ret["catch"]((error) => this.add("Exception", error, target_states));
         }
 
         return ret;
@@ -577,7 +603,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
         if (ret === false) {
             this.emit("cancelled");
-        } else if (this.hasStateChanged(states_before)) {
+        } else if ((this.hasStateChanged(states_before)) && !autostate) {
             this.processAutoStates(skip_queue);
         }
 
@@ -625,8 +651,8 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             }
             return fn.apply(null, params.concat(callback_params));
         });
-        this.last_promise = deferred.promise;
 
+        this.last_promise = deferred.promise;
         return deferred;
     }
 
@@ -668,7 +694,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                     return true;
                 }
 
-                ret = this.emit.apply(this, [name].concat(params));
+                ret = this.emit.apply(this, [name].concat(transition_params));
                 if (ret !== false) {
                     this.transition_events.push([name, transition_params]);
                 }
@@ -966,7 +992,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             if (is_exit || is_enter) {
                 this.transition_events.push([method, transition_params]);
             }
-            ret = this.emit(method, transition_params);
+            ret = this.emit.apply(this, [method].concat(transition_params));
             if (ret === false) {
                 this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the event " + method), 2);
             }
@@ -1016,6 +1042,22 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             this.on(state + "_state", enter);
             return this.on(state + "_end", exit);
         });
+    }
+
+    private getAbortFunction(state: string, tick: number, abort?: () => boolean): () => boolean {
+        return () => {
+            if (typeof abort === "function" ? abort() : void 0) {
+                return true;
+            } else if (!this.is(state)) {
+                this.log(("Aborted " + state + " listener as the state is not set. ") + ("Current states:\n    (" + (this.is().join(", ")) + ")"), 1);
+                return true;
+            } else if (!this.is(state, tick)) {
+                this.log(("Aborted " + state + " listener as the tick changed. Current states:") + ("\n    (" + (this.is().join(", ")) + ")"), 1);
+                return true;
+            }
+
+            return false;
+        };
     }
 }
 

@@ -122,8 +122,10 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
     debug(prefix?: any, level?: any): any;
     debugOff(): void;
     log(msg: string, level?: number): void;
-    on(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;
-    once(event: string, listener: Function, context?: Object): EventEmitter3Abortable.EventEmitter;
+    on(event: string, listener: Function, context?: Object): AsyncMachine;
+    once(event: string, listener: Function, context?: Object): AsyncMachine;
+    callListener(listener: any, context: any, params: any): Promise<any>;
+    private handlePromise(ret, target_states?);
     private getInstance();
     setImmediate(fn: any, ...params: any[]): any;
     private processAutoStates(skip_queue);
@@ -152,6 +154,7 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
     private transitionExec_(method, target_states, params?);
     private orderStates_(states);
     private bindToStates(states, listener, abort?, once?);
+    private getAbortFunction(state, tick, abort?);
 }
 export interface IState {
     depends?: string[];

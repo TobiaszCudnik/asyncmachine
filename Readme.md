@@ -314,9 +314,9 @@ class AsyncMachine {
  	public setNext(target: string, states: any, ...params: any[]): (...params) => void;
  	public setNext(target: string[], states: any, ...params: any[]): (...params) => void;
  
-	public pipeForward(state: string, machine?: AsyncMachine, target_state?: string);
-	public pipeForward(state: string[], machine?: AsyncMachine, target_state?: string);
-	public pipeForward(state: AsyncMachine, machine?: string);
+	public pipe(state: string, machine?: AsyncMachine, target_state?: string);
+	public pipe(state: string[], machine?: AsyncMachine, target_state?: string);
+	public pipe(state: AsyncMachine, machine?: string);
 	public pipeInvert(state: string, machine?: AsyncMachine, target_state?: string);
 	public pipeInvert(state: string[], machine?: AsyncMachine, target_state?: string);
 	public pipeInvert(state: AsyncMachine, machine?: string);
