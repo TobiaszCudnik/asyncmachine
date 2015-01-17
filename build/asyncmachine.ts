@@ -70,6 +70,19 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
     Exception = {};
 
+    static factory(states) {
+        if (states == null) {
+            states = [];
+        }
+        var instance = new AsyncMachine;
+        states.forEach((state) => {
+            instance[state] = {};
+            return instance.register(state);
+        });
+
+        return instance;
+    }
+
     constructor(target?: AsyncMachine) {
         super();
         this.queue = [];
@@ -323,74 +336,39 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     public pipe(state: string[], machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
     public pipe(state: AsyncMachine, machine?: string, target_state?: boolean);
     public pipe(state: any, machine?: any, target_state?: any, local_queue?: any) {
-        if (state instanceof AsyncMachine) {
-            if (target_state == null) {
-                target_state = true;
-            }
-            return this.pipe(this.states_all, state, machine, target_state);
-        }
+        var bindings = {
+            state: "add",
+            end: "drop"
+        };
 
-        if (local_queue == null) {
-            local_queue = true;
-        }
-
-        this.log("Piping state " + state, 3);
-        return [].concat(state).forEach((state) => {
-            var new_state = target_state || state;
-
-            this.on(state + "_state", () => {
-                if (local_queue) {
-                    return this.add(machine, new_state);
-                } else {
-                    return machine.add(new_state);
-                }
-            });
-
-            return this.on(state + "_end", () => {
-                if (local_queue) {
-                    return this.drop(machine, new_state);
-                } else {
-                    return machine.drop(new_state);
-                }
-            });
-        });
+        return this.pipeBind(state, machine, target_state, local_queue, bindings);
     }
 
-    public pipeInvert(state: string, machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
-    public pipeInvert(state: string[], machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
-    public pipeInvert(state: AsyncMachine, machine?: string, target_state?: boolean);
-    public pipeInvert(state: any, machine?: any, target_state?: any, local_queue?: any) {
-        if (state instanceof AsyncMachine) {
-            if (target_state == null) {
-                target_state = true;
-            }
-            return this.pipeInvert(this.states_all, state, machine, target_state);
-        }
+    pipeInverted(state, machine, target_state, local_queue) {
+        var bindings = {
+            state: "drop",
+            end: "add"
+        };
 
-        if (local_queue == null) {
-            local_queue = true;
-        }
+        return this.pipeBind(state, machine, target_state, local_queue, bindings);
+    }
 
-        this.log("Piping inverted state " + state, 3);
-        return [].concat(state).forEach((state) => {
-            var new_state = target_state || state;
+    pipeNegotiation(state, machine, target_state, local_queue) {
+        var bindings = {
+            enter: "add",
+            exit: "drop"
+        };
 
-            this.on(state + "_state", () => {
-                if (local_queue) {
-                    return this.drop(machine, new_state);
-                } else {
-                    return machine.drop(new_state);
-                }
-            });
+        return this.pipeBind(state, machine, target_state, local_queue, bindings);
+    }
 
-            return this.on(state + "_end", () => {
-                if (local_queue) {
-                    return this.add(machine, new_state);
-                } else {
-                    return machine.add(new_state);
-                }
-            });
-        });
+    pipeNegotiationInverted(state, machine, target_state, local_queue) {
+        var bindings = {
+            enter: "drop",
+            exit: "add"
+        };
+
+        return this.pipeBind(state, machine, target_state, local_queue, bindings);
     }
 
     public pipeOff(): void {
@@ -482,6 +460,35 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         }
 
         return this;
+    }
+
+    pipeBind(state, machine, target_state, local_queue, bindings) {
+        if (state instanceof AsyncMachine) {
+            if (target_state == null) {
+                target_state = true;
+            }
+            return this.pipeBind(this.states_all, state, machine, target_state, bindings);
+        }
+
+        if (local_queue == null) {
+            local_queue = true;
+        }
+
+        this.log("Piping state " + state, 3);
+        return [].concat(state).forEach((state) => {
+            var new_state = target_state || state;
+
+            return Object.keys(bindings).forEach((event_type) => {
+                var method_name = bindings[event_type];
+                return this.on(state + "_" + event_type, () => {
+                    if (local_queue) {
+                        return this[method_name](machine, new_state);
+                    } else {
+                        return machine[method_name](new_state);
+                    }
+                });
+            });
+        });
     }
 
     callListener(listener, context, params) {

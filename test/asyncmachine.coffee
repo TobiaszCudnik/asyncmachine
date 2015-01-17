@@ -690,7 +690,7 @@ describe "asyncmachine", ->
 				@machine.on 'C_exit', @C_exit
 				@machine.on 'D_exit', ->
 					no
-				# lucid emitter event
+				# emitter event
 				@machine.on 'change', @change
 				@machine.on 'cancelled', @cancelTransition
 				@machine.set [ 'A', 'B' ]
@@ -747,7 +747,7 @@ describe "asyncmachine", ->
 			it 'should tick when setting a new state', ->
 				@machine.set 'A'
 				(expect @machine.clock 'A').to.be.eql 1
-				
+
 			it 'should tick when setting many new states', ->
 				@machine.set ['A', 'B']
 				(expect @machine.clock 'A').to.be.eql 1
@@ -778,7 +778,6 @@ describe "asyncmachine", ->
 				emitter = new EventMachine 'A'
 				@machine.pipe 'B', emitter
 				@machine.set 'B'
-				# TODO order inverted?
 				expect( emitter.is() ).to.eql [ 'B', 'A' ]
 
 			it 'should forward a specific state as a different one', ->
@@ -789,7 +788,7 @@ describe "asyncmachine", ->
 
 			it 'should invert a specific state as a different one', ->
 				emitter = new EventMachine 'A'
-				@machine.pipeInvert 'A', emitter, 'C'
+				@machine.pipeInverted 'A', emitter, 'C'
 				@machine.set 'B'
 				expect( emitter.is() ).to.eql [ 'C', 'A' ]
 

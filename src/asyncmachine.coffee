@@ -48,6 +48,16 @@ class AsyncMachine extends eventemitter.EventEmitter
 	Exception: {}
 
 
+	@factory: (states) ->
+		states ?= []
+		instance = new AsyncMachine
+		for state in states
+			instance[state] = {}
+			instance.register state
+
+		instance
+
+
 	constructor: (target) ->
 		super()
 		@queue = []
@@ -236,57 +246,35 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	pipe: (state, machine, target_state, local_queue) ->
-		# switch params order
-		if state instanceof AsyncMachine
-			target_state ?= yes
-			return @pipe @states_all, state, machine, target_state
+		bindings =
+			state: 'add'
+			end: 'drop'
 
-		local_queue ?= yes
-
-		@log "Piping state #{state}", 3
-
-		# cast to an array
-		[].concat(state).forEach (state) =>
-			new_state = target_state or state
-
-			@on "#{state}_state", =>
-				if local_queue
-					@add machine, new_state
-				else
-					machine.add new_state
-
-			@on "#{state}_end", =>
-				if local_queue
-					@drop machine, new_state
-				else
-					machine.drop new_state
+		@pipeBind state, machine, target_state, local_queue, bindings
 
 
-	pipeInvert: (state, machine, target_state, local_queue) ->
-		# switch params order
-		if state instanceof AsyncMachine
-			target_state ?= yes
-			return @pipeInvert @states_all, state, machine, target_state
+	pipeInverted: (state, machine, target_state, local_queue) ->
+		bindings =
+			state: 'drop'
+			end: 'add'
 
-		local_queue ?= yes
+		@pipeBind state, machine, target_state, local_queue, bindings
 
-		@log "Piping inverted state #{state}", 3
 
-		# cast to an array
-		[].concat(state).forEach (state) =>
-			new_state = target_state or state
+	pipeNegotiation: (state, machine, target_state, local_queue) ->
+		bindings =
+			enter: 'add'
+			exit: 'drop'
 
-			@on "#{state}_state", =>
-				if local_queue
-					@drop machine, new_state
-				else
-					machine.drop new_state
+		@pipeBind state, machine, target_state, local_queue, bindings
 
-			@on "#{state}_end", =>
-				if local_queue
-					@add machine, new_state
-				else
-					machine.add new_state
+
+	pipeNegotiationInverted: (state, machine, target_state, local_queue) ->
+		bindings =
+			enter: 'drop'
+			exit: 'add'
+
+		@pipeBind state, machine, target_state, local_queue, bindings
 
 
 	pipeOff: -> throw new Error "not implemented yet"
@@ -387,6 +375,30 @@ class AsyncMachine extends eventemitter.EventEmitter
 	#//////////////////////////
 	# PRIVATES
 	#//////////////////////////
+
+
+	pipeBind: (state, machine, target_state, local_queue, bindings) ->
+		# switch params order
+		if state instanceof AsyncMachine
+			target_state ?= yes
+			return @pipeBind @states_all, state, machine, target_state, bindings
+
+		local_queue ?= yes
+
+		@log "Piping state #{state}", 3
+
+		# cast to an array
+		[].concat(state).forEach (state) =>
+			new_state = target_state or state
+
+			Object.keys(bindings).forEach (event_type) =>
+				method_name = bindings[event_type]
+				# TODO support self transitions?
+				@on "#{state}_#{event_type}", =>
+					if local_queue
+						@[method_name] machine, new_state
+					else
+						machine[method_name] new_state
 
 
 	callListener: (listener, context, params) ->
