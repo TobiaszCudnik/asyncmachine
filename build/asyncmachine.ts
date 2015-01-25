@@ -1188,6 +1188,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         });
 
         this.last_promise = deferred.promise;
+
         return deferred;
     }
 

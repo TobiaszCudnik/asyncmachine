@@ -1029,10 +1029,9 @@ class AsyncMachine extends eventemitter.EventEmitter
 				@add 'Exception', err, transition_states, async_states
 
 		@last_promise = deferred.promise
+
 		deferred
 
-
-	# TODO push states to the exception
 	createCallback: (deferred) ->
 		(err = null, params...) =>
 			if err

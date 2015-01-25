@@ -48,6 +48,7 @@ test-debug:
 		--debug-brk \
 		--compilers coffee:coffee-script \
 		--reporter spec \
+		--grep "$(GREP)" \
 		test/*.coffee
 
 test-grep-debug:
@@ -56,7 +57,7 @@ test-grep-debug:
 		--debug-brk \
 		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
-		--grep "$(GREP)"
+		--grep "$(GREP)" \
 		test/*.coffee
 
 docs:
@@ -65,5 +66,14 @@ docs:
 		--module commonjs \
 		--name AsyncMachine \
 		build/asyncmachine.ts
+
+spec:
+	echo "<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><pre>" > docs/spec.html
+	./node_modules/mocha/bin/mocha \
+		--harmony \
+		--compilers mocha --compilers coffee:coffee-script/register \
+		--reporter spec \
+		test/*.coffee >> docs/spec.html
+	echo "</pre></body></html>" >> docs/spec.html
 	
 .PHONY: build test docs

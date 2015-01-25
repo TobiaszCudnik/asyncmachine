@@ -8,6 +8,9 @@ chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
 promise = require 'es6-promise'
+sinonChai = require("sinon-chai");
+
+chai.use sinonChai
 
 class FooMachine extends asyncmachine.AsyncMachine
 	A: {}
@@ -641,15 +644,14 @@ describe "asyncmachine", ->
 				@callback null, 'foo', 2
 
 			describe 'and then cancelled', ->
-				beforeEach ->
-					# call with an error
-					@callback yes
 
 				it 'should not execute the change', (done) ->
+					@machine.Exception_state = ->
 					@promise.catch =>
-						expect( @machine.any_D.called ).not.to.be.ok
-						expect( @machine.D_enter.called ).not.to.be.ok
-						do done
+						expect(@machine.any_D).not.have.been.called
+						expect(@machine.D_enter).not.have.been.called
+						done()
+					@callback new Error
 
 		describe 'and active state is also the target one', ->
 			it 'should trigger self transition at the very beginning', ->

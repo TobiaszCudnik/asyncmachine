@@ -18,7 +18,11 @@ describe "Exceptions", ->
   it 'should be thrown on the next tick', ->
     setImmediate = sinon.stub @foo, 'setImmediate'
     @foo.A_enter = -> throw new Error
+    log = sinon.stub console, 'log'
+    dir = sinon.stub console, 'dir'
     @foo.add 'A'
+    log.restore()
+    dir.restore()
     expect(setImmediate.calledOnce).to.be.ok
     expect(setImmediate.firstCall.args[0]).to.throw Error
 

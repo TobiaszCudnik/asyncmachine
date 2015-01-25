@@ -26,6 +26,7 @@
     "compiled-coffee": "TobiaszCudnik/compiled-coffee",
     "mocha": "latest",
     "sinon": "latest",
+    "sinon-chai": "^2.6.0",
     "typedoc": "^0.1.3"
   },
   "main": "lib/asyncmachine.js"
