@@ -1,13 +1,18 @@
 {
   "name": "asyncmachine",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Swiss army knife for complex async systems",
-  "keywords": ["async", "statemachine", "eventemitter", "states"],
+  "keywords": [
+    "async",
+    "statemachine",
+    "eventemitter",
+    "states"
+  ],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
-  "url" : "https://github.com/TobiaszCudnik/asyncmachine",
-  "repository" : {
-    "type" : "git",
-    "url" : "http://github.com/TobiaszCudnik/asyncmachine.git"
+  "url": "https://github.com/TobiaszCudnik/asyncmachine",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/TobiaszCudnik/asyncmachine.git"
   },
   "dependencies": {
     "eventemitter3-abortable": "latest",
@@ -15,12 +20,13 @@
     "es6-promise": "latest"
   },
   "devDependencies": {
-    "compiled-coffee": "TobiaszCudnik/compiled-coffee",
-    "chai": "latest",
-    "sinon": "latest",
-    "mocha": "latest",
     "bluebird": "latest",
-    "coffee-script": "jashkenas/coffeescript"
+    "chai": "latest",
+    "coffee-script": "jashkenas/coffeescript",
+    "compiled-coffee": "TobiaszCudnik/compiled-coffee",
+    "mocha": "latest",
+    "sinon": "latest",
+    "typedoc": "^0.1.3"
   },
   "main": "lib/asyncmachine.js"
 }

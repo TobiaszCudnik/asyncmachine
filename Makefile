@@ -29,12 +29,14 @@ setup:
 test:
 	#rm test/build/*/**
 	./node_modules/mocha/bin/mocha \
+		--harmony \
 		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
 		test/*.coffee
 
 test-grep:
 	./node_modules/mocha/bin/mocha \
+		--harmony \
 		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)"
@@ -42,6 +44,7 @@ test-grep:
 
 test-debug:
 	./node_modules/mocha/bin/mocha \
+		--harmony \
 		--debug-brk \
 		--compilers coffee:coffee-script \
 		--reporter spec \
@@ -49,10 +52,34 @@ test-debug:
 
 test-grep-debug:
 	./node_modules/mocha/bin/mocha \
+		--harmony \
 		--debug-brk \
 		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)"
 		test/*.coffee
+
+docs:
+	./node_modules/.bin/typedoc \
+		--out docs/ \
+		--theme minimal \
+		--module commonjs \
+		--name AsyncMachine \
+		build/asyncmachine.ts
+
+docs-v2:
+	./node_modules/typedoc-v2/bin/typedoc \
+		--out docs/ \
+		--theme minimal \
+		--module commonjs \
+		--name AsyncMachine \
+		build/asyncmachine.ts
+
+docs-v2-full:
+	./node_modules/typedoc-v2/bin/typedoc \
+		--out docs-full/ \
+		--module commonjs \
+		--name AsyncMachine \
+		build/asyncmachine.ts
 	
-.PHONY: build test
+.PHONY: build test docs

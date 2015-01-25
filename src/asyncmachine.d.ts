@@ -14,9 +14,8 @@ export interface IState {
 	auto?: boolean;
 }
 
-export interface ITransition {
-	call(states?: string[], state_params?: any[], callback_params?: any[]): boolean;
-	apply(context, args): any;
+export interface ITransitionHandler {
+	(states: string[], ...params: any[]): boolean;
 }
 
 class Deferred {
@@ -26,17 +25,22 @@ class Deferred {
 }
 
 class AsyncMachine extends EventEmitter {
+	public last_promise: Promise<any>;
 	private debug_: boolean;
 	private states_all: string[];
 	private states_active: string[];
-	public last_promise: Promise<any>;
+	private debug_prefix: string;
+	private debug_level: number;
+	private internal_fields: string[];
+	private target: AsyncMachine;
+	private transition_events: any[];
 	// TODO typeme
 	private queue: Array<Array<any>>;
 	private lock: boolean;
 	private clock_: { [state: string]: number };
 	// TODO merge with the TS source
-	constructor(target?: AsyncMachine);
-	public Exception_state(states: string[], err: Error, exception_states?: string[]): boolean;
+	constructor(target?: AsyncMachine, register_all);
+	public Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void;
 	public register(...states: string[]);
 	public get(state: string): IState;
 	public state(name: string): boolean;
@@ -46,13 +50,13 @@ class AsyncMachine extends EventEmitter {
 	public is(state: string): boolean;
 	public is(state: string[]): boolean;
 	public is(state: string, tick?: number): boolean;
-	public is(state: string[], tick?: number): boolean;
 	public is(): string[];
-	public is(state?: any, tick?: number): any;
-	public any(...names: string[]): boolean;
-	public any(...names: string[][]): boolean;
-	public any(...names: any[]): boolean;
-	public every(...names: string[]): boolean;
+	public is(state?: any, tick?: any): any;
+	public any(...states: string[]): boolean;
+	public any(...states: string[][]): boolean;
+	public any(...states: any[]): boolean;
+	public every(...states: string[]): boolean;
+	public hasStateChanged(states_before: string[]): boolean;
 		
 	public add(target: AsyncMachine, states: string[], ...params: any[]): boolean;
 	public add(target: AsyncMachine, states: string, ...params: any[]): boolean;
@@ -144,10 +148,17 @@ class AsyncMachine extends EventEmitter {
 	public getAbort(state: string, abort?: () => boolean): () => boolean;
 	public getAbortEnter(state: string, abort?: () => boolean): () => boolean;
 
+	public futureQueue(): Array<Array<any>>;
+
+	public catchPromise(promise: Promise<any>, target_states?: string[]): Promise<any>;
+	public catchPromise(promise: any, target_states?: string[]): any;
+
 	// ----- PRIVATES -----
 
-	private handlePromise(ret: Promise<any>, target_states?: string[]): Promise<any>;
-	private handlePromise(ret: any, target_states?: string[]): any;
+	private callListener(listener, context, params): Promise<any>;
+	private callListener(listener, context, params): any;
+
+	private diffStates(states1: string[], states2: string[]);
 
 	private getInstance(): any;
 

@@ -27,6 +27,9 @@ exports.STATE_CHANGE_LABELS = {
     1: "Add",
     2: "Set"
 };
+/**
+ * Queue enum defining param positions in queue's entries.
+*/
 exports.QUEUE = {
     STATE_CHANGE: 0,
     STATES: 1,
@@ -47,16 +50,53 @@ var Deferred = (function () {
     return Deferred;
 })();
 exports.Deferred = Deferred;
+/**
+ * Base class which you extend with your own one defining the states.
+ * The [[Exception]] state is already provided.
+ *
+ * ```
+ * class FooStates extends AsyncMachine
+ *   Enabled: {}
+ *
+ *   Downloading: blocks: 'Downloaded'
+ *   Downloaded: blocks: 'Downloading'
+ *
+ * class Foo
+ *   constructor: ->
+ *   	this.states = new FooStates this, yes
+ *
+ *   Downloading_state: (states, @url)
+ *   	fetch url, this.states.addByCallack 'Downloaded'
+ *
+ *   Downloaded_state: (states, local_path) ->
+ *   	console.log 'Downloaded #{this.url} to #{local_path}'
+ *
+ * ```
+ * TODO
+ * - exposing currect state during transition (via the #duringTransition() method)
+*/
 var AsyncMachine = (function (_super) {
     __extends(AsyncMachine, _super);
-    function AsyncMachine(target) {
+    /**
+         * Creates a new instance with only state one registered, which is the
+      * Exception.
+         * When extending the class, you should register your states by using either
+         * [[registerAll]] or [[register]].
+         *
+      * @param target Target object for the transitions, useful when composing the
+      * 	states instance.
+      * @param registerAll Automaticaly registers all defined states.
+      * @see [[AsyncMachine]] for the usage example.
+    */
+    function AsyncMachine(target, registerAll) {
+        if (target === void 0) { target = null; }
+        if (registerAll === void 0) { registerAll = false; }
         _super.call(this);
         this.states_all = null;
         this.states_active = null;
         this.queue = null;
         this.lock = false;
         this.last_promise = null;
-        this.log_handler_ = null;
         this.debug_prefix = "";
         this.debug_level = 1;
         this.clock_ = {};
@@ -64,26 +104,134 @@ var AsyncMachine = (function (_super) {
         this.target = null;
         this.transition_events = [];
         this.debug_ = false;
+        /**
+         Empty Exception state properties. See [[Exception_state]] transition handler.
+        */
         this.Exception = {};
         this.queue = [];
         this.states_all = [];
         this.states_active = [];
         this.clock_ = {};
         this.setTarget(target || this);
-        this.register("Exception");
-        this.internal_fields = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "log_handler_", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields"];
-    }
-    AsyncMachine.prototype.Exception_state = function (states, err, exception_states) {
-        if (exception_states.length != null) {
-            this.log("Exception when tried to set the following states: " + exception_states.join(", "));
+        if (registerAll) {
+            this.registerAll();
         }
+        else {
+            this.register("Exception");
+        }
+        this.internal_fields = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields"];
+    }
+    /**
+         * Creates an AsyncMachine instance (not a constructor) with specified states.
+         * States properties are empty, so you'd need to set it by yourself.
+         *
+         * @param states List of state names to register on the new instance.
+      * @return
+         *
+      * ```
+      * states = AsyncMachine.factory ['A', 'B','C']
+      * states.A = implies: ['B']
+      * states.add 'A'
+      * states.is() # -> ['A', 'B']
+      * ```
+    */
+    AsyncMachine.factory = function (states) {
+        if (states == null) {
+            states = [];
+        }
+        var instance = new AsyncMachine;
+        states.forEach(function (state) {
+            instance[state] = {};
+            return instance.register(state);
+        });
+        return instance;
+    };
+    /**
+         * All exceptions are caught into this state, including both synchronous and
+         * asynchronous from promises and callbacks. You can overcreateride it and
+      * handle exceptions based on their type and target states of the transition
+      * during which they appeared.
+         *
+      * @param states States to which the machine is transitioning rigt now.
+      * 	This means post-exception states.
+      * @param err The exception object.
+      * @param exception_states Target states of the transition during
+         * 	which the exception was thrown.
+      * @param async_target_states Only for async transitions like
+      * [[addByCallback]], these are states which we're supposed to be set by the
+      * callback.
+      * @return
+         *
+      * Example of exception handling
+      * ```
+      * states = AsyncMachine.factory ['A', 'B', 'C']
+      * states.Exception_state = (states, err, exception_states) ->
+      * 	# Re-adds state 'C' in case of an exception if A is set.
+      * 	if exception_states.some((state) -> state is 'C') and @is 'A'
+      * 		states.add 'C'
+      * ```
+      * Example of a manual exception triggering
+      * ```
+      * states.A_state = (states) ->
+      * 	foo = new SomeAsyncTask
+      * 	foo.start()
+      * 	foo.once 'error', (error) =>
+      * 		@add 'Exception', error, states
+         * ```
+    */
+    AsyncMachine.prototype.Exception_state = function (states, err, exception_states, async_target_states) {
+        console.log("EXCEPTION from AsyncMachine");
+        if ((exception_states != null ? exception_states.length : void 0) != null) {
+            this.log(("Exception \"" + err + "\" when setting the following states:\n    ") + exception_states.join(", "));
+        }
+        if ((async_target_states != null ? async_target_states.length : void 0) != null) {
+            this.log("Next states were supposed to be (add/drop/set):\n    " + exception_states.join(", "));
+        }
+        console.dir(err);
         return this.setImmediate(function () {
             throw err;
         });
     };
+    /**
+      * Sets the target for the transition handlers. Useful to keep all you methods in
+      * in one class while the states class is composed as an attribute of the main
+      * object. There's also a shorthand for this method as
+      * [[AsyncMachine.constructor]]'s param.
+         *
+      * @param target Target object.
+      * @return
+         *
+      * ```
+      * class Foo
+      * 	constructor: ->
+      * 		@states = AsyncMachine.factory ['A', 'B', 'C']
+      * 		@states.setTarget this
+      * 		@states.add 'A'
+         *
+      * 	A_state: ->
+      * 		console.log 'State A set'
+      * ```
+    */
     AsyncMachine.prototype.setTarget = function (target) {
         return this.target = target;
     };
+    /**
+      * Registers all defined states. Use it only if you don't define any other
+      * attributes on the object (or it's prototype). If you do, register the states
+      * manually with the [[register]] method. There's also a shorthand for this
+      * method as [[AsyncMachine.constructor]]'s param.
+         *
+      * ```
+      * class States extends AsyncMachine
+      * 	A: {}
+      * 	B: {}
+         *
+      * class Foo
+      * 	constructor: ->
+      * 		@states = new States
+      * 		@states.registerAll()
+      * ```
+    */
     AsyncMachine.prototype.registerAll = function () {
         var _results;
         var name = "";
@@ -130,11 +278,11 @@ var AsyncMachine = (function (_super) {
     };
     AsyncMachine.prototype.any = function () {
         var _this = this;
-        var names = [];
+        var states = [];
         for (var _i = 0; _i < arguments.length; _i++) {
-            names[_i - 0] = arguments[_i];
+            states[_i - 0] = arguments[_i];
         }
-        return names.some(function (name) {
+        return states.some(function (name) {
             if (Array.isArray(name)) {
                 return _this.every(name);
             }
@@ -143,17 +291,48 @@ var AsyncMachine = (function (_super) {
             }
         });
     };
+    /**
+      * Checks if all the passed states are set.
+         *
+      * ```
+      * states = AsyncMachine.factory ['A', 'B', 'C']
+      * states.add ['A', 'B']
+         *
+      * states.every 'A', 'B' # -> true
+      * states.every 'A', 'B', 'C' # -> false
+      * ```
+    */
     AsyncMachine.prototype.every = function () {
         var _this = this;
-        var names = [];
+        var states = [];
         for (var _i = 0; _i < arguments.length; _i++) {
-            names[_i - 0] = arguments[_i];
+            states[_i - 0] = arguments[_i];
         }
-        return names.every(function (name) { return !!~_this.states_active.indexOf(name); });
+        return states.every(function (name) { return !!~_this.states_active.indexOf(name); });
     };
+    /**
+      * Returns the current queue. For struct's meaning, see [[QUEUE]].
+    */
     AsyncMachine.prototype.futureQueue = function () {
         return this.queue;
     };
+    /**
+      * Register the passed state names. State properties should be already defined.
+         *
+      * @param states State names.
+      * @return
+         *
+      * ```
+      * states = new AsyncMachine
+      * states.Enabled = {}
+      * states.Disposed = blocks: 'Enabled'
+         *
+      * states.register 'Enabled', 'Disposed'
+         *
+      * states.add 'Enabled'
+      * states.is() # -> 'Enabled'
+      * ```
+    */
     AsyncMachine.prototype.register = function () {
         var _this = this;
         var states = [];
@@ -165,6 +344,19 @@ var AsyncMachine = (function (_super) {
             return _this.clock_[state] = 0;
         });
     };
+    /**
+      * Returns state's properties.
+         *
+      * @param state State name.
+      * @return
+         *
+      * ```
+      * states = AsyncMachine.factory ['A', 'B', 'C']
+      * states.A = blocks: ['B']
+         *
+      * states.get('A') # -> { blocks: ['B'] }
+      * ```
+    */
     AsyncMachine.prototype.get = function (state) {
         return this[state];
     };
@@ -298,68 +490,32 @@ var AsyncMachine = (function (_super) {
         return this.setImmediate(fn, target, states, params);
     };
     AsyncMachine.prototype.pipe = function (state, machine, target_state, local_queue) {
-        var _this = this;
-        if (state instanceof AsyncMachine) {
-            if (target_state == null) {
-                target_state = true;
-            }
-            return this.pipe(this.states_all, state, machine, target_state);
-        }
-        if (local_queue == null) {
-            local_queue = true;
-        }
-        this.log("Piping state " + state, 3);
-        return [].concat(state).forEach(function (state) {
-            var new_state = target_state || state;
-            _this.on(state + "_state", function () {
-                if (local_queue) {
-                    return _this.add(machine, new_state);
-                }
-                else {
-                    return machine.add(new_state);
-                }
-            });
-            return _this.on(state + "_end", function () {
-                if (local_queue) {
-                    return _this.drop(machine, new_state);
-                }
-                else {
-                    return machine.drop(new_state);
-                }
-            });
-        });
+        var bindings = {
+            state: "add",
+            end: "drop"
+        };
+        return this.pipeBind(state, machine, target_state, local_queue, bindings);
     };
-    AsyncMachine.prototype.pipeInvert = function (state, machine, target_state, local_queue) {
-        var _this = this;
-        if (state instanceof AsyncMachine) {
-            if (target_state == null) {
-                target_state = true;
-            }
-            return this.pipeInvert(this.states_all, state, machine, target_state);
-        }
-        if (local_queue == null) {
-            local_queue = true;
-        }
-        this.log("Piping inverted state " + state, 3);
-        return [].concat(state).forEach(function (state) {
-            var new_state = target_state || state;
-            _this.on(state + "_state", function () {
-                if (local_queue) {
-                    return _this.drop(machine, new_state);
-                }
-                else {
-                    return machine.drop(new_state);
-                }
-            });
-            return _this.on(state + "_end", function () {
-                if (local_queue) {
-                    return _this.add(machine, new_state);
-                }
-                else {
-                    return machine.add(new_state);
-                }
-            });
-        });
+    AsyncMachine.prototype.pipeInverted = function (state, machine, target_state, local_queue) {
+        var bindings = {
+            state: "drop",
+            end: "add"
+        };
+        return this.pipeBind(state, machine, target_state, local_queue, bindings);
+    };
+    AsyncMachine.prototype.pipeNegotiation = function (state, machine, target_state, local_queue) {
+        var bindings = {
+            enter: "add",
+            exit: "drop"
+        };
+        return this.pipeBind(state, machine, target_state, local_queue, bindings);
+    };
+    AsyncMachine.prototype.pipeNegotiationInverted = function (state, machine, target_state, local_queue) {
+        var bindings = {
+            enter: "drop",
+            exit: "add"
+        };
+        return this.pipeBind(state, machine, target_state, local_queue, bindings);
     };
     AsyncMachine.prototype.pipeOff = function () {
         throw new Error("not implemented yet");
@@ -422,30 +578,57 @@ var AsyncMachine = (function (_super) {
     };
     AsyncMachine.prototype.on = function (event, listener, context) {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
-            this.handlePromise(listener.call(context));
+            this.catchPromise(listener.call(context));
         }
         _super.prototype.on.call(this, event, listener, context);
         return this;
     };
     AsyncMachine.prototype.once = function (event, listener, context) {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
-            this.handlePromise(listener.call(context));
+            this.catchPromise(listener.call(context));
         }
         else {
             _super.prototype.once.call(this, event, listener, context);
         }
         return this;
     };
+    AsyncMachine.prototype.catchPromise = function (promise, target_states) {
+        var _this = this;
+        if ((promise != null ? promise.then : void 0) && (promise != null ? promise["catch"] : void 0)) {
+            promise["catch"](function (error) { return _this.add("Exception", error, target_states); });
+        }
+        return promise;
+    };
+    AsyncMachine.prototype.pipeBind = function (state, machine, target_state, local_queue, bindings) {
+        var _this = this;
+        if (state instanceof AsyncMachine) {
+            if (target_state == null) {
+                target_state = true;
+            }
+            return this.pipeBind(this.states_all, state, machine, target_state, bindings);
+        }
+        if (local_queue == null) {
+            local_queue = true;
+        }
+        this.log("Piping state " + state, 3);
+        return [].concat(state).forEach(function (state) {
+            var new_state = target_state || state;
+            return Object.keys(bindings).forEach(function (event_type) {
+                var method_name = bindings[event_type];
+                return _this.on(state + "_" + event_type, function () {
+                    if (local_queue) {
+                        return _this[method_name](machine, new_state);
+                    }
+                    else {
+                        return machine[method_name](new_state);
+                    }
+                });
+            });
+        });
+    };
     AsyncMachine.prototype.callListener = function (listener, context, params) {
         var ret = listener.apply(context, params);
-        return this.handlePromise(ret, params[0]);
-    };
-    AsyncMachine.prototype.handlePromise = function (ret, target_states) {
-        var _this = this;
-        if ((ret != null ? ret.then : void 0) && (ret != null ? ret["catch"] : void 0)) {
-            ret["catch"](function (error) { return _this.add("Exception", error, target_states); });
-        }
-        return ret;
+        return this.catchPromise(ret, params[0]);
     };
     AsyncMachine.prototype.getInstance = function () {
         return this;
@@ -581,22 +764,24 @@ var AsyncMachine = (function (_super) {
         return states.every(function (state) { return !_this.is(state); });
     };
     AsyncMachine.prototype.createDeferred = function (fn, target, states, state_params) {
+        var _this = this;
+        var transition_states = this.is();
+        var params = [target];
+        if (states) {
+            params.push(states);
+        }
+        if (state_params.length) {
+            params.push.apply(params, state_params);
+        }
         var deferred = new Deferred;
-        deferred.promise.then(function (callback_params) {
-            var params = [target];
-            if (states) {
-                params.push(states);
-            }
-            if (state_params.length) {
-                params.push.apply(params, state_params);
-            }
-            return fn.apply(null, params.concat(callback_params));
+        deferred.promise.then(function (callback_params) { return fn.apply(null, params.concat(callback_params)); })["catch"](function (err) {
+            var async_states = [].concat(params[0] instanceof AsyncMachine ? params[1] : params[0]);
+            return _this.add("Exception", err, transition_states, async_states);
         });
         this.last_promise = deferred.promise;
         return deferred;
     };
     AsyncMachine.prototype.createCallback = function (deferred) {
-        var _this = this;
         return function (err) {
             if (err === void 0) { err = null; }
             var params = [];
@@ -604,7 +789,6 @@ var AsyncMachine = (function (_super) {
                 params[_i - 1] = arguments[_i];
             }
             if (err) {
-                _this.add("Exception", err);
                 return deferred.reject(err);
             }
             else {
@@ -635,7 +819,7 @@ var AsyncMachine = (function (_super) {
                 if (context) {
                     _this.log("[transition] " + name, 2);
                     ret = context[name].apply(context, transition_params);
-                    _this.handlePromise(ret, states);
+                    _this.catchPromise(ret, states);
                 }
                 else {
                     _this.log("[transition] " + name, 3);
@@ -833,8 +1017,15 @@ var AsyncMachine = (function (_super) {
             var context = _this.getMethodContext(method);
             if (context) {
                 _this.log("[transition] " + method, 2);
-                var ret = (_ref = context[method]) != null ? _ref.apply(context, params) : void 0;
-                _this.handlePromise(ret, _this.is());
+                try {
+                    var ret = (_ref = context[method]) != null ? _ref.apply(context, params) : void 0;
+                }
+                catch (_error) {
+                    var err = _error;
+                    _this.drop(state);
+                    throw err;
+                }
+                _this.catchPromise(ret, _this.is());
             }
             else {
                 _this.log("[transition] " + method, 3);
@@ -901,7 +1092,7 @@ var AsyncMachine = (function (_super) {
         if (context) {
             this.log("[transition] " + method, 2);
             ret = (_ref = context[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(context, transition_params) : void 0 : void 0;
-            this.handlePromise(ret, target_states);
+            this.catchPromise(ret, target_states);
         }
         else {
             this.log("[transition] " + method, 3);

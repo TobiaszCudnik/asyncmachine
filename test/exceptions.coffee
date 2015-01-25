@@ -6,18 +6,14 @@ bluebird = require 'bluebird'
 
 # turn off "possibly unhandled error", which is buggy
 # https://github.com/petkaantonov/bluebird/issues/352
-bluebird.onPossiblyUnhandledRejection ->
+#bluebird.onPossiblyUnhandledRejection ->
 
 AM = asyncmachine.AsyncMachine
 
 describe "Exceptions", ->
 
   beforeEach ->
-    class Foo extends AM
-      A: {}
-
-    @foo = new Foo
-    @foo.registerAll()
+    @foo = new AM.factory ['A']
 
   it 'should be thrown on the next tick', ->
     setImmediate = sinon.stub @foo, 'setImmediate'
@@ -52,25 +48,49 @@ describe "Exceptions", ->
       delayed @foo.addByListener 'A'
       @foo.Exception_state = -> done()
 
-    it 'from transitions returning promises', (done) ->
-      @foo.debug '', 2
-      @foo.Exception_state = (states, exception, target_states) ->
-        console.log 'Exception_state', states, exception, target_states
-        expect(target_states).to.eql ['A']
-        expect(exception).to.be.instanceOf Error
-        done()
-      @foo.A_enter = bluebird.coroutine ->
-        yield bluebird.delay 0
-        throw new Error
-      @foo.add 'A'
+    describe 'in promises', ->
 
-    it 'from event listeners returning promises', (done) ->
-      @foo.Exception_state = (states, exception, target_states) ->
-        console.log 'Exception_state', states, exception, target_states
-        expect(target_states).to.eql ['A']
-        expect(exception).to.be.instanceOf Error
-        done()
-      @foo.on 'A_enter', bluebird.coroutine ->
+      it 'returned by transitions', (done) ->
+        @foo.Exception_state = (states, exception, target_states) ->
+          expect(target_states).to.eql ['A']
+          expect(exception).to.be.instanceOf Error
+          done()
+        @foo.A_enter = bluebird.coroutine ->
+          yield bluebird.delay 0
+          throw new Error
+        @foo.add 'A'
+
+      it 'returned by listeners', (done) ->
+        @foo.Exception_state = (states, exception, target_states) ->
+          expect(target_states).to.eql ['A']
+          expect(exception).to.be.instanceOf Error
+          done()
+        @foo.on 'A_enter', bluebird.coroutine ->
+          yield bluebird.delay 0
+          throw new Error
+        @foo.add 'A'
+
+
+  describe 'complex scenario', ->
+
+    before ->
+      asyncMock = (cb) ->
+        setTimeout (cb.bind null), 0
+
+      @foo = AM.factory ['A', 'B', 'C']
+      @bar = AM.factory ['D']
+      @bar.pipe 'D', @foo, 'A'
+      @foo.A_enter = -> @add 'B'
+      @foo.B_state = bluebird.coroutine ->
         yield bluebird.delay 0
-        throw new Error
-      @foo.add 'A'
+        method = bluebird.promisify asyncMock
+        yield method()
+        @add 'C'
+      @foo.C_enter = ->
+        throw fake: yes
+
+    it 'should be caught', (done) ->
+      do @bar.addByListener 'D'
+      @foo.Exception_state = ->
+        done()
+
