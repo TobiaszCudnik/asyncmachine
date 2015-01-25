@@ -60,24 +60,8 @@ test-grep-debug:
 		test/*.coffee
 
 docs:
-	./node_modules/.bin/typedoc \
-		--out docs/ \
-		--theme minimal \
-		--module commonjs \
-		--name AsyncMachine \
-		build/asyncmachine.ts
-
-docs-v2:
 	./node_modules/typedoc-v2/bin/typedoc \
 		--out docs/ \
-		--theme minimal \
-		--module commonjs \
-		--name AsyncMachine \
-		build/asyncmachine.ts
-
-docs-v2-full:
-	./node_modules/typedoc-v2/bin/typedoc \
-		--out docs-full/ \
 		--module commonjs \
 		--name AsyncMachine \
 		build/asyncmachine.ts
