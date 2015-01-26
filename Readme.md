@@ -237,105 +237,14 @@ Can't set following states Done(-Query3Done)
 
 There's level 3 as well!
  
-## API
- 
-AsyncMachine's source code is transpiled from CoffeeScript to TypeScript and merged with external static types definitions.
-Public API looks like this:
- 
-```typescript
-class AsyncMachine {
-	public last_promise: Promise<any>;
+## Docs
 
-	constructor(target?:AsyncMachine);
-	public Exception_state(states: string[], err: Error, exception_states?: string[]): boolean;
+There's an HTML version of
+[the API docs](https://cdn.rawgit.com/TobiaszCudnik/asyncmachine/master/docs/classes/_asyncmachine_.asyncmachine.html) with lots of examples. Also the [mocha spec](https://cdn.rawgit.com/TobiaszCudnik/asyncmachine/master/docs/spec.html)
+is available. The wiki is comming...
+ 
+AsyncMachine's source code is transpiled from CoffeeScript to TypeScript, so it provides type definitions file at [/lib/asyncmachine.d.ts](https://github.com/TobiaszCudnik/asyncmachine/blob/master/lib/asyncmachine.d.ts).
 
-	public register(...states: string[]);
-	public get(state: string): IState;
-	public state(name: string): boolean;
-	public state(name: string[]): boolean;
-	public state(): string[];
-	public is(state: string): boolean;
-	public is(state: string[]): boolean;
-	public is(state: string, tick?: number): boolean;
-	public is(state: string[], tick?: number): boolean;
-	public is(): string[];
-	public any(...names: string[]): boolean;
-	public any(...names: string[][]): boolean;
-	public every(...names: string[]): boolean;
- 
- 	public add(target: AsyncMachine, states: string[], ...params: any[]): boolean;
- 	public add(target: AsyncMachine, states: string, ...params: any[]): boolean;
- 	public add(target: string[], states?: any, ...params: any[]): boolean;
- 	public add(target: string, states?: any, ...params: any[]): boolean;
- 	public addByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
- 	public addByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
- 	public addByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
- 	public addByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
- 	public addByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
- 	public addByListener(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
- 	public addByListener(target: string[], states?: any, ...params: any[]): (...params) => void;
- 	public addByListener(target: string, states?: any, ...params: any[]): (...params) => void;
- 	public addNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
- 	public addNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
- 	public addNext(target: string, states: any, ...params: any[]): (...params) => void;
- 	public addNext(target: string[], states: any, ...params: any[]): (...params) => void;
- 
- 	public drop(target: AsyncMachine, states: string[], ...params: any[]): boolean;
- 	public drop(target: AsyncMachine, states: string, ...params: any[]): boolean;
- 	public drop(target: string[], states?: any, ...params: any[]): boolean;
- 	public drop(target: string, states?: any, ...params: any[]): boolean;
- 	public dropByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
- 	public dropByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
- 	public dropByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
- 	public dropByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
- 	public dropByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
- 	public dropByListener(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
- 	public dropByListener(target: string[], states?: any, ...params: any[]): (...params) => void;
- 	public dropByListener(target: string, states?: any, ...params: any[]): (...params) => void;
- 	public dropNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
- 	public dropNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
- 	public dropNext(target: string, states: any, ...params: any[]): (...params) => void;
- 	public dropNext(target: string[], states: any, ...params: any[]): (...params) => void;
- 
- 	public set(target: AsyncMachine, states: string[], ...params: any[]): boolean;
- 	public set(target: AsyncMachine, states: string, ...params: any[]): boolean;
- 	public set(target: string[], states?: any, ...params: any[]): boolean;
- 	public set(target: string, states?: any, ...params: any[]): boolean;
- 	public setByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
- 	public setByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
- 	public setByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
- 	public setByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
- 	public setByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
- 	public setByListener(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
- 	public setByListener(target: string[], states?: any, ...params: any[]): (...params) => void;
- 	public setByListener(target: string, states?: any, ...params: any[]): (...params) => void;
- 	public setNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
- 	public setNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
- 	public setNext(target: string, states: any, ...params: any[]): (...params) => void;
- 	public setNext(target: string[], states: any, ...params: any[]): (...params) => void;
- 
-	public pipe(state: string, machine?: AsyncMachine, target_state?: string);
-	public pipe(state: string[], machine?: AsyncMachine, target_state?: string);
-	public pipe(state: AsyncMachine, machine?: string);
-	public pipeInvert(state: string, machine?: AsyncMachine, target_state?: string);
-	public pipeInvert(state: string[], machine?: AsyncMachine, target_state?: string);
-	public pipeInvert(state: AsyncMachine, machine?: string);
-	public duringTransition(): boolean;
-	public namespaceName(state: string): string;
-	public debug(prefix?: string, level?: number): void;
-	public debugOff(): void;
-	public log(msg: string, level?: number): void;
- 
-	public when(states: string, abort?: Function): Promise<any>;
-	public when(states: string[], abort?: Function): Promise<any>;
-	public whenOnce(states: string, abort?: Function): Promise<any>;
-	public whenOnce(states: string[], abort?: Function): Promise<any>;
-
-	public getAbort(state: string, abort?: () => boolean): () => boolean;
-    public getAbortEnter(state: string, abort?: () => boolean): () => boolean;
-}
-```
- 
 ## Change log
  
 ### v2.0
