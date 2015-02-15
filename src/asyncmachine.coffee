@@ -72,8 +72,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 	debug_: no
 
 	###*
-  Empty Exception state properties. See [[Exception_state]] transition handler.
-  ###
+	Empty Exception state properties. See [[Exception_state]] transition handler.
+	###
 	Exception: {}
 
 	###*
@@ -81,14 +81,14 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * States properties are empty, so you'd need to set it by yourself.
 	 *
 	 * @param states List of state names to register on the new instance.
-   * @return
+	 * @return
 	 *
-   * ```
-   * states = AsyncMachine.factory ['A', 'B','C']
-   * states.A = implies: ['B']
-   * states.add 'A'
-   * states.is() # -> ['A', 'B']
-   * ```
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B','C']
+	 * states.A = implies: ['B']
+	 * states.add 'A'
+	 * states.is() # -> ['A', 'B']
+	 * ```
 	###
 	@factory: (states) ->
 		states ?= []
@@ -101,14 +101,14 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 	###*
 	 * Creates a new instance with only state one registered, which is the
-   * Exception.
+	 * Exception.
 	 * When extending the class, you should register your states by using either
 	 * [[registerAll]] or [[register]].
 	 *
-   * @param target Target object for the transitions, useful when composing the
-   * 	states instance.
-   * @param registerAll Automaticaly registers all defined states.
-   * @see [[AsyncMachine]] for the usage example.
+	 * @param target Target object for the transitions, useful when composing the
+	 * 	states instance.
+	 * @param registerAll Automaticaly registers all defined states.
+	 * @see [[AsyncMachine]] for the usage example.
 	###
 	constructor: (target = null, registerAll = no) ->
 		super()
@@ -131,34 +131,34 @@ class AsyncMachine extends eventemitter.EventEmitter
 	###*
 	 * All exceptions are caught into this state, including both synchronous and
 	 * asynchronous from promises and callbacks. You can overcreateride it and
-   * handle exceptions based on their type and target states of the transition
-   * during which they appeared.
+	 * handle exceptions based on their type and target states of the transition
+	 * during which they appeared.
 	 *
-   * @param states States to which the machine is transitioning rigt now.
-   * 	This means post-exception states.
-   * @param err The exception object.
-   * @param exception_states Target states of the transition during
+	 * @param states States to which the machine is transitioning rigt now.
+	 * 	This means post-exception states.
+	 * @param err The exception object.
+	 * @param exception_states Target states of the transition during
 	 * 	which the exception was thrown.
-   * @param async_target_states Only for async transitions like
-   * [[addByCallback]], these are states which we're supposed to be set by the
-   * callback.
-   * @return
+	 * @param async_target_states Only for async transitions like
+	 * [[addByCallback]], these are states which we're supposed to be set by the
+	 * callback.
+	 * @return
 	 *
-   * Example of exception handling
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * states.Exception_state = (states, err, exception_states) ->
-   * 	# Re-adds state 'C' in case of an exception if A is set.
-   * 	if exception_states.some((state) -> state is 'C') and @is 'A'
-   * 		states.add 'C'
-   * ```
-   * Example of a manual exception triggering
-   * ```
-   * states.A_state = (states) ->
-   * 	foo = new SomeAsyncTask
-   * 	foo.start()
-   * 	foo.once 'error', (error) =>
-   * 		@add 'Exception', error, states
+	 * Example of exception handling
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.Exception_state = (states, err, exception_states) ->
+	 * 	# Re-adds state 'C' in case of an exception if A is set.
+	 * 	if exception_states.some((state) -> state is 'C') and @is 'A'
+	 * 		states.add 'C'
+	 * ```
+	 * Example of a manual exception triggering
+	 * ```
+	 * states.A_state = (states) ->
+	 * 	foo = new SomeAsyncTask
+	 * 	foo.start()
+	 * 	foo.once 'error', (error) =>
+	 * 		@add 'Exception', error, states
 	 * ```
 	###
 	Exception_state: (states, err, exception_states, async_target_states) ->
@@ -173,44 +173,44 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@setImmediate -> throw err
 
 	###*
-   * Sets the target for the transition handlers. Useful to keep all you methods in
-   * in one class while the states class is composed as an attribute of the main
-   * object. There's also a shorthand for this method as
-   * [[AsyncMachine.constructor]]'s param.
+	 * Sets the target for the transition handlers. Useful to keep all you methods in
+	 * in one class while the states class is composed as an attribute of the main
+	 * object. There's also a shorthand for this method as
+	 * [[AsyncMachine.constructor]]'s param.
 	 *
-   * @param target Target object.
-   * @return
+	 * @param target Target object.
+	 * @return
 	 *
-   * ```
-   * class Foo
-   * 	constructor: ->
-   * 		@states = AsyncMachine.factory ['A', 'B', 'C']
-   * 		@states.setTarget this
-   * 		@states.add 'A'
+	 * ```
+	 * class Foo
+	 * 	constructor: ->
+	 * 		@states = AsyncMachine.factory ['A', 'B', 'C']
+	 * 		@states.setTarget this
+	 * 		@states.add 'A'
 	 *
-   * 	A_state: ->
-   * 		console.log 'State A set'
-   * ```
+	 * 	A_state: ->
+	 * 		console.log 'State A set'
+	 * ```
 	###
 	setTarget: (target) ->
 		@target = target
 
 	###*
-   * Registers all defined states. Use it only if you don't define any other
-   * attributes on the object (or it's prototype). If you do, register the states
-   * manually with the [[register]] method. There's also a shorthand for this
-   * method as [[AsyncMachine.constructor]]'s param.
+	 * Registers all defined states. Use it only if you don't define any other
+	 * attributes on the object (or it's prototype). If you do, register the states
+	 * manually with the [[register]] method. There's also a shorthand for this
+	 * method as [[AsyncMachine.constructor]]'s param.
 	 *
-   * ```
-   * class States extends AsyncMachine
-   * 	A: {}
-   * 	B: {}
+	 * ```
+	 * class States extends AsyncMachine
+	 * 	A: {}
+	 * 	B: {}
 	 *
-   * class Foo
-   * 	constructor: ->
-   * 		@states = new States
-   * 		@states.registerAll()
-   * ```
+	 * class Foo
+	 * 	constructor: ->
+	 * 		@states = new States
+	 * 		@states.registerAll()
+	 * ```
 	###
 	registerAll: ->
 		name = ''
@@ -230,29 +230,29 @@ class AsyncMachine extends eventemitter.EventEmitter
 			break if constructor is AsyncMachine.prototype
 
 	###*
-   * If no states passed, returns all the current states.
+	 * If no states passed, returns all the current states.
 	 *
-   * If states passed, returns a boolean if all of them are set.
+	 * If states passed, returns a boolean if all of them are set.
 	 *
 	 * If only one state is passed, one can assert on a certain tick of the given
-   * state (see [[clock]]).
+	 * state (see [[clock]]).
 	 *
-   * @param state One or more state names.
-   * @param tick For one state, additionally checks if state's clock is the same
-   * moment.
-   * @return
+	 * @param state One or more state names.
+	 * @param tick For one state, additionally checks if state's clock is the same
+	 * moment.
+	 * @return
 	 *
-   * ```
-   * states = AsyncMachine.factory ['A', 'B']
-   * states.add 'A'
-   * states.is 'A' # -> true
-   * states.is ['A'] # -> true
-   * states.is ['A', 'B'] # -> false
-   * tick = states.clock 'A'
-   * states.drop 'A'
-   * states.add 'A'
-   * states.is 'A', tick # -> false
-   * ```
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B']
+	 * states.add 'A'
+	 * states.is 'A' # -> true
+	 * states.is ['A'] # -> true
+	 * states.is ['A', 'B'] # -> false
+	 * tick = states.clock 'A'
+	 * states.drop 'A'
+	 * states.add 'A'
+	 * states.is 'A', tick # -> false
+	 * ```
 	###
 	is: (state, tick) ->
 		return [].concat @states_active if not state
@@ -261,19 +261,19 @@ class AsyncMachine extends eventemitter.EventEmitter
 		if tick is undefined then yes else (@clock state) is tick
 
 	###*
-   * Checks if any of the passed states is set. State can also be an array, then
-   * all states from this param has to be set.
+	 * Checks if any of the passed states is set. State can also be an array, then
+	 * all states from this param has to be set.
 	 *
-   * @param states State names and/or lists of state names.
-   * @return
+	 * @param states State names and/or lists of state names.
+	 * @return
 	 *
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * states.add ['A', 'B']
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.add ['A', 'B']
 	 *
-   * states.any 'A', 'C' # -> true
-   * states.any ['A', 'C'], 'C' # -> false
-   * ```
+	 * states.any 'A', 'C' # -> true
+	 * states.any ['A', 'C'], 'C' # -> false
+	 * ```
 	###
 	any: (states...) ->
 		states.some (name) =>
@@ -283,41 +283,41 @@ class AsyncMachine extends eventemitter.EventEmitter
 				@is name
 
 	###*
-   * Checks if all the passed states are set.
+	 * Checks if all the passed states are set.
 	 *
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * states.add ['A', 'B']
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.add ['A', 'B']
 	 *
-   * states.every 'A', 'B' # -> true
-   * states.every 'A', 'B', 'C' # -> false
-   * ```
+	 * states.every 'A', 'B' # -> true
+	 * states.every 'A', 'B', 'C' # -> false
+	 * ```
 	###
 	every: (states...) ->
 		states.every (name) =>
 			!!~@states_active.indexOf name
 
 	###*
-   * Returns the current queue. For struct's meaning, see [[QUEUE]].
+	 * Returns the current queue. For struct's meaning, see [[QUEUE]].
 	###
 	futureQueue: -> @queue
 
 	###*
-   * Register the passed state names. State properties should be already defined.
+	 * Register the passed state names. State properties should be already defined.
 	 *
-   * @param states State names.
-   * @return
+	 * @param states State names.
+	 * @return
 	 *
-   * ```
-   * states = new AsyncMachine
-   * states.Enabled = {}
-   * states.Disposed = blocks: 'Enabled'
+	 * ```
+	 * states = new AsyncMachine
+	 * states.Enabled = {}
+	 * states.Disposed = blocks: 'Enabled'
 	 *
-   * states.register 'Enabled', 'Disposed'
+	 * states.register 'Enabled', 'Disposed'
 	 *
-   * states.add 'Enabled'
-   * states.is() # -> 'Enabled'
-   * ```
+	 * states.add 'Enabled'
+	 * states.is() # -> 'Enabled'
+	 * ```
 	###
 	register: (states...) ->
 		# TODO assert that the state exists
@@ -326,59 +326,59 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@clock_[state] = 0
 
 	###*
-   * Returns state's properties.
+	 * Returns state's properties.
 	 *
-   * @param state State name.
-   * @return
+	 * @param state State name.
+	 * @return
 	 *
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * states.A = blocks: ['B']
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.A = blocks: ['B']
 	 *
-   * states.get('A') # -> { blocks: ['B'] }
-   * ```
+	 * states.get('A') # -> { blocks: ['B'] }
+	 * ```
 	###
 	get: (state) -> @[state]
 
 	###*
-   * Sets specified states and deactivate all the other which are currently set.
+	 * Sets specified states and deactivate all the other which are currently set.
 	 *
-   * @param target OPTIONAL. Pass it if you want to execute a transition on an
-   *   external machine, but using the local queue.
-   * @param states Array of state names or a single state name.
-   * @param params Params to be passed to the transition handlers (only ones from
-   *   the specified states, not implied or auto states).
+	 * @param target OPTIONAL. Pass it if you want to execute a transition on an
+	 *   external machine, but using the local queue.
+	 * @param states Array of state names or a single state name.
+	 * @param params Params to be passed to the transition handlers (only ones from
+	 *   the specified states, not implied or auto states).
 	 * @return Result of the transition. FALSE means that states weren't accepted,
-   *   or some of implied or auto states dropped some of the requested states
-   *   after the transition.
-   *
-   * Basic usage example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * states.set 'A'
-   * states.is() # -> ['A']
-   * states.set 'B'
-   * states.is() # -> ['B']
-   * ```
+	 *   or some of implied or auto states dropped some of the requested states
+	 *   after the transition.
 	 *
-   * Example of a state negotiation
-   * ```
-   * states = AsyncMachine.factory ['A', 'B']
-   * # Transition enter negotiation
-   * states.A_enter = -> no
-   * states.add 'A' # -> false
-   * ```
+	 * Basic usage example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.set 'A'
+	 * states.is() # -> ['A']
+	 * states.set 'B'
+	 * states.is() # -> ['B']
+	 * ```
 	 *
-   * Example of setting a state on an external machine
-   * ```
-   * states1 = AsyncMachine.factory ['A', 'B']
-   * states2 = AsyncMachine.factory ['C', 'D']
+	 * Example of a state negotiation
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B']
+	 * # Transition enter negotiation
+	 * states.A_enter = -> no
+	 * states.add 'A' # -> false
+	 * ```
 	 *
-   * states1.A_enter ->
-   * 	# this transition will be queued and executed after the current transition
-   * 	# fully finishes
-   * 	states1.add states2, 'B'
-   * ```
+	 * Example of setting a state on an external machine
+	 * ```
+	 * states1 = AsyncMachine.factory ['A', 'B']
+	 * states2 = AsyncMachine.factory ['C', 'D']
+	 *
+	 * states1.A_enter ->
+	 * 	# this transition will be queued and executed after the current transition
+	 * 	# fully finishes
+	 * 	states1.add states2, 'B'
+	 * ```
 	###
 	set: (target, states, params...) ->
 		if target instanceof AsyncMachine
@@ -397,103 +397,103 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@processStateChange_ STATE_CHANGE.SET, states, params
 
 	###*
-   * Deferred version of [[set]], returning a node-style callback for setting
-   * the state. Errors are handled automatically and forwarded to the Exception
-   * state.
-   *
+	 * Deferred version of [[set]], returning a node-style callback for setting
+	 * the state. Errors are handled automatically and forwarded to the Exception
+	 * state.
+	 *
 	 * After the call, the responsible promise object is available as the
 	 * [[last_promise]] attribute.
-   *
-   * See [[set]] for the params description.
-   *
-   * Example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * someNodeCallback 'foo.com', states.setByCallback 'B'
-   * ```
-   *
+	 *
+	 * See [[set]] for the params description.
+	 *
+	 * Example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * someNodeCallback 'foo.com', states.setByCallback 'B'
+	 * ```
+	 *
 	###
 	setByCallback: (target, states, params...) ->
 		@createCallback @createDeferred (@set.bind this), target, states, params
 
 	###*
-   * Deferred version of [[set]], returning a listener for setting
-   * the state. Errors need to be handled manually by binding the exception
-   * state to the 'error' event (or equivalent).
-   *
+	 * Deferred version of [[set]], returning a listener for setting
+	 * the state. Errors need to be handled manually by binding the exception
+	 * state to the 'error' event (or equivalent).
+	 *
 	 * After the call, the responsible promise object is available as the
 	 * [[last_promise]] attribute.
-   *
-   * See [[set]] for the params description.
-   *
-   * Example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * emitter = new events.EventEmitter
-   * emitter.on 'ready', states.setByListener 'A'
-   * emitter.on 'error', states.addByListener 'Exception'
-   * ```
+	 *
+	 * See [[set]] for the params description.
+	 *
+	 * Example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * emitter = new events.EventEmitter
+	 * emitter.on 'ready', states.setByListener 'A'
+	 * emitter.on 'error', states.addByListener 'Exception'
+	 * ```
 	###
 	setByListener: (target, states, params...) ->
 		@createListener @createDeferred (@set.bind this), target, states, params
 
 	###*
-   * Deferred version of [[set]], setting the requested states on the next event
-   * loop's tick. Useful if you want to start with a fresh stack trace.
-   *
-   * See [[set]] for the params description.
-   *
-   * Example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * states.set 'A'
-   * states.setNext 'B'
-   * states.is() # -> ['A']
-   * ```
+	 * Deferred version of [[set]], setting the requested states on the next event
+	 * loop's tick. Useful if you want to start with a fresh stack trace.
+	 *
+	 * See [[set]] for the params description.
+	 *
+	 * Example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.set 'A'
+	 * states.setNext 'B'
+	 * states.is() # -> ['A']
+	 * ```
 	###
 	setNext: (target, states, params...) ->
 		fn = @set.bind this
 		@setImmediate fn, target, states, params
 
 	###*
-   * Adds specified states to the currently set ones.
+	 * Adds specified states to the currently set ones.
 	 *
-   * @param target OPTIONAL. Pass it if you want to execute a transition on an
-   *   external machine, but using the local queue.
-   * @param states Array of state names or a single state name.
-   * @param params Params to be passed to the transition handlers (only ones from
-   *   the specified states, not implied or auto states).
+	 * @param target OPTIONAL. Pass it if you want to execute a transition on an
+	 *   external machine, but using the local queue.
+	 * @param states Array of state names or a single state name.
+	 * @param params Params to be passed to the transition handlers (only ones from
+	 *   the specified states, not implied or auto states).
 	 * @return Result of the transition. FALSE means that states weren't accepted,
-   *   or some of implied or auto states dropped some of the requested states
-   *   after the transition.
-   *
-   * Basic usage example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * states.add 'A'
-   * states.is() # -> ['A']
-   * states.add 'B'
-   * states.is() # -> ['B']
-   * ```
+	 *   or some of implied or auto states dropped some of the requested states
+	 *   after the transition.
 	 *
-   * Example of a state negotiation
-   * ```
-   * states = AsyncMachine.factory ['A', 'B']
-   * # Transition enter negotiation
-   * states.A_enter = -> no
-   * states.add 'A' # -> false
-   * ```
+	 * Basic usage example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.add 'A'
+	 * states.is() # -> ['A']
+	 * states.add 'B'
+	 * states.is() # -> ['B']
+	 * ```
 	 *
-   * Example of adding a state on an external machine
-   * ```
-   * states1 = AsyncMachine.factory ['A', 'B']
-   * states2 = AsyncMachine.factory ['C', 'D']
+	 * Example of a state negotiation
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B']
+	 * # Transition enter negotiation
+	 * states.A_enter = -> no
+	 * states.add 'A' # -> false
+	 * ```
 	 *
-   * states1.A_enter ->
-   * 	# this transition will be queued and executed after the current transition
-   * 	# fully finishes
-   * 	states1.add states2, 'B'
-   * ```
+	 * Example of adding a state on an external machine
+	 * ```
+	 * states1 = AsyncMachine.factory ['A', 'B']
+	 * states2 = AsyncMachine.factory ['C', 'D']
+	 *
+	 * states1.A_enter ->
+	 * 	# this transition will be queued and executed after the current transition
+	 * 	# fully finishes
+	 * 	states1.add states2, 'B'
+	 * ```
 	###
 	add: (target, states, params...) ->
 		if target instanceof AsyncMachine
@@ -512,103 +512,103 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@processStateChange_ STATE_CHANGE.ADD, states, params
 
 	###*
-   * Deferred version of [[add]], returning a node-style callback for adding
-   * the state. Errors are handled automatically and forwarded to the Exception
-   * state.
-   *
+	 * Deferred version of [[add]], returning a node-style callback for adding
+	 * the state. Errors are handled automatically and forwarded to the Exception
+	 * state.
+	 *
 	 * After the call, the responsible promise object is available as the
 	 * [[last_promise]] attribute.
-   *
-   * See [[add]] for the params description.
-   *
-   * Example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * someNodeCallback 'foo.com', states.addByCallback 'B'
-   * ```
-   *
+	 *
+	 * See [[add]] for the params description.
+	 *
+	 * Example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * someNodeCallback 'foo.com', states.addByCallback 'B'
+	 * ```
+	 *
 	###
 	addByCallback: (target, states, params...) ->
 		@createCallback @createDeferred (@add.bind this), target, states, params
 
 	###*
-   * Deferred version of [[add]], returning a listener for adding
-   * the state. Errors need to be handled manually by binding the exception
-   * state to the 'error' event (or equivalent).
-   *
+	 * Deferred version of [[add]], returning a listener for adding
+	 * the state. Errors need to be handled manually by binding the exception
+	 * state to the 'error' event (or equivalent).
+	 *
 	 * After the call, the responsible promise object is available as the
 	 * [[last_promise]] attribute.
-   *
-   * See [[add]] for the params description.
-   *
-   * Example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * emitter = new events.EventEmitter
-   * emitter.on 'ready', states.addByListener 'A'
-   * emitter.on 'error', states.addByListener 'Exception'
-   * ```
+	 *
+	 * See [[add]] for the params description.
+	 *
+	 * Example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * emitter = new events.EventEmitter
+	 * emitter.on 'ready', states.addByListener 'A'
+	 * emitter.on 'error', states.addByListener 'Exception'
+	 * ```
 	###
 	addByListener: (target, states, params...) ->
 		@createListener @createDeferred (@add.bind this), target, states, params
 
 	###*
-   * Deferred version of [[add]], adding the requested states on the next event
-   * loop's tick. Useful if you want to start with a fresh stack trace.
-   *
-   * See [[add]] for the params description.
-   *
-   * Example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * states.add 'A'
-   * states.addNext 'B'
-   * states.is() # -> ['A', 'B']
-   * ```
+	 * Deferred version of [[add]], adding the requested states on the next event
+	 * loop's tick. Useful if you want to start with a fresh stack trace.
+	 *
+	 * See [[add]] for the params description.
+	 *
+	 * Example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.add 'A'
+	 * states.addNext 'B'
+	 * states.is() # -> ['A', 'B']
+	 * ```
 	###
 	addNext: (target, states, params...) ->
 		fn = @add.bind this
 		@setImmediate fn, target, states, params
 
 	###*
-   * Drops specified states if they are currently set.
+	 * Drops specified states if they are currently set.
 	 *
-   * @param target OPTIONAL. Pass it if you want to execute a transition on an
-   *   external machine, but using the local queue.
-   * @param states Array of state names or a single state name.
-   * @param params Params to be passed to the transition handlers (only ones from
-   *   the specified states, not implied or auto states).
+	 * @param target OPTIONAL. Pass it if you want to execute a transition on an
+	 *   external machine, but using the local queue.
+	 * @param states Array of state names or a single state name.
+	 * @param params Params to be passed to the transition handlers (only ones from
+	 *   the specified states, not implied or auto states).
 	 * @return Result of the transition. FALSE means that dropping the states
-   *   wasn't accepted, or some of implied or auto states added some of the
-   *   requested states after the transition.
-   *
-   * Basic usage example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * states.drop 'A'
-   * states.is() # -> ['A']
-   * states.drop 'B'
-   * states.is() # -> ['B']
-   * ```
+	 *   wasn't accepted, or some of implied or auto states added some of the
+	 *   requested states after the transition.
 	 *
-   * Example of a state negotiation
-   * ```
-   * states = AsyncMachine.factory ['A', 'B']
-   * # Transition enter negotiation
-   * states.A_enter = -> no
-   * states.add 'A' # -> false
-   * ```
+	 * Basic usage example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.drop 'A'
+	 * states.is() # -> ['A']
+	 * states.drop 'B'
+	 * states.is() # -> ['B']
+	 * ```
 	 *
-   * Example of dropping a state on an external machine
-   * ```
-   * states1 = AsyncMachine.factory ['A', 'B']
-   * states2 = AsyncMachine.factory ['C', 'D']
+	 * Example of a state negotiation
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B']
+	 * # Transition enter negotiation
+	 * states.A_enter = -> no
+	 * states.add 'A' # -> false
+	 * ```
 	 *
-   * states1.A_enter ->
-   * 	# this transition will be queued and executed after the current transition
-   * 	# fully finishes
-   * 	states1.add states2, 'B'
-   * ```
+	 * Example of dropping a state on an external machine
+	 * ```
+	 * states1 = AsyncMachine.factory ['A', 'B']
+	 * states2 = AsyncMachine.factory ['C', 'D']
+	 *
+	 * states1.A_enter ->
+	 * 	# this transition will be queued and executed after the current transition
+	 * 	# fully finishes
+	 * 	states1.add states2, 'B'
+	 * ```
 	###
 	drop: (target, states, params...) ->
 		if target instanceof AsyncMachine
@@ -627,64 +627,63 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@processStateChange_ STATE_CHANGE.DROP, states, params
 
 	###*
-   * Deferred version of [[drop]], returning a node-style callback for dropping
-   * the state. Errors are handled automatically and forwarded to the Exception
-   * state.
-   *
+	 * Deferred version of [[drop]], returning a node-style callback for dropping
+	 * the state. Errors are handled automatically and forwarded to the Exception
+	 * state.
+	 *
 	 * After the call, the responsible promise object is available as the
 	 * [[last_promise]] attribute.
-   *
-   * See [[drop]] for the params description.
-   *
-   * Example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * someNodeCallback 'foo.com', states.dropByCallback 'B'
-   * ```
-   *
+	 *
+	 * See [[drop]] for the params description.
+	 *
+	 * Example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * someNodeCallback 'foo.com', states.dropByCallback 'B'
+	 * ```
+	 *
 	###
 	dropByCallback: (target, states, params...) ->
 		@createCallback @createDeferred (@drop.bind this), target, states, params
 
 	###*
-   * Deferred version of [[drop]], returning a listener for dropping
-   * the state. Errors need to be handled manually by binding the exception
-   * state to the 'error' event (or equivalent).
-   *
+	 * Deferred version of [[drop]], returning a listener for dropping
+	 * the state. Errors need to be handled manually by binding the exception
+	 * state to the 'error' event (or equivalent).
+	 *
 	 * After the call, the responsible promise object is available as the
 	 * [[last_promise]] attribute.
-   *
-   * See [[drop]] for the params description.
-   *
-   * Example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * emitter = new events.EventEmitter
-   * emitter.on 'ready', states.dropByListener 'A'
-   * emitter.on 'error', states.setByListener 'Exception'
-   * ```
+	 *
+	 * See [[drop]] for the params description.
+	 *
+	 * Example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * emitter = new events.EventEmitter
+	 * emitter.on 'ready', states.dropByListener 'A'
+	 * emitter.on 'error', states.setByListener 'Exception'
+	 * ```
 	###
 	dropByListener: (target, states, params...) ->
 		@createListener @createDeferred (@drop.bind this), target, states, params
 
 	###*
-   * Deferred version of [[drop]], dropping the requested states on the next
-   * event loop's tick. Useful if you want to start with a fresh stack trace.
-   *
-   * See [[drop]] for the params description.
-   *
-   * Example
-   * ```
-   * states = AsyncMachine.factory ['A', 'B', 'C']
-   * states.add 'A'
-   * states.dropNext 'A'
-   * states.is('A') # -> true
-   * ```
+	 * Deferred version of [[drop]], dropping the requested states on the next
+	 * event loop's tick. Useful if you want to start with a fresh stack trace.
+	 *
+	 * See [[drop]] for the params description.
+	 *
+	 * Example
+	 * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.add 'A'
+	 * states.dropNext 'A'
+	 * states.is('A') # -> true
+	 * ```
 	###
 	dropNext: (target, states, params...) ->
 		fn = @drop.bind this
 		@setImmediate fn, target, states, params
-
 
 	pipe: (state, machine, target_state, local_queue) ->
 		bindings =
@@ -813,15 +812,15 @@ class AsyncMachine extends eventemitter.EventEmitter
 		this
 
 	###*
-   * Bind the Exception state to the promise error handler. Handly if when
-   * working with promises.
-   *
-   * See [[Exception_state]].
-   *
-   * @param promise The promise to handle
-   * @param target_states States for which the promise was created (the
-   *   one that failed).
-   * @return The source promise, for piping.
+	 * Bind the Exception state to the promise error handler. Handly if when
+	 * working with promises.
+	 *
+	 * See [[Exception_state]].
+	 *
+	 * @param promise The promise to handle
+	 * @param target_states States for which the promise was created (the
+	 *   one that failed).
+	 * @return The source promise, for piping.
 	###
 	catchPromise: (promise, target_states) ->
 		if promise?.then and promise?.catch
@@ -861,8 +860,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	###*
-   * Override for EventEmitter method calling a specific listener. Binds to
-   * a promis if returned by the listener.
+	 * Override for EventEmitter method calling a specific listener. Binds to
+	 * a promis if returned by the listener.
 	###
 	callListener: (listener, context, params) ->
 		ret = listener.apply context, params
