@@ -15,9 +15,10 @@
     "url": "http://github.com/TobiaszCudnik/asyncmachine.git"
   },
   "dependencies": {
+    "es6-promise": "latest",
     "eventemitter3-abortable": "latest",
-    "object-mixin": "latest",
-    "es6-promise": "latest"
+    "graphlib": "latest",
+    "object-mixin": "latest"
   },
   "devDependencies": {
     "bluebird": "latest",

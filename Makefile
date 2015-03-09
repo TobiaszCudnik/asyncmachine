@@ -27,7 +27,6 @@ setup:
 	npm install
 
 test:
-	#rm test/build/*/**
 	./node_modules/mocha/bin/mocha \
 		--harmony \
 		--compilers mocha --compilers coffee:coffee-script/register \
@@ -75,5 +74,29 @@ spec:
 		--reporter spec \
 		test/*.coffee >> docs/spec.html
 	echo "</pre></body></html>" >> docs/spec.html
+
+
+build-vis:
+	$(CCOFFEE) -o build/visualizer -i src/visualizer -p "asyncmachine-vis.js:am-visualizer"
+
+build-vis-watch:
+	$(CCOFFEE) -o build/visualizer -i src/visualizer \
+		--watch -p "asyncmachine.js:asyncmachine"
+
+test-vis:
+	./node_modules/mocha/bin/mocha \
+		--harmony \
+		--compilers mocha --compilers coffee:coffee-script/register \
+		--reporter spec \
+		test/visualizer.coffee
+
+test-vis-debug:
+	./node_modules/mocha/bin/mocha \
+		--harmony \
+		--debug-brk \
+		--compilers coffee:coffee-script \
+		--reporter spec \
+		--grep "$(GREP)" \
+		test/visualizer.coffee
 	
 .PHONY: build test docs

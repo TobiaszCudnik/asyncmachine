@@ -79,14 +79,14 @@ var AsyncMachine = (function (_super) {
     __extends(AsyncMachine, _super);
     /**
          * Creates a new instance with only state one registered, which is the
-      * Exception.
+         * Exception.
          * When extending the class, you should register your states by using either
          * [[registerAll]] or [[register]].
          *
-      * @param target Target object for the transitions, useful when composing the
-      * 	states instance.
-      * @param registerAll Automaticaly registers all defined states.
-      * @see [[AsyncMachine]] for the usage example.
+         * @param target Target object for the transitions, useful when composing the
+         * 	states instance.
+         * @param registerAll Automaticaly registers all defined states.
+         * @see [[AsyncMachine]] for the usage example.
     */
     function AsyncMachine(target, registerAll) {
         if (target === void 0) { target = null; }
@@ -105,7 +105,7 @@ var AsyncMachine = (function (_super) {
         this.transition_events = [];
         this.debug_ = false;
         /**
-         Empty Exception state properties. See [[Exception_state]] transition handler.
+            Empty Exception state properties. See [[Exception_state]] transition handler.
         */
         this.Exception = {};
         this.queue = [];
@@ -126,14 +126,14 @@ var AsyncMachine = (function (_super) {
          * States properties are empty, so you'd need to set it by yourself.
          *
          * @param states List of state names to register on the new instance.
-      * @return
+         * @return
          *
-      * ```
-      * states = AsyncMachine.factory ['A', 'B','C']
-      * states.A = implies: ['B']
-      * states.add 'A'
-      * states.is() # -> ['A', 'B']
-      * ```
+         * ```
+         * states = AsyncMachine.factory ['A', 'B','C']
+         * states.A = implies: ['B']
+         * states.add 'A'
+         * states.is() # -> ['A', 'B']
+         * ```
     */
     AsyncMachine.factory = function (states) {
         if (states == null) {
@@ -149,34 +149,34 @@ var AsyncMachine = (function (_super) {
     /**
          * All exceptions are caught into this state, including both synchronous and
          * asynchronous from promises and callbacks. You can overcreateride it and
-      * handle exceptions based on their type and target states of the transition
-      * during which they appeared.
+         * handle exceptions based on their type and target states of the transition
+         * during which they appeared.
          *
-      * @param states States to which the machine is transitioning rigt now.
-      * 	This means post-exception states.
-      * @param err The exception object.
-      * @param exception_states Target states of the transition during
+         * @param states States to which the machine is transitioning rigt now.
+         * 	This means post-exception states.
+         * @param err The exception object.
+         * @param exception_states Target states of the transition during
          * 	which the exception was thrown.
-      * @param async_target_states Only for async transitions like
-      * [[addByCallback]], these are states which we're supposed to be set by the
-      * callback.
-      * @return
+         * @param async_target_states Only for async transitions like
+         * [[addByCallback]], these are states which we're supposed to be set by the
+         * callback.
+         * @return
          *
-      * Example of exception handling
-      * ```
-      * states = AsyncMachine.factory ['A', 'B', 'C']
-      * states.Exception_state = (states, err, exception_states) ->
-      * 	# Re-adds state 'C' in case of an exception if A is set.
-      * 	if exception_states.some((state) -> state is 'C') and @is 'A'
-      * 		states.add 'C'
-      * ```
-      * Example of a manual exception triggering
-      * ```
-      * states.A_state = (states) ->
-      * 	foo = new SomeAsyncTask
-      * 	foo.start()
-      * 	foo.once 'error', (error) =>
-      * 		@add 'Exception', error, states
+         * Example of exception handling
+         * ```
+         * states = AsyncMachine.factory ['A', 'B', 'C']
+         * states.Exception_state = (states, err, exception_states) ->
+         * 	# Re-adds state 'C' in case of an exception if A is set.
+         * 	if exception_states.some((state) -> state is 'C') and @is 'A'
+         * 		states.add 'C'
+         * ```
+         * Example of a manual exception triggering
+         * ```
+         * states.A_state = (states) ->
+         * 	foo = new SomeAsyncTask
+         * 	foo.start()
+         * 	foo.once 'error', (error) =>
+         * 		@add 'Exception', error, states
          * ```
     */
     AsyncMachine.prototype.Exception_state = function (states, err, exception_states, async_target_states) {
@@ -193,44 +193,44 @@ var AsyncMachine = (function (_super) {
         });
     };
     /**
-      * Sets the target for the transition handlers. Useful to keep all you methods in
-      * in one class while the states class is composed as an attribute of the main
-      * object. There's also a shorthand for this method as
-      * [[AsyncMachine.constructor]]'s param.
+         * Sets the target for the transition handlers. Useful to keep all you methods in
+         * in one class while the states class is composed as an attribute of the main
+         * object. There's also a shorthand for this method as
+         * [[AsyncMachine.constructor]]'s param.
          *
-      * @param target Target object.
-      * @return
+         * @param target Target object.
+         * @return
          *
-      * ```
-      * class Foo
-      * 	constructor: ->
-      * 		@states = AsyncMachine.factory ['A', 'B', 'C']
-      * 		@states.setTarget this
-      * 		@states.add 'A'
+         * ```
+         * class Foo
+         * 	constructor: ->
+         * 		@states = AsyncMachine.factory ['A', 'B', 'C']
+         * 		@states.setTarget this
+         * 		@states.add 'A'
          *
-      * 	A_state: ->
-      * 		console.log 'State A set'
-      * ```
+         * 	A_state: ->
+         * 		console.log 'State A set'
+         * ```
     */
     AsyncMachine.prototype.setTarget = function (target) {
         return this.target = target;
     };
     /**
-      * Registers all defined states. Use it only if you don't define any other
-      * attributes on the object (or it's prototype). If you do, register the states
-      * manually with the [[register]] method. There's also a shorthand for this
-      * method as [[AsyncMachine.constructor]]'s param.
+         * Registers all defined states. Use it only if you don't define any other
+         * attributes on the object (or it's prototype). If you do, register the states
+         * manually with the [[register]] method. There's also a shorthand for this
+         * method as [[AsyncMachine.constructor]]'s param.
          *
-      * ```
-      * class States extends AsyncMachine
-      * 	A: {}
-      * 	B: {}
+         * ```
+         * class States extends AsyncMachine
+         * 	A: {}
+         * 	B: {}
          *
-      * class Foo
-      * 	constructor: ->
-      * 		@states = new States
-      * 		@states.registerAll()
-      * ```
+         * class Foo
+         * 	constructor: ->
+         * 		@states = new States
+         * 		@states.registerAll()
+         * ```
     */
     AsyncMachine.prototype.registerAll = function () {
         var _results;
@@ -292,15 +292,15 @@ var AsyncMachine = (function (_super) {
         });
     };
     /**
-      * Checks if all the passed states are set.
+         * Checks if all the passed states are set.
          *
-      * ```
-      * states = AsyncMachine.factory ['A', 'B', 'C']
-      * states.add ['A', 'B']
+         * ```
+         * states = AsyncMachine.factory ['A', 'B', 'C']
+         * states.add ['A', 'B']
          *
-      * states.every 'A', 'B' # -> true
-      * states.every 'A', 'B', 'C' # -> false
-      * ```
+         * states.every 'A', 'B' # -> true
+         * states.every 'A', 'B', 'C' # -> false
+         * ```
     */
     AsyncMachine.prototype.every = function () {
         var _this = this;
@@ -311,27 +311,27 @@ var AsyncMachine = (function (_super) {
         return states.every(function (name) { return !!~_this.states_active.indexOf(name); });
     };
     /**
-      * Returns the current queue. For struct's meaning, see [[QUEUE]].
+         * Returns the current queue. For struct's meaning, see [[QUEUE]].
     */
     AsyncMachine.prototype.futureQueue = function () {
         return this.queue;
     };
     /**
-      * Register the passed state names. State properties should be already defined.
+         * Register the passed state names. State properties should be already defined.
          *
-      * @param states State names.
-      * @return
+         * @param states State names.
+         * @return
          *
-      * ```
-      * states = new AsyncMachine
-      * states.Enabled = {}
-      * states.Disposed = blocks: 'Enabled'
+         * ```
+         * states = new AsyncMachine
+         * states.Enabled = {}
+         * states.Disposed = blocks: 'Enabled'
          *
-      * states.register 'Enabled', 'Disposed'
+         * states.register 'Enabled', 'Disposed'
          *
-      * states.add 'Enabled'
-      * states.is() # -> 'Enabled'
-      * ```
+         * states.add 'Enabled'
+         * states.is() # -> 'Enabled'
+         * ```
     */
     AsyncMachine.prototype.register = function () {
         var _this = this;
@@ -345,17 +345,17 @@ var AsyncMachine = (function (_super) {
         });
     };
     /**
-      * Returns state's properties.
+         * Returns state's properties.
          *
-      * @param state State name.
-      * @return
+         * @param state State name.
+         * @return
          *
-      * ```
-      * states = AsyncMachine.factory ['A', 'B', 'C']
-      * states.A = blocks: ['B']
+         * ```
+         * states = AsyncMachine.factory ['A', 'B', 'C']
+         * states.A = blocks: ['B']
          *
-      * states.get('A') # -> { blocks: ['B'] }
-      * ```
+         * states.get('A') # -> { blocks: ['B'] }
+         * ```
     */
     AsyncMachine.prototype.get = function (state) {
         return this[state];
@@ -520,26 +520,114 @@ var AsyncMachine = (function (_super) {
     AsyncMachine.prototype.pipeOff = function () {
         throw new Error("not implemented yet");
     };
+    /**
+      * Returns the current tick of the passed state.
+      *
+      * State's clock starts with 0 and on each (successful) set it's incremented
+      * by 1. Ticks lets you keep control flow's integrity across async listeners,
+      * by aborting it once the state had changed. Easiest way to get the tick
+      * abort function is to use [[getAbort]].
+      *
+      * @param state Name of the state
+      * @return Current tick of the passed state
+      *
+      * Example
+      * ```
+         * states = AsyncMachine.factory ['A', 'B', 'C']
+         * states.add 'A'
+         * states.add 'A'
+      * states.clock('A') # -> 1
+         * states.drop 'A'
+         * states.add 'A'
+      * states.clock('A') # -> 2
+      * ````
+    */
     AsyncMachine.prototype.clock = function (state) {
         return this.clock_[state];
     };
+    /**
+      * Creates a prototype child with dedicated active states, a clock and
+      * a queue.
+      *
+      * Useful for creating new instances of dynamic classes (or factory created
+      * instances)
+      *
+      * @param state Name of the state
+      * @return Current tick of the passed state
+      *
+      * Example
+      * ```
+         * states1 = AsyncMachine.factory ['A', 'B', 'C']
+         * states2 = states1.createChild()
+      *
+      * states2.add 'A'
+         * states2.is() # -> ['A']
+         * states1.is() # -> []
+      * ````
+    */
     AsyncMachine.prototype.createChild = function () {
         var child = Object.create(this);
         var child_states_active = [];
         child.clock = {};
+        child.queue = [];
         this.states_all.forEach(function (state) { return child.clock[state] = 0; });
         return child;
     };
+    /**
+      * Indicates if this instance is currently during a state transition.
+      *
+      * When a machine is during a transition, all state changes will be queued
+      * and executed as a queue. See [[queue]].
+      *
+      * Example
+      * ```
+         * states = AsyncMachine.factory ['A', 'B', 'C']
+      *
+         * states.A_enter = ->
+      *   @duringTransition() # -> true
+      *
+         * states.A_state = ->
+      *   @duringTransition() # -> true
+      *
+      * states.add 'A'
+      * ````
+    */
     AsyncMachine.prototype.duringTransition = function () {
         return this.lock;
     };
+    /**
+      * Returns the abort function, based on the current [[clock]] tick of the
+      * passed state. Optionally allows to compose an existing abort function.
+      *
+      * The abort function is a boolean function returning TRUE once the flow
+      * for the specific state should be aborted, because:
+      * -the state has been unset (at least once)
+      * -the composed abort function returns TRUE
+      *
+      * Example
+      * ```
+         * states = AsyncMachine.factory ['A', 'B', 'C']
+      *
+         * states.A_state = ->
+      *   abort = @getAbort 'A'
+      *   setTimeout (->
+      *       return if abort()
+      *       console.log 'never reached'
+      *     ), 0
+      *
+         * states.add 'A'
+         * states.drop 'A'
+      * ````
+      *
+         * TODO support multiple states
+         * TODO support default values for state names
+      *
+      * @param state Name of the state
+      * @param abort Existing abort function (optional)
+      * @return A new abort function
+    */
     AsyncMachine.prototype.getAbort = function (state, abort) {
         var tick = this.clock(state);
-        return this.getAbortFunction(state, tick, abort);
-    };
-    AsyncMachine.prototype.getAbortEnter = function (state, abort) {
-        var tick = this.clock(state);
-        tick++;
         return this.getAbortFunction(state, tick, abort);
     };
     AsyncMachine.prototype.when = function (states, abort) {
@@ -552,6 +640,26 @@ var AsyncMachine = (function (_super) {
         states = [].concat(states);
         return new promise.Promise(function (resolve, reject) { return _this.bindToStates(states, resolve, abort, true); });
     };
+    /**
+      * Enabled debug messages sent to the console. There're 3 log levels:
+      *
+      * - 1 - displays only the state changes in a diff format
+      * - 2 - displays all operations which happened along with refused state
+      *   changes
+      * - 3 - displays pretty much everything, including all possible operations
+      *
+      * Example
+      * ```
+         * states = AsyncMachine.factory ['A', 'B', 'C']
+         * states.debug 'FOO ', 1
+         * states.add 'A'
+      * # -> FOO [add] state Enabled
+      * # -> FOO [states] +Enabled
+      * ````
+      *
+      * @param prefix Prefix before all console messages.
+      * @param level Error level (1-3).
+    */
     AsyncMachine.prototype.debug = function (prefix, level) {
         if (prefix === void 0) { prefix = ""; }
         if (level === void 0) { level = 1; }
@@ -563,18 +671,6 @@ var AsyncMachine = (function (_super) {
     AsyncMachine.prototype.debugOff = function () {
         this.debug_ = false;
         return null;
-    };
-    AsyncMachine.prototype.log = function (msg, level) {
-        if (level == null) {
-            level = 1;
-        }
-        if (!this.debug_) {
-            return;
-        }
-        if (level > this.debug_level) {
-            return;
-        }
-        return console.log(this.debug_prefix + msg);
     };
     AsyncMachine.prototype.on = function (event, listener, context) {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
@@ -598,6 +694,18 @@ var AsyncMachine = (function (_super) {
             promise["catch"](function (error) { return _this.add("Exception", error, target_states); });
         }
         return promise;
+    };
+    AsyncMachine.prototype.log = function (msg, level) {
+        if (level == null) {
+            level = 1;
+        }
+        if (!this.debug_) {
+            return;
+        }
+        if (level > this.debug_level) {
+            return;
+        }
+        return console.log(this.debug_prefix + msg);
     };
     AsyncMachine.prototype.pipeBind = function (state, machine, target_state, local_queue, bindings) {
         var _this = this;

@@ -192,4 +192,6 @@ class AsyncMachine extends EventEmitter {
 	private orderStates_(states: string[]): void;
 	private bindToStates(states: string[], listener: Function, abort?: Function, once?: boolean);
 	private getAbortFunction(state: string, tick: number, abort?: () => boolean): () => boolean;
+	// TODO
+	// pipeBind: (state, machine, target_state, local_queue, bindings);
 }
