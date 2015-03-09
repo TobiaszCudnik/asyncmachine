@@ -720,57 +720,196 @@ class AsyncMachine extends eventemitter.EventEmitter
 	pipeOff: -> throw new Error "not implemented yet"
 
 
-	# Gets the current tick of a state.
-	# Ticks are incemented by #set, for non-set states.
+	###*
+   * Returns the current tick of the passed state.
+   *
+   * State's clock starts with 0 and on each (successful) set it's incremented
+   * by 1. Ticks lets you keep control flow's integrity across async listeners,
+   * by aborting it once the state had changed. Easiest way to get the tick
+   * abort function is to use [[getAbort]].
+   *
+   * @param state Name of the state
+   * @return Current tick of the passed state
+   *
+   * Example
+   * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.add 'A'
+	 * states.add 'A'
+   * states.clock('A') # -> 1
+	 * states.drop 'A'
+	 * states.add 'A'
+   * states.clock('A') # -> 2
+   * ````
+  ###
 	clock: (state) ->
 		# TODO assert an existing state
 		@clock_[state]
 
 
-	# Creates a prototype child with dedicated acrive states and the clock.
+	###*
+   * Creates a prototype child with dedicated active states, a clock and
+   * a queue.
+   *
+   * Useful for creating new instances of dynamic classes (or factory created
+   * instances)
+   *
+   * @param state Name of the state
+   * @return Current tick of the passed state
+   *
+   * Example
+   * ```
+	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states2 = states1.createChild()
+   *
+   * states2.add 'A'
+	 * states2.is() # -> ['A']
+	 * states1.is() # -> []
+   * ````
+  ###
 	createChild: ->
 		child = Object.create @
 		child_states_active = []
 		child.clock = {}
+		child.queue = []
 		child.clock[state] = 0 for state in @states_all
 		child
 
 
+	###*
+   * Indicates if this instance is currently during a state transition.
+   *
+   * When a machine is during a transition, all state changes will be queued
+   * and executed as a queue. See [[queue]].
+   *
+   * Example
+   * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+   *
+	 * states.A_enter = ->
+   *   @duringTransition() # -> true
+   *
+	 * states.A_state = ->
+   *   @duringTransition() # -> true
+   *
+   * states.add 'A'
+   * ````
+  ###
 	duringTransition: -> @lock
 
 
-	# TODO support multiple states
+	###*
+   * Returns the abort function, based on the current [[clock]] tick of the
+   * passed state. Optionally allows to compose an existing abort function.
+   *
+   * The abort function is a boolean function returning TRUE once the flow
+   * for the specific state should be aborted, because:
+   * -the state has been unset (at least once)
+   * -the composed abort function returns TRUE
+   *
+   * Example
+   * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+   *
+	 * states.A_state = ->
+   *   abort = @getAbort 'A'
+   *   setTimeout (->
+   *       return if abort()
+   *       console.log 'never reached'
+   *     ), 0
+   *
+	 * states.add 'A'
+	 * states.drop 'A'
+   * ````
+   *
+	 * TODO support multiple states
+	 * TODO support default values for state names
+   *
+   * @param state Name of the state
+   * @param abort Existing abort function (optional)
+   * @return A new abort function
+  ###
 	getAbort: (state, abort) ->
 		tick = @clock state
 
 		@getAbortFunction state, tick, abort
 
 
-	# TODO support multiple states
-	getAbortEnter: (state, abort) ->
-		tick = @clock state
-		tick++
-
-		@getAbortFunction state, tick, abort
-
-
-	# Resolves the returned promise when all passed states are set (in the same time).
-	# TODO support push cancellation
+	###*
+   * Resolves the returned promise when all passed states are set (at the same
+   * time). Accepts an optional abort function.
+   *
+   * Example
+   * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.when(['A', 'B']).then ->
+   *   console.log 'A, B'
+   *
+	 * states.add 'A'
+	 * states.add('B') # -> prints 'A, B'
+   * ````
+   *
+	 * # TODO support push cancellation
+   *
+   * @param state List of state names
+   * @param abort Existing abort function (optional)
+   * @return Promise resolved once all states are set concurrently.
+  ###
 	when: (states, abort) ->
 		states = [].concat states
 		new promise.Promise (resolve, reject) =>
 			@bindToStates states, resolve, abort
 
 
-	# Resolves the returned promise when all passed states are set (in the same time).
-	# Triggers only once.
-	# TODO support push cancellation
+	###*
+   * Resolves the returned promise when all passed states are set (at the same
+   * time), but triggers the listeners only once. Accepts an optional abort
+   * function.
+   *
+   * Example
+   * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.whenOnce(['A', 'B']).then ->
+   *   console.log 'A, B'
+   *
+	 * states.add 'A'
+	 * states.add('B') # -> prints 'A, B'
+	 * states.drop 'B'
+	 * states.add 'B' # listener is already disposed
+   * ````
+   *
+	 * # TODO support push cancellation
+   *
+   * @param state List of state names
+   * @param abort Existing abort function (optional)
+   * @return Promise resolved once all states are set concurrently.
+  ###
 	whenOnce: (states, abort) ->
 		states = [].concat states
 		new promise.Promise (resolve, reject) =>
 			@bindToStates states, resolve, abort, yes
 
 
+	###*
+   * Enabled debug messages sent to the console. There're 3 log levels:
+   *
+   * - 1 - displays only the state changes in a diff format
+   * - 2 - displays all operations which happened along with refused state
+   *   changes
+   * - 3 - displays pretty much everything, including all possible operations
+   *
+   * Example
+   * ```
+	 * states = AsyncMachine.factory ['A', 'B', 'C']
+	 * states.debug 'FOO ', 1
+	 * states.add 'A'
+   * # -> FOO [add] state Enabled
+   * # -> FOO [states] +Enabled
+   * ````
+   *
+   * @param prefix Prefix before all console messages.
+   * @param level Error level (1-3).
+  ###
 	debug: (prefix = '', level = 1) ->
 		@debug_ = yes
 		@debug_prefix = prefix
@@ -781,13 +920,6 @@ class AsyncMachine extends eventemitter.EventEmitter
 	debugOff: ->
 		@debug_ = no
 		null
-
-
-	log: (msg, level) ->
-		level ?= 1
-		return unless @debug_
-		return if level > @debug_level
-		console.log @debug_prefix + msg
 
 
 	on: (event, listener, context) ->
@@ -811,9 +943,10 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 		this
 
+
 	###*
-	 * Bind the Exception state to the promise error handler. Handly if when
-	 * working with promises.
+	 * Bind the Exception state to the promise error handler. Handy when working
+   * with promises.
 	 *
 	 * See [[Exception_state]].
 	 *
@@ -833,6 +966,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 	#//////////////////////////
 	# PRIVATES
 	#//////////////////////////
+
+
+	log: (msg, level) ->
+		level ?= 1
+		return unless @debug_
+		return if level > @debug_level
+		console.log @debug_prefix + msg
 
 
 	pipeBind: (state, machine, target_state, local_queue, bindings) ->
@@ -1367,6 +1507,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@on "#{state}_end", exit
 
 
+	# TODO compose the existing abort function without recursion
 	getAbortFunction: (state, tick, abort) ->
 		=>
 			if abort?()

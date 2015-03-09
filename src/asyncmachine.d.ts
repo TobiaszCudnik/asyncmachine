@@ -133,7 +133,6 @@ class AsyncMachine extends EventEmitter {
 	public duringTransition(): boolean;
 	public debug(prefix?: string, level?: number): void;
 	public debugOff(): void;
-	public log(msg: string, level?: number): void;
 
 	public on(event: string, listener: Function, context?: Object): AsyncMachine;
 	public once(event: string, listener: Function, context?: Object): AsyncMachine;
@@ -146,7 +145,6 @@ class AsyncMachine extends EventEmitter {
 	public whenOnce(states: any, abort?: Function): Promise<any>;
 
 	public getAbort(state: string, abort?: () => boolean): () => boolean;
-	public getAbortEnter(state: string, abort?: () => boolean): () => boolean;
 
 	public futureQueue(): Array<Array<any>>;
 
@@ -155,6 +153,7 @@ class AsyncMachine extends EventEmitter {
 
 	// ----- PRIVATES -----
 
+	private log(msg: string, level?: number): void;
 	private callListener(listener, context, params): Promise<any>;
 	private callListener(listener, context, params): any;
 
