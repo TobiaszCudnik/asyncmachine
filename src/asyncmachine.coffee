@@ -685,6 +685,29 @@ class AsyncMachine extends eventemitter.EventEmitter
 		fn = @drop.bind this
 		@setImmediate fn, target, states, params
 
+	###*
+	 * Pipes (forwards) the state to other instance.
+	 *
+	 * Piped are "_state" and "_end" methods, not the negatiation ones
+	 * (see pipeNegotiation]] for these).
+	 *
+	 * @param state Source state's name. Optional - if none is given, all states
+	 * from the source asyncmachine are piped.
+	 * @param machine Target machine to which the state(s) should be forwarded.
+	 * @param target_state If the target state name should be different, this is
+	 * the name.
+	 * @param local_queue Append the piped stated to the end of the local queue
+	 *   if any exists at the moment. This will alter the order of the transition.
+	 *
+	 * Example
+	 * ```
+	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states2 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states1.pipe 'A', states2
+	 * states1.add 'A'
+	 * states2.is('A') # -> true
+	 * ```
+	###
 	pipe: (state, machine, target_state, local_queue) ->
 		bindings =
 			state: 'add'
@@ -692,7 +715,30 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 		@pipeBind state, machine, target_state, local_queue, bindings
 
-
+	###*
+	 * Pipes (forwards) the state to other instance in an inverted manner.
+	 *
+	 * Piped are "_state" and "_end" methods, not the negatiation ones
+	 * (see pipeNegotiation]] for these).
+	 *
+	 * @param state Source state's name. Optional - if none is given, all states
+	 * from the source asyncmachine are forwarded.
+	 * @param machine Target machine to which the state(s) should be forwarded.
+	 * @param target_state If the target state name should be different, this is
+	 * the name.
+	 * @param local_queue Append the piped stated to the end of the local queue
+	 *   if any exists at the moment. This will alter the order of the transition.
+	 *
+	 * Example
+	 * ```
+	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states2 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states1.pipeInverted 'A', states2
+	 * states2.is('A') # -> true
+	 * states1.add 'A'
+	 * states2.is('A') # -> false
+	 * ```
+	###
 	pipeInverted: (state, machine, target_state, local_queue) ->
 		bindings =
 			state: 'drop'
@@ -700,7 +746,40 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 		@pipeBind state, machine, target_state, local_queue, bindings
 
-
+	###*
+	 * Pipes (forwards) the state to other instance.
+	 *
+	 * Piped are "_enter" and "_exit" methods, which returned values can manage
+	 * the state negotiation, but also can be executed in random order (relatively
+	 * to other states from the same transition).
+	 *
+	 * @param state Source state's name. Optional - if none is given, all states
+	 * from the source asyncmachine are piped.
+	 * @param machine Target machine to which the state(s) should be forwarded.
+	 * @param target_state If the target state name should be different, this is
+	 * the name.
+	 * @param local_queue Append the piped stated to the end of the local queue
+	 *   if any exists at the moment. This will alter the order of the transition.
+	 *
+	 * Example (without negotiation)
+	 * ```
+	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states2 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states1.pipeNegotiation 'A', states2
+	 * states1.add 'A'
+	 * states2.is('A') # -> true
+	 * ```
+	 *
+	 * Example (with negotiation)
+	 * ```
+	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states2 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states2.A_enter = -> no
+	 * states1.pipeNegotiation 'A', states2
+	 * states1.add 'A'
+	 * states2.is('A') # -> false
+	 * ```
+	###
 	pipeNegotiation: (state, machine, target_state, local_queue) ->
 		bindings =
 			enter: 'add'
@@ -708,7 +787,40 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 		@pipeBind state, machine, target_state, local_queue, bindings
 
-
+	###*
+	 * Pipes (forwards) the state to other instance in an inverted manner.
+	 *
+	 * Piped are "_enter" and "_exit" methods, which returned values can manage
+	 * the state negotiation, but also can be executed in random order (relatively
+	 * to other states from the same transition).
+	 *
+	 * @param state Source state's name. Optional - if none is given, all states
+	 * from the source asyncmachine are piped.
+	 * @param machine Target machine to which the state(s) should be forwarded.
+	 * @param target_state If the target state name should be different, this is
+	 * the name.
+	 * @param local_queue Append the piped stated to the end of the local queue
+	 *   if any exists at the moment. This will alter the order of the transition.
+	 *
+	 * Example (without negotiation)
+	 * ```
+	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states2 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states1.pipeNegotiationInverted 'A', states2
+	 * states1.add 'A'
+	 * states2.is('A') # -> true
+	 * ```
+	 *
+	 * Example (with negotiation)
+	 * ```
+	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states2 = AsyncMachine.factory ['A', 'B', 'C']
+	 * states2.A_enter = -> no
+	 * states1.pipeNegotiationInverted 'A', states2
+	 * states1.add 'A'
+	 * states2.is('A') # -> false
+	 * ```
+	###
 	pipeNegotiationInverted: (state, machine, target_state, local_queue) ->
 		bindings =
 			enter: 'drop'
@@ -721,52 +833,52 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	###*
-   * Returns the current tick of the passed state.
-   *
-   * State's clock starts with 0 and on each (successful) set it's incremented
-   * by 1. Ticks lets you keep control flow's integrity across async listeners,
-   * by aborting it once the state had changed. Easiest way to get the tick
-   * abort function is to use [[getAbort]].
-   *
-   * @param state Name of the state
-   * @return Current tick of the passed state
-   *
-   * Example
-   * ```
+	 * Returns the current tick of the passed state.
+	 *
+	 * State's clock starts with 0 and on each (successful) set it's incremented
+	 * by 1. Ticks lets you keep control flow's integrity across async listeners,
+	 * by aborting it once the state had changed. Easiest way to get the tick
+	 * abort function is to use [[getAbort]].
+	 *
+	 * @param state Name of the state
+	 * @return Current tick of the passed state
+	 *
+	 * Example
+	 * ```
 	 * states = AsyncMachine.factory ['A', 'B', 'C']
 	 * states.add 'A'
 	 * states.add 'A'
-   * states.clock('A') # -> 1
+	 * states.clock('A') # -> 1
 	 * states.drop 'A'
 	 * states.add 'A'
-   * states.clock('A') # -> 2
-   * ````
-  ###
+	 * states.clock('A') # -> 2
+	 * ````
+	###
 	clock: (state) ->
 		# TODO assert an existing state
 		@clock_[state]
 
 
 	###*
-   * Creates a prototype child with dedicated active states, a clock and
-   * a queue.
-   *
-   * Useful for creating new instances of dynamic classes (or factory created
-   * instances)
-   *
-   * @param state Name of the state
-   * @return Current tick of the passed state
-   *
-   * Example
-   * ```
+	 * Creates a prototype child with dedicated active states, a clock and
+	 * a queue.
+	 *
+	 * Useful for creating new instances of dynamic classes (or factory created
+	 * instances)
+	 *
+	 * @param state Name of the state
+	 * @return Current tick of the passed state
+	 *
+	 * Example
+	 * ```
 	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
 	 * states2 = states1.createChild()
-   *
-   * states2.add 'A'
+	 *
+	 * states2.add 'A'
 	 * states2.is() # -> ['A']
 	 * states1.is() # -> []
-   * ````
-  ###
+	 * ````
+	###
 	createChild: ->
 		child = Object.create @
 		child_states_active = []
@@ -777,58 +889,58 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	###*
-   * Indicates if this instance is currently during a state transition.
-   *
-   * When a machine is during a transition, all state changes will be queued
-   * and executed as a queue. See [[queue]].
-   *
-   * Example
-   * ```
+	 * Indicates if this instance is currently during a state transition.
+	 *
+	 * When a machine is during a transition, all state changes will be queued
+	 * and executed as a queue. See [[queue]].
+	 *
+	 * Example
+	 * ```
 	 * states = AsyncMachine.factory ['A', 'B', 'C']
-   *
+	 *
 	 * states.A_enter = ->
-   *   @duringTransition() # -> true
-   *
+	 *   @duringTransition() # -> true
+	 *
 	 * states.A_state = ->
-   *   @duringTransition() # -> true
-   *
-   * states.add 'A'
-   * ````
-  ###
+	 *   @duringTransition() # -> true
+	 *
+	 * states.add 'A'
+	 * ````
+	###
 	duringTransition: -> @lock
 
 
 	###*
-   * Returns the abort function, based on the current [[clock]] tick of the
-   * passed state. Optionally allows to compose an existing abort function.
-   *
-   * The abort function is a boolean function returning TRUE once the flow
-   * for the specific state should be aborted, because:
-   * -the state has been unset (at least once)
-   * -the composed abort function returns TRUE
-   *
-   * Example
-   * ```
+	 * Returns the abort function, based on the current [[clock]] tick of the
+	 * passed state. Optionally allows to compose an existing abort function.
+	 *
+	 * The abort function is a boolean function returning TRUE once the flow
+	 * for the specific state should be aborted, because:
+	 * -the state has been unset (at least once)
+	 * -the composed abort function returns TRUE
+	 *
+	 * Example
+	 * ```
 	 * states = AsyncMachine.factory ['A', 'B', 'C']
-   *
+	 *
 	 * states.A_state = ->
-   *   abort = @getAbort 'A'
-   *   setTimeout (->
-   *       return if abort()
-   *       console.log 'never reached'
-   *     ), 0
-   *
+	 *   abort = @getAbort 'A'
+	 *   setTimeout (->
+	 *       return if abort()
+	 *       console.log 'never reached'
+	 *     ), 0
+	 *
 	 * states.add 'A'
 	 * states.drop 'A'
-   * ````
-   *
+	 * ````
+	 *
 	 * TODO support multiple states
 	 * TODO support default values for state names
-   *
-   * @param state Name of the state
-   * @param abort Existing abort function (optional)
-   * @return A new abort function
-  ###
+	 *
+	 * @param state Name of the state
+	 * @param abort Existing abort function (optional)
+	 * @return A new abort function
+	###
 	getAbort: (state, abort) ->
 		tick = @clock state
 
@@ -836,25 +948,25 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	###*
-   * Resolves the returned promise when all passed states are set (at the same
-   * time). Accepts an optional abort function.
-   *
-   * Example
-   * ```
+	 * Resolves the returned promise when all passed states are set (at the same
+	 * time). Accepts an optional abort function.
+	 *
+	 * Example
+	 * ```
 	 * states = AsyncMachine.factory ['A', 'B', 'C']
 	 * states.when(['A', 'B']).then ->
-   *   console.log 'A, B'
-   *
+	 *   console.log 'A, B'
+	 *
 	 * states.add 'A'
 	 * states.add('B') # -> prints 'A, B'
-   * ````
-   *
+	 * ````
+	 *
 	 * # TODO support push cancellation
-   *
-   * @param state List of state names
-   * @param abort Existing abort function (optional)
-   * @return Promise resolved once all states are set concurrently.
-  ###
+	 *
+	 * @param state List of state names
+	 * @param abort Existing abort function (optional)
+	 * @return Promise resolved once all states are set concurrently.
+	###
 	when: (states, abort) ->
 		states = [].concat states
 		new promise.Promise (resolve, reject) =>
@@ -862,28 +974,28 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	###*
-   * Resolves the returned promise when all passed states are set (at the same
-   * time), but triggers the listeners only once. Accepts an optional abort
-   * function.
-   *
-   * Example
-   * ```
+	 * Resolves the returned promise when all passed states are set (at the same
+	 * time), but triggers the listeners only once. Accepts an optional abort
+	 * function.
+	 *
+	 * Example
+	 * ```
 	 * states = AsyncMachine.factory ['A', 'B', 'C']
 	 * states.whenOnce(['A', 'B']).then ->
-   *   console.log 'A, B'
-   *
+	 *   console.log 'A, B'
+	 *
 	 * states.add 'A'
 	 * states.add('B') # -> prints 'A, B'
 	 * states.drop 'B'
 	 * states.add 'B' # listener is already disposed
-   * ````
-   *
+	 * ````
+	 *
 	 * # TODO support push cancellation
-   *
-   * @param state List of state names
-   * @param abort Existing abort function (optional)
-   * @return Promise resolved once all states are set concurrently.
-  ###
+	 *
+	 * @param state List of state names
+	 * @param abort Existing abort function (optional)
+	 * @return Promise resolved once all states are set concurrently.
+	###
 	whenOnce: (states, abort) ->
 		states = [].concat states
 		new promise.Promise (resolve, reject) =>
@@ -891,25 +1003,25 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	###*
-   * Enabled debug messages sent to the console. There're 3 log levels:
-   *
-   * - 1 - displays only the state changes in a diff format
-   * - 2 - displays all operations which happened along with refused state
-   *   changes
-   * - 3 - displays pretty much everything, including all possible operations
-   *
-   * Example
-   * ```
+	 * Enabled debug messages sent to the console. There're 3 log levels:
+	 *
+	 * - 1 - displays only the state changes in a diff format
+	 * - 2 - displays all operations which happened along with refused state
+	 *   changes
+	 * - 3 - displays pretty much everything, including all possible operations
+	 *
+	 * Example
+	 * ```
 	 * states = AsyncMachine.factory ['A', 'B', 'C']
 	 * states.debug 'FOO ', 1
 	 * states.add 'A'
-   * # -> FOO [add] state Enabled
-   * # -> FOO [states] +Enabled
-   * ````
-   *
-   * @param prefix Prefix before all console messages.
-   * @param level Error level (1-3).
-  ###
+	 * # -> FOO [add] state Enabled
+	 * # -> FOO [states] +Enabled
+	 * ````
+	 *
+	 * @param prefix Prefix before all console messages.
+	 * @param level Error level (1-3).
+	###
 	debug: (prefix = '', level = 1) ->
 		@debug_ = yes
 		@debug_prefix = prefix
@@ -946,7 +1058,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 	###*
 	 * Bind the Exception state to the promise error handler. Handy when working
-   * with promises.
+	 * with promises.
 	 *
 	 * See [[Exception_state]].
 	 *
