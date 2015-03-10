@@ -352,7 +352,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 *   or some of implied or auto states dropped some of the requested states
 	 *   after the transition.
 	 *
-	 * Basic usage example
+	 * Basic usage
 	 * ```
 	 * states = AsyncMachine.factory ['A', 'B', 'C']
 	 * states.set 'A'
@@ -361,7 +361,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * states.is() # -> ['B']
 	 * ```
 	 *
-	 * Example of a state negotiation
+	 * State negotiation
 	 * ```
 	 * states = AsyncMachine.factory ['A', 'B']
 	 * # Transition enter negotiation
@@ -369,7 +369,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * states.add 'A' # -> false
 	 * ```
 	 *
-	 * Example of setting a state on an external machine
+	 * Setting a state on an external machine
 	 * ```
 	 * states1 = AsyncMachine.factory ['A', 'B']
 	 * states2 = AsyncMachine.factory ['C', 'D']
@@ -467,7 +467,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 *   or some of implied or auto states dropped some of the requested states
 	 *   after the transition.
 	 *
-	 * Basic usage example
+	 * Basic usage
 	 * ```
 	 * states = AsyncMachine.factory ['A', 'B', 'C']
 	 * states.add 'A'
@@ -476,7 +476,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * states.is() # -> ['B']
 	 * ```
 	 *
-	 * Example of a state negotiation
+	 * State negotiation
 	 * ```
 	 * states = AsyncMachine.factory ['A', 'B']
 	 * # Transition enter negotiation
@@ -484,7 +484,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * states.add 'A' # -> false
 	 * ```
 	 *
-	 * Example of adding a state on an external machine
+	 * Adding a state on an external machine
 	 * ```
 	 * states1 = AsyncMachine.factory ['A', 'B']
 	 * states2 = AsyncMachine.factory ['C', 'D']
@@ -582,7 +582,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 *   wasn't accepted, or some of implied or auto states added some of the
 	 *   requested states after the transition.
 	 *
-	 * Basic usage example
+	 * Basic usage
 	 * ```
 	 * states = AsyncMachine.factory ['A', 'B', 'C']
 	 * states.drop 'A'
@@ -591,7 +591,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * states.is() # -> ['B']
 	 * ```
 	 *
-	 * Example of a state negotiation
+	 * State negotiation
 	 * ```
 	 * states = AsyncMachine.factory ['A', 'B']
 	 * # Transition enter negotiation
@@ -599,7 +599,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * states.add 'A' # -> false
 	 * ```
 	 *
-	 * Example of dropping a state on an external machine
+	 * Dropping a state on an external machine
 	 * ```
 	 * states1 = AsyncMachine.factory ['A', 'B']
 	 * states2 = AsyncMachine.factory ['C', 'D']
@@ -761,7 +761,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * @param local_queue Append the piped stated to the end of the local queue
 	 *   if any exists at the moment. This will alter the order of the transition.
 	 *
-	 * Example (without negotiation)
+	 * Piping without negotiation
 	 * ```
 	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
 	 * states2 = AsyncMachine.factory ['A', 'B', 'C']
@@ -770,7 +770,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * states2.is('A') # -> true
 	 * ```
 	 *
-	 * Example (with negotiation)
+	 * Piping with negotiation
 	 * ```
 	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
 	 * states2 = AsyncMachine.factory ['A', 'B', 'C']
@@ -802,7 +802,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * @param local_queue Append the piped stated to the end of the local queue
 	 *   if any exists at the moment. This will alter the order of the transition.
 	 *
-	 * Example (without negotiation)
+	 * Inverted piping without negotiation
 	 * ```
 	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
 	 * states2 = AsyncMachine.factory ['A', 'B', 'C']
@@ -811,7 +811,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * states2.is('A') # -> true
 	 * ```
 	 *
-	 * Example (with negotiation)
+	 * Inverted piping with negotiation
 	 * ```
 	 * states1 = AsyncMachine.factory ['A', 'B', 'C']
 	 * states2 = AsyncMachine.factory ['A', 'B', 'C']
@@ -1152,7 +1152,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		length_equals = @is().length is states_before.length
 		# if not autostate and not ((@any states_before) and length_equals)
 
-		not length_equals or @diffStates(states_before, @is()).length
+		not length_equals or Boolean @diffStates(states_before, @is()).length
 
 
 	# TODO this is quite too long
@@ -1302,6 +1302,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			ret = undefined
 			name = state + "_" + state
 			if ~@states_active.indexOf state
+				transition_params = []
 				transition_params = [states].concat params
 				context = @getMethodContext name
 				if context
@@ -1315,7 +1316,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 					@log "Self transition for #{state} cancelled", 2
 					return yes
 
-				ret = @emit.apply this, [name].concat transition_params
+				a = @emit.apply this, [name].concat transition_params
 				if ret isnt no
 					# TODO this is hacky
 					@transition_events.push [name, transition_params]
@@ -1559,6 +1560,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 	transitionExec_: (method, target_states, params) ->
 		params ?= []
+		transition_params = []
 		transition_params = [target_states].concat params
 		ret = undefined
 

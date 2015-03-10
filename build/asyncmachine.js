@@ -496,6 +496,30 @@ var AsyncMachine = (function (_super) {
         };
         return this.pipeBind(state, machine, target_state, local_queue, bindings);
     };
+    /**
+         * Pipes (forwards) the state to other instance in an inverted manner.
+         *
+         * Piped are "_state" and "_end" methods, not the negatiation ones
+         * (see pipeNegotiation]] for these).
+         *
+         * @param state Source state's name. Optional - if none is given, all states
+         * from the source asyncmachine are forwarded.
+         * @param machine Target machine to which the state(s) should be forwarded.
+         * @param target_state If the target state name should be different, this is
+         * the name.
+         * @param local_queue Append the piped stated to the end of the local queue
+         *   if any exists at the moment. This will alter the order of the transition.
+         *
+         * Example
+         * ```
+         * states1 = AsyncMachine.factory ['A', 'B', 'C']
+         * states2 = AsyncMachine.factory ['A', 'B', 'C']
+         * states1.pipeInverted 'A', states2
+         * states2.is('A') # -> true
+         * states1.add 'A'
+         * states2.is('A') # -> false
+         * ```
+    */
     AsyncMachine.prototype.pipeInverted = function (state, machine, target_state, local_queue) {
         var bindings = {
             state: "drop",
@@ -503,6 +527,40 @@ var AsyncMachine = (function (_super) {
         };
         return this.pipeBind(state, machine, target_state, local_queue, bindings);
     };
+    /**
+         * Pipes (forwards) the state to other instance.
+         *
+         * Piped are "_enter" and "_exit" methods, which returned values can manage
+         * the state negotiation, but also can be executed in random order (relatively
+         * to other states from the same transition).
+         *
+         * @param state Source state's name. Optional - if none is given, all states
+         * from the source asyncmachine are piped.
+         * @param machine Target machine to which the state(s) should be forwarded.
+         * @param target_state If the target state name should be different, this is
+         * the name.
+         * @param local_queue Append the piped stated to the end of the local queue
+         *   if any exists at the moment. This will alter the order of the transition.
+         *
+         * Piping without negotiation
+         * ```
+         * states1 = AsyncMachine.factory ['A', 'B', 'C']
+         * states2 = AsyncMachine.factory ['A', 'B', 'C']
+         * states1.pipeNegotiation 'A', states2
+         * states1.add 'A'
+         * states2.is('A') # -> true
+         * ```
+         *
+         * Piping with negotiation
+         * ```
+         * states1 = AsyncMachine.factory ['A', 'B', 'C']
+         * states2 = AsyncMachine.factory ['A', 'B', 'C']
+         * states2.A_enter = -> no
+         * states1.pipeNegotiation 'A', states2
+         * states1.add 'A'
+         * states2.is('A') # -> false
+         * ```
+    */
     AsyncMachine.prototype.pipeNegotiation = function (state, machine, target_state, local_queue) {
         var bindings = {
             enter: "add",
@@ -510,6 +568,40 @@ var AsyncMachine = (function (_super) {
         };
         return this.pipeBind(state, machine, target_state, local_queue, bindings);
     };
+    /**
+         * Pipes (forwards) the state to other instance in an inverted manner.
+         *
+         * Piped are "_enter" and "_exit" methods, which returned values can manage
+         * the state negotiation, but also can be executed in random order (relatively
+         * to other states from the same transition).
+         *
+         * @param state Source state's name. Optional - if none is given, all states
+         * from the source asyncmachine are piped.
+         * @param machine Target machine to which the state(s) should be forwarded.
+         * @param target_state If the target state name should be different, this is
+         * the name.
+         * @param local_queue Append the piped stated to the end of the local queue
+         *   if any exists at the moment. This will alter the order of the transition.
+         *
+         * Inverted piping without negotiation
+         * ```
+         * states1 = AsyncMachine.factory ['A', 'B', 'C']
+         * states2 = AsyncMachine.factory ['A', 'B', 'C']
+         * states1.pipeNegotiationInverted 'A', states2
+         * states1.add 'A'
+         * states2.is('A') # -> true
+         * ```
+         *
+         * Inverted piping with negotiation
+         * ```
+         * states1 = AsyncMachine.factory ['A', 'B', 'C']
+         * states2 = AsyncMachine.factory ['A', 'B', 'C']
+         * states2.A_enter = -> no
+         * states1.pipeNegotiationInverted 'A', states2
+         * states1.add 'A'
+         * states2.is('A') # -> false
+         * ```
+    */
     AsyncMachine.prototype.pipeNegotiationInverted = function (state, machine, target_state, local_queue) {
         var bindings = {
             enter: "drop",
@@ -521,49 +613,49 @@ var AsyncMachine = (function (_super) {
         throw new Error("not implemented yet");
     };
     /**
-      * Returns the current tick of the passed state.
-      *
-      * State's clock starts with 0 and on each (successful) set it's incremented
-      * by 1. Ticks lets you keep control flow's integrity across async listeners,
-      * by aborting it once the state had changed. Easiest way to get the tick
-      * abort function is to use [[getAbort]].
-      *
-      * @param state Name of the state
-      * @return Current tick of the passed state
-      *
-      * Example
-      * ```
+         * Returns the current tick of the passed state.
+         *
+         * State's clock starts with 0 and on each (successful) set it's incremented
+         * by 1. Ticks lets you keep control flow's integrity across async listeners,
+         * by aborting it once the state had changed. Easiest way to get the tick
+         * abort function is to use [[getAbort]].
+         *
+         * @param state Name of the state
+         * @return Current tick of the passed state
+         *
+         * Example
+         * ```
          * states = AsyncMachine.factory ['A', 'B', 'C']
          * states.add 'A'
          * states.add 'A'
-      * states.clock('A') # -> 1
+         * states.clock('A') # -> 1
          * states.drop 'A'
          * states.add 'A'
-      * states.clock('A') # -> 2
-      * ````
+         * states.clock('A') # -> 2
+         * ````
     */
     AsyncMachine.prototype.clock = function (state) {
         return this.clock_[state];
     };
     /**
-      * Creates a prototype child with dedicated active states, a clock and
-      * a queue.
-      *
-      * Useful for creating new instances of dynamic classes (or factory created
-      * instances)
-      *
-      * @param state Name of the state
-      * @return Current tick of the passed state
-      *
-      * Example
-      * ```
+         * Creates a prototype child with dedicated active states, a clock and
+         * a queue.
+         *
+         * Useful for creating new instances of dynamic classes (or factory created
+         * instances)
+         *
+         * @param state Name of the state
+         * @return Current tick of the passed state
+         *
+         * Example
+         * ```
          * states1 = AsyncMachine.factory ['A', 'B', 'C']
          * states2 = states1.createChild()
-      *
-      * states2.add 'A'
+         *
+         * states2.add 'A'
          * states2.is() # -> ['A']
          * states1.is() # -> []
-      * ````
+         * ````
     */
     AsyncMachine.prototype.createChild = function () {
         var child = Object.create(this);
@@ -574,57 +666,57 @@ var AsyncMachine = (function (_super) {
         return child;
     };
     /**
-      * Indicates if this instance is currently during a state transition.
-      *
-      * When a machine is during a transition, all state changes will be queued
-      * and executed as a queue. See [[queue]].
-      *
-      * Example
-      * ```
+         * Indicates if this instance is currently during a state transition.
+         *
+         * When a machine is during a transition, all state changes will be queued
+         * and executed as a queue. See [[queue]].
+         *
+         * Example
+         * ```
          * states = AsyncMachine.factory ['A', 'B', 'C']
-      *
+         *
          * states.A_enter = ->
-      *   @duringTransition() # -> true
-      *
+         *   @duringTransition() # -> true
+         *
          * states.A_state = ->
-      *   @duringTransition() # -> true
-      *
-      * states.add 'A'
-      * ````
+         *   @duringTransition() # -> true
+         *
+         * states.add 'A'
+         * ````
     */
     AsyncMachine.prototype.duringTransition = function () {
         return this.lock;
     };
     /**
-      * Returns the abort function, based on the current [[clock]] tick of the
-      * passed state. Optionally allows to compose an existing abort function.
-      *
-      * The abort function is a boolean function returning TRUE once the flow
-      * for the specific state should be aborted, because:
-      * -the state has been unset (at least once)
-      * -the composed abort function returns TRUE
-      *
-      * Example
-      * ```
+         * Returns the abort function, based on the current [[clock]] tick of the
+         * passed state. Optionally allows to compose an existing abort function.
+         *
+         * The abort function is a boolean function returning TRUE once the flow
+         * for the specific state should be aborted, because:
+         * -the state has been unset (at least once)
+         * -the composed abort function returns TRUE
+         *
+         * Example
+         * ```
          * states = AsyncMachine.factory ['A', 'B', 'C']
-      *
+         *
          * states.A_state = ->
-      *   abort = @getAbort 'A'
-      *   setTimeout (->
-      *       return if abort()
-      *       console.log 'never reached'
-      *     ), 0
-      *
+         *   abort = @getAbort 'A'
+         *   setTimeout (->
+         *       return if abort()
+         *       console.log 'never reached'
+         *     ), 0
+         *
          * states.add 'A'
          * states.drop 'A'
-      * ````
-      *
+         * ````
+         *
          * TODO support multiple states
          * TODO support default values for state names
-      *
-      * @param state Name of the state
-      * @param abort Existing abort function (optional)
-      * @return A new abort function
+         *
+         * @param state Name of the state
+         * @param abort Existing abort function (optional)
+         * @return A new abort function
     */
     AsyncMachine.prototype.getAbort = function (state, abort) {
         var tick = this.clock(state);
@@ -641,24 +733,24 @@ var AsyncMachine = (function (_super) {
         return new promise.Promise(function (resolve, reject) { return _this.bindToStates(states, resolve, abort, true); });
     };
     /**
-      * Enabled debug messages sent to the console. There're 3 log levels:
-      *
-      * - 1 - displays only the state changes in a diff format
-      * - 2 - displays all operations which happened along with refused state
-      *   changes
-      * - 3 - displays pretty much everything, including all possible operations
-      *
-      * Example
-      * ```
+         * Enabled debug messages sent to the console. There're 3 log levels:
+         *
+         * - 1 - displays only the state changes in a diff format
+         * - 2 - displays all operations which happened along with refused state
+         *   changes
+         * - 3 - displays pretty much everything, including all possible operations
+         *
+         * Example
+         * ```
          * states = AsyncMachine.factory ['A', 'B', 'C']
          * states.debug 'FOO ', 1
          * states.add 'A'
-      * # -> FOO [add] state Enabled
-      * # -> FOO [states] +Enabled
-      * ````
-      *
-      * @param prefix Prefix before all console messages.
-      * @param level Error level (1-3).
+         * # -> FOO [add] state Enabled
+         * # -> FOO [states] +Enabled
+         * ````
+         *
+         * @param prefix Prefix before all console messages.
+         * @param level Error level (1-3).
     */
     AsyncMachine.prototype.debug = function (prefix, level) {
         if (prefix === void 0) { prefix = ""; }
@@ -772,7 +864,7 @@ var AsyncMachine = (function (_super) {
     };
     AsyncMachine.prototype.hasStateChanged = function (states_before) {
         var length_equals = this.is().length === states_before.length;
-        return !length_equals || this.diffStates(states_before, this.is()).length;
+        return !length_equals || Boolean(this.diffStates(states_before, this.is()).length);
     };
     AsyncMachine.prototype.processStateChange_ = function (type, states, params, autostate, skip_queue) {
         var _this = this;
@@ -922,7 +1014,8 @@ var AsyncMachine = (function (_super) {
             ret = void 0;
             var name = state + "_" + state;
             if (~_this.states_active.indexOf(state)) {
-                var transition_params = [states].concat(params);
+                var transition_params = [];
+                transition_params = [states].concat(params);
                 var context = _this.getMethodContext(name);
                 if (context) {
                     _this.log("[transition] " + name, 2);
@@ -936,7 +1029,7 @@ var AsyncMachine = (function (_super) {
                     _this.log("Self transition for " + state + " cancelled", 2);
                     return true;
                 }
-                ret = _this.emit.apply(_this, [name].concat(transition_params));
+                var a = _this.emit.apply(_this, [name].concat(transition_params));
                 if (ret !== false) {
                     _this.transition_events.push([name, transition_params]);
                 }
@@ -1194,7 +1287,8 @@ var AsyncMachine = (function (_super) {
         if (params == null) {
             params = [];
         }
-        var transition_params = [target_states].concat(params);
+        var transition_params = [];
+        transition_params = [target_states].concat(params);
         var ret = void 0;
         var context = this.getMethodContext(method);
         if (context) {

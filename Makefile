@@ -60,7 +60,7 @@ test-grep-debug:
 		test/*.coffee
 
 docs:
-	./node_modules/typedoc-v2/bin/typedoc \
+	typedoc \
 		--out docs/ \
 		--module commonjs \
 		--name AsyncMachine \
@@ -75,28 +75,4 @@ spec:
 		test/*.coffee >> docs/spec.html
 	echo "</pre></body></html>" >> docs/spec.html
 
-
-build-vis:
-	$(CCOFFEE) -o build/visualizer -i src/visualizer -p "asyncmachine-vis.js:am-visualizer"
-
-build-vis-watch:
-	$(CCOFFEE) -o build/visualizer -i src/visualizer \
-		--watch -p "asyncmachine.js:asyncmachine"
-
-test-vis:
-	./node_modules/mocha/bin/mocha \
-		--harmony \
-		--compilers mocha --compilers coffee:coffee-script/register \
-		--reporter spec \
-		test/visualizer.coffee
-
-test-vis-debug:
-	./node_modules/mocha/bin/mocha \
-		--harmony \
-		--debug-brk \
-		--compilers coffee:coffee-script \
-		--reporter spec \
-		--grep "$(GREP)" \
-		test/visualizer.coffee
-	
 .PHONY: build test docs

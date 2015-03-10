@@ -183,8 +183,8 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 .xml .hljs-attribute { color: #f00; }
 
-.col > :first-child, .col-1 > :first-child, .col-2 > :first-child, .col-3 > :first-child, .col-4 > :first-child, .col-5 > :first-child, .col-6 > :first-child, .col-7 > :first-child, .col-8 > :first-child, .col-9 > :first-child, .col-10 > :first-child, .col-11 > :first-child, .tsd-panel > :first-child, .tsd-descriptions > li > :first-child, .col > :first-child > :first-child, .col-1 > :first-child > :first-child, .col-2 > :first-child > :first-child, .col-3 > :first-child > :first-child, .col-4 > :first-child > :first-child, .col-5 > :first-child > :first-child, .col-6 > :first-child > :first-child, .col-7 > :first-child > :first-child, .col-8 > :first-child > :first-child, .col-9 > :first-child > :first-child, .col-10 > :first-child > :first-child, .col-11 > :first-child > :first-child, .tsd-panel > :first-child > :first-child, .tsd-descriptions > li > :first-child > :first-child, .col > :first-child > :first-child > :first-child, .col-1 > :first-child > :first-child > :first-child, .col-2 > :first-child > :first-child > :first-child, .col-3 > :first-child > :first-child > :first-child, .col-4 > :first-child > :first-child > :first-child, .col-5 > :first-child > :first-child > :first-child, .col-6 > :first-child > :first-child > :first-child, .col-7 > :first-child > :first-child > :first-child, .col-8 > :first-child > :first-child > :first-child, .col-9 > :first-child > :first-child > :first-child, .col-10 > :first-child > :first-child > :first-child, .col-11 > :first-child > :first-child > :first-child, .tsd-panel > :first-child > :first-child > :first-child, .tsd-descriptions > li > :first-child > :first-child > :first-child { margin-top: 0; }
-.col > :last-child, .col-1 > :last-child, .col-2 > :last-child, .col-3 > :last-child, .col-4 > :last-child, .col-5 > :last-child, .col-6 > :last-child, .col-7 > :last-child, .col-8 > :last-child, .col-9 > :last-child, .col-10 > :last-child, .col-11 > :last-child, .tsd-panel > :last-child, .tsd-descriptions > li > :last-child, .col > :last-child > :last-child, .col-1 > :last-child > :last-child, .col-2 > :last-child > :last-child, .col-3 > :last-child > :last-child, .col-4 > :last-child > :last-child, .col-5 > :last-child > :last-child, .col-6 > :last-child > :last-child, .col-7 > :last-child > :last-child, .col-8 > :last-child > :last-child, .col-9 > :last-child > :last-child, .col-10 > :last-child > :last-child, .col-11 > :last-child > :last-child, .tsd-panel > :last-child > :last-child, .tsd-descriptions > li > :last-child > :last-child, .col > :last-child > :last-child > :last-child, .col-1 > :last-child > :last-child > :last-child, .col-2 > :last-child > :last-child > :last-child, .col-3 > :last-child > :last-child > :last-child, .col-4 > :last-child > :last-child > :last-child, .col-5 > :last-child > :last-child > :last-child, .col-6 > :last-child > :last-child > :last-child, .col-7 > :last-child > :last-child > :last-child, .col-8 > :last-child > :last-child > :last-child, .col-9 > :last-child > :last-child > :last-child, .col-10 > :last-child > :last-child > :last-child, .col-11 > :last-child > :last-child > :last-child, .tsd-panel > :last-child > :last-child > :last-child, .tsd-descriptions > li > :last-child > :last-child > :last-child { margin-bottom: 0; }
+.col > :first-child, .col-1 > :first-child, .col-2 > :first-child, .col-3 > :first-child, .col-4 > :first-child, .col-5 > :first-child, .col-6 > :first-child, .col-7 > :first-child, .col-8 > :first-child, .col-9 > :first-child, .col-10 > :first-child, .col-11 > :first-child, .tsd-panel > :first-child, ul.tsd-descriptions > li > :first-child, .col > :first-child > :first-child, .col-1 > :first-child > :first-child, .col-2 > :first-child > :first-child, .col-3 > :first-child > :first-child, .col-4 > :first-child > :first-child, .col-5 > :first-child > :first-child, .col-6 > :first-child > :first-child, .col-7 > :first-child > :first-child, .col-8 > :first-child > :first-child, .col-9 > :first-child > :first-child, .col-10 > :first-child > :first-child, .col-11 > :first-child > :first-child, .tsd-panel > :first-child > :first-child, ul.tsd-descriptions > li > :first-child > :first-child, .col > :first-child > :first-child > :first-child, .col-1 > :first-child > :first-child > :first-child, .col-2 > :first-child > :first-child > :first-child, .col-3 > :first-child > :first-child > :first-child, .col-4 > :first-child > :first-child > :first-child, .col-5 > :first-child > :first-child > :first-child, .col-6 > :first-child > :first-child > :first-child, .col-7 > :first-child > :first-child > :first-child, .col-8 > :first-child > :first-child > :first-child, .col-9 > :first-child > :first-child > :first-child, .col-10 > :first-child > :first-child > :first-child, .col-11 > :first-child > :first-child > :first-child, .tsd-panel > :first-child > :first-child > :first-child, ul.tsd-descriptions > li > :first-child > :first-child > :first-child { margin-top: 0; }
+.col > :last-child, .col-1 > :last-child, .col-2 > :last-child, .col-3 > :last-child, .col-4 > :last-child, .col-5 > :last-child, .col-6 > :last-child, .col-7 > :last-child, .col-8 > :last-child, .col-9 > :last-child, .col-10 > :last-child, .col-11 > :last-child, .tsd-panel > :last-child, ul.tsd-descriptions > li > :last-child, .col > :last-child > :last-child, .col-1 > :last-child > :last-child, .col-2 > :last-child > :last-child, .col-3 > :last-child > :last-child, .col-4 > :last-child > :last-child, .col-5 > :last-child > :last-child, .col-6 > :last-child > :last-child, .col-7 > :last-child > :last-child, .col-8 > :last-child > :last-child, .col-9 > :last-child > :last-child, .col-10 > :last-child > :last-child, .col-11 > :last-child > :last-child, .tsd-panel > :last-child > :last-child, ul.tsd-descriptions > li > :last-child > :last-child, .col > :last-child > :last-child > :last-child, .col-1 > :last-child > :last-child > :last-child, .col-2 > :last-child > :last-child > :last-child, .col-3 > :last-child > :last-child > :last-child, .col-4 > :last-child > :last-child > :last-child, .col-5 > :last-child > :last-child > :last-child, .col-6 > :last-child > :last-child > :last-child, .col-7 > :last-child > :last-child > :last-child, .col-8 > :last-child > :last-child > :last-child, .col-9 > :last-child > :last-child > :last-child, .col-10 > :last-child > :last-child > :last-child, .col-11 > :last-child > :last-child > :last-child, .tsd-panel > :last-child > :last-child > :last-child, ul.tsd-descriptions > li > :last-child > :last-child > :last-child { margin-bottom: 0; }
 
 .container { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
 @media (max-width: 640px) { .container { padding: 0 20px; } }
@@ -242,197 +242,291 @@ table { border-collapse: collapse; border-spacing: 0; }
 
 .tsd-kind-icon { display: block; position: relative; padding-left: 20px; text-indent: -20px; }
 .tsd-kind-icon:before { content: ''; display: inline-block; vertical-align: middle; width: 17px; height: 17px; margin: 0 3px 2px 0; background-image: url(../images/icons.png); }
-@media (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) { .tsd-kind-icon:before { background-image: url(../images/icons@2x.png); background-size: 170px 170px; } }
+@media (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) { .tsd-kind-icon:before { background-image: url(../images/icons@2x.png); background-size: 238px 187px; } }
 
 .tsd-signature.tsd-kind-icon:before { background-position: 0 -153px; }
 
-.tsd-kind-object-literal > .tsd-kind-icon:before { background-position: 0 -17px; }
+.tsd-kind-object-literal > .tsd-kind-icon:before { background-position: 0px -17px; }
+.tsd-kind-object-literal.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -17px; }
+.tsd-kind-object-literal.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -17px; }
 
-.tsd-kind-class > .tsd-kind-icon:before { background-position: 0 -34px; }
+.tsd-kind-class > .tsd-kind-icon:before { background-position: 0px -34px; }
+.tsd-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -34px; }
+.tsd-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -34px; }
 
-.tsd-kind-class.tsd-has-type-parameter > .tsd-kind-icon:before { background-position: 0 -51px; }
+.tsd-kind-class.tsd-has-type-parameter > .tsd-kind-icon:before { background-position: 0px -51px; }
+.tsd-kind-class.tsd-has-type-parameter.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -51px; }
+.tsd-kind-class.tsd-has-type-parameter.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -51px; }
 
-.tsd-kind-interface > .tsd-kind-icon:before { background-position: 0 -68px; }
+.tsd-kind-interface > .tsd-kind-icon:before { background-position: 0px -68px; }
+.tsd-kind-interface.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -68px; }
+.tsd-kind-interface.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -68px; }
 
-.tsd-kind-interface.tsd-has-type-parameter > .tsd-kind-icon:before { background-position: 0 -85px; }
+.tsd-kind-interface.tsd-has-type-parameter > .tsd-kind-icon:before { background-position: 0px -85px; }
+.tsd-kind-interface.tsd-has-type-parameter.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -85px; }
+.tsd-kind-interface.tsd-has-type-parameter.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -85px; }
 
-.tsd-kind-module > .tsd-kind-icon:before { background-position: 0 -102px; }
+.tsd-kind-module > .tsd-kind-icon:before { background-position: 0px -102px; }
+.tsd-kind-module.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -102px; }
+.tsd-kind-module.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -102px; }
 
-.tsd-kind-external-module > .tsd-kind-icon:before { background-position: 0 -102px; }
+.tsd-kind-external-module > .tsd-kind-icon:before { background-position: 0px -102px; }
+.tsd-kind-external-module.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -102px; }
+.tsd-kind-external-module.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -102px; }
 
-.tsd-kind-enum > .tsd-kind-icon:before { background-position: 0 -119px; }
+.tsd-kind-enum > .tsd-kind-icon:before { background-position: 0px -119px; }
+.tsd-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -119px; }
+.tsd-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -119px; }
 
-.tsd-kind-enum-member > .tsd-kind-icon:before { background-position: 0 -136px; }
+.tsd-kind-enum-member > .tsd-kind-icon:before { background-position: 0px -136px; }
+.tsd-kind-enum-member.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -136px; }
+.tsd-kind-enum-member.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -136px; }
 
-.tsd-kind-variable > .tsd-kind-icon:before { background-position: -102px -0px; }
-.tsd-kind-variable.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -0px; }
-.tsd-kind-variable.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -0px; }
-.tsd-kind-variable.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -0px; }
-.tsd-kind-variable.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -0px; }
-.tsd-kind-variable.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -0px; }
-.tsd-kind-variable.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -0px; }
-.tsd-kind-variable.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -0px; }
-.tsd-kind-variable.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -0px; }
+.tsd-kind-signature > .tsd-kind-icon:before { background-position: 0px -153px; }
+.tsd-kind-signature.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -153px; }
+.tsd-kind-signature.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -153px; }
 
-.tsd-kind-property > .tsd-kind-icon:before { background-position: -102px -0px; }
-.tsd-kind-property.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -0px; }
-.tsd-kind-property.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -0px; }
-.tsd-kind-property.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -0px; }
-.tsd-kind-property.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -0px; }
-.tsd-kind-property.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -0px; }
-.tsd-kind-property.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -0px; }
-.tsd-kind-property.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -0px; }
-.tsd-kind-property.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -0px; }
+.tsd-kind-type-alias > .tsd-kind-icon:before { background-position: 0px -170px; }
+.tsd-kind-type-alias.tsd-is-protected > .tsd-kind-icon:before { background-position: -17px -170px; }
+.tsd-kind-type-alias.tsd-is-private > .tsd-kind-icon:before { background-position: -34px -170px; }
 
-.tsd-kind-get-signature > .tsd-kind-icon:before { background-position: -102px -17px; }
-.tsd-kind-get-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -17px; }
-.tsd-kind-get-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -17px; }
-.tsd-kind-get-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -17px; }
-.tsd-kind-get-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -17px; }
-.tsd-kind-get-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -17px; }
-.tsd-kind-get-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -17px; }
-.tsd-kind-get-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -17px; }
-.tsd-kind-get-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -17px; }
+.tsd-kind-variable > .tsd-kind-icon:before { background-position: -136px -0px; }
+.tsd-kind-variable.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -0px; }
+.tsd-kind-variable.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -0px; }
+.tsd-kind-variable.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -0px; }
+.tsd-kind-variable.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -0px; }
+.tsd-kind-variable.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -0px; }
+.tsd-kind-variable.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -0px; }
+.tsd-kind-variable.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -0px; }
+.tsd-kind-variable.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -0px; }
+.tsd-kind-variable.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -0px; }
+.tsd-kind-variable.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -0px; }
+.tsd-kind-variable.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -0px; }
+.tsd-kind-variable.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -0px; }
 
-.tsd-kind-set-signature > .tsd-kind-icon:before { background-position: -102px -34px; }
-.tsd-kind-set-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -34px; }
-.tsd-kind-set-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -34px; }
-.tsd-kind-set-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -34px; }
-.tsd-kind-set-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -34px; }
-.tsd-kind-set-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -34px; }
-.tsd-kind-set-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -34px; }
-.tsd-kind-set-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -34px; }
-.tsd-kind-set-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -34px; }
+.tsd-kind-property > .tsd-kind-icon:before { background-position: -136px -0px; }
+.tsd-kind-property.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -0px; }
+.tsd-kind-property.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -0px; }
+.tsd-kind-property.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -0px; }
+.tsd-kind-property.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -0px; }
+.tsd-kind-property.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -0px; }
+.tsd-kind-property.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -0px; }
+.tsd-kind-property.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -0px; }
+.tsd-kind-property.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -0px; }
+.tsd-kind-property.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -0px; }
+.tsd-kind-property.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -0px; }
+.tsd-kind-property.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -0px; }
+.tsd-kind-property.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -0px; }
 
-.tsd-kind-accessor > .tsd-kind-icon:before { background-position: -102px -51px; }
-.tsd-kind-accessor.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -51px; }
-.tsd-kind-accessor.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -51px; }
-.tsd-kind-accessor.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -51px; }
-.tsd-kind-accessor.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -51px; }
-.tsd-kind-accessor.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -51px; }
-.tsd-kind-accessor.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -51px; }
-.tsd-kind-accessor.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -51px; }
-.tsd-kind-accessor.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -51px; }
+.tsd-kind-get-signature > .tsd-kind-icon:before { background-position: -136px -17px; }
+.tsd-kind-get-signature.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -17px; }
+.tsd-kind-get-signature.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -17px; }
+.tsd-kind-get-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -17px; }
+.tsd-kind-get-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -17px; }
+.tsd-kind-get-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -17px; }
+.tsd-kind-get-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -17px; }
+.tsd-kind-get-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -17px; }
+.tsd-kind-get-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -17px; }
+.tsd-kind-get-signature.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -17px; }
+.tsd-kind-get-signature.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -17px; }
+.tsd-kind-get-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -17px; }
+.tsd-kind-get-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -17px; }
 
-.tsd-kind-function > .tsd-kind-icon:before { background-position: -102px -68px; }
-.tsd-kind-function.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -68px; }
-.tsd-kind-function.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -68px; }
-.tsd-kind-function.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -68px; }
-.tsd-kind-function.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -68px; }
-.tsd-kind-function.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -68px; }
-.tsd-kind-function.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -68px; }
-.tsd-kind-function.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -68px; }
-.tsd-kind-function.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -68px; }
+.tsd-kind-set-signature > .tsd-kind-icon:before { background-position: -136px -34px; }
+.tsd-kind-set-signature.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -34px; }
+.tsd-kind-set-signature.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -34px; }
+.tsd-kind-set-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -34px; }
+.tsd-kind-set-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -34px; }
+.tsd-kind-set-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -34px; }
+.tsd-kind-set-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -34px; }
+.tsd-kind-set-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -34px; }
+.tsd-kind-set-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -34px; }
+.tsd-kind-set-signature.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -34px; }
+.tsd-kind-set-signature.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -34px; }
+.tsd-kind-set-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -34px; }
+.tsd-kind-set-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -34px; }
 
-.tsd-kind-method > .tsd-kind-icon:before { background-position: -102px -68px; }
-.tsd-kind-method.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -68px; }
-.tsd-kind-method.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -68px; }
-.tsd-kind-method.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -68px; }
-.tsd-kind-method.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -68px; }
-.tsd-kind-method.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -68px; }
-.tsd-kind-method.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -68px; }
-.tsd-kind-method.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -68px; }
-.tsd-kind-method.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -68px; }
+.tsd-kind-accessor > .tsd-kind-icon:before { background-position: -136px -51px; }
+.tsd-kind-accessor.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -51px; }
+.tsd-kind-accessor.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -51px; }
+.tsd-kind-accessor.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -51px; }
+.tsd-kind-accessor.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -51px; }
+.tsd-kind-accessor.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -51px; }
+.tsd-kind-accessor.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -51px; }
+.tsd-kind-accessor.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -51px; }
+.tsd-kind-accessor.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -51px; }
+.tsd-kind-accessor.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -51px; }
+.tsd-kind-accessor.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -51px; }
+.tsd-kind-accessor.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -51px; }
+.tsd-kind-accessor.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -51px; }
 
-.tsd-kind-call-signature > .tsd-kind-icon:before { background-position: -102px -68px; }
-.tsd-kind-call-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -68px; }
-.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -68px; }
-.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -68px; }
-.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -68px; }
-.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -68px; }
-.tsd-kind-call-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -68px; }
-.tsd-kind-call-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -68px; }
-.tsd-kind-call-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -68px; }
+.tsd-kind-function > .tsd-kind-icon:before { background-position: -136px -68px; }
+.tsd-kind-function.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -68px; }
+.tsd-kind-function.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -68px; }
+.tsd-kind-function.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -68px; }
+.tsd-kind-function.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -68px; }
+.tsd-kind-function.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -68px; }
+.tsd-kind-function.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -68px; }
+.tsd-kind-function.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -68px; }
+.tsd-kind-function.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -68px; }
+.tsd-kind-function.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -68px; }
+.tsd-kind-function.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -68px; }
+.tsd-kind-function.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -68px; }
+.tsd-kind-function.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -68px; }
 
-.tsd-kind-function.tsd-has-type-parameter > .tsd-kind-icon:before { background-position: -102px -85px; }
-.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -85px; }
-.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -85px; }
-.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -85px; }
-.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -85px; }
-.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -85px; }
-.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -85px; }
-.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -85px; }
-.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -85px; }
+.tsd-kind-method > .tsd-kind-icon:before { background-position: -136px -68px; }
+.tsd-kind-method.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -68px; }
+.tsd-kind-method.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -68px; }
+.tsd-kind-method.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -68px; }
+.tsd-kind-method.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -68px; }
+.tsd-kind-method.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -68px; }
+.tsd-kind-method.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -68px; }
+.tsd-kind-method.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -68px; }
+.tsd-kind-method.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -68px; }
+.tsd-kind-method.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -68px; }
+.tsd-kind-method.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -68px; }
+.tsd-kind-method.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -68px; }
+.tsd-kind-method.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -68px; }
 
-.tsd-kind-method.tsd-has-type-parameter > .tsd-kind-icon:before { background-position: -102px -85px; }
-.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -85px; }
-.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -85px; }
-.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -85px; }
-.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -85px; }
-.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -85px; }
-.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -85px; }
-.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -85px; }
-.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -85px; }
+.tsd-kind-call-signature > .tsd-kind-icon:before { background-position: -136px -68px; }
+.tsd-kind-call-signature.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -68px; }
+.tsd-kind-call-signature.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -68px; }
+.tsd-kind-call-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -68px; }
+.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -68px; }
+.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -68px; }
+.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -68px; }
+.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -68px; }
+.tsd-kind-call-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -68px; }
+.tsd-kind-call-signature.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -68px; }
+.tsd-kind-call-signature.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -68px; }
+.tsd-kind-call-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -68px; }
+.tsd-kind-call-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -68px; }
 
-.tsd-kind-constructor > .tsd-kind-icon:before { background-position: -102px -102px; }
-.tsd-kind-constructor.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -102px; }
-.tsd-kind-constructor.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -102px; }
-.tsd-kind-constructor.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -102px; }
-.tsd-kind-constructor.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -102px; }
-.tsd-kind-constructor.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -102px; }
-.tsd-kind-constructor.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -102px; }
-.tsd-kind-constructor.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -102px; }
-.tsd-kind-constructor.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -102px; }
+.tsd-kind-function.tsd-has-type-parameter > .tsd-kind-icon:before { background-position: -136px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -85px; }
+.tsd-kind-function.tsd-has-type-parameter.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -85px; }
 
-.tsd-kind-constructor-signature > .tsd-kind-icon:before { background-position: -102px -102px; }
-.tsd-kind-constructor-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -102px; }
-.tsd-kind-constructor-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -102px; }
-.tsd-kind-constructor-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -102px; }
-.tsd-kind-constructor-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -102px; }
-.tsd-kind-constructor-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -102px; }
-.tsd-kind-constructor-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -102px; }
-.tsd-kind-constructor-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -102px; }
-.tsd-kind-constructor-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -102px; }
+.tsd-kind-method.tsd-has-type-parameter > .tsd-kind-icon:before { background-position: -136px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -85px; }
+.tsd-kind-method.tsd-has-type-parameter.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -85px; }
 
-.tsd-kind-index-signature > .tsd-kind-icon:before { background-position: -102px -119px; }
-.tsd-kind-index-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -119px; }
-.tsd-kind-index-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -119px; }
-.tsd-kind-index-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -119px; }
-.tsd-kind-index-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -119px; }
-.tsd-kind-index-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -119px; }
-.tsd-kind-index-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -119px; }
-.tsd-kind-index-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -119px; }
-.tsd-kind-index-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -119px; }
+.tsd-kind-constructor > .tsd-kind-icon:before { background-position: -136px -102px; }
+.tsd-kind-constructor.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -102px; }
+.tsd-kind-constructor.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -102px; }
+.tsd-kind-constructor.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -102px; }
+.tsd-kind-constructor.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -102px; }
+.tsd-kind-constructor.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -102px; }
+.tsd-kind-constructor.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -102px; }
+.tsd-kind-constructor.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -102px; }
+.tsd-kind-constructor.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -102px; }
+.tsd-kind-constructor.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -102px; }
+.tsd-kind-constructor.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -102px; }
+.tsd-kind-constructor.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -102px; }
+.tsd-kind-constructor.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -102px; }
 
-.tsd-is-static > .tsd-kind-icon:before { background-position: -102px -136px; }
-.tsd-is-static.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -136px; }
-.tsd-is-static.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -136px; }
-.tsd-is-static.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -136px; }
-.tsd-is-static.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -136px; }
-.tsd-is-static.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -136px; }
-.tsd-is-static.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -136px; }
-.tsd-is-static.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -136px; }
-.tsd-is-static.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -136px; }
+.tsd-kind-constructor-signature > .tsd-kind-icon:before { background-position: -136px -102px; }
+.tsd-kind-constructor-signature.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -102px; }
+.tsd-kind-constructor-signature.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -102px; }
+.tsd-kind-constructor-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -102px; }
+.tsd-kind-constructor-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -102px; }
+.tsd-kind-constructor-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -102px; }
+.tsd-kind-constructor-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -102px; }
+.tsd-kind-constructor-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -102px; }
+.tsd-kind-constructor-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -102px; }
+.tsd-kind-constructor-signature.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -102px; }
+.tsd-kind-constructor-signature.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -102px; }
+.tsd-kind-constructor-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -102px; }
+.tsd-kind-constructor-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -102px; }
 
-.tsd-is-static.tsd-kind-function > .tsd-kind-icon:before { background-position: -102px -153px; }
-.tsd-is-static.tsd-kind-function.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -153px; }
-.tsd-is-static.tsd-kind-function.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -153px; }
-.tsd-is-static.tsd-kind-function.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -153px; }
-.tsd-is-static.tsd-kind-function.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -153px; }
-.tsd-is-static.tsd-kind-function.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -153px; }
-.tsd-is-static.tsd-kind-function.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -153px; }
-.tsd-is-static.tsd-kind-function.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -153px; }
-.tsd-is-static.tsd-kind-function.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -153px; }
+.tsd-kind-index-signature > .tsd-kind-icon:before { background-position: -136px -119px; }
+.tsd-kind-index-signature.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -119px; }
+.tsd-kind-index-signature.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -119px; }
+.tsd-kind-index-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -119px; }
+.tsd-kind-index-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -119px; }
+.tsd-kind-index-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -119px; }
+.tsd-kind-index-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -119px; }
+.tsd-kind-index-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -119px; }
+.tsd-kind-index-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -119px; }
+.tsd-kind-index-signature.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -119px; }
+.tsd-kind-index-signature.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -119px; }
+.tsd-kind-index-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -119px; }
+.tsd-kind-index-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -119px; }
 
-.tsd-is-static.tsd-kind-method > .tsd-kind-icon:before { background-position: -102px -153px; }
-.tsd-is-static.tsd-kind-method.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -153px; }
-.tsd-is-static.tsd-kind-method.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -153px; }
-.tsd-is-static.tsd-kind-method.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -153px; }
-.tsd-is-static.tsd-kind-method.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -153px; }
-.tsd-is-static.tsd-kind-method.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -153px; }
-.tsd-is-static.tsd-kind-method.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -153px; }
-.tsd-is-static.tsd-kind-method.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -153px; }
-.tsd-is-static.tsd-kind-method.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -153px; }
+.tsd-is-static > .tsd-kind-icon:before { background-position: -136px -136px; }
+.tsd-is-static.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -136px; }
+.tsd-is-static.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -136px; }
+.tsd-is-static.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -136px; }
+.tsd-is-static.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -136px; }
+.tsd-is-static.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -136px; }
+.tsd-is-static.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -136px; }
+.tsd-is-static.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -136px; }
+.tsd-is-static.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -136px; }
+.tsd-is-static.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -136px; }
+.tsd-is-static.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -136px; }
+.tsd-is-static.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -136px; }
+.tsd-is-static.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -136px; }
 
-.tsd-is-static.tsd-kind-call-signature > .tsd-kind-icon:before { background-position: -102px -153px; }
-.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -17px -153px; }
-.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -34px -153px; }
-.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -51px -153px; }
-.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -153px; }
-.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -85px -153px; }
-.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -119px -153px; }
-.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -136px -153px; }
-.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -153px -153px; }
+.tsd-is-static.tsd-kind-function > .tsd-kind-icon:before { background-position: -136px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -153px; }
+.tsd-is-static.tsd-kind-function.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -153px; }
+
+.tsd-is-static.tsd-kind-method > .tsd-kind-icon:before { background-position: -136px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -153px; }
+.tsd-is-static.tsd-kind-method.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -153px; }
+
+.tsd-is-static.tsd-kind-call-signature > .tsd-kind-icon:before { background-position: -136px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-is-protected > .tsd-kind-icon:before { background-position: -153px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-class > .tsd-kind-icon:before { background-position: -51px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-inherited > .tsd-kind-icon:before { background-position: -68px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-protected > .tsd-kind-icon:before { background-position: -85px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-protected.tsd-is-inherited > .tsd-kind-icon:before { background-position: -102px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-class.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-enum > .tsd-kind-icon:before { background-position: -170px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-enum.tsd-is-protected > .tsd-kind-icon:before { background-position: -187px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-enum.tsd-is-private > .tsd-kind-icon:before { background-position: -119px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-interface > .tsd-kind-icon:before { background-position: -204px -153px; }
+.tsd-is-static.tsd-kind-call-signature.tsd-parent-kind-interface.tsd-is-inherited > .tsd-kind-icon:before { background-position: -221px -153px; }
 
 .no-transition { transition: none !important; }
 
@@ -537,9 +631,11 @@ dl.tsd-comment-tags p { margin: 0; }
 .tsd-panel.tsd-comment .lead { font-size: 1.1em; line-height: 1.333em; margin-bottom: 2em; }
 .tsd-panel.tsd-comment .lead:last-child { margin-bottom: 0; }
 
-.toggle-inherited .tsd-is-inherited { display: none; }
+.toggle-protected .tsd-is-private { display: none; }
 
-.toggle-private .tsd-is-private { display: none; }
+.toggle-public .tsd-is-private, .toggle-public .tsd-is-protected, .toggle-public .tsd-is-private-protected { display: none; }
+
+.toggle-inherited .tsd-is-inherited { display: none; }
 
 .toggle-only-exported .tsd-is-not-exported { display: none; }
 
@@ -553,7 +649,7 @@ dl.tsd-comment-tags p { margin: 0; }
   .has-options #tsd-filter .tsd-filter-group { visibility: visible; }
   .to-has-options #tsd-filter .tsd-filter-group { -webkit-animation: fade-in 0.2s; animation: fade-in 0.2s; }
   .from-has-options #tsd-filter .tsd-filter-group { -webkit-animation: fade-out 0.2s; animation: fade-out 0.2s; }
-  #tsd-filter label { display: block; padding-right: 20px; } }
+  #tsd-filter label, #tsd-filter .tsd-select { display: block; padding-right: 20px; } }
 
 footer { border-top: 1px solid #eee; background-color: #fff; }
 footer.with-border-bottom { border-bottom: 1px solid #eee; }
@@ -627,6 +723,12 @@ footer .tsd-legend { display: inline-block; width: 25%; padding: 0; font-size: 1
 .tsd-panel { margin: 20px 0; padding: 20px; background-color: #fff; box-shadow: 0 0 4px rgba(0, 0, 0, 0.25); }
 .tsd-panel:empty { display: none; }
 .tsd-panel > h1, .tsd-panel > h2, .tsd-panel > h3 { margin: 1.5em -20px 10px -20px; padding: 0 20px 10px 20px; border-bottom: 1px solid #eee; }
+.tsd-panel > h1.tsd-before-signature, .tsd-panel > h2.tsd-before-signature, .tsd-panel > h3.tsd-before-signature { margin-bottom: 0; border-bottom: 0; }
+.tsd-panel table { display: block; width: 100%; overflow: auto; margin-top: 10px; word-break: normal; word-break: keep-all; }
+.tsd-panel table th { font-weight: bold; }
+.tsd-panel table th, .tsd-panel table td { padding: 6px 13px; border: 1px solid #ddd; }
+.tsd-panel table tr { background-color: #fff; border-top: 1px solid #ccc; }
+.tsd-panel table tr:nth-child(2n) { background-color: #f8f8f8; }
 
 .tsd-panel-group { margin: 60px 0; }
 .tsd-panel-group > h1, .tsd-panel-group > h2, .tsd-panel-group > h3 { padding-left: 20px; padding-right: 20px; }
@@ -673,15 +775,17 @@ footer .tsd-legend { display: inline-block; width: 25%; padding: 0; font-size: 1
 .tsd-panel > .tsd-signatures .tsd-signature.tsd-kind-icon:before { left: 20px; }
 .tsd-panel > a.anchor + .tsd-signatures { border-top-width: 0; margin-top: -20px; }
 
-.tsd-descriptions { position: relative; overflow: hidden; transition: height 0.3s; padding: 0; list-style: none; }
-.tsd-descriptions.active > .tsd-description { display: none; }
-.tsd-descriptions.active > .tsd-description.current { display: block; }
-.tsd-descriptions.active > .tsd-description.fade-in { -webkit-animation: fade-in-delayed 0.3s; animation: fade-in-delayed 0.3s; }
-.tsd-descriptions.active > .tsd-description.fade-out { -webkit-animation: fade-out-delayed 0.3s; animation: fade-out-delayed 0.3s; position: absolute; display: block; top: 0; left: 0; right: 0; opacity: 0; visibility: hidden; }
-.tsd-descriptions h4, .tsd-descriptions .tsd-index-panel h3, .tsd-index-panel .tsd-descriptions h3 { font-size: 16px; margin: 1em 0 0.5em 0; }
-.tsd-descriptions h5 { font-size: 16px; margin: 1em 0 0.5em 0; }
-.tsd-descriptions .tsd-parameters { list-style: square; margin: 0; padding-left: 20px; }
-.tsd-descriptions .tsd-parameters .tsd-comment { margin-top: -0.5em; }
+ul.tsd-descriptions { position: relative; overflow: hidden; transition: height 0.3s; padding: 0; list-style: none; }
+ul.tsd-descriptions.active > .tsd-description { display: none; }
+ul.tsd-descriptions.active > .tsd-description.current { display: block; }
+ul.tsd-descriptions.active > .tsd-description.fade-in { -webkit-animation: fade-in-delayed 0.3s; animation: fade-in-delayed 0.3s; }
+ul.tsd-descriptions.active > .tsd-description.fade-out { -webkit-animation: fade-out-delayed 0.3s; animation: fade-out-delayed 0.3s; position: absolute; display: block; top: 0; left: 0; right: 0; opacity: 0; visibility: hidden; }
+ul.tsd-descriptions h4, ul.tsd-descriptions .tsd-index-panel h3, .tsd-index-panel ul.tsd-descriptions h3 { font-size: 16px; margin: 1em 0 0.5em 0; }
+
+ul.tsd-parameters, ul.tsd-type-parameters { list-style: square; margin: 0; padding-left: 20px; }
+ul.tsd-parameters > li.tsd-parameter-siganture, ul.tsd-type-parameters > li.tsd-parameter-siganture { list-style: none; margin-left: -20px; }
+ul.tsd-parameters h5, ul.tsd-type-parameters h5 { font-size: 16px; margin: 1em 0 0.5em 0; }
+ul.tsd-parameters .tsd-comment, ul.tsd-type-parameters .tsd-comment { margin-top: -0.5em; }
 
 .tsd-sources { font-size: 14px; color: #808080; margin: 0 0 1em 0; }
 .tsd-sources a { color: #808080; text-decoration: underline; }
@@ -696,9 +800,10 @@ footer .tsd-legend { display: inline-block; width: 25%; padding: 0; font-size: 1
 .tsd-page-toolbar .table-cell { display: table-cell; position: relative; white-space: nowrap; line-height: 40px; }
 .tsd-page-toolbar .table-cell:first-child { width: 100%; }
 
+.tsd-widget:before, .tsd-select .tsd-select-label:before, .tsd-select .tsd-select-list li:before { content: ""; display: inline-block; width: 40px; height: 40px; margin: 0 -8px 0 0; background-image: url(../images/widgets.png); background-repeat: no-repeat; text-indent: -1024px; vertical-align: bottom; }
+@media (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) { .tsd-widget:before, .tsd-select .tsd-select-label:before, .tsd-select .tsd-select-list li:before { background-image: url(../images/widgets@2x.png); background-size: 320px 40px; } }
+
 .tsd-widget { display: inline-block; overflow: hidden; opacity: 0.6; height: 40px; transition: opacity 0.1s, background-color 0.2s; vertical-align: bottom; cursor: pointer; }
-.tsd-widget:before { content: ""; display: inline-block; width: 40px; height: 40px; margin: 0 -8px 0 0; background-image: url(../images/widgets.png); text-indent: -1024px; vertical-align: bottom; }
-@media (-webkit-min-device-pixel-ratio: 1.5), (min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) { .tsd-widget:before { background-image: url(../images/widgets@2x.png); background-size: 200px 40px; } }
 .tsd-widget:hover { opacity: 0.8; }
 .tsd-widget.active { opacity: 1; background-color: #eee; }
 .tsd-widget.no-caption { width: 40px; }
@@ -710,3 +815,17 @@ footer .tsd-legend { display: inline-block; width: 25%; padding: 0; font-size: 1
 @media (max-width: 900px) { .tsd-widget.options, .tsd-widget.menu { display: inline-block; } }
 input[type=checkbox] + .tsd-widget:before { background-position: -120px 0; }
 input[type=checkbox]:checked + .tsd-widget:before { background-position: -160px 0; }
+
+.tsd-select { position: relative; display: inline-block; height: 40px; transition: opacity 0.1s, background-color 0.2s; vertical-align: bottom; cursor: pointer; }
+.tsd-select .tsd-select-label { opacity: 0.6; transition: opacity 0.2s; }
+.tsd-select .tsd-select-label:before { background-position: -240px 0; }
+.tsd-select.active .tsd-select-label { opacity: 0.8; }
+.tsd-select.active .tsd-select-list { visibility: visible; opacity: 1; transition-delay: 0s; }
+.tsd-select .tsd-select-list { position: absolute; visibility: hidden; top: 40px; left: 0; margin: 0; padding: 0; opacity: 0; list-style: none; box-shadow: 0 0 4px rgba(0, 0, 0, 0.25); transition: visibility 0s 0.2s, opacity 0.2s; }
+.tsd-select .tsd-select-list li { padding: 0 20px 0 0; background-color: #fdfdfd; }
+.tsd-select .tsd-select-list li:before { background-position: 40px 0; }
+.tsd-select .tsd-select-list li:nth-child(even) { background-color: #fff; }
+.tsd-select .tsd-select-list li:hover { background-color: #eee; }
+.tsd-select .tsd-select-list li.selected:before { background-position: -200px 0; }
+@media (max-width: 900px) { .tsd-select .tsd-select-list { top: 0; left: auto; right: 100%; margin-right: -5px; }
+  .tsd-select .tsd-select-label:before { background-position: -280px 0; } }

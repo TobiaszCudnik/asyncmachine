@@ -1,186 +1,0 @@
-<!DOCTYPE html><html><head><meta charset=utf-8></head><body><pre>
-
-
-  asyncmachine
-    ✓ should allow to check if single state is active 
-    ✓ should allow to check if many states are active 
-    ✓ should accept the starting state 
-    ✓ should allow to set the state 
-    ✓ should allow to add a new state 
-    ✓ should allow to drop a state 
-    ✓ should throw when setting an unknown state 
-    ✓ should allow to define a new state 
-    when single to single state transition
-      ✓ should trigger the state to state transition 
-      ✓ should trigger the state exit transition 
-      ✓ should trigger the transition to the new state 
-      ✓ should trigger the transition to "Any" state 
-      ✓ should trigger the transition from "Any" state 
-      ✓ should set the correct state 
-      ✓ should remain the correct transition order 
-    when single to multi state transition
-      ✓ should trigger the state to state transitions 
-      ✓ should trigger the state exit transition 
-      ✓ should trigger the transition to new states 
-      ✓ should trigger the transition to "Any" state 
-      ✓ should trigger the transition from "Any" state 
-      ✓ should trigger the states' handlers 
-      ✓ should set the correct state 
-      ✓ should remain the correct order 
-    when multi to single state transition
-      ✓ should trigger the state to state transitions 
-      ✓ should trigger the state exit transition 
-      ✓ should trigger the transition to the new state 
-      ✓ should trigger the transition to "Any" state 
-      ✓ should trigger the transition from "Any" state 
-      ✓ should set the correct state 
-      ✓ should remain the correct transition order 
-    when multi to multi state transition
-      ✓ should trigger the state to state transitions 
-      ✓ should trigger the state exit transition 
-      ✓ should trigger the transition to the new state 
-      ✓ should trigger the transition to "Any" state 
-      ✓ should trigger the transition from "Any" state 
-      ✓ should set the correct state 
-      ✓ should remain the correct transition order 
-    when transitioning to an active state
-      ✓ shouldn't trigger transition methods 
-      ✓ should remain in the requested state 
-    when order is defined by the depends attr
-      when entering
-        ✓ should handle dependand states first 
-      when exiting
-        ✓ should handle dependand states last 
-    when one state blocks another
-      and they are set simultaneously
-        ✓ should cancel the transition 
-        ✓ should return false 
-        ✓ should explain the reason in the log 
-      and blocking one is added
-        ✓ should unset the blocked one 
-      and cross blocking one is added
-        using set
-          ✓ should unset the old one 
-          ✓ should work in both ways 
-        using add
-          ✓ should unset the old one 
-          ✓ should work in both ways 
-    when state is implied
-      ✓ should be activated 
-      ✓ should be skipped if blocked at the same time 
-    when state requires another one
-      ✓ should be set when required state is active 
-      when required state isn't active
-        ✓ should't be set 
-        ✓ should explain the reason in the log 
-    when state is changed
-      ✓ should provide previous state information 
-      ✓ should provide target state information 
-      during another state change
-        ✓ should be scheduled synchronously 
-        - should be checkable
-      and transition is canceled
-        when setting a new state
-          ✓ should return false 
-          ✓ should not change the previous state 
-          ✓ should explain the reason in the log 
-          - should not change the auto states
-        when adding an additional state
-          ✓ should return false 
-          ✓ should not change the previous state 
-          - should not change the auto states
-        when droping a current state
-          - should return false
-          - should not change the previous state
-          - should explain the reason in the log
-          - should not change the auto states
-      and transition is successful
-        ✓ should return true 
-        - should set the auto states
-      with arguments
-        and synchronous
-          and is explicit
-            ✓ should forward arguments to exit methods 
-            ✓ should forward arguments to enter methods 
-            ✓ should forward arguments to self transition methods 
-            ✓ should forward arguments to transition methods 
-          and is non-explicit
-            ✓ should not forward arguments to exit methods 
-            ✓ should not forward arguments to enter methods 
-            ✓ should not forward arguments to transition methods 
-        and delayed
-          and is explicit
-            ✓ should forward arguments to exit methods 
-            ✓ should forward arguments to enter methods 
-            ✓ should forward arguments to self transition methods 
-            ✓ should forward arguments to transition methods 
-          and is non-explicit
-            ✓ should not forward arguments to exit methods 
-            ✓ should not forward arguments to enter methods 
-            ✓ should not forward arguments to transition methods 
-      and delayed
-        ✓ should return a promise 
-        ✓ should execute the change 
-        ✓ should expose a ref to the last promise 
-        ✓ should be called with params passed to the delayed function 
-        and then cancelled
-          ✓ should not execute the change 
-      and active state is also the target one
-        ✓ should trigger self transition at the very beginning 
-        - should be executed only for explicitly called states
-        ✓ should be cancellable 
-      should trigger events
-        ✓ for self transitions 
-        ✓ for enter transitions 
-        ✓ for exit transitions 
-        ✓ which can cancel the transition 
-        ✓ for changing states 
-        ✓ for cancelling the transition 
-    Events
-      should support states
-        ✓ by triggering the *_state bindings immediately 
-        - shouldn't duplicate events
-      clock
-        ✓ should tick when setting a new state 
-        ✓ should tick when setting many new states 
-        ✓ shouldn't tick when setting an already set state 
-      proto child
-        ✓ should inherit all the instance properties 
-        ✓ should have own active states and the clock 
-      piping
-        ✓ should forward a specific state 
-        ✓ should forward a specific state as a different one 
-        ✓ should invert a specific state as a different one 
-        ✓ should forward a whole machine 
-        - can be turned off
-    bugs
-      ✓ should trigger the enter state of a subclass 
-      ✓ should drop states cross-blocked by implied states 
-      - should pass args to transition methods
-      ✓ should drop states blocked by a new one if the one blocks it 
-      - should pass args to non-explicite transition methods if they are also queued ???
-    Promises
-      - can be resolved
-      - can be rejected
-      - can be chainable
-      delayed methods
-        - should return correctly bound resolve method
-
-  Exceptions
-    ✓ should be thrown on the next tick 
-    ✓ should set the Exception state 
-    should be caught
-      ✓ from next-tick state changes 
-      ✓ from a callbacks error param 
-      ✓ from deferred changes 
-      in promises
-        ✓ returned by transitions 
-        ✓ returned by listeners 
-    complex scenario
-      ✓ should be caught 
-
-
-  111 passing (643ms)
-  17 pending
-
-</pre></body></html>

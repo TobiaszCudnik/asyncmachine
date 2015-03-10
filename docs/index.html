@@ -29,10 +29,16 @@
 					<div id="tsd-filter">
 						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
 						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
 							<input type="checkbox" id="tsd-filter-inherited" checked />
 							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-private" checked />
-							<label class="tsd-widget" for="tsd-filter-private">Private</label>
 							<input type="checkbox" id="tsd-filter-externals" checked />
 							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
 							<input type="checkbox" id="tsd-filter-only-exported" />
@@ -269,101 +275,11 @@ Can<span class="hljs-variable">'t</span> set following states Done<span class="h
 <span class="hljs-list">[<span class="hljs-keyword">states</span>] +Query3Done
 <span class="hljs-list">[<span class="hljs-keyword">states</span>] +Done</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>
 </code></pre><p>There&#39;s level 3 as well!</p>
-				<h2 id="api">API</h2>
-				<p>AsyncMachine&#39;s source code is transpiled from CoffeeScript to TypeScript and merged with external static types definitions.
-				Public API looks like this:</p>
-				<pre><code class="lang-typescript"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AsyncMachine</span> {</span>
-    <span class="hljs-keyword">public</span> last_promise: Promise&lt;<span class="hljs-literal">any</span>&gt;;
-
-    constructor(target?:AsyncMachine);
-    <span class="hljs-keyword">public</span> Exception_state(states: <span class="hljs-literal">string</span>[], err: <span class="hljs-built_in">Error</span>, exception_states?: <span class="hljs-literal">string</span>[]): boolean;
-
-    <span class="hljs-keyword">public</span> register(...states: <span class="hljs-literal">string</span>[]);
-    <span class="hljs-keyword">public</span> get(state: <span class="hljs-literal">string</span>): IState;
-    <span class="hljs-keyword">public</span> state(name: <span class="hljs-literal">string</span>): boolean;
-    <span class="hljs-keyword">public</span> state(name: <span class="hljs-literal">string</span>[]): boolean;
-    <span class="hljs-keyword">public</span> state(): <span class="hljs-literal">string</span>[];
-    <span class="hljs-keyword">public</span> is(state: <span class="hljs-literal">string</span>): boolean;
-    <span class="hljs-keyword">public</span> is(state: <span class="hljs-literal">string</span>[]): boolean;
-    <span class="hljs-keyword">public</span> is(state: <span class="hljs-literal">string</span>, tick?: <span class="hljs-literal">number</span>): boolean;
-    <span class="hljs-keyword">public</span> is(state: <span class="hljs-literal">string</span>[], tick?: <span class="hljs-literal">number</span>): boolean;
-    <span class="hljs-keyword">public</span> is(): <span class="hljs-literal">string</span>[];
-    <span class="hljs-keyword">public</span> <span class="hljs-literal">any</span>(...names: <span class="hljs-literal">string</span>[]): boolean;
-    <span class="hljs-keyword">public</span> <span class="hljs-literal">any</span>(...names: <span class="hljs-literal">string</span>[][]): boolean;
-    <span class="hljs-keyword">public</span> every(...names: <span class="hljs-literal">string</span>[]): boolean;
-
-     <span class="hljs-keyword">public</span> add(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> add(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> add(target: <span class="hljs-literal">string</span>[], states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> add(target: <span class="hljs-literal">string</span>, states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> addByCallback(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addByCallback(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addByCallback(target: <span class="hljs-literal">string</span>[], states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addByCallback(target: <span class="hljs-literal">string</span>, states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addByListener(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addByListener(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addByListener(target: <span class="hljs-literal">string</span>[], states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addByListener(target: <span class="hljs-literal">string</span>, states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addNext(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addNext(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addNext(target: <span class="hljs-literal">string</span>, states: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> addNext(target: <span class="hljs-literal">string</span>[], states: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-
-     <span class="hljs-keyword">public</span> drop(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> drop(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> drop(target: <span class="hljs-literal">string</span>[], states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> drop(target: <span class="hljs-literal">string</span>, states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> dropByCallback(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropByCallback(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropByCallback(target: <span class="hljs-literal">string</span>[], states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropByCallback(target: <span class="hljs-literal">string</span>, states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropByListener(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropByListener(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropByListener(target: <span class="hljs-literal">string</span>[], states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropByListener(target: <span class="hljs-literal">string</span>, states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropNext(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropNext(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropNext(target: <span class="hljs-literal">string</span>, states: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> dropNext(target: <span class="hljs-literal">string</span>[], states: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-
-     <span class="hljs-keyword">public</span> set(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> set(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> set(target: <span class="hljs-literal">string</span>[], states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> set(target: <span class="hljs-literal">string</span>, states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): boolean;
-     <span class="hljs-keyword">public</span> setByCallback(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setByCallback(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setByCallback(target: <span class="hljs-literal">string</span>[], states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setByCallback(target: <span class="hljs-literal">string</span>, states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (err?: <span class="hljs-literal">any</span>, ...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setByListener(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setByListener(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setByListener(target: <span class="hljs-literal">string</span>[], states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setByListener(target: <span class="hljs-literal">string</span>, states?: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setNext(target: AsyncMachine, states: <span class="hljs-literal">string</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setNext(target: AsyncMachine, states: <span class="hljs-literal">string</span>[], ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setNext(target: <span class="hljs-literal">string</span>, states: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-     <span class="hljs-keyword">public</span> setNext(target: <span class="hljs-literal">string</span>[], states: <span class="hljs-literal">any</span>, ...params: <span class="hljs-literal">any</span>[]): (...params) =&gt; <span class="hljs-literal">void</span>;
-
-    <span class="hljs-keyword">public</span> pipe(state: <span class="hljs-literal">string</span>, machine?: AsyncMachine, target_state?: <span class="hljs-literal">string</span>);
-    <span class="hljs-keyword">public</span> pipe(state: <span class="hljs-literal">string</span>[], machine?: AsyncMachine, target_state?: <span class="hljs-literal">string</span>);
-    <span class="hljs-keyword">public</span> pipe(state: AsyncMachine, machine?: <span class="hljs-literal">string</span>);
-    <span class="hljs-keyword">public</span> pipeInvert(state: <span class="hljs-literal">string</span>, machine?: AsyncMachine, target_state?: <span class="hljs-literal">string</span>);
-    <span class="hljs-keyword">public</span> pipeInvert(state: <span class="hljs-literal">string</span>[], machine?: AsyncMachine, target_state?: <span class="hljs-literal">string</span>);
-    <span class="hljs-keyword">public</span> pipeInvert(state: AsyncMachine, machine?: <span class="hljs-literal">string</span>);
-    <span class="hljs-keyword">public</span> duringTransition(): boolean;
-    <span class="hljs-keyword">public</span> namespaceName(state: <span class="hljs-literal">string</span>): <span class="hljs-literal">string</span>;
-    <span class="hljs-keyword">public</span> debug(prefix?: <span class="hljs-literal">string</span>, level?: <span class="hljs-literal">number</span>): <span class="hljs-literal">void</span>;
-    <span class="hljs-keyword">public</span> debugOff(): <span class="hljs-literal">void</span>;
-    <span class="hljs-keyword">public</span> log(msg: <span class="hljs-literal">string</span>, level?: <span class="hljs-literal">number</span>): <span class="hljs-literal">void</span>;
-
-    <span class="hljs-keyword">public</span> when(states: <span class="hljs-literal">string</span>, abort?: <span class="hljs-built_in">Function</span>): Promise&lt;<span class="hljs-literal">any</span>&gt;;
-    <span class="hljs-keyword">public</span> when(states: <span class="hljs-literal">string</span>[], abort?: <span class="hljs-built_in">Function</span>): Promise&lt;<span class="hljs-literal">any</span>&gt;;
-    <span class="hljs-keyword">public</span> whenOnce(states: <span class="hljs-literal">string</span>, abort?: <span class="hljs-built_in">Function</span>): Promise&lt;<span class="hljs-literal">any</span>&gt;;
-    <span class="hljs-keyword">public</span> whenOnce(states: <span class="hljs-literal">string</span>[], abort?: <span class="hljs-built_in">Function</span>): Promise&lt;<span class="hljs-literal">any</span>&gt;;
-
-    <span class="hljs-keyword">public</span> getAbort(state: <span class="hljs-literal">string</span>, abort?: () =&gt; boolean): () =&gt; boolean;
-    <span class="hljs-keyword">public</span> getAbortEnter(state: <span class="hljs-literal">string</span>, abort?: () =&gt; boolean): () =&gt; boolean;
-}
-</code></pre>
+				<h2 id="docs">Docs</h2>
+				<p>There&#39;s an HTML version of
+					<a href="https://cdn.rawgit.com/TobiaszCudnik/asyncmachine/master/docs/classes/_asyncmachine_.asyncmachine.html">the API docs</a> with lots of examples. Also the <a href="https://cdn.rawgit.com/TobiaszCudnik/asyncmachine/master/docs/spec.html">mocha spec</a>
+				is available. The wiki is comming...</p>
+				<p>AsyncMachine&#39;s source code is transpiled from CoffeeScript to TypeScript, so it provides type definitions file at <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/master/lib/asyncmachine.d.ts">/lib/asyncmachine.d.ts</a>.</p>
 				<h2 id="change-log">Change log</h2>
 				<h3 id="v2-0">v2.0</h3>
 				<ul>
@@ -445,50 +361,56 @@ Can<span class="hljs-variable">'t</span> set following states Done<span class="h
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-container"><span class="tsd-kind-icon">Container, dynamic module</span></li>
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
 				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-construct-signature"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property"><span class="tsd-kind-icon">Variable</span></li>
-				<li class="tsd-kind-call-signature"><span class="tsd-kind-icon">Function, call signature, accessor</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-construct-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Member, accessor</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
 				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-construct-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Member, accessor</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
 				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
 			</ul>
 			<ul class="tsd-legend">
-				<li>&nbsp;</li>
-				<li class="tsd-kind-construct-signature tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited member</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
 			</ul>
 			<ul class="tsd-legend">
-				<li>&nbsp;</li>
-				<li class="tsd-kind-construct-signature tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private member</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
 			</ul>
 			<ul class="tsd-legend">
-				<li>&nbsp;</li>
-				<li>&nbsp;</li>
 				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static member</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
 			</ul>
 		</div>
 	</div>
