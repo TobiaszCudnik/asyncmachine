@@ -20,7 +20,7 @@ server:
 	node_modules/http-server/bin/http-server
 	
 example-basic:
-	6to5 examples/basic/basic.js --out-file examples/basic/basic.es5.js
+	babel examples/basic/basic.js --out-file examples/basic/basic.es5.js
 	node examples/basic/basic.es5.js
 	
 setup:
