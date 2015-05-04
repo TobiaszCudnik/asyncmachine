@@ -151,5 +151,5 @@ declare module 'es6-promise' {
 	module rsvp {
 		export var Promise: typeof foo;
 	}
-	export = rsvp;
+	export default rsvp;
 }

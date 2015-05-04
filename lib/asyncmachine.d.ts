@@ -4,8 +4,8 @@
 /// <reference path="../typings/es6-promise/es6-promise.d.ts" />
 
 declare module 'asyncmachine' {
-    import promise = module ('es6-promise');
-    import eventemitter = module ('eventemitter3-abortable');
+    import * as promise from 'es6-promise';
+    import * as eventemitter from 'eventemitter3-abortable';
 
     export interface IState {
         depends?: string[];
@@ -26,7 +26,7 @@ declare module 'asyncmachine' {
         reject:Function;
     }
 
-    class AsyncMachine extends EventEmitter {
+    class AsyncMachine extends eventemitter.EventEmitter {
         private debug_:boolean;
         private states_all:string[];
         private states_active:string[];

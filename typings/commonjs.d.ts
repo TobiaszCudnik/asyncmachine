@@ -1,8 +1,9 @@
 declare var require: {
     (id: string): any;
-    resolve(): string;
+    resolve(id: string): string;
     cache: any;
     extensions: any;
+    main: any;
 }
 
 declare var module: {
