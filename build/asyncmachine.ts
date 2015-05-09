@@ -94,6 +94,8 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
     private debug_: boolean = false;
 
+    piped = null;
+
     /**
     	Empty Exception state properties. See [[Exception_state]] transition handler.
     */
@@ -146,6 +148,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         this.states_all = [];
         this.states_active = [];
         this.clock_ = {};
+        this.piped = {};
 
         this.setTarget(target || this);
         if (registerAll) {
@@ -493,7 +496,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     	 * Example
     	 * ```
     	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * someNodeCallback 'foo.com', states.setByCallback 'B'
+    	 * setTimeout states.setByCallback 'B'
     	 * ```
     	 *
     */
@@ -1204,11 +1207,13 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         this.debug_ = true;
         this.debug_prefix = prefix;
         this.debug_level = level;
+
         return null;
     }
 
     public debugOff(): void {
         this.debug_ = false;
+
         return null;
     }
 
@@ -1283,6 +1288,10 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
             return Object.keys(bindings).forEach((event_type) => {
                 var method_name = bindings[event_type];
+                this.piped[state] = {
+                    state: new_state,
+                    machine: machine
+                };
                 return this.on(state + "_" + event_type, () => {
                     if (local_queue) {
                         return this[method_name](machine, new_state);
@@ -1327,6 +1336,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                     }
                     return Boolean(~(this.get(item)).blocks.indexOf(state));
                 });
+
             if (this[state].auto && !is_current() && !is_blocked()) {
                 return add.push(state);
             }

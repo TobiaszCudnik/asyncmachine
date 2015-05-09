@@ -8,13 +8,10 @@ var __extends = this.__extends || function (d, b) {
 /// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
 /// <reference path="../typings/settimeout.d.ts" />
 /// <reference path="../typings/commonjs.d.ts" />
-var __indexOf = [].indexOf || function (item) {
-    for (var i = 0, l = this.length; i < l; i++) {
-        if (i in this && this[i] === item)
-            return i;
-    }
-    return -1;
-};
+var __indexOf = [].indexOf || function (item) { for (var i = 0, l = this.length; i < l; i++) {
+    if (i in this && this[i] === item)
+        return i;
+} return -1; };
 var eventemitter = require("eventemitter3-abortable");
 var promise = require('es6-promise');
 exports.STATE_CHANGE = {
@@ -104,6 +101,7 @@ var AsyncMachine = (function (_super) {
         this.target = null;
         this.transition_events = [];
         this.debug_ = false;
+        this.piped = null;
         /**
             Empty Exception state properties. See [[Exception_state]] transition handler.
         */
@@ -112,6 +110,7 @@ var AsyncMachine = (function (_super) {
         this.states_all = [];
         this.states_active = [];
         this.clock_ = {};
+        this.piped = {};
         this.setTarget(target || this);
         if (registerAll) {
             this.registerAll();
@@ -815,6 +814,10 @@ var AsyncMachine = (function (_super) {
             var new_state = target_state || state;
             return Object.keys(bindings).forEach(function (event_type) {
                 var method_name = bindings[event_type];
+                _this.piped[state] = {
+                    state: new_state,
+                    machine: machine
+                };
                 return _this.on(state + "_" + event_type, function () {
                     if (local_queue) {
                         return _this[method_name](machine, new_state);

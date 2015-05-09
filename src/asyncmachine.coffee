@@ -70,6 +70,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	target: null
 	transition_events: []
 	debug_: no
+	piped: null
 
 	###*
 	Empty Exception state properties. See [[Exception_state]] transition handler.
@@ -116,6 +117,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@states_all = []
 		@states_active = []
 		@clock_ = {}
+		@piped = {}
 
 		@setTarget target or this
 		if registerAll
@@ -409,7 +411,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * Example
 	 * ```
 	 * states = AsyncMachine.factory ['A', 'B', 'C']
-	 * someNodeCallback 'foo.com', states.setByCallback 'B'
+	 * setTimeout states.setByCallback 'B'
 	 * ```
 	 *
 	###
@@ -1026,11 +1028,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@debug_ = yes
 		@debug_prefix = prefix
 		@debug_level = level
+
 		null
 
 
 	debugOff: ->
 		@debug_ = no
+
 		null
 
 
@@ -1104,6 +1108,9 @@ class AsyncMachine extends eventemitter.EventEmitter
 			Object.keys(bindings).forEach (event_type) =>
 				method_name = bindings[event_type]
 				# TODO support self transitions?
+				@piped[state] =
+					state: new_state
+					machine: machine
 				@on "#{state}_#{event_type}", =>
 					if local_queue
 						this[method_name] machine, new_state
@@ -1142,6 +1149,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			is_blocked = => @is().some (item) =>
 				return no if not (@get item).blocks
 				Boolean ~(@get item).blocks.indexOf state
+
 			if this[state].auto and not is_current() and not is_blocked()
 				add.push state
 
