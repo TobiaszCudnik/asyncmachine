@@ -1,3 +1,8 @@
+#/ <reference path="../typings/commonjs.d.ts" />
+#/ <reference path="../typings/settimeout.d.ts" />
+#/ <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
+#/ <reference path="../typings/es6-promise/es6-promise.d.ts" />
+
 eventemitter = require "eventemitter3-abortable"
 promise = require 'es6-promise'
 
@@ -1079,9 +1084,20 @@ class AsyncMachine extends eventemitter.EventEmitter
 		promise
 
 
-	#//////////////////////////
+	###*
+	 * Diffs 2 states sets are returns the ones present in the 1st only.
+	 *
+	 * @param states1 Source states list.
+	 * @param states2 Set to diff against (picking up the non existin ones).
+	 * @return List of states in states1 but not in states2.
+	###
+	diffStates: (states1, states2) ->
+		name for name in states1 when name not in states2
+
+
+	##/#/#/#/#/#/#/#///
 	# PRIVATES
-	#//////////////////////////
+	##/#/#/#/#/#/#/#///
 
 
 	log: (msg, level) ->
@@ -1527,11 +1543,6 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@target
 		else if @[name]
 			this
-
-
-	# Returns states from states1 not present in states2
-	diffStates: (states1, states2) ->
-		name for name in states1 when name not in states2
 
 
 	# Exit transition handles state-to-state methods.

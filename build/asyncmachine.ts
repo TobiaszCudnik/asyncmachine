@@ -1257,6 +1257,18 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         return promise;
     }
 
+    /**
+    	 * Diffs 2 states sets are returns the ones present in the 1st only.
+    	 *
+    	 * @param states1 Source states list.
+    	 * @param states2 Set to diff against (picking up the non existin ones).
+    	 * @return List of states in states1 but not in states2.
+    */
+
+    public diffStates(states1: string[], states2: string[]) {
+        return states1.filter((name) => __indexOf.call(states2, name) < 0).map((name) => name);
+    }
+
     private log(msg: string, level?: number): void {
         if (level == null) {
             level = 1;
@@ -1747,10 +1759,6 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         } else if (this[name]) {
             return this;
         }
-    }
-
-    private diffStates(states1: string[], states2: string[]) {
-        return states1.filter((name) => __indexOf.call(states2, name) < 0).map((name) => name);
     }
 
     private transitionExit_(from: string, to: string[], 

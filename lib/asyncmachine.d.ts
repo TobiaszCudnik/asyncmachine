@@ -1,11 +1,9 @@
 /// <reference path="../typings/commonjs.d.ts" />
 /// <reference path="../typings/settimeout.d.ts" />
 /// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
-/// <reference path="../typings/es6-promise/es6-promise.d.ts" />
+/// --- <reference path="../typings/es6-promise/es6-promise.d.ts" />
 
 declare module 'asyncmachine' {
-    import * as promise from 'es6-promise';
-    import * as eventemitter from 'eventemitter3-abortable';
 
     export interface IState {
         depends?: string[];
@@ -26,9 +24,11 @@ declare module 'asyncmachine' {
         reject:Function;
     }
 
-    class AsyncMachine extends eventemitter.EventEmitter {
+    export class AsyncMachine extends EventEmitter3Abortable.EventEmitter {
+        static factory(states: any): AsyncMachine;
         private debug_:boolean;
-        private states_all:string[];
+        public piped: {state: string, machine: AsyncMachine}[];
+        public states_all:string[];
         private states_active:string[];
         public last_promise:Promise<any>;
         // TODO typeme
@@ -144,6 +144,7 @@ declare module 'asyncmachine' {
 
         public getAbort(state:string, abort?:() => boolean):() => boolean;
         public getAbortEnter(state:string, abort?:() => boolean):() => boolean;
+        public diffStates(states1, states2);
 
         // ----- PRIVATES -----
 

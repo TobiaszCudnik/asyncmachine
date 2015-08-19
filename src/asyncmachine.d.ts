@@ -3,8 +3,8 @@
 /// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
 /// <reference path="../typings/es6-promise/es6-promise.d.ts" />
 
-import promise = module ('es6-promise');
-import eventemitter = module ('eventemitter3-abortable');
+// import promise = module ('es6-promise');
+// import eventemitter = module ('eventemitter3-abortable');
 
 export interface IState {
 	depends?: string[];
@@ -26,6 +26,8 @@ class Deferred {
 
 class AsyncMachine extends EventEmitter {
 	public last_promise: Promise<any>;
+	// TODO public type export
+    public piped: {state: string, machine: AsyncMachine}[];
 	private debug_: boolean;
 	private states_all: string[];
 	private states_active: string[];
@@ -39,7 +41,7 @@ class AsyncMachine extends EventEmitter {
 	private lock: boolean;
 	private clock_: { [state: string]: number };
 	// TODO merge with the TS source
-	constructor(target?: AsyncMachine, register_all);
+	constructor(target?: AsyncMachine, register_all?: boolean);
 	public Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void;
 	public register(...states: string[]);
 	public get(state: string): IState;
@@ -151,13 +153,13 @@ class AsyncMachine extends EventEmitter {
 	public catchPromise(promise: Promise<any>, target_states?: string[]): Promise<any>;
 	public catchPromise(promise: any, target_states?: string[]): any;
 
+	public diffStates(states1: string[], states2: string[]);
+
 	// ----- PRIVATES -----
 
 	private log(msg: string, level?: number): void;
 	private callListener(listener, context, params): Promise<any>;
 	private callListener(listener, context, params): any;
-
-	private diffStates(states1: string[], states2: string[]);
 
 	private getInstance(): any;
 
