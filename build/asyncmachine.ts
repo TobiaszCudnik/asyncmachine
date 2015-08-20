@@ -282,6 +282,17 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         return _results;
     }
 
+    public getRelations(from_state: string, to_state: string): string[] {
+        var relations = ["blocks", "drops", "implies", "requires"];
+        var state = this.get(from_state);
+
+        return relations.filter((relation) => {
+            if (state[relation]) {
+                return __indexOf.call(state[relation], to_state) >= 0;
+            }
+        });
+    }
+
     /**
     	 * If no states passed, returns all the current states.
     	 *

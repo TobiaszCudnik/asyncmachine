@@ -239,6 +239,20 @@ class AsyncMachine extends eventemitter.EventEmitter
 			break if constructor is AsyncMachine.prototype
 
 	###*
+	 * Returns an array of relations from one state to another.
+	 * Maximum set is ['blocks', 'drops', 'implies', 'requires'].
+   *
+   * TODO code sample
+  ###
+	getRelations: (from_state, to_state) ->
+		relations = ['blocks', 'drops', 'implies', 'requires']
+		state = @get from_state
+		# TODO assert
+
+		relations.filter (relation) ->
+			to_state in state[relation] if state[relation]
+
+	###*
 	 * If no states passed, returns all the current states.
 	 *
 	 * If states passed, returns a boolean if all of them are set.

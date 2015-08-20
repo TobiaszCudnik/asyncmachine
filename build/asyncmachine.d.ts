@@ -171,6 +171,7 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
          * ```
     */
     registerAll(): any;
+    getRelations(from_state: string, to_state: string): string[];
     /**
          * If no states passed, returns all the current states.
          *

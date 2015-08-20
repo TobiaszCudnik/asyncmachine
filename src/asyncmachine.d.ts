@@ -45,6 +45,7 @@ class AsyncMachine extends EventEmitter {
 	public Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void;
 	public register(...states: string[]);
 	public registerAll();
+	public getRelations(from_state: string, to_state: string): string[];
 	public get(state: string): IState;
 	public state(name: string): boolean;
 	public state(name: string[]): boolean;

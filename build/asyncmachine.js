@@ -266,6 +266,15 @@ var AsyncMachine = (function (_super) {
         }
         return _results;
     };
+    AsyncMachine.prototype.getRelations = function (from_state, to_state) {
+        var relations = ["blocks", "drops", "implies", "requires"];
+        var state = this.get(from_state);
+        return relations.filter(function (relation) {
+            if (state[relation]) {
+                return __indexOf.call(state[relation], to_state) >= 0;
+            }
+        });
+    };
     AsyncMachine.prototype.is = function (state, tick) {
         if (!state) {
             return [].concat(this.states_active);
