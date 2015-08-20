@@ -4,6 +4,10 @@
 /// <reference path="../typings/commonjs.d.ts" />
 var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
+/// <reference path="../typings/es6-promise/es6-promise.d.ts" />
+/// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
+/// <reference path="../typings/settimeout.d.ts" />
+/// <reference path="../typings/commonjs.d.ts" />
 import eventemitter = require("eventemitter3-abortable");
 import promise = require('es6-promise');
 
@@ -86,8 +90,6 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
     private clock_: { [state: string]: number } = {};
 
-    private internal_fields: string[] = [];
-
     private target: AsyncMachine = null;
 
     private transition_events: any[] = [];
@@ -95,6 +97,8 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     private debug_: boolean = false;
 
     piped = null;
+
+    private internal_fields: string[] = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields", "transition_events", "piped"];
 
     /**
     	Empty Exception state properties. See [[Exception_state]] transition handler.
@@ -156,7 +160,6 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         } else {
             this.register("Exception");
         }
-        this.internal_fields = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields"];
     }
 
     /**
@@ -250,13 +253,13 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     	 * ```
     */
 
-    registerAll() {
+    public registerAll() {
         var _results;
         var name = "";
         var value = null;
         for (name in this) {
             value = this[name];
-            if ((this.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0) {
+            if ((this.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0 && !(this[name] instanceof Function)) {
                 this.register(name);
             }
         }
@@ -265,7 +268,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         while (true) {
             for (name in constructor) {
                 value = constructor[name];
-                if ((constructor.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0) {
+                if ((constructor.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0 && !(constructor[name] instanceof Function)) {
                     this.register(name);
                 }
             }
@@ -396,7 +399,9 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
     public register(...states: string[]) {
         return states.map((state) => {
-            this.states_all.push(state);
+            if (__indexOf.call(this.states_all, state) < 0) {
+                this.states_all.push(state);
+            }
             return this.clock_[state] = 0;
         });
     }

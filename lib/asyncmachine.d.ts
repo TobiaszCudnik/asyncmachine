@@ -36,9 +36,10 @@ declare module 'asyncmachine' {
         private lock:boolean;
         private clock_:{ [state: string]: number };
         // TODO merge with the TS source
-        constructor(target?:AsyncMachine);
+        constructor(target?:AsyncMachine, registerAll?: boolean);
         public Exception_state(states:string[], err:Error, exception_states?:string[]):boolean;
         public register(...states:string[]);
+        public registerAll();
         public get(state:string):IState;
         public state(name:string):boolean;
         public state(name:string[]):boolean;

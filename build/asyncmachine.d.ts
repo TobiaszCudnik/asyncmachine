@@ -62,11 +62,11 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
     private debug_prefix;
     private debug_level;
     private clock_;
-    private internal_fields;
     private target;
     private transition_events;
     private debug_;
     piped: any;
+    private internal_fields;
     /**
         Empty Exception state properties. See [[Exception_state]] transition handler.
     */
@@ -881,6 +881,14 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
          * @return The source promise, for piping.
     */
     catchPromise(promise: Promise<any>, target_states?: string[]): Promise<any>;
+    /**
+         * Diffs 2 states sets are returns the ones present in the 1st only.
+         *
+         * @param states1 Source states list.
+         * @param states2 Set to diff against (picking up the non existin ones).
+         * @return List of states in states1 but not in states2.
+    */
+    diffStates(states1: string[], states2: string[]): string[];
     private log(msg, level?);
     pipeBind(state: any, machine: any, target_state: any, local_queue: any, bindings: any): any;
     /**
@@ -910,7 +918,6 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
     private setActiveStates_(target);
     processPostTransition(): any[];
     getMethodContext(name: any): AsyncMachine;
-    private diffStates(states1, states2);
     private transitionExit_(from, to, explicit_states, params);
     private transitionEnter_(to, target_states, params);
     private transitionExec_(method, target_states, params?);

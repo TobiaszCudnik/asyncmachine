@@ -8,10 +8,17 @@ var __extends = this.__extends || function (d, b) {
 /// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
 /// <reference path="../typings/settimeout.d.ts" />
 /// <reference path="../typings/commonjs.d.ts" />
-var __indexOf = [].indexOf || function (item) { for (var i = 0, l = this.length; i < l; i++) {
-    if (i in this && this[i] === item)
-        return i;
-} return -1; };
+var __indexOf = [].indexOf || function (item) {
+    for (var i = 0, l = this.length; i < l; i++) {
+        if (i in this && this[i] === item)
+            return i;
+    }
+    return -1;
+};
+/// <reference path="../typings/es6-promise/es6-promise.d.ts" />
+/// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
+/// <reference path="../typings/settimeout.d.ts" />
+/// <reference path="../typings/commonjs.d.ts" />
 var eventemitter = require("eventemitter3-abortable");
 var promise = require('es6-promise');
 exports.STATE_CHANGE = {
@@ -97,11 +104,11 @@ var AsyncMachine = (function (_super) {
         this.debug_prefix = "";
         this.debug_level = 1;
         this.clock_ = {};
-        this.internal_fields = [];
         this.target = null;
         this.transition_events = [];
         this.debug_ = false;
         this.piped = null;
+        this.internal_fields = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields", "transition_events", "piped"];
         /**
             Empty Exception state properties. See [[Exception_state]] transition handler.
         */
@@ -118,7 +125,6 @@ var AsyncMachine = (function (_super) {
         else {
             this.register("Exception");
         }
-        this.internal_fields = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields"];
     }
     /**
          * Creates an AsyncMachine instance (not a constructor) with specified states.
@@ -237,7 +243,7 @@ var AsyncMachine = (function (_super) {
         var value = null;
         for (name in this) {
             value = this[name];
-            if ((this.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0) {
+            if ((this.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0 && !(this[name] instanceof Function)) {
                 this.register(name);
             }
         }
@@ -246,7 +252,7 @@ var AsyncMachine = (function (_super) {
         while (true) {
             for (name in constructor) {
                 value = constructor[name];
-                if ((constructor.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0) {
+                if ((constructor.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0 && !(constructor[name] instanceof Function)) {
                     this.register(name);
                 }
             }
@@ -339,7 +345,9 @@ var AsyncMachine = (function (_super) {
             states[_i - 0] = arguments[_i];
         }
         return states.map(function (state) {
-            _this.states_all.push(state);
+            if (__indexOf.call(_this.states_all, state) < 0) {
+                _this.states_all.push(state);
+            }
             return _this.clock_[state] = 0;
         });
     };
@@ -785,6 +793,16 @@ var AsyncMachine = (function (_super) {
             promise["catch"](function (error) { return _this.add("Exception", error, target_states); });
         }
         return promise;
+    };
+    /**
+         * Diffs 2 states sets are returns the ones present in the 1st only.
+         *
+         * @param states1 Source states list.
+         * @param states2 Set to diff against (picking up the non existin ones).
+         * @return List of states in states1 but not in states2.
+    */
+    AsyncMachine.prototype.diffStates = function (states1, states2) {
+        return states1.filter(function (name) { return __indexOf.call(states2, name) < 0; }).map(function (name) { return name; });
     };
     AsyncMachine.prototype.log = function (msg, level) {
         if (level == null) {
@@ -1246,9 +1264,6 @@ var AsyncMachine = (function (_super) {
             return this;
         }
     };
-    AsyncMachine.prototype.diffStates = function (states1, states2) {
-        return states1.filter(function (name) { return __indexOf.call(states2, name) < 0; }).map(function (name) { return name; });
-    };
     AsyncMachine.prototype.transitionExit_ = function (from, to, explicit_states, params) {
         var _this = this;
         if (~explicit_states.indexOf(from)) {
@@ -1381,4 +1396,4 @@ var AsyncMachine = (function (_super) {
 })(eventemitter.EventEmitter);
 exports.AsyncMachine = AsyncMachine;
 module.exports.AsyncMachine = AsyncMachine;
-//# sourceMappingURL=asyncmachine.js.map
+//# sourceMappingURL=asyncmachine.js.map\n

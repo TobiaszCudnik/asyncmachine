@@ -12,6 +12,7 @@ all:
 
 build:
 	$(CCOFFEE) -o build -i src -p "asyncmachine.js:asyncmachine"
+	@echo "\n" >> build/asyncmachine.js
 
 build-watch:
 	$(CCOFFEE) -o build -i src --watch -p "asyncmachine.js:asyncmachine"

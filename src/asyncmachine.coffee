@@ -71,11 +71,15 @@ class AsyncMachine extends eventemitter.EventEmitter
 	debug_prefix: ''
 	debug_level: 1
 	clock_: {}
-	internal_fields: []
 	target: null
 	transition_events: []
 	debug_: no
 	piped: null
+	# TODO this is lame, filter out on the prototype level. Besides the Exception state, which will make it...
+	# an exception... ;]
+	internal_fields: ['_events', 'states_all', 'states_active', 'queue'
+		'lock', 'last_promise', 'debug_prefix', 'debug_level', 'clock_', 'debug_'
+		'target', 'internal_fields', 'transition_events', 'piped']
 
 	###*
 	Empty Exception state properties. See [[Exception_state]] transition handler.
@@ -129,11 +133,6 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@registerAll()
 		else
 			@register 'Exception'
-		# TODO this is lame, where are the prototypes?
-		@internal_fields = ['_events', 'states_all'
-			'states_active', 'queue', 'lock', 'last_promise'
-			'debug_prefix', 'debug_level', 'clock_', 'debug_'
-			'target', 'internal_fields']
 
 	###*
 	 * All exceptions are caught into this state, including both synchronous and
@@ -225,13 +224,16 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 		# test the instance vars
 		for name, value of @
-			if (@hasOwnProperty name) and name not in @internal_fields
+			if (@hasOwnProperty name) and name not in @internal_fields and
+					@[name] not instanceof Function
 				@register name
 		# test the prototype chain
 		constructor = @getInstance().constructor.prototype
 		while yes
 			for name, value of constructor
-				if (constructor.hasOwnProperty name) and name not in @internal_fields
+				if (constructor.hasOwnProperty name) and
+						name not in @internal_fields and
+						constructor[name] not instanceof Function
 					@register name
 			constructor = Object.getPrototypeOf constructor
 			break if constructor is AsyncMachine.prototype
@@ -329,7 +331,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	register: (states...) ->
 		# TODO assert that the state exists
 		for state in states
-			@states_all.push state
+			@states_all.push state if state not in @states_all
 			@clock_[state] = 0
 
 	###*
