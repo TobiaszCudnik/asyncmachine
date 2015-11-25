@@ -41,7 +41,7 @@ class AsyncMachine extends EventEmitter {
 	private lock: boolean;
 	private clock_: { [state: string]: number };
 	// TODO merge with the TS source
-	constructor(target?: AsyncMachine, register_all?: boolean);
+	constructor(target?: Object, register_all?: boolean);
 	public Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void;
 	public register(...states: string[]);
 	public registerAll();

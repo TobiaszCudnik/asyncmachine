@@ -58,7 +58,8 @@ class Deferred
  *
  * ```
  * TODO
- * - exposing currect state during transition (via the #duringTransition() method)
+ * - exposing the current state during transition (via the #duringTransition() method)
+ * - loose bind in flavor of closures
 ###
 class AsyncMachine extends eventemitter.EventEmitter
 
@@ -100,9 +101,10 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * states.is() # -> ['A', 'B']
 	 * ```
 	###
-	@factory: (states) ->
+	@factory: (states, constructor) ->
+		# TODO constructor call
 		states ?= []
-		instance = new AsyncMachine
+		instance = new (constructor or AsyncMachine)
 		for state in states
 			instance[state] = {}
 			instance.register state
@@ -120,7 +122,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * @param registerAll Automaticaly registers all defined states.
 	 * @see [[AsyncMachine]] for the usage example.
 	###
-	constructor: (target = null, registerAll = no) ->
+	constructor: (target = null, register_all = no) ->
 		super()
 		@queue = []
 		@states_all = []
@@ -129,7 +131,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@piped = {}
 
 		@setTarget target or this
-		if registerAll
+		if register_all
 			@registerAll()
 		else
 			@register 'Exception'
@@ -231,10 +233,10 @@ class AsyncMachine extends eventemitter.EventEmitter
 		constructor = @getInstance().constructor.prototype
 		while yes
 			for name, value of constructor
-				if (constructor.hasOwnProperty name) and
+				@register name if (constructor.hasOwnProperty name) and
 						name not in @internal_fields and
 						constructor[name] not instanceof Function
-					@register name
+
 			constructor = Object.getPrototypeOf constructor
 			break if constructor is AsyncMachine.prototype
 
@@ -245,12 +247,13 @@ class AsyncMachine extends eventemitter.EventEmitter
    * TODO code sample
   ###
 	getRelations: (from_state, to_state) ->
+		# TODO enum
 		relations = ['blocks', 'drops', 'implies', 'requires']
 		state = @get from_state
 		# TODO assert
 
 		relations.filter (relation) ->
-			to_state in state[relation] if state[relation]
+			to_state in state[relation]?
 
 	###*
 	 * If no states passed, returns all the current states.
@@ -281,6 +284,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		return [].concat @states_active if not state
 		active = Boolean ~@states_active.indexOf state
 		return no if not active
+
 		if tick is undefined then yes else (@clock state) is tick
 
 	###*
@@ -318,7 +322,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	###
 	every: (states...) ->
 		states.every (name) =>
-			!!~@states_active.indexOf name
+			~@states_active.indexOf name
 
 	###*
 	 * Returns the current queue. For struct's meaning, see [[QUEUE]].
@@ -576,8 +580,9 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@createListener @createDeferred (@add.bind this), target, states, params
 
 	###*
-	 * Deferred version of [[add]], adding the requested states on the next event
-	 * loop's tick. Useful if you want to start with a fresh stack trace.
+	 * Adds on a next tick; Deferred version of [[add]], adding the requested
+   * states on the next event loop's tick. Useful if you want to start with a
+   * fresh stack trace.
 	 *
 	 * See [[add]] for the params description.
 	 *
@@ -711,7 +716,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	###*
 	 * Pipes (forwards) the state to other instance.
 	 *
-	 * Piped are "_state" and "_end" methods, not the negatiation ones
+	 * Piped are "_state" and "_end" methods, not the negotiation ones
 	 * (see pipeNegotiation]] for these).
 	 *
 	 * @param state Source state's name. Optional - if none is given, all states
@@ -887,7 +892,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * a queue.
 	 *
 	 * Useful for creating new instances of dynamic classes (or factory created
-	 * instances)
+	 * instances).
 	 *
 	 * @param state Name of the state
 	 * @return Current tick of the passed state
@@ -1101,10 +1106,10 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	###*
-	 * Diffs 2 states sets are returns the ones present in the 1st only.
+	 * Diffs two state sets and returns the ones present in the 1st only.
 	 *
 	 * @param states1 Source states list.
-	 * @param states2 Set to diff against (picking up the non existin ones).
+	 * @param states2 Set to diff against (picking up the non existing ones).
 	 * @return List of states in states1 but not in states2.
 	###
 	diffStates: (states1, states2) ->
@@ -1341,7 +1346,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		ret = states.some (state) =>
 			ret = undefined
 			name = state + "_" + state
-			if ~@states_active.indexOf state
+			if ~@states_active.indexOf state or (@get state) multi
 				transition_params = []
 				transition_params = [states].concat params
 				context = @getMethodContext name
