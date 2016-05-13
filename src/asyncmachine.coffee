@@ -389,14 +389,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 			# TODO merge
 			if @duringTransition()
 				@log "Queued SET state(s) #{states} for an external machine", 2
-				@queue.push [STATE_CHANGE.SET, states, params, target]
-				return yes
-			else
-				return target.add states, params
+			@queue.push [STATE_CHANGE.SET, states, params, target]
 
-		if states
-			params = [states].concat params
-		states = target
+			return yes
+		else
+			if states
+				params = [states].concat params
+			states = target
 
 		@enqueue_ STATE_CHANGE.SET, states, params
 		@processQueue_()
@@ -505,16 +504,16 @@ class AsyncMachine extends eventemitter.EventEmitter
 			# TODO merge
 			if @duringTransition()
 				@log "Queued ADD state(s) #{states} for an external machine", 2
-				@queue.push [STATE_CHANGE.ADD, states, params, target]
-				return yes
-			else
-				return target.add states, params
+			@queue.push [STATE_CHANGE.ADD, states, params, target]
 
-		if states
-			params = [states].concat params
-		states = target
+			return yes
+		else
+			if states
+				params = [states].concat params
+			states = target
 
 		@enqueue_ STATE_CHANGE.ADD, states, params
+
 		@processQueue_()
 
 	###*
@@ -621,16 +620,17 @@ class AsyncMachine extends eventemitter.EventEmitter
 			# TODO merge
 			return if @duringTransition()
 				@log "Queued DROP state(s) #{states} for an external machine", 2
-				@queue.push [STATE_CHANGE.DROP, states, params, target]
-				yes
-			else
-				return target.drop states, params
 
-		if states
-			params = [states].concat params
-		states = target
+			@queue.push [STATE_CHANGE.DROP, states, params, target]
+
+			return yes
+		else
+			if states
+				params = [states].concat params
+			states = target
 
 		@enqueue_ STATE_CHANGE.DROP, states, params
+
 		@processQueue_()
 
 	###*
@@ -1226,9 +1226,11 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@lock = no
 		catch err
 			# drop the queue created during the transition
-			@queue = queue
+			@queue = [
+				STATE_CHANGE.ADD, ['Exception'], [err, states]
+			].concat queue
+			console.log @queue
 			@lock = no
-			@add 'Exception', err, states
 			return
 
 		# TODO move to processQueue
@@ -1264,13 +1266,16 @@ class AsyncMachine extends eventemitter.EventEmitter
 		while row = @queue.shift()
 			target = row[QUEUE.TARGET] or this
 			params = [
-				row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], no,
+				row[QUEUE.STATE_CHANGE],
+				(@parseStates row[QUEUE.STATES]),
+				row[QUEUE.PARAMS], no,
 				target is this
 			]
 			# emit the transition on the target machine
 			ret.push target.processStateChange_.apply target, params
 		@lock_queue = no
 
+		# TODO parse the first row for main functions
 		not ~ret.indexOf no
 
 

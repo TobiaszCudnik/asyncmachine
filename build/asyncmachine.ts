@@ -96,6 +96,8 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
     piped = null;
 
+    lock_queue = false;
+
     /**
     	Empty Exception state properties. See [[Exception_state]] transition handler.
     */
@@ -468,19 +470,19 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         if (target instanceof AsyncMachine) {
             if (this.duringTransition()) {
                 this.log("Queued SET state(s) " + states + " for an external machine", 2);
-                this.queue.push([STATE_CHANGE.SET, states, params, target]);
-                return true;
-            } else {
-                return target.add(states, params);
             }
+            this.queue.push([STATE_CHANGE.SET, states, params, target]);
+
+            return true;
+        } else {
+            if (states) {
+                params = [states].concat(params);
+            }
+            states = target;
         }
 
-        if (states) {
-            params = [states].concat(params);
-        }
-        states = target;
-
-        return this.processStateChange_(STATE_CHANGE.SET, states, params);
+        this.enqueue_(STATE_CHANGE.SET, states, params);
+        return this.processQueue_();
     }
 
     /**
@@ -609,19 +611,20 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         if (target instanceof AsyncMachine) {
             if (this.duringTransition()) {
                 this.log("Queued ADD state(s) " + states + " for an external machine", 2);
-                this.queue.push([STATE_CHANGE.ADD, states, params, target]);
-                return true;
-            } else {
-                return target.add(states, params);
             }
+            this.queue.push([STATE_CHANGE.ADD, states, params, target]);
+
+            return true;
+        } else {
+            if (states) {
+                params = [states].concat(params);
+            }
+            states = target;
         }
 
-        if (states) {
-            params = [states].concat(params);
-        }
-        states = target;
+        this.enqueue_(STATE_CHANGE.ADD, states, params);
 
-        return this.processStateChange_(STATE_CHANGE.ADD, states, params);
+        return this.processQueue_();
     }
 
     /**
@@ -749,20 +752,22 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     public drop(target: any, states?: any, ...params: any[]): boolean {
         if (target instanceof AsyncMachine) {
             if (this.duringTransition()) {
-                this.log("Queued DROP state(s) " + states + " for an external machine", 2);
-                this.queue.push([STATE_CHANGE.DROP, states, params, target]);
-                return true;
-            } else {
-                return target.drop(states, params);
+                return this.log("Queued DROP state(s) " + states + " for an external machine", 2);
             }
+
+            this.queue.push([STATE_CHANGE.DROP, states, params, target]);
+
+            return true;
+        } else {
+            if (states) {
+                params = [states].concat(params);
+            }
+            states = target;
         }
 
-        if (states) {
-            params = [states].concat(params);
-        }
-        states = target;
+        this.enqueue_(STATE_CHANGE.DROP, states, params);
 
-        return this.processStateChange_(STATE_CHANGE.DROP, states, params);
+        return this.processQueue_();
     }
 
     /**
@@ -1326,7 +1331,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         }
     }
 
-    private processAutoStates(skip_queue: boolean) {
+    prepareAutoStates() {
         var add = [];
         this.states_all.forEach((state) => {
             var is_current = () => this.is(state);
@@ -1342,7 +1347,9 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             }
         });
 
-        return this.processStateChange_(STATE_CHANGE.ADD, add, [], true, skip_queue);
+        if (add.length) {
+            return [STATE_CHANGE.ADD, add, [], true];
+        }
     }
 
     public hasStateChanged(states_before: string[]): boolean {
@@ -1351,33 +1358,32 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         return !length_equals || Boolean(this.diffStates(states_before, this.is()).length);
     }
 
-    private processStateChange_(type: number, states: string, params: any[], autostate?: boolean, skip_queue?: boolean);
-    private processStateChange_(type: number, states: string[], params: any[], autostate?: boolean, skip_queue?: boolean);
-    private processStateChange_(type: number, states: any, params: any[], autostate?: boolean, skip_queue?: boolean): boolean {
+    parseStates(states) {
         states = [].concat(states);
-        states = states.filter((state) => {
+
+        return states = states.filter((state) => {
             if (typeof state !== "string" || !this.get(state)) {
                 throw new Error("Non existing state: " + state);
             }
 
             return true;
         });
+    }
 
+    private processStateChange_(type: number, states: string, params: any[], is_autostate?: boolean, skip_queue?: boolean);
+    private processStateChange_(type: number, states: string[], params: any[], is_autostate?: boolean, skip_queue?: boolean);
+    private processStateChange_(type: number, states: any, params: any[], is_autostate?: boolean, skip_queue?: boolean): boolean {
         if (!states.length) {
             return;
         }
+
         try {
-            var type_label = STATE_CHANGE_LABELS[type].toLowerCase();
-            if (this.lock) {
-                this.log("Queued " + type_label + " state(s) " + (states.join(", ")), 2);
-                this.queue.push([type, states, params]);
-                return;
-            }
             this.lock = true;
             var queue = this.queue;
             this.queue = [];
             var states_before = this.is();
-            if (autostate) {
+            var type_label = STATE_CHANGE_LABELS[type].toLowerCase();
+            if (is_autostate) {
                 this.log("[" + type_label + "] AUTO state " + (states.join(", ")), 3);
             } else {
                 this.log("[" + type_label + "] state " + (states.join(", ")), 2);
@@ -1396,7 +1402,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
                     }
                 }).call(this);
                 states_to_set = this.setupTargetStates_(states_to_set);
-                if (type !== STATE_CHANGE.DROP && !autostate) {
+                if (type !== STATE_CHANGE.DROP && !is_autostate) {
                     var states_accepted = states.every((state) => ~states_to_set.indexOf(state));
                     if (!states_accepted) {
                         this.log("Cancelled the transition, as not all target states were accepted", 3);
@@ -1412,20 +1418,18 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             this.lock = false;
         } catch (_error) {
             var err = _error;
-            this.queue = queue;
+            this.queue = [STATE_CHANGE.ADD, ["Exception"], [err, states]].concat(queue);
+            console.log(this.queue);
             this.lock = false;
-            this.add("Exception", err, states);
             return;
         }
-
         if (ret === false) {
             this.emit("cancelled");
-        } else if ((this.hasStateChanged(states_before)) && !autostate) {
-            this.processAutoStates(skip_queue);
-        }
-
-        if (!(skip_queue || this.duringTransition())) {
-            this.processQueue_();
+        } else if ((this.hasStateChanged(states_before)) && !is_autostate) {
+            var auto_states = this.prepareAutoStates();
+            if (auto_states) {
+                this.queue.unshift(auto_states);
+            }
         }
 
         if (type === STATE_CHANGE.DROP) {
@@ -1435,15 +1439,28 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         }
     }
 
+    enqueue_(type, states, params, is_autostate : any = false) {
+        var type_label = STATE_CHANGE_LABELS[type].toLowerCase();
+        if (this.lock) {
+            this.log("Queued " + type_label + " state(s) " + (states.join(", ")), 2);
+        }
+        return this.queue.push([type, states, params, is_autostate]);
+    }
+
     private processQueue_() {
-        var ret = [];
-        var row = void 0;
-        while (row = this.queue.shift()) {
-            var target = row[QUEUE.TARGET] || this;
-            var params = [row[QUEUE.STATE_CHANGE], row[QUEUE.STATES], row[QUEUE.PARAMS], false, target === this];
-            ret.push(target.processStateChange_.apply(target, params));
+        if (this.lock_queue) {
+            return;
         }
 
+        var ret = [];
+        var row = void 0;
+        this.lock_queue = true;
+        while (row = this.queue.shift()) {
+            var target = row[QUEUE.TARGET] || this;
+            var params = [row[QUEUE.STATE_CHANGE], this.parseStates(row[QUEUE.STATES]), row[QUEUE.PARAMS], false, target === this];
+            ret.push(target.processStateChange_.apply(target, params));
+        }
+        this.lock_queue = false;
         return !~ret.indexOf(false);
     }
 
@@ -1528,6 +1545,8 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     }
 
     private setupTargetStates_(states: string[], exclude?: string[]) {
+        states = this.parseStates(states);
+
         if (exclude == null) {
             exclude = [];
         }

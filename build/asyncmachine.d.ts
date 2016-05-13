@@ -67,6 +67,7 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
     private transition_events;
     private debug_;
     piped: any;
+    lock_queue: boolean;
     /**
         Empty Exception state properties. See [[Exception_state]] transition handler.
     */
@@ -890,10 +891,12 @@ export declare class AsyncMachine extends eventemitter.EventEmitter {
     private callListener(listener, context, params);
     private getInstance();
     setImmediate(fn: any, ...params: any[]): any;
-    private processAutoStates(skip_queue);
+    prepareAutoStates(): (number | boolean | any[])[];
     hasStateChanged(states_before: string[]): boolean;
-    private processStateChange_(type, states, params, autostate?, skip_queue?);
-    private processStateChange_(type, states, params, autostate?, skip_queue?);
+    parseStates(states: any): any;
+    private processStateChange_(type, states, params, is_autostate?, skip_queue?);
+    private processStateChange_(type, states, params, is_autostate?, skip_queue?);
+    enqueue_(type: any, states: any, params: any, is_autostate?: any): number;
     private processQueue_();
     private allStatesSet(states);
     private allStatesNotSet(states);
