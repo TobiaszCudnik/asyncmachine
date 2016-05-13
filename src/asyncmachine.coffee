@@ -71,6 +71,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 	transition_events: []
 	debug_: no
 	piped: null
+	# TODO expose duringQueueProcessing(): Boolean
+	lock_queue: no
 
 	###*
 	Empty Exception state properties. See [[Exception_state]] transition handler.
@@ -396,7 +398,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 			params = [states].concat params
 		states = target
 
-		@processStateChange_ STATE_CHANGE.SET, states, params
+		@enqueue_ STATE_CHANGE.SET, states, params
+		@processQueue_()
 
 	###*
 	 * Deferred version of [[set]], returning a node-style callback for setting
@@ -511,7 +514,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 			params = [states].concat params
 		states = target
 
-		@processStateChange_ STATE_CHANGE.ADD, states, params
+		@enqueue_ STATE_CHANGE.ADD, states, params
+		@processQueue_()
 
 	###*
 	 * Deferred version of [[add]], returning a node-style callback for adding
@@ -626,7 +630,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 			params = [states].concat params
 		states = target
 
-		@processStateChange_ STATE_CHANGE.DROP, states, params
+		@enqueue_ STATE_CHANGE.DROP, states, params
+		@processQueue_()
 
 	###*
 	 * Deferred version of [[drop]], returning a node-style callback for dropping
@@ -1142,7 +1147,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	# TODO log it better
-	processAutoStates: (skip_queue) ->
+	# Returns a queue entry with
+	prepareAutoStates: ->
 		add = []
 		@states_all.forEach (state) =>
 			is_current = => @is state
@@ -1153,7 +1159,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 			if this[state].auto and not is_current() and not is_blocked()
 				add.push state
 
-		@processStateChange_ STATE_CHANGE.ADD, add, [], yes, skip_queue
+		if add.length
+			[STATE_CHANGE.ADD, add, [], yes]
 
 
 	hasStateChanged: (states_before) ->
@@ -1163,10 +1170,9 @@ class AsyncMachine extends eventemitter.EventEmitter
 		not length_equals or Boolean @diffStates(states_before, @is()).length
 
 
-	# TODO this is quite too long
-	processStateChange_: (type, states, params, autostate, skip_queue) ->
+	parseStates: (states) ->
 		states = [].concat states
-		# TODO merge with setupTargetStates
+
 		states = states.filter (state) =>
 			if typeof state isnt 'string' or not @get state
 				# TODO trow a specific class once TS will stop complaining
@@ -1174,19 +1180,17 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 			yes
 
+	# This is the main transition logic, called exclusively by the queue iterator
+	processStateChange_: (type, states, params, is_autostate) ->
 		return unless states.length
+
 		try
-			type_label = STATE_CHANGE_LABELS[type].toLowerCase()
-			if @lock
-				@log "Queued #{type_label} state(s) #{states.join ', '}", 2
-				# TODO encapsulate
-				@queue.push [type, states, params]
-				return
 			@lock = yes
 			queue = @queue
 			@queue = []
 			states_before = @is()
-			if autostate
+			type_label = STATE_CHANGE_LABELS[type].toLowerCase()
+			if is_autostate
 				@log "[#{type_label}] AUTO state #{states.join ", "}", 3
 			else
 				@log "[#{type_label}] state #{states.join ", "}", 2
@@ -1206,7 +1210,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 				# Dropping states doesnt require an acceptance
 				# Autostates can be set partially (TODO check if any is a target?)
-				if type isnt STATE_CHANGE.DROP and not autostate
+				if type isnt STATE_CHANGE.DROP and not is_autostate
 					states_accepted = states.every (state) ->
 						~states_to_set.indexOf state
 					unless states_accepted
@@ -1215,6 +1219,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 			if ret isnt no
 				# Execute the transition
+				# TODO produce a list of method calls and return them
 				ret = @transition_ states_to_set, states, params
 			# if canceled then drop the queue created during the transition
 			@queue = if ret is no then queue else queue.concat @queue
@@ -1226,14 +1231,15 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@add 'Exception', err, states
 			return
 
+		# TODO move to processQueue
 		if ret is no
 			@emit 'cancelled'
-		else if (@hasStateChanged states_before) and not autostate
-			# TODO only for local target???
-			@processAutoStates skip_queue
-
-		if not (skip_queue or @duringTransition())
-			@processQueue_()
+		# TODO autostate cant trigger an auto state?
+		else if (@hasStateChanged states_before) and not is_autostate
+			# prepend auto states to the beginning of the queue
+			auto_states = @prepareAutoStates()
+			if auto_states
+				@queue.unshift auto_states
 
 		return if type is STATE_CHANGE.DROP
 			@allStatesNotSet states
@@ -1241,10 +1247,20 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@allStatesSet states
 
 
+	enqueue_: (type, states, params, is_autostate = no) ->
+		type_label = STATE_CHANGE_LABELS[type].toLowerCase()
+		if @lock
+			@log "Queued #{type_label} state(s) #{states.join ', '}", 2
+		@queue.push [type, states, params, is_autostate]
+
+
 	# Goes through the whole queue collecting return values.
 	processQueue_: ->
+		return if @lock_queue
+
 		ret = []
 		row = undefined
+		@lock_queue = yes
 		while row = @queue.shift()
 			target = row[QUEUE.TARGET] or this
 			params = [
@@ -1253,6 +1269,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			]
 			# emit the transition on the target machine
 			ret.push target.processStateChange_.apply target, params
+		@lock_queue = no
 
 		not ~ret.indexOf no
 
@@ -1335,6 +1352,8 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 
 	setupTargetStates_: (states, exclude) ->
+		states = @parseStates states
+
 		exclude ?= []
 
 		# Remove non existing states

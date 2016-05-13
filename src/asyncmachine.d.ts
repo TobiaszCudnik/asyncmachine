@@ -167,9 +167,9 @@ class AsyncMachine extends EventEmitter {
 
 	private processAutoStates(skip_queue: boolean);
 		
-	private processStateChange_(type: number, states: string, params: any[], autostate?: boolean, skip_queue?: boolean);
-	private processStateChange_(type: number, states: string[], params: any[], autostate?: boolean, skip_queue?: boolean);
-	private processStateChange_(type: number, states: any, params: any[], autostate?: boolean, skip_queue?: boolean): boolean;
+	private processStateChange_(type: number, states: string, params: any[], is_autostate?: boolean, skip_queue?: boolean);
+	private processStateChange_(type: number, states: string[], params: any[], is_autostate?: boolean, skip_queue?: boolean);
+	private processStateChange_(type: number, states: any, params: any[], is_autostate?: boolean, skip_queue?: boolean): boolean;
 		
 	private processQueue_();
 	private statesChanged(states_before: string[]): boolean;
