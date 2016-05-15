@@ -267,7 +267,7 @@ var AsyncMachine = (function (_super) {
         return _results;
     };
     AsyncMachine.prototype.getRelations = function (from_state, to_state) {
-        var relations = ["blocks", "drops", "implies", "requires"];
+        var relations = ["blocks", "depends", "implies", "requires"];
         var state = this.get(from_state);
         return relations.filter(function (relation) {
             if (state[relation]) {

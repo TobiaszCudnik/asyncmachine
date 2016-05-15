@@ -25,8 +25,10 @@ declare module 'asyncmachine' {
     }
 
     export class AsyncMachine extends EventEmitter3Abortable.EventEmitter {
-        static factory(states: any): AsyncMachine;
+        static factory(states: string[]): AsyncMachine;
         private debug_:boolean;
+        private debug_prefix: string;
+        private debug_level: number;
         public piped: {state: string, machine: AsyncMachine}[];
         public states_all:string[];
         private states_active:string[];
@@ -42,10 +44,6 @@ declare module 'asyncmachine' {
         public registerAll();
         public getRelations(from_state: string, to_state: string): string[];
         public get(state:string):IState;
-        public state(name:string):boolean;
-        public state(name:string[]):boolean;
-        public state():string[];
-        public state(name?:any):any;
         public is(state:string):boolean;
         public is(state:string[]):boolean;
         public is(state:string, tick?:number):boolean;

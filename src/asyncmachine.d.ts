@@ -25,6 +25,7 @@ class Deferred {
 }
 
 class AsyncMachine extends EventEmitter {
+    static factory(states?: {[index: string]: IState}, constructor?: AsyncMachine): AsyncMachine;
 	public last_promise: Promise<any>;
 	// TODO public type export
     public piped: {state: string, machine: AsyncMachine}[];

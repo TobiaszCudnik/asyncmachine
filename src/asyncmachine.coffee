@@ -58,8 +58,25 @@ class Deferred
  *
  * ```
  * TODO
- * - exposing the current state during transition (via the #duringTransition() method)
- * - loose bind in flavor of closures
+ * - tail call optimisation for transitions, refer to incode TODOs
+ * - exception in the 'change' event listeners creates a loop
+ *   - add Exception_Exception handling
+ * - exposing the target states of the transition (via the #duringTransition() method and/or #states)
+ * - loose bind in flavor of closures (performance, typescript)
+ * - garbage collection of created promises / callbacks ASAP using the abort function
+ *   - realtime or periodic policies
+ * - support a custom log handler
+ * - investigate the "multi state", rethink counters, binding X_X() to X()
+ *   - returning false from a self-transition shouldn't incement the counter
+ *   - multi states' counters are incemented by a self transtion
+ * - support for regexes as state relation names? should include tooling for expanding to string names
+ *   - eg Connecting blocks: [/^(dis)?connect(ing|ed)$/i] (plus add anti self-blocking protection)
+ * - rest of the TODOs in the source
+ *
+ * TODO (package):
+ * - ES6 module source as dist, default export
+ * - factory function exposed
+ * - optional Promise dependency
 ###
 class AsyncMachine extends eventemitter.EventEmitter
 
@@ -177,7 +194,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		if async_target_states?.length?
 			@log "Next states were supposed to be (add/drop/set):\n    " +
 				exception_states.join ', '
-		console.dir err
+		console.error err
 		@setImmediate -> throw err
 
 	###*
@@ -242,13 +259,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 	###*
 	 * Returns an array of relations from one state to another.
-	 * Maximum set is ['blocks', 'drops', 'implies', 'requires'].
-   *
-   * TODO code sample
-  ###
+	 * Maximum set is ['blocks', 'implies', 'requires', 'depends'].
+ 	 *
+	 * TODO code sample
+	###
 	getRelations: (from_state, to_state) ->
 		# TODO enum
-		relations = ['blocks', 'drops', 'implies', 'requires']
+		relations = ['blocks', 'implies', 'requires', 'depends']
 		state = @get from_state
 		# TODO assert
 
@@ -411,7 +428,12 @@ class AsyncMachine extends eventemitter.EventEmitter
 		if target instanceof AsyncMachine
 			# TODO merge
 			if @duringTransition()
-				@log "Queued SET state(s) #{states} for an external machine", 2
+				machine_name = if target.debug_prefix
+					" (#{target.debug_prefix})"
+			 	else
+					''
+				@log "Queued SET state(s) #{states} for an external machine
+					#{machine_name}", 2
 				@queue.push [STATE_CHANGE.SET, states, params, target]
 				return yes
 			else
@@ -526,7 +548,12 @@ class AsyncMachine extends eventemitter.EventEmitter
 		if target instanceof AsyncMachine
 			# TODO merge
 			if @duringTransition()
-				@log "Queued ADD state(s) #{states} for an external machine", 2
+				machine_name = if target.debug_prefix
+					" (#{target.debug_prefix})"
+				else
+					''
+				@log "Queued ADD state(s) #{states} for an external machine
+					#{machine_name}", 2
 				@queue.push [STATE_CHANGE.ADD, states, params, target]
 				return yes
 			else
@@ -642,7 +669,12 @@ class AsyncMachine extends eventemitter.EventEmitter
 		if target instanceof AsyncMachine
 			# TODO merge
 			return if @duringTransition()
-				@log "Queued DROP state(s) #{states} for an external machine", 2
+				machine_name = if target.debug_prefix
+					" (#{target.debug_prefix})"
+				else
+					''
+				@log "Queued DROP state(s) #{states} for an external machine
+					#{machine_name}", 2
 				@queue.push [STATE_CHANGE.DROP, states, params, target]
 				yes
 			else
@@ -1125,7 +1157,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 		level ?= 1
 		return unless @debug_
 		return if level > @debug_level
-		console.log @debug_prefix + msg
+		console.log @debug_prefix + " " + msg
 
 
 	pipeBind: (state, machine, target_state, local_queue, bindings) ->
@@ -1172,7 +1204,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 	# TODO make it cancellable
 	setImmediate: (fn, params...) ->
-		if setImmediate
+		if typeof setImmediate != 'undefined'
 			setImmediate.apply null, [fn].concat params
 		else
 			setTimeout (fn.apply null, params), 0
@@ -1447,6 +1479,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 			not_found = []
 			names = for state, not_found of not_found_by_states
 				"#{state}(-#{not_found.join ' -'})"
+			# TODO distinguish which states are auto and not explicitly set
 			@log "Can't set the following states #{names.join ', '}", 2
 
 		states

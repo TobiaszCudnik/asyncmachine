@@ -17,7 +17,6 @@
   "dependencies": {
     "es6-promise": "latest",
     "eventemitter3-abortable": "latest",
-    "graphlib": "latest",
     "object-mixin": "latest"
   },
   "devDependencies": {
