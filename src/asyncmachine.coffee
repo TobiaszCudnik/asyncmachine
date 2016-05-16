@@ -53,7 +53,8 @@ class Deferred
  *
  * ```
  * TODO
- * - exposing currect state during transition (via the #duringTransition() method)
+ * - exposing the current state during transition (via the #duringTransition() method)
+ * - loose bind in favor of closures
 ###
 class AsyncMachine extends eventemitter.EventEmitter
 
@@ -66,13 +67,17 @@ class AsyncMachine extends eventemitter.EventEmitter
 	debug_prefix: ''
 	debug_level: 1
 	clock_: {}
-	internal_fields: []
 	target: null
 	transition_events: []
 	debug_: no
 	piped: null
 	# TODO expose duringQueueProcessing(): Boolean
 	lock_queue: no
+# TODO this is lame, filter out on the prototype level. Besides the Exception state, which will make it...
+# an exception... ;]
+	internal_fields: ['_events', 'states_all', 'states_active', 'queue'
+		'lock', 'last_promise', 'debug_prefix', 'debug_level', 'clock_', 'debug_'
+		'target', 'internal_fields', 'transition_events', 'piped']
 
 	###*
 	Empty Exception state properties. See [[Exception_state]] transition handler.
@@ -93,9 +98,9 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * states.is() # -> ['A', 'B']
 	 * ```
 	###
-	@factory: (states) ->
+	@factory: (states, constructor) ->
 		states ?= []
-		instance = new AsyncMachine
+		instance = new (constructor or AsyncMachine)
 		for state in states
 			instance[state] = {}
 			instance.register state
@@ -113,7 +118,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * @param registerAll Automaticaly registers all defined states.
 	 * @see [[AsyncMachine]] for the usage example.
 	###
-	constructor: (target = null, registerAll = no) ->
+	constructor: (target = null, register_all = no) ->
 		super()
 		@queue = []
 		@states_all = []
@@ -122,15 +127,10 @@ class AsyncMachine extends eventemitter.EventEmitter
 		@piped = {}
 
 		@setTarget target or this
-		if registerAll
+		if register_all
 			@registerAll()
 		else
 			@register 'Exception'
-		# TODO this is lame, where are the prototypes?
-		@internal_fields = ['_events', 'states_all'
-			'states_active', 'queue', 'lock', 'last_promise'
-			'debug_prefix', 'debug_level', 'clock_', 'debug_'
-			'target', 'internal_fields']
 
 	###*
 	 * All exceptions are caught into this state, including both synchronous and
@@ -222,16 +222,34 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 		# test the instance vars
 		for name, value of @
-			if (@hasOwnProperty name) and name not in @internal_fields
+			if (@hasOwnProperty name) and name not in @internal_fields and
+					@[name] not instanceof Function
 				@register name
 		# test the prototype chain
 		constructor = @getInstance().constructor.prototype
 		while yes
 			for name, value of constructor
-				if (constructor.hasOwnProperty name) and name not in @internal_fields
-					@register name
+				@register name if (constructor.hasOwnProperty name) and
+						name not in @internal_fields and
+						constructor[name] not instanceof Function
+
 			constructor = Object.getPrototypeOf constructor
 			break if constructor is AsyncMachine.prototype
+
+	###*
+	 * Returns an array of relations from one state to another.
+	 * Maximum set is ['blocks', 'drops', 'implies', 'requires'].
+   *
+   * TODO code sample
+  ###
+	getRelations: (from_state, to_state) ->
+		# TODO enum
+		relations = ['blocks', 'drops', 'implies', 'requires']
+		state = @get from_state
+		# TODO assert
+
+		relations.filter (relation) ->
+			to_state in state[relation]?
 
 	###*
 	 * If no states passed, returns all the current states.
@@ -299,7 +317,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	###
 	every: (states...) ->
 		states.every (name) =>
-			!!~@states_active.indexOf name
+			Boolean ~@states_active.indexOf name
 
 	###*
 	 * Returns the current queue. For struct's meaning, see [[QUEUE]].
@@ -326,7 +344,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	register: (states...) ->
 		# TODO assert that the state exists
 		for state in states
-			@states_all.push state
+			@states_all.push state if state not in @states_all
 			@clock_[state] = 0
 
 	###*
@@ -385,19 +403,14 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * ```
 	###
 	set: (target, states, params...) ->
-		if target instanceof AsyncMachine
-			# TODO merge
-			if @duringTransition()
-				@log "Queued SET state(s) #{states} for an external machine", 2
-			@queue.push [STATE_CHANGE.SET, states, params, target]
-
-			return yes
-		else
+		if target not instanceof AsyncMachine
 			if states
 				params = [states].concat params
 			states = target
+			target = null
 
-		@enqueue_ STATE_CHANGE.SET, states, params
+		@enqueue_ STATE_CHANGE.SET, states, params, target
+
 		@processQueue_()
 
 	###*
@@ -500,19 +513,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * ```
 	###
 	add: (target, states, params...) ->
-		if target instanceof AsyncMachine
-			# TODO merge
-			if @duringTransition()
-				@log "Queued ADD state(s) #{states} for an external machine", 2
-			@queue.push [STATE_CHANGE.ADD, states, params, target]
-
-			return yes
-		else
+		if target not instanceof AsyncMachine
 			if states
 				params = [states].concat params
 			states = target
+			target = null
 
-		@enqueue_ STATE_CHANGE.ADD, states, params
+		@enqueue_ STATE_CHANGE.ADD, states, params, target
 
 		@processQueue_()
 
@@ -616,20 +623,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * ```
 	###
 	drop: (target, states, params...) ->
-		if target instanceof AsyncMachine
-			# TODO merge
-			return if @duringTransition()
-				@log "Queued DROP state(s) #{states} for an external machine", 2
-
-			@queue.push [STATE_CHANGE.DROP, states, params, target]
-
-			return yes
-		else
+		if target not instanceof AsyncMachine
 			if states
 				params = [states].concat params
 			states = target
+			target = null
 
-		@enqueue_ STATE_CHANGE.DROP, states, params
+		@enqueue_ STATE_CHANGE.DROP, states, params, target
 
 		@processQueue_()
 
@@ -695,7 +695,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	###*
 	 * Pipes (forwards) the state to other instance.
 	 *
-	 * Piped are "_state" and "_end" methods, not the negatiation ones
+	 * Piped are "_state" and "_end" methods, not the negotiation ones
 	 * (see pipeNegotiation]] for these).
 	 *
 	 * @param state Source state's name. Optional - if none is given, all states
@@ -871,7 +871,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 	 * a queue.
 	 *
 	 * Useful for creating new instances of dynamic classes (or factory created
-	 * instances)
+	 * instances).
 	 *
 	 * @param state Name of the state
 	 * @return Current tick of the passed state
@@ -1084,9 +1084,20 @@ class AsyncMachine extends eventemitter.EventEmitter
 		promise
 
 
-	#//////////////////////////
+	###*
+	 * Diffs two state sets and returns the ones present in the 1st only.
+	 *
+	 * @param states1 Source states list.
+	 * @param states2 Set to diff against (picking up the non existing ones).
+	 * @return List of states in states1 but not in states2.
+	###
+	diffStates: (states1, states2) ->
+		name for name in states1 when name not in states2
+
+
+	##/#/#/#/#/#/#/#///
 	# PRIVATES
-	#//////////////////////////
+	##/#/#/#/#/#/#/#///
 
 
 	log: (msg, level) ->
@@ -1249,11 +1260,22 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@allStatesSet states
 
 
-	enqueue_: (type, states, params, is_autostate = no) ->
+	###
+  	Puts a transition in the queue, handles a log msg and unifies the states
+  	array.
+	###
+	enqueue_: (type, states, params, target) ->
 		type_label = STATE_CHANGE_LABELS[type].toLowerCase()
-		if @lock
-			@log "Queued #{type_label} state(s) #{states.join ', '}", 2
-		@queue.push [type, states, params, is_autostate]
+		states = @parseStates states
+			
+		if @duringTransition()
+			if target
+				# TODO add machine ID
+				@log "Queued #{type_label} state(s) #{states.join ', '} for an external machine", 2
+			else
+				@log "Queued #{type_label} state(s) #{states.join ', '}", 2
+
+		@queue.push [type, states, params, target]
 
 
 	# Goes through the whole queue collecting return values.
@@ -1361,21 +1383,13 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 		exclude ?= []
 
-		# Remove non existing states
-		states = states.filter (name) =>
-			ret = ~@states_all.indexOf name
-			if not ret
-				@log "State #{name} doesn't exist", 2
-
-			Boolean ret
-
 		states = @parseImplies_ states
 		states = @removeDuplicateStates_ states
 
 		# Check if state is blocked or excluded
 		already_blocked = []
 
-		# parsing required states allows to avoid cross-dropping of states
+		# Parsing required states allows to avoid cross-dropping of states
 		states = @parseRequires_ states
 
 		# Remove states already blocked.
@@ -1394,7 +1408,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 					@log "State #{name} ignored because of #{blocked_by.join(", ")}", 3
 			not blocked_by.length and not ~exclude.indexOf name
 
-		# parsing required states allows to avoid cross-dropping of states
+		# Parsing required states allows to avoid cross-dropping of states
 		@parseRequires_ states.reverse()
 
 
@@ -1473,8 +1487,9 @@ class AsyncMachine extends eventemitter.EventEmitter
 
 		return no if ret is yes
 		ret = to.some (state) =>
-			# Skip transition if state is already active.
-			return no if ~@states_active.indexOf state
+			# Skip transition if state is already active and its not a multi state.
+			# TODO write tests for multi state
+			return no if (~@states_active.indexOf state) and not (@get state).multi
 			if ~explicit_states.indexOf state
 				transition_params = params
 			else
@@ -1551,11 +1566,6 @@ class AsyncMachine extends eventemitter.EventEmitter
 			@target
 		else if @[name]
 			this
-
-
-	# Returns states from states1 not present in states2
-	diffStates: (states1, states2) ->
-		name for name in states1 when name not in states2
 
 
 	# Exit transition handles state-to-state methods.

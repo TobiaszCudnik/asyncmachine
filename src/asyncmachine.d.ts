@@ -12,6 +12,7 @@ export interface IState {
 	blocks?: string[];
 	requires?: string[];
 	auto?: boolean;
+	multi?: boolean;
 }
 
 export interface ITransitionHandler {
@@ -26,6 +27,8 @@ class Deferred {
 
 class AsyncMachine extends EventEmitter {
 	public last_promise: Promise<any>;
+	// TODO public type export
+    public piped: {state: string, machine: AsyncMachine}[];
 	private debug_: boolean;
 	private states_all: string[];
 	private states_active: string[];
@@ -39,9 +42,11 @@ class AsyncMachine extends EventEmitter {
 	private lock: boolean;
 	private clock_: { [state: string]: number };
 	// TODO merge with the TS source
-	constructor(target?: AsyncMachine, register_all);
+	constructor(target?: AsyncMachine, register_all?: boolean);
 	public Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void;
 	public register(...states: string[]);
+	public registerAll();
+	public getRelations(from_state: string, to_state: string): string[];
 	public get(state: string): IState;
 	public state(name: string): boolean;
 	public state(name: string[]): boolean;
@@ -151,13 +156,16 @@ class AsyncMachine extends EventEmitter {
 	public catchPromise(promise: Promise<any>, target_states?: string[]): Promise<any>;
 	public catchPromise(promise: any, target_states?: string[]): any;
 
+	private diffStates(states1: string[], states2: string[]);
+
 	// ----- PRIVATES -----
+
+	// TODO enum the type
+	private enqueue_(type: number, states: string[] | string, params?: any[], target?: AsyncMachine);
 
 	private log(msg: string, level?: number): void;
 	private callListener(listener, context, params): Promise<any>;
 	private callListener(listener, context, params): any;
-
-	private diffStates(states1: string[], states2: string[]);
 
 	private getInstance(): any;
 
@@ -167,9 +175,9 @@ class AsyncMachine extends EventEmitter {
 
 	private processAutoStates(skip_queue: boolean);
 		
-	private processStateChange_(type: number, states: string, params: any[], is_autostate?: boolean, skip_queue?: boolean);
-	private processStateChange_(type: number, states: string[], params: any[], is_autostate?: boolean, skip_queue?: boolean);
-	private processStateChange_(type: number, states: any, params: any[], is_autostate?: boolean, skip_queue?: boolean): boolean;
+	private processStateChange_(type: number, states: string, params: any[], is_autostate?: boolean);
+	private processStateChange_(type: number, states: string[], params: any[], is_autostate?: boolean);
+	private processStateChange_(type: number, states: any, params: any[], is_autostate?: boolean): boolean;
 		
 	private processQueue_();
 	private statesChanged(states_before: string[]): boolean;
