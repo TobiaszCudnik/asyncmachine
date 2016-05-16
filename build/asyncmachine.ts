@@ -1,18 +1,17 @@
-/// <reference path="../typings/es6-promise/es6-promise.d.ts" />
 /// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
-/// <reference path="../typings/settimeout.d.ts" />
-/// <reference path="../typings/commonjs.d.ts" />
+
+import { EventEmitter } from "eventemitter3-abortable";
+
 var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-import eventemitter = require("eventemitter3-abortable");
-import promise = require('es6-promise');
-
+// TODO enum
 export var STATE_CHANGE = {
     DROP: 0,
     ADD: 1,
     SET: 2
 };
 
+// TODO enum
 export var STATE_CHANGE_LABELS = {
     0: "Drop",
     1: "Add",
@@ -21,7 +20,8 @@ export var STATE_CHANGE_LABELS = {
 
 /**
  * Queue enum defining param positions in queue's entries.
-*/
+ * TODO enum
+ */
 export var QUEUE = {
     STATE_CHANGE: 0,
     STATES: 1,
@@ -32,12 +32,12 @@ export var QUEUE = {
 export class Deferred {
     promise: Promise<any> = null;
 
-    resolve: Function = null;
+    resolve: (...params: any[]) => void = null;
 
-    reject: Function = null;
+    reject: (err?) => void = null;
 
     constructor() {
-        this.promise = new promise.Promise((resolve, reject) => {
+        this.promise = new Promise((resolve, reject) => {
             this.resolve = resolve;
             this.reject = reject;
         });
@@ -67,14 +67,16 @@ export class Deferred {
  *
  * ```
  * TODO
- * - exposing currect state during transition (via the #duringTransition() method)
-*/
-export class AsyncMachine extends eventemitter.EventEmitter {
+ * - exposing the current state during transition (via the #duringTransition() method)
+ * - loose bind in favor of closures
+ */
+export default class AsyncMachine extends EventEmitter {
     private states_all: string[] = null;
 
     private states_active: string[] = null;
 
-    private queue: Array<Array<any>> = null;
+    // TODO type
+    private queue: any[] = null;
 
     private lock: boolean = false;
 
@@ -86,8 +88,6 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
     private clock_: { [state: string]: number } = {};
 
-    private internal_fields: string[] = [];
-
     private target: AsyncMachine = null;
 
     private transition_events: any[] = [];
@@ -98,32 +98,32 @@ export class AsyncMachine extends eventemitter.EventEmitter {
 
     lock_queue = false;
 
-    /**
-    	Empty Exception state properties. See [[Exception_state]] transition handler.
-    */
+    private internal_fields: string[] = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields", "transition_events", "piped"];
 
+    /**
+     * Empty Exception state properties. See [[Exception_state]] transition handler.
+     */
     Exception = {};
 
     /**
-    	 * Creates an AsyncMachine instance (not a constructor) with specified states.
-    	 * States properties are empty, so you'd need to set it by yourself.
-    	 *
-    	 * @param states List of state names to register on the new instance.
-    	 * @return
-    	 *
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B','C']
-    	 * states.A = implies: ['B']
-    	 * states.add 'A'
-    	 * states.is() # -> ['A', 'B']
-    	 * ```
-    */
-
-    static factory(states) {
+     * Creates an AsyncMachine instance (not a constructor) with specified states.
+     * States properties are empty, so you'd need to set it by yourself.
+     *
+     * @param states List of state names to register on the new instance.
+     * @return
+     *
+     * ```
+     * states = AsyncMachine.factory ['A', 'B','C']
+     * states.A = implies: ['B']
+     * states.add 'A'
+     * states.is() # -> ['A', 'B']
+     * ```
+     */
+    static factory(states, constructor) {
         if (states == null) {
             states = [];
         }
-        var instance = new AsyncMachine;
+        var instance = new (constructor || AsyncMachine);
         states.forEach((state) => {
             instance[state] = {};
             return instance.register(state);
@@ -133,18 +133,17 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     }
 
     /**
-    	 * Creates a new instance with only state one registered, which is the
-    	 * Exception.
-    	 * When extending the class, you should register your states by using either
-    	 * [[registerAll]] or [[register]].
-    	 *
-    	 * @param target Target object for the transitions, useful when composing the
-    	 * 	states instance.
-    	 * @param registerAll Automaticaly registers all defined states.
-    	 * @see [[AsyncMachine]] for the usage example.
-    */
-
-    constructor(target : any = null, registerAll : any = false) {
+     * Creates a new instance with only state one registered, which is the
+     * Exception.
+     * When extending the class, you should register your states by using either
+     * [[registerAll]] or [[register]].
+     *
+     * @param target Target object for the transitions, useful when composing the
+     * 	states instance.
+     * @param registerAll Automaticaly registers all defined states.
+     * @see [[AsyncMachine]] for the usage example.
+     */
+    constructor(target : any = null, register_all : any = false) {
         super();
         this.queue = [];
         this.states_all = [];
@@ -153,48 +152,46 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         this.piped = {};
 
         this.setTarget(target || this);
-        if (registerAll) {
+        if (register_all) {
             this.registerAll();
         } else {
             this.register("Exception");
         }
-        this.internal_fields = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields"];
     }
 
     /**
-    	 * All exceptions are caught into this state, including both synchronous and
-    	 * asynchronous from promises and callbacks. You can overcreateride it and
-    	 * handle exceptions based on their type and target states of the transition
-    	 * during which they appeared.
-    	 *
-    	 * @param states States to which the machine is transitioning rigt now.
-    	 * 	This means post-exception states.
-    	 * @param err The exception object.
-    	 * @param exception_states Target states of the transition during
-    	 * 	which the exception was thrown.
-    	 * @param async_target_states Only for async transitions like
-    	 * [[addByCallback]], these are states which we're supposed to be set by the
-    	 * callback.
-    	 * @return
-    	 *
-    	 * Example of exception handling
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * states.Exception_state = (states, err, exception_states) ->
-    	 * 	# Re-adds state 'C' in case of an exception if A is set.
-    	 * 	if exception_states.some((state) -> state is 'C') and @is 'A'
-    	 * 		states.add 'C'
-    	 * ```
-    	 * Example of a manual exception triggering
-    	 * ```
-    	 * states.A_state = (states) ->
-    	 * 	foo = new SomeAsyncTask
-    	 * 	foo.start()
-    	 * 	foo.once 'error', (error) =>
-    	 * 		@add 'Exception', error, states
-    	 * ```
-    */
-
+     * All exceptions are caught into this state, including both synchronous and
+     * asynchronous from promises and callbacks. You can overcreateride it and
+     * handle exceptions based on their type and target states of the transition
+     * during which they appeared.
+     *
+     * @param states States to which the machine is transitioning rigt now.
+     * 	This means post-exception states.
+     * @param err The exception object.
+     * @param exception_states Target states of the transition during
+     * 	which the exception was thrown.
+     * @param async_target_states Only for async transitions like
+     * [[addByCallback]], these are states which we're supposed to be set by the
+     * callback.
+     * @return
+     *
+     * Example of exception handling
+     * ```
+     * states = AsyncMachine.factory ['A', 'B', 'C']
+     * states.Exception_state = (states, err, exception_states) ->
+     * 	# Re-adds state 'C' in case of an exception if A is set.
+     * 	if exception_states.some((state) -> state is 'C') and @is 'A'
+     * 		states.add 'C'
+     * ```
+     * Example of a manual exception triggering
+     * ```
+     * states.A_state = (states) ->
+     * 	foo = new SomeAsyncTask
+     * 	foo.start()
+     * 	foo.once 'error', (error) =>
+     * 		@add 'Exception', error, states
+     * ```
+     */
     public Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void {
         console.log("EXCEPTION from AsyncMachine");
         if ((exception_states != null ? exception_states.length : void 0) != null) {
@@ -210,55 +207,53 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     }
 
     /**
-    	 * Sets the target for the transition handlers. Useful to keep all you methods in
-    	 * in one class while the states class is composed as an attribute of the main
-    	 * object. There's also a shorthand for this method as
-    	 * [[AsyncMachine.constructor]]'s param.
-    	 *
-    	 * @param target Target object.
-    	 * @return
-    	 *
-    	 * ```
-    	 * class Foo
-    	 * 	constructor: ->
-    	 * 		@states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * 		@states.setTarget this
-    	 * 		@states.add 'A'
-    	 *
-    	 * 	A_state: ->
-    	 * 		console.log 'State A set'
-    	 * ```
-    */
-
+     * Sets the target for the transition handlers. Useful to keep all you methods in
+     * in one class while the states class is composed as an attribute of the main
+     * object. There's also a shorthand for this method as
+     * [[AsyncMachine.constructor]]'s param.
+     *
+     * @param target Target object.
+     * @return
+     *
+     * ```
+     * class Foo
+     * 	constructor: ->
+     * 		@states = AsyncMachine.factory ['A', 'B', 'C']
+     * 		@states.setTarget this
+     * 		@states.add 'A'
+     *
+     * 	A_state: ->
+     * 		console.log 'State A set'
+     * ```
+     */
     setTarget(target) {
         return this.target = target;
     }
 
     /**
-    	 * Registers all defined states. Use it only if you don't define any other
-    	 * attributes on the object (or it's prototype). If you do, register the states
-    	 * manually with the [[register]] method. There's also a shorthand for this
-    	 * method as [[AsyncMachine.constructor]]'s param.
-    	 *
-    	 * ```
-    	 * class States extends AsyncMachine
-    	 * 	A: {}
-    	 * 	B: {}
-    	 *
-    	 * class Foo
-    	 * 	constructor: ->
-    	 * 		@states = new States
-    	 * 		@states.registerAll()
-    	 * ```
-    */
-
-    registerAll() {
+     * Registers all defined states. Use it only if you don't define any other
+     * attributes on the object (or it's prototype). If you do, register the states
+     * manually with the [[register]] method. There's also a shorthand for this
+     * method as [[AsyncMachine.constructor]]'s param.
+     *
+     * ```
+     * class States extends AsyncMachine
+     * 	A: {}
+     * 	B: {}
+     *
+     * class Foo
+     * 	constructor: ->
+     * 		@states = new States
+     * 		@states.registerAll()
+     * ```
+     */
+    public registerAll() {
         var _results;
         var name = "";
         var value = null;
         for (name in this) {
             value = this[name];
-            if ((this.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0) {
+            if ((this.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0 && !(this[name] instanceof Function)) {
                 this.register(name);
             }
         }
@@ -267,10 +262,11 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         while (true) {
             for (name in constructor) {
                 value = constructor[name];
-                if ((constructor.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0) {
+                if ((constructor.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0 && !(constructor[name] instanceof Function)) {
                     this.register(name);
                 }
             }
+
             constructor = Object.getPrototypeOf(constructor);
             if (constructor === AsyncMachine.prototype) {
                 break;
@@ -282,66 +278,78 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     }
 
     /**
-    	 * If no states passed, returns all the current states.
-    	 *
-    	 * If states passed, returns a boolean if all of them are set.
-    	 *
-    	 * If only one state is passed, one can assert on a certain tick of the given
-    	 * state (see [[clock]]).
-    	 *
-    	 * @param state One or more state names.
-    	 * @param tick For one state, additionally checks if state's clock is the same
-    	 * moment.
-    	 * @return
-    	 *
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B']
-    	 * states.add 'A'
-    	 * states.is 'A' # -> true
-    	 * states.is ['A'] # -> true
-    	 * states.is ['A', 'B'] # -> false
-    	 * tick = states.clock 'A'
-    	 * states.drop 'A'
-    	 * states.add 'A'
-    	 * states.is 'A', tick # -> false
-    	 * ```
-    */
+     * Returns an array of relations from one state to another.
+     * Maximum set is ['blocks', 'drops', 'implies', 'requires'].
+     *
+     * TODO code sample
+     */
+    public getRelations(from_state: string, to_state: string): string[] {
+        var relations = ["blocks", "drops", "implies", "requires"];
+        var state = this.get(from_state);
 
-    public is(state: string): boolean;
-    public is(state: string[]): boolean;
-    public is(state: string, tick?: number): boolean;
-    public is(): string[];
-    public is(state?: any, tick?: any): any {
-        if (!state) {
-            return [].concat(this.states_active);
-        }
-        var active = Boolean(~this.states_active.indexOf(state));
-        if (!active) {
-            return false;
-        }
-        if (tick === void 0) {
-            return true;
-        } else {
-            return (this.clock(state)) === tick;
-        }
+        return relations.filter((relation) => __indexOf.call(state[relation] != null, to_state) >= 0);
     }
 
     /**
-    	 * Checks if any of the passed states is set. State can also be an array, then
-    	 * all states from this param has to be set.
-    	 *
-    	 * @param states State names and/or lists of state names.
-    	 * @return
-    	 *
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * states.add ['A', 'B']
-    	 *
-    	 * states.any 'A', 'C' # -> true
-    	 * states.any ['A', 'C'], 'C' # -> false
-    	 * ```
-    */
+     * If no states passed, returns all the current states.
+     *
+     * If states passed, returns a boolean if all of them are set.
+     *
+     * If only one state is passed, one can assert on a certain tick of the given
+     * state (see [[clock]]).
+     *
+     * @param state One or more state names.
+     * @param tick For one state, additionally checks if state's clock is at the same
+     * moment.
+     * @return
+     *
+     * ```
+     * states = AsyncMachine.factory ['A', 'B']
+     * states.add 'A'
+     * states.is 'A' # -> true
+     * states.is ['A'] # -> true
+     * states.is ['A', 'B'] # -> false
+     * // assert the tick
+     * tick = states.clock 'A'
+     * states.drop 'A'
+     * states.add 'A'
+     * states.is 'A', tick # -> false
+     * ```
+     */
+    public is(states: string | string[], tick?: number): boolean;
+    public is(): string[];
+    public is(states?: any, tick?: any): any {
+        if (!states) {
+            return this.states_active;
+        }
+        let states_parsed = this.parseStates(states)
+        var active = states_parsed.every( (state) => {
+            return Boolean(~this.states_active.indexOf(states));
+        })
+        if (!active) {
+            return false;
+        }
+        if (states_parsed.length && tick !== undefined) {
+            return this.clock(states) === tick;
+        }
+        return true;
+    }
 
+    /**
+     * Checks if any of the passed states is set. State can also be an array, then
+     * all states from this param has to be set.
+     *
+     * @param states State names and/or lists of state names.
+     * @return
+     *
+     * ```
+     * states = AsyncMachine.factory ['A', 'B', 'C']
+     * states.add ['A', 'B']
+     *
+     * states.any 'A', 'C' # -> true
+     * states.any ['A', 'C'], 'C' # -> false
+     * ```
+     */
     public any(...states: string[]): boolean;
     public any(...states: string[][]): boolean;
     public any(...states: any[]): boolean {
@@ -355,153 +363,145 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     }
 
     /**
-    	 * Checks if all the passed states are set.
-    	 *
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * states.add ['A', 'B']
-    	 *
-    	 * states.every 'A', 'B' # -> true
-    	 * states.every 'A', 'B', 'C' # -> false
-    	 * ```
-    */
-
+     * Checks if all the passed states are set.
+     *
+     * ```
+     * states = AsyncMachine.factory ['A', 'B', 'C']
+     * states.add ['A', 'B']
+     *
+     * states.every 'A', 'B' # -> true
+     * states.every 'A', 'B', 'C' # -> false
+     * ```
+     */
     public every(...states: string[]): boolean {
-        return states.every((name) => !!~this.states_active.indexOf(name));
+        return states.every((name) => Boolean(~this.states_active.indexOf(name)));
     }
 
     /**
-    	 * Returns the current queue. For struct's meaning, see [[QUEUE]].
-    */
-
+     * Returns the current queue. For struct's meaning, see [[QUEUE]].
+     */
     public futureQueue(): Array<Array<any>> {
         return this.queue;
     }
 
     /**
-    	 * Register the passed state names. State properties should be already defined.
-    	 *
-    	 * @param states State names.
-    	 * @return
-    	 *
-    	 * ```
-    	 * states = new AsyncMachine
-    	 * states.Enabled = {}
-    	 * states.Disposed = blocks: 'Enabled'
-    	 *
-    	 * states.register 'Enabled', 'Disposed'
-    	 *
-    	 * states.add 'Enabled'
-    	 * states.is() # -> 'Enabled'
-    	 * ```
-    */
-
+     * Register the passed state names. State properties should be already defined.
+     *
+     * @param states State names.
+     * @return
+     *
+     * ```
+     * states = new AsyncMachine
+     * states.Enabled = {}
+     * states.Disposed = blocks: 'Enabled'
+     *
+     * states.register 'Enabled', 'Disposed'
+     *
+     * states.add 'Enabled'
+     * states.is() # -> 'Enabled'
+     * ```
+     */
     public register(...states: string[]) {
         return states.map((state) => {
-            this.states_all.push(state);
+            if (__indexOf.call(this.states_all, state) < 0) {
+                this.states_all.push(state);
+            }
             return this.clock_[state] = 0;
         });
     }
 
     /**
-    	 * Returns state's properties.
-    	 *
-    	 * @param state State name.
-    	 * @return
-    	 *
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * states.A = blocks: ['B']
-    	 *
-    	 * states.get('A') # -> { blocks: ['B'] }
-    	 * ```
-    */
-
+     * Returns state's properties.
+     *
+     * @param state State name.
+     * @return
+     *
+     * ```
+     * states = AsyncMachine.factory ['A', 'B', 'C']
+     * states.A = blocks: ['B']
+     *
+     * states.get('A') # -> { blocks: ['B'] }
+     * ```
+     */
     public get(state: string): IState {
         return this[state];
     }
 
     /**
-    	 * Sets specified states and deactivate all the other which are currently set.
-    	 *
-    	 * @param target OPTIONAL. Pass it if you want to execute a transition on an
-    	 *   external machine, but using the local queue.
-    	 * @param states Array of state names or a single state name.
-    	 * @param params Params to be passed to the transition handlers (only ones from
-    	 *   the specified states, not implied or auto states).
-    	 * @return Result of the transition. FALSE means that states weren't accepted,
-    	 *   or some of implied or auto states dropped some of the requested states
-    	 *   after the transition.
-    	 *
-    	 * Basic usage
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * states.set 'A'
-    	 * states.is() # -> ['A']
-    	 * states.set 'B'
-    	 * states.is() # -> ['B']
-    	 * ```
-    	 *
-    	 * State negotiation
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B']
-    	 * # Transition enter negotiation
-    	 * states.A_enter = -> no
-    	 * states.add 'A' # -> false
-    	 * ```
-    	 *
-    	 * Setting a state on an external machine
-    	 * ```
-    	 * states1 = AsyncMachine.factory ['A', 'B']
-    	 * states2 = AsyncMachine.factory ['C', 'D']
-    	 *
-    	 * states1.A_enter ->
-    	 * 	# this transition will be queued and executed after the current transition
-    	 * 	# fully finishes
-    	 * 	states1.add states2, 'B'
-    	 * ```
-    */
-
+     * Sets specified states and deactivate all the other which are currently set.
+     *
+     * @param target OPTIONAL. Pass it if you want to execute a transition on an
+     *   external machine, but using the local queue.
+     * @param states Array of state names or a single state name.
+     * @param params Params to be passed to the transition handlers (only ones from
+     *   the specified states, not implied or auto states).
+     * @return Result of the transition. FALSE means that states weren't accepted,
+     *   or some of implied or auto states dropped some of the requested states
+     *   after the transition.
+     *
+     * Basic usage
+     * ```
+     * states = AsyncMachine.factory ['A', 'B', 'C']
+     * states.set 'A'
+     * states.is() # -> ['A']
+     * states.set 'B'
+     * states.is() # -> ['B']
+     * ```
+     *
+     * State negotiation
+     * ```
+     * states = AsyncMachine.factory ['A', 'B']
+     * # Transition enter negotiation
+     * states.A_enter = -> no
+     * states.add 'A' # -> false
+     * ```
+     *
+     * Setting a state on an external machine
+     * ```
+     * states1 = AsyncMachine.factory ['A', 'B']
+     * states2 = AsyncMachine.factory ['C', 'D']
+     *
+     * states1.A_enter ->
+     * 	# this transition will be queued and executed after the current transition
+     * 	# is fully finished
+     * 	states1.add states2, 'B'
+     * ```
+     */
     public set(target: AsyncMachine, states: string[], ...params: any[]): boolean;
     public set(target: AsyncMachine, states: string, ...params: any[]): boolean;
     public set(target: string[], states?: any, ...params: any[]): boolean;
     public set(target: string, states?: any, ...params: any[]): boolean;
     public set(target: any, states?: any, ...params: any[]): boolean {
-        if (target instanceof AsyncMachine) {
-            if (this.duringTransition()) {
-                this.log("Queued SET state(s) " + states + " for an external machine", 2);
-            }
-            this.queue.push([STATE_CHANGE.SET, states, params, target]);
-
-            return true;
-        } else {
+        if (!(target instanceof AsyncMachine)) {
             if (states) {
                 params = [states].concat(params);
             }
             states = target;
+            target = null;
         }
 
-        this.enqueue_(STATE_CHANGE.SET, states, params);
+        this.enqueue_(STATE_CHANGE.SET, states, params, target);
+
         return this.processQueue_();
     }
 
     /**
-    	 * Deferred version of [[set]], returning a node-style callback for setting
-    	 * the state. Errors are handled automatically and forwarded to the Exception
-    	 * state.
-    	 *
-    	 * After the call, the responsible promise object is available as the
-    	 * [[last_promise]] attribute.
-    	 *
-    	 * See [[set]] for the params description.
-    	 *
-    	 * Example
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * setTimeout states.setByCallback 'B'
-    	 * ```
-    	 *
-    */
+     * Deferred version of [[set]], returning a node-style callback for setting
+     * the state. Errors are handled automatically and forwarded to the Exception
+     * state.
+     *
+     * After the call, the responsible promise object is available as the
+     * [[last_promise]] attribute.
+     *
+     * See [[set]] for the params description.
+     *
+     * Example
+     * ```
+     * states = AsyncMachine.factory ['A', 'B', 'C']
+     * setTimeout states.setByCallback 'B'
+     * ```
+     *
+     */
 
     public setByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
     public setByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
@@ -512,23 +512,23 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     }
 
     /**
-    	 * Deferred version of [[set]], returning a listener for setting
-    	 * the state. Errors need to be handled manually by binding the exception
-    	 * state to the 'error' event (or equivalent).
-    	 *
-    	 * After the call, the responsible promise object is available as the
-    	 * [[last_promise]] attribute.
-    	 *
-    	 * See [[set]] for the params description.
-    	 *
-    	 * Example
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * emitter = new events.EventEmitter
-    	 * emitter.on 'ready', states.setByListener 'A'
-    	 * emitter.on 'error', states.addByListener 'Exception'
-    	 * ```
-    */
+     * Deferred version of [[set]], returning a listener for setting
+     * the state. Errors need to be handled manually by binding the exception
+     * state to the 'error' event (or equivalent).
+     *
+     * After the call, the responsible promise object is available as the
+     * [[last_promise]] attribute.
+     *
+     * See [[set]] for the params description.
+     *
+     * Example
+     * ```
+     * states = AsyncMachine.factory ['A', 'B', 'C']
+     * emitter = new EventEmitter
+     * emitter.on 'ready', states.setByListener 'A'
+     * emitter.on 'error', states.addByListener 'Exception'
+     * ```
+     */
 
     public setByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
     public setByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
@@ -539,19 +539,19 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     }
 
     /**
-    	 * Deferred version of [[set]], setting the requested states on the next event
-    	 * loop's tick. Useful if you want to start with a fresh stack trace.
-    	 *
-    	 * See [[set]] for the params description.
-    	 *
-    	 * Example
-    	 * ```
-    	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * states.set 'A'
-    	 * states.setNext 'B'
-    	 * states.is() # -> ['A']
-    	 * ```
-    */
+     * Deferred version of [[set]], setting the requested states on the next event
+     * loop's tick. Useful if you want to start with a fresh stack trace.
+     *
+     * See [[set]] for the params description.
+     *
+     * Example
+     * ```
+     * states = AsyncMachine.factory ['A', 'B', 'C']
+     * states.set 'A'
+     * states.setNext 'B'
+     * states.is() # -> ['A']
+     * ```
+     */
 
     public setNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
     public setNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
@@ -608,21 +608,15 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     public add(target: string[], states?: any, ...params: any[]): boolean;
     public add(target: string, states?: any, ...params: any[]): boolean;
     public add(target: any, states?: any, ...params: any[]): boolean {
-        if (target instanceof AsyncMachine) {
-            if (this.duringTransition()) {
-                this.log("Queued ADD state(s) " + states + " for an external machine", 2);
-            }
-            this.queue.push([STATE_CHANGE.ADD, states, params, target]);
-
-            return true;
-        } else {
+        if (!(target instanceof AsyncMachine)) {
             if (states) {
                 params = [states].concat(params);
             }
             states = target;
+            target = null;
         }
 
-        this.enqueue_(STATE_CHANGE.ADD, states, params);
+        this.enqueue_(STATE_CHANGE.ADD, states, params, target);
 
         return this.processQueue_();
     }
@@ -666,7 +660,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     	 * Example
     	 * ```
     	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * emitter = new events.EventEmitter
+    	 * emitter = new EventEmitter
     	 * emitter.on 'ready', states.addByListener 'A'
     	 * emitter.on 'error', states.addByListener 'Exception'
     	 * ```
@@ -750,22 +744,15 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     public drop(target: string[], states?: any, ...params: any[]): boolean;
     public drop(target: string, states?: any, ...params: any[]): boolean;
     public drop(target: any, states?: any, ...params: any[]): boolean {
-        if (target instanceof AsyncMachine) {
-            if (this.duringTransition()) {
-                return this.log("Queued DROP state(s) " + states + " for an external machine", 2);
-            }
-
-            this.queue.push([STATE_CHANGE.DROP, states, params, target]);
-
-            return true;
-        } else {
+        if (!(target instanceof AsyncMachine)) {
             if (states) {
                 params = [states].concat(params);
             }
             states = target;
+            target = null;
         }
 
-        this.enqueue_(STATE_CHANGE.DROP, states, params);
+        this.enqueue_(STATE_CHANGE.DROP, states, params, target);
 
         return this.processQueue_();
     }
@@ -809,7 +796,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     	 * Example
     	 * ```
     	 * states = AsyncMachine.factory ['A', 'B', 'C']
-    	 * emitter = new events.EventEmitter
+    	 * emitter = new EventEmitter
     	 * emitter.on 'ready', states.dropByListener 'A'
     	 * emitter.on 'error', states.setByListener 'Exception'
     	 * ```
@@ -850,7 +837,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     /**
     	 * Pipes (forwards) the state to other instance.
     	 *
-    	 * Piped are "_state" and "_end" methods, not the negatiation ones
+    	 * Piped are "_state" and "_end" methods, not the negotiation ones
     	 * (see pipeNegotiation]] for these).
     	 *
     	 * @param state Source state's name. Optional - if none is given, all states
@@ -1041,7 +1028,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     	 * a queue.
     	 *
     	 * Useful for creating new instances of dynamic classes (or factory created
-    	 * instances)
+    	 * instances).
     	 *
     	 * @param state Name of the state
     	 * @return Current tick of the passed state
@@ -1149,11 +1136,9 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     	 * @return Promise resolved once all states are set concurrently.
     */
 
-    public when(states: string, abort?: Function): Promise<any>;
-    public when(states: string[], abort?: Function): Promise<any>;
-    public when(states: any, abort?: Function): Promise<any> {
-        states = [].concat(states);
-        return new promise.Promise((resolve, reject) => this.bindToStates(states, resolve, abort));
+    public when(states: string | string[], abort?: Function): Promise<any> {
+        let states_parsed = this.parseStates(states)
+        return new Promise((resolve, reject) => this.bindToStates(states_parsed, resolve, abort));
     }
 
     /**
@@ -1180,11 +1165,9 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     	 * @return Promise resolved once all states are set concurrently.
     */
 
-    public whenOnce(states: string, abort?: Function): Promise<any>;
-    public whenOnce(states: string[], abort?: Function): Promise<any>;
-    public whenOnce(states: any, abort?: Function): Promise<any> {
-        states = [].concat(states);
-        return new promise.Promise((resolve, reject) => this.bindToStates(states, resolve, abort, true));
+    public whenOnce(states: string | string[], abort?: Function): Promise<any> {
+        let states_parsed = this.parseStates(states)
+        return new Promise((resolve, reject) => this.bindToStates(states_parsed, resolve, abort, true));
     }
 
     /**
@@ -1260,6 +1243,18 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         }
 
         return promise;
+    }
+
+    /**
+    	 * Diffs two state sets and returns the ones present in the 1st only.
+    	 *
+    	 * @param states1 Source states list.
+    	 * @param states2 Set to diff against (picking up the non existing ones).
+    	 * @return List of states in states1 but not in states2.
+    */
+
+    private diffStates(states1: string[], states2: string[]) {
+        return states1.filter((name) => __indexOf.call(states2, name) < 0).map((name) => name);
     }
 
     private log(msg: string, level?: number): void {
@@ -1358,10 +1353,10 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         return !length_equals || Boolean(this.diffStates(states_before, this.is()).length);
     }
 
-    parseStates(states) {
-        states = [].concat(states);
+    private parseStates(states: string | string[]) {
+        var states_parsed = [].concat(states);
 
-        return states = states.filter((state) => {
+        return states_parsed.filter((state) => {
             if (typeof state !== "string" || !this.get(state)) {
                 throw new Error("Non existing state: " + state);
             }
@@ -1370,9 +1365,9 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         });
     }
 
-    private processStateChange_(type: number, states: string, params: any[], is_autostate?: boolean, skip_queue?: boolean);
-    private processStateChange_(type: number, states: string[], params: any[], is_autostate?: boolean, skip_queue?: boolean);
-    private processStateChange_(type: number, states: any, params: any[], is_autostate?: boolean, skip_queue?: boolean): boolean {
+    private processStateChange_(type: number, states: string, params: any[], is_autostate?: boolean);
+    private processStateChange_(type: number, states: string[], params: any[], is_autostate?: boolean);
+    private processStateChange_(type: number, states: any, params: any[], is_autostate?: boolean): boolean {
         if (!states.length) {
             return;
         }
@@ -1439,12 +1434,24 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         }
     }
 
-    enqueue_(type, states, params, is_autostate : any = false) {
+    /*
+     	Puts a transition in the queue, handles a log msg and unifies the states
+     	array.
+    */
+
+    private enqueue_(type: number, states: string[] | string, params?: any[], target?: AsyncMachine) {
         var type_label = STATE_CHANGE_LABELS[type].toLowerCase();
-        if (this.lock) {
-            this.log("Queued " + type_label + " state(s) " + (states.join(", ")), 2);
+        let states_parsed = this.parseStates(states);
+
+        if (this.duringTransition()) {
+            if (target) {
+                this.log("Queued " + type_label + " state(s) " + (states_parsed.join(", ")) + " for an external machine", 2);
+            } else {
+                this.log("Queued " + type_label + " state(s) " + (states_parsed.join(", ")), 2);
+            }
         }
-        return this.queue.push([type, states, params, is_autostate]);
+
+        return this.queue.push([type, states_parsed, params, target]);
     }
 
     private processQueue_() {
@@ -1550,14 +1557,6 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         if (exclude == null) {
             exclude = [];
         }
-        states = states.filter((name) => {
-            var ret = ~this.states_all.indexOf(name);
-            if (!ret) {
-                this.log("State " + name + " doesn't exist", 2);
-            }
-
-            return Boolean(ret);
-        });
 
         states = this.parseImplies_(states);
         states = this.removeDuplicateStates_(states);
@@ -1672,7 +1671,7 @@ export class AsyncMachine extends eventemitter.EventEmitter {
             return false;
         }
         ret = to.some((state) => {
-            if (~this.states_active.indexOf(state)) {
+            if ((~this.states_active.indexOf(state)) && !(this.get(state)).multi) {
                 return false;
             }
             if (~explicit_states.indexOf(state)) {
@@ -1766,10 +1765,6 @@ export class AsyncMachine extends eventemitter.EventEmitter {
         } else if (this[name]) {
             return this;
         }
-    }
-
-    private diffStates(states1: string[], states2: string[]) {
-        return states1.filter((name) => __indexOf.call(states2, name) < 0).map((name) => name);
     }
 
     private transitionExit_(from: string, to: string[], 
@@ -1908,14 +1903,13 @@ export class AsyncMachine extends eventemitter.EventEmitter {
     }
 }
 
-module.exports.AsyncMachine = AsyncMachine;
-
 export interface IState {
 	depends?: string[];
 	implies?: string[];
 	blocks?: string[];
 	requires?: string[];
 	auto?: boolean;
+	multi?: boolean;
 }
 export interface ITransitionHandler {
 	(states: string[], ...params: any[]): boolean;
