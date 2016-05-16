@@ -1205,6 +1205,10 @@ export default class AsyncMachine extends EventEmitter {
         return null;
     }
 
+    /**
+     * TODO docs
+     * TODO unify event name with transition name (remove the _state suffix if possible)
+     */
     public on(event: string, listener: Function, context?: Object): AsyncMachine {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
             this.catchPromise(listener.call(context));
@@ -1213,6 +1217,11 @@ export default class AsyncMachine extends EventEmitter {
         super.on(event, listener, context);
         return this;
     }
+
+    /**
+     * TODO docs
+     * TODO unify event name with transition name (remove the _state suffix if possible)
+     */
 
     public once(event: string, listener: Function, context?: Object): AsyncMachine {
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
@@ -1225,17 +1234,16 @@ export default class AsyncMachine extends EventEmitter {
     }
 
     /**
-    	 * Bind the Exception state to the promise error handler. Handy when working
-    	 * with promises.
-    	 *
-    	 * See [[Exception_state]].
-    	 *
-    	 * @param promise The promise to handle
-    	 * @param target_states States for which the promise was created (the
-    	 *   one that failed).
-    	 * @return The source promise, for piping.
-    */
-
+     * Bind the Exception state to the promise error handler. Handy when working
+     * with promises.
+     *
+     * See [[Exception_state]].
+     *
+     * @param promise The promise to handle
+     * @param target_states States for which the promise was created (the
+     *   one that failed).
+     * @return The source promise, for piping.
+     */
     public catchPromise(promise: Promise<any>, target_states?: string[]): Promise<any>;
     public catchPromise(promise: any, target_states?: string[]): any {
         if ((promise != null ? promise.then : void 0) && (promise != null ? promise["catch"] : void 0)) {
@@ -1246,13 +1254,12 @@ export default class AsyncMachine extends EventEmitter {
     }
 
     /**
-    	 * Diffs two state sets and returns the ones present in the 1st only.
-    	 *
-    	 * @param states1 Source states list.
-    	 * @param states2 Set to diff against (picking up the non existing ones).
-    	 * @return List of states in states1 but not in states2.
-    */
-
+     * Diffs two state sets and returns the ones present in the 1st only.
+     *
+     * @param states1 Source states list.
+     * @param states2 Set to diff against (picking up the non existing ones).
+     * @return List of states in states1 but not in states2.
+     */
     private diffStates(states1: string[], states2: string[]) {
         return states1.filter((name) => __indexOf.call(states2, name) < 0).map((name) => name);
     }
