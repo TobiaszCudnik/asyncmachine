@@ -1368,7 +1368,7 @@ class AsyncMachine extends eventemitter.EventEmitter
 					@log "Self transition for #{state} cancelled", 2
 					return yes
 
-				a = @emit.apply this, [name].concat transition_params
+				ret = @emit.apply this, [name].concat transition_params
 				if ret isnt no
 					# TODO this is hacky
 					@transition_events.push [name, transition_params]
