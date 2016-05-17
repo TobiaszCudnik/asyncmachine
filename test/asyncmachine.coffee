@@ -8,66 +8,17 @@ chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
 promise = require 'es6-promise'
-sinonChai = require("sinon-chai");
+sinonChai = require "sinon-chai"
 
 chai.use sinonChai
 
-class FooMachine extends asyncmachine.AsyncMachine
-	A: {}
-	B: {}
-	C: {}
-	D: {}
-
-	constructor: (initialState = null, config = {}) ->
-		super()
-		@register 'A', 'B', 'C', 'D'
-		@set initialState if initialState
-
-class EventMachine extends FooMachine
-	TestNamespace: {}
-	
-	constructor: (initial, config = {}) ->
-		super()
-		@register 'TestNamespace'
-		@set initial if initial
-
-class Sub extends asyncmachine.AsyncMachine
-	A: {}
-	B: {}
-	A_enter: null
-	B_enter: null
-					
-	constructor: (initial, a_spy, b_spy) ->
-		super()
-		@register 'A', 'B'
-		@A_enter = a_spy
-		@B_enter = b_spy
-		@set initial if initial
-
-class SubCrossBlockedByImplied extends asyncmachine.AsyncMachine
-	A:
-		blocks: [ 'B' ]
-	B:
-		blocks: [ 'A' ]
-	C:
-		implies: [ 'B' ]
-
-	constructor: (config = {}) ->
-		super()
-		@register 'A', 'B', 'C'
-		@set 'C'
-		
-class CrossBlocked extends asyncmachine.AsyncMachine
-	A:
-		blocks: [ 'B' ]
-	B:
-		blocks: [ 'A' ]
-
-	constructor: (config = {}) ->
-		super()
-		@register 'A', 'B'
-		@set 'A'
-		@set 'B'
+{
+    FooMachine,
+    EventMachine,
+    Sub,
+    SubCrossBlockedByImplied,
+    CrossBlocked
+} = require './classes'
 					
 describe "asyncmachine", ->
 
@@ -94,12 +45,13 @@ describe "asyncmachine", ->
 
 	beforeEach ->
 		@machine = new FooMachine
+		@machine.debug('foo')
 		@machine.set 'A'
 
 	it 'should allow to check if single state is active', ->
-		expect(@machine.is 'A').to.be.ok
+		expect(@machine.is('A')).to.be.ok
 		
-	it 'should allow to check if many states are active', ->
+	it 'should allow to check if couple of states is active', ->
 		@machine.add 'B'
 		expect(@machine.every 'A', 'B').to.be.ok
 		

@@ -23,13 +23,21 @@ export var STATE_CHANGE_LABELS = {
  * Queue enum defining param positions in queue's entries.
  * TODO enum
  */
-export var QUEUE = {
-    STATE_CHANGE: 0,
-    STATES: 1,
-    PARAMS: 2,
-    TARGET: 3,
-    AUTO: 4
+export enum QUEUE {
+    STATE_CHANGE,
+    STATES,
+    PARAMS,
+    TARGET,
+    AUTO
 };
+
+export interface IQueueRow {
+    0: number;
+    1: string[];
+    2: any[];
+    3?: boolean;
+    4?: AsyncMachine;
+}
 
 export class Deferred {
     promise: Promise<any>;
@@ -72,13 +80,13 @@ export class Deferred {
  * - exposing the current state during transition (via the #duringTransition() method)
  * - loose bind in favor of closures
  */
-export default class AsyncMachine extends EventEmitter {
+export class AsyncMachine extends EventEmitter {
     private states_all: string[] = [];
 
     private states_active: string[] = [];
 
     // TODO type
-    private queue: any[] = [];
+    private queue: IQueueRow[] = [];
 
     private lock: boolean = false;
 
@@ -92,19 +100,23 @@ export default class AsyncMachine extends EventEmitter {
 
     private target: AsyncMachine = null;
 
-    private transition_events: any[] = [];
+    // Events buffer
+    private transition_events: any[];
 
     private debug_: boolean = false;
 
-    piped = null;
+    piped = {};
 
     lock_queue = false;
 
+    /**
+     * TODO this have to go
+     */
     private internal_fields: string[] = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields", "transition_events", "piped"];
 
     /**
      * Empty Exception state properties. See [[Exception_state]] transition handler.
-      */
+     */
     Exception = {};
 
     /**
@@ -120,7 +132,7 @@ export default class AsyncMachine extends EventEmitter {
      * states.add 'A'
      * states.is() # -> ['A', 'B']
      * ```
-      */
+     */
     static factory(states, constructor) {
         if (states == null) {
             states = [];
@@ -144,7 +156,7 @@ export default class AsyncMachine extends EventEmitter {
      * 	states instance.
      * @param registerAll Automaticaly registers all defined states.
      * @see [[AsyncMachine]] for the usage example.
-      */
+     */
     constructor(target : any = null, register_all : any = false) {
         super();
 
@@ -188,7 +200,7 @@ export default class AsyncMachine extends EventEmitter {
      * 	foo.once 'error', (error) =>
      * 		@add 'Exception', error, states
      * ```
-      */
+     */
     public Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void {
         console.log("EXCEPTION from AsyncMachine");
         if ((exception_states != null ? exception_states.length : void 0) != null) {
@@ -197,6 +209,7 @@ export default class AsyncMachine extends EventEmitter {
         if ((async_target_states != null ? async_target_states.length : void 0) != null) {
             this.log("Next states were supposed to be (add/drop/set):\n    " + exception_states.join(", "));
         }
+        // TODO sometimes err is missing
         console.dir(err);
         return this.setImmediate(() => {
             throw err;
@@ -222,7 +235,7 @@ export default class AsyncMachine extends EventEmitter {
      * 	A_state: ->
      * 		console.log 'State A set'
      * ```
-      */
+     */
     setTarget(target) {
         return this.target = target;
     }
@@ -243,7 +256,7 @@ export default class AsyncMachine extends EventEmitter {
      * 		@states = new States
      * 		@states.registerAll()
      * ```
-      */
+     */
     public registerAll() {
         var _results;
         var name = "";
@@ -279,7 +292,7 @@ export default class AsyncMachine extends EventEmitter {
      * Maximum set is ['blocks', 'drops', 'implies', 'requires'].
      *
      * TODO code sample
-      */
+     */
     public getRelations(from_state: string, to_state: string): string[] {
         var relations = ["blocks", "drops", "implies", "requires"];
         var state = this.get(from_state);
@@ -312,7 +325,7 @@ export default class AsyncMachine extends EventEmitter {
      * states.add 'A'
      * states.is 'A', tick # -> false
      * ```
-      */
+     */
     public is(states: string | string[], tick?: number): boolean;
     public is(): string[];
     public is(states?: any, tick?: any): any {
@@ -346,7 +359,7 @@ export default class AsyncMachine extends EventEmitter {
      * states.any 'A', 'C' # -> true
      * states.any ['A', 'C'], 'C' # -> false
      * ```
-      */
+     */
     public any(...states: string[]): boolean;
     public any(...states: string[][]): boolean;
     public any(...states: any[]): boolean {
@@ -369,15 +382,15 @@ export default class AsyncMachine extends EventEmitter {
      * states.every 'A', 'B' # -> true
      * states.every 'A', 'B', 'C' # -> false
      * ```
-      */
+     */
     public every(...states: string[]): boolean {
         return states.every((name) => Boolean(~this.states_active.indexOf(name)));
     }
 
     /**
      * Returns the current queue. For struct's meaning, see [[QUEUE]].
-      */
-    public futureQueue(): Array<Array<any>> {
+     */
+    public futureQueue(): IQueueRow[] {
         return this.queue;
     }
 
@@ -397,7 +410,7 @@ export default class AsyncMachine extends EventEmitter {
      * states.add 'Enabled'
      * states.is() # -> 'Enabled'
      * ```
-      */
+     */
     public register(...states: string[]) {
         return states.map((state) => {
             if (__indexOf.call(this.states_all, state) < 0) {
@@ -419,7 +432,7 @@ export default class AsyncMachine extends EventEmitter {
      *
      * states.get('A') # -> { blocks: ['B'] }
      * ```
-      */
+     */
     public get(state: string): IState {
         return this[state];
     }
@@ -463,11 +476,9 @@ export default class AsyncMachine extends EventEmitter {
      * 	# is fully finished
      * 	states1.add states2, 'B'
      * ```
-      */
-    public set(target: AsyncMachine, states: string[], ...params: any[]): boolean;
-    public set(target: AsyncMachine, states: string, ...params: any[]): boolean;
-    public set(target: string[], states?: any, ...params: any[]): boolean;
-    public set(target: string, states?: any, ...params: any[]): boolean;
+     */
+    public set(target: AsyncMachine, states: string[] | string, ...params: any[]): boolean;
+    public set(target: string[] | string, states?: any, ...params: any[]): boolean;
     public set(target: any, states?: any, ...params: any[]): boolean {
         if (!(target instanceof AsyncMachine)) {
             if (states) {
@@ -498,7 +509,7 @@ export default class AsyncMachine extends EventEmitter {
      * setTimeout states.setByCallback 'B'
      * ```
      *
-      */
+     */
 
     public setByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
     public setByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
@@ -525,7 +536,7 @@ export default class AsyncMachine extends EventEmitter {
      * emitter.on 'ready', states.setByListener 'A'
      * emitter.on 'error', states.addByListener 'Exception'
      * ```
-      */
+     */
 
     public setByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
     public setByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
@@ -548,7 +559,7 @@ export default class AsyncMachine extends EventEmitter {
      * states.setNext 'B'
      * states.is() # -> ['A']
      * ```
-      */
+     */
 
     public setNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
     public setNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
@@ -1330,7 +1341,7 @@ export default class AsyncMachine extends EventEmitter {
         }
     }
 
-    prepareAutoStates() {
+    private prepareAutoStates(): IQueueRow {
         var add = [];
         this.states_all.forEach((state) => {
             var is_current = () => this.is(state);
@@ -1347,7 +1358,7 @@ export default class AsyncMachine extends EventEmitter {
         });
 
         if (add.length) {
-            return [STATE_CHANGE.ADD, add, [], null, true];
+            return [STATE_CHANGE.ADD, add, [], true, null];
         }
     }
 
@@ -1369,13 +1380,7 @@ export default class AsyncMachine extends EventEmitter {
         });
     }
 
-    private processStateChange_(type: number, states: string[], params: any[], is_autostate?: boolean): {
-        states: any[],
-        self: any[],
-        enter: any[],
-        exit: any[],
-        accepted: boolean
-    } {
+    private prepareTransitions(type: number, states: string[], params: any[], is_autostate?: boolean): IPreparedTransitions {
         var type_label = STATE_CHANGE_LABELS[type].toLowerCase();
         if (is_autostate) {
             this.log("[" + type_label + "] AUTO state " + (states.join(", ")), 3);
@@ -1383,12 +1388,12 @@ export default class AsyncMachine extends EventEmitter {
             this.log("[" + type_label + "] state " + (states.join(", ")), 2);
         }
         
-        let transitions = {
+        let transitions: IPreparedTransitions = {
             before: this.is(),
             states: null,
             self: null,
-            enter: null,
-            exit: null,
+            enters: null,
+            exits: null,
             accepted: null
         }
         
@@ -1421,10 +1426,9 @@ export default class AsyncMachine extends EventEmitter {
     }
 
     /*
-     	Puts a transition in the queue, handles a log msg and unifies the states
-     	array.
+     * Puts a transition in the queue, handles a log msg and unifies the states
+     * array.
      */
-
     private enqueue_(type: number, states: string[] | string, params?: any[], target?: AsyncMachine) {
         var type_label = STATE_CHANGE_LABELS[type].toLowerCase();
         let states_parsed = this.parseStates(states);
@@ -1437,7 +1441,7 @@ export default class AsyncMachine extends EventEmitter {
             }
         }
 
-        return this.queue.push([type, states_parsed, params, target]);
+        return this.queue.push([type, states_parsed, params, false, target]);
     }
 
     private processQueue_() {
@@ -1445,25 +1449,27 @@ export default class AsyncMachine extends EventEmitter {
             return;
         }
 
-        let ret;
+        let ret: boolean[] = [];
         this.lock_queue = true;
-        while (let row = this.queue.shift()) {
-            let target = row[QUEUE.TARGET] || this;
-            let params = [row[QUEUE.STATE_CHANGE], this.parseStates(row[QUEUE.STATES]), row[QUEUE.PARAMS], false, target === this];
-            let queue = this.queue;
+        let row: IQueueRow;
+        while (row = this.queue.shift()) {
+            let target: AsyncMachine = row[QUEUE.TARGET] || this;
+            let queue = target.queue;
+            let aborted = false
+            let transitions = target.prepareTransitions(row[QUEUE.STATE_CHANGE], this.parseStates(row[QUEUE.STATES]),
+                    row[QUEUE.PARAMS], row[QUEUE.AUTO])
 
-            this.lock = true
-            this.queue = [];
-
-            let transitions = target.processStateChange_.apply(target, params)
+            target.transition_events = []
+            target.lock = true
+            target.queue = [];
             
             try {
-                let aborted = this.selfTransitionExec_(transitions.self[0], transitions.self[1])
+                aborted = (false === target.selfTransitionExec_(transitions.self[0], transitions.self[1]))
                 if (aborted)
                     continue
                 
-                for (let transition of transitions.exit) {
-                    if (this.transitionExit_(transition[0], transition[1], transition[2], transition[3])) {
+                for (let transition of transitions.exits) {
+                    if (false === target.transitionExit_(transition[0], transition[1], transition[2], transition[3])) {
                         aborted = true
                         continue
                     }
@@ -1471,37 +1477,37 @@ export default class AsyncMachine extends EventEmitter {
                 if (aborted)
                     continue
                 
-                for (let transition of transitions.enter) {
-                    if (this.transitionEnter_(transition[0], transition[1], transition[2])) {
+                for (let transition of transitions.enters) {
+                    if (false === target.transitionEnter_(transition[0], transition[1], transition[2])) {
                         aborted = true
                         continue
                     }
                 }
-                this.queue = aborted ? queue : queue.concat(this.queue);                
+                this.setActiveStates_(transitions.states)
+                target.queue = aborted ? queue : queue.concat(target.queue);                
             } catch (err) {
-                this.queue = [STATE_CHANGE.ADD, ["Exception"], [err, states]].concat(queue);
-                this.lock = false;
-                if (aborted) {
-                    this.emit("cancelled");
-                } else if ((this.hasStateChanged(transitions.before)) && !row[QUEUE.AUTO]) {
-                    var auto_states = this.prepareAutoStates();
-                    if (auto_states) {
-                        this.queue.unshift(auto_states);
-                    }
-                }
-
-                if (type === STATE_CHANGE.DROP) {
-                    return this.allStatesNotSet(states);
-                } else {
-                    return this.allStatesSet(states);
+                let queued_exception: IQueueRow = [STATE_CHANGE.ADD, ["Exception"], [err, transitions.states]]
+                target.queue = [queued_exception].concat(queue);
+            }
+            
+            target.lock = false;
+            
+            if (aborted) {
+                target.emit("cancelled");
+            } else if ((target.hasStateChanged(transitions.before)) && !row[QUEUE.AUTO]) {
+                var auto_states = target.prepareAutoStates();
+                if (auto_states) {
+                    target.queue.unshift(auto_states);
                 }
             }
-        }
-        return ret[0]
-    }
 
-    private allStatesSet(states): boolean {
-        return states.every((state) => this.is(state));
+            if (row[QUEUE.STATE_CHANGE] === STATE_CHANGE.DROP) {
+                ret.push(target.allStatesNotSet(transitions.states))
+            } else {
+                ret.push(target.every(...transitions.states))
+            }
+        }
+        return ret[0] || false;
     }
 
     private allStatesNotSet(states): boolean {
@@ -1548,16 +1554,15 @@ export default class AsyncMachine extends EventEmitter {
         if (params == null) {
             params = [];
         }
+        var transition_params = [states].concat(params);
         var ret = states.some((state) => {
             ret = void 0;
             var name = state + "_" + state;
             if (~this.states_active.indexOf(state)) {
-                var transition_params = [];
-                transition_params = [states].concat(params);
                 var context = this.getMethodContext(name);
                 if (context) {
                     this.log("[transition] " + name, 2);
-                    ret = context[name].apply(context, transition_params);
+                    ret = context[name](...transition_params);
                     this.catchPromise(ret, states);
                 } else {
                     this.log("[transition] " + name, 3);
@@ -1685,10 +1690,9 @@ export default class AsyncMachine extends EventEmitter {
     }
 
     private transition_(to: string[], explicit_states: string[], params: any[] = []): {
-        exit: any[],
-        enter: any[]
+        exits: any[],
+        enters: any[]
     } {
-        this.transition_events = [];
         var from = this.states_active.filter((state) => !~to.indexOf(state));
 
         this.orderStates_(to);
@@ -1696,12 +1700,11 @@ export default class AsyncMachine extends EventEmitter {
 
         // exec the transitions
         var queue = {
-            states: to,
-            exit: [],
-            enter: []
+            exits: [],
+            enters: []
         }
         for (let state of from)
-            queue.exit.push([state, to, explicit_states, params])
+            queue.exits.push([state, to, explicit_states, params])
         // var ret = from.some((state) => false === this.transitionExit_(state, to, explicit_states, params));
 
         for (let state of to) {
@@ -1711,7 +1714,7 @@ export default class AsyncMachine extends EventEmitter {
             let transition_params = explicit_states.indexOf(state) ?
                 params : [];
             // ret = this.transitionEnter_(state, to, transition_params);
-            queue.enter.push([state, to, transition_params])
+            queue.enters.push([state, to, transition_params])
         }
         
         return queue
@@ -1751,7 +1754,7 @@ export default class AsyncMachine extends EventEmitter {
 
     processPostTransition() {
         var _ref;
-        this.transition_events.forEach((transition) => {
+        for (let transition of this.transition_events) {
             var name = transition[0];
             var params = transition[1];
 
@@ -1779,7 +1782,7 @@ export default class AsyncMachine extends EventEmitter {
             }
 
             return this.emit.apply(this, [method].concat(params));
-        });
+        }
 
         return this.transition_events = [];
     }
@@ -1834,8 +1837,7 @@ export default class AsyncMachine extends EventEmitter {
         return this.transitionExec_(to + "_enter", target_states, params);
     }
 
-    private transitionExec_(method: string, target_states: string[], 
-		params?: string[]) {
+    private transitionExec_(method: string, target_states: string[], params?: string[]) {
         var _ref;
         if (params == null) {
             params = [];
@@ -1936,6 +1938,18 @@ export interface IState {
 	auto?: boolean;
 	multi?: boolean;
 }
+
 export interface ITransitionHandler {
 	(states: string[], ...params: any[]): boolean;
 }
+
+interface IPreparedTransitions {
+    states: string[];
+    before: string[];
+    self: any[];
+    enters: any[];
+    exits: any[];
+    accepted: boolean;
+}
+
+export default AsyncMachine;

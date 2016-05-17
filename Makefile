@@ -29,14 +29,17 @@ setup:
 test:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
-		--compilers mocha --compilers coffee:coffee-script/register \
+		--compilers mocha \
+		--compilers coffee:coffee-script/register \
 		--reporter spec \
-		test/*.coffee
+		test/asyncmachine.coffee
+		#test/*.coffee
 
 test-grep:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
-		--compilers mocha --compilers coffee:coffee-script/register \
+		--compilers mocha \
+		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)"
 		test/*.coffee
@@ -45,16 +48,18 @@ test-debug:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
 		--debug-brk \
-		--compilers coffee:coffee-script \
+		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)" \
-		test/*.coffee
+		test/asyncmachine.coffee
+		#test/*.coffee
 
 test-grep-debug:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
 		--debug-brk \
-		--compilers mocha --compilers coffee:coffee-script/register \
+		--compilers mocha \
+		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)" \
 		test/*.coffee

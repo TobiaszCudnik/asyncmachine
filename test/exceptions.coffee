@@ -13,7 +13,7 @@ AM = asyncmachine.AsyncMachine
 describe "Exceptions", ->
 
   beforeEach ->
-    @foo = new AM.factory ['A']
+    @foo = AM.factory ['A']
 
   it 'should be thrown on the next tick', ->
     setImmediate = sinon.stub @foo, 'setImmediate'
