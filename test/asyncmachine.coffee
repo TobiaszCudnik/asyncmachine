@@ -7,8 +7,10 @@ asyncmachine = require '../build/asyncmachine'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
-promise = require 'es6-promise'
 sinonChai = require "sinon-chai"
+
+# TODO
+# - no self transition for non accepted states
 
 chai.use sinonChai
 
@@ -575,7 +577,7 @@ describe "asyncmachine", ->
 				delete @promise
 
 			it 'should return a promise', ->
-				expect( @promise instanceof promise.Promise ).to.be.ok
+				expect( @promise instanceof Promise ).to.be.ok
 
 			it 'should execute the change', (done) ->
 				# call without an error

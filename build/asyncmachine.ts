@@ -1706,20 +1706,21 @@ export class AsyncMachine extends EventEmitter {
         this.orderStates_(to);
         this.orderStates_(from);
 
-        // exec the transitions
+        // queue the transitions
         var queue = {
             exits: [],
             enters: []
         }
         for (let state of from)
             queue.exits.push([state, to, explicit_states, params])
-        // var ret = from.some((state) => false === this.transitionExit_(state, to, explicit_states, params));
+        // var ret = from.some((state) => false === this.transitionExit_(state, to, explicit_states, params))
 
         for (let state of to) {
+            // dont enter to already set states, except when it's a MULTI state
             if (this.is(state) && !this.get(state).multi)
-                return queue;
+                continue
             
-            let transition_params = explicit_states.indexOf(state) ?
+            let transition_params = ~explicit_states.indexOf(state) ?
                 params : [];
             // ret = this.transitionEnter_(state, to, transition_params);
             queue.enters.push([state, to, transition_params])
@@ -1832,8 +1833,7 @@ export class AsyncMachine extends EventEmitter {
         return !ret;
     }
 
-    private transitionEnter_(to: string, target_states: string[], 
-		params: any[]) {
+    private transitionEnter_(to: string, target_states: string[], params: any[]) {
         var ret = this.transitionExec_("any_" + to, target_states, params);
         if (ret === false) {
             return false;
