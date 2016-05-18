@@ -27,8 +27,8 @@ export enum QUEUE {
     STATE_CHANGE,
     STATES,
     PARAMS,
-    TARGET,
-    AUTO
+    AUTO,
+    TARGET
 };
 
 export interface IQueueRow {
@@ -1487,9 +1487,9 @@ export class AsyncMachine extends EventEmitter {
                 }
                 // state and end transitions (non-abortable)
                 if (!aborted) {
-                    this.setActiveStates_(transitions.states);
-                    this.processPostTransition();
-                    this.emit("change", transitions.before);
+                    target.setActiveStates_(transitions.states);
+                    target.processPostTransition();
+                    target.emit("change", transitions.before);
                 }
                 target.queue = aborted ? queue : queue.concat(target.queue)
             } catch (err) {
