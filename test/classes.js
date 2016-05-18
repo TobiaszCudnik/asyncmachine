@@ -60,11 +60,11 @@ class SubCrossBlockedByImplied extends asyncmachine.AsyncMachine {
             blocks: ["B"]
         };
 
-        B = {
+        this.B = {
             blocks: ["A"]
         };
 
-        C = {
+        this.C = {
             implies: ["B"]
         };
         
