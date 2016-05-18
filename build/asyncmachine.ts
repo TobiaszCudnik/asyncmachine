@@ -1484,6 +1484,8 @@ export class AsyncMachine extends EventEmitter {
                     }
                 }
                 this.setActiveStates_(transitions.states)
+                this.processPostTransition();
+                this.emit("change", transitions.before);
                 target.queue = aborted ? queue : queue.concat(target.queue);                
             } catch (err) {
                 let queued_exception: IQueueRow = [STATE_CHANGE.ADD, ["Exception"], [err, transitions.states]]
@@ -1507,6 +1509,7 @@ export class AsyncMachine extends EventEmitter {
                 ret.push(target.every(...transitions.states))
             }
         }
+        this.lock_queue = false
         return ret[0] || false;
     }
 
@@ -1554,7 +1557,7 @@ export class AsyncMachine extends EventEmitter {
         if (params == null) {
             params = [];
         }
-        var transition_params = [states].concat(params);
+        var transition_params = <any[]>[states].concat(params);
         var ret = states.some((state) => {
             ret = void 0;
             var name = state + "_" + state;
@@ -1747,20 +1750,17 @@ export class AsyncMachine extends EventEmitter {
         if (log_msg.length) {
             this.log("[states] " + (log_msg.join(" ")), 1);
         }
-
-        this.processPostTransition();
-        return this.emit("change", previous);
     }
 
     processPostTransition() {
-        var _ref;
         for (let transition of this.transition_events) {
-            var name = transition[0];
-            var params = transition[1];
+            let name = transition[0];
+            let params = transition[1];
+            let state, method;
 
             if (name.slice(-5) === "_exit") {
-                var state = name.slice(0, -5);
-                var method = state + "_end";
+                state = name.slice(0, -5);
+                method = state + "_end";
             } else if (name.slice(-6) === "_enter") {
                 state = name.slice(0, -6);
                 method = state + "_state";
@@ -1768,11 +1768,11 @@ export class AsyncMachine extends EventEmitter {
 
             var context = this.getMethodContext(method);
             if (context) {
+                let ret
                 this.log("[transition] " + method, 2);
                 try {
-                    var ret = (_ref = context[method]) != null ? _ref.apply(context, params) : void 0;
-                } catch (_error) {
-                    var err = _error;
+                    ret = context[method](...params);
+                } catch (err) {
                     this.drop(state);
                     throw err;
                 }
@@ -1781,10 +1781,10 @@ export class AsyncMachine extends EventEmitter {
                 this.log("[transition] " + method, 3);
             }
 
-            return this.emit.apply(this, [method].concat(params));
+            this.emit.apply(this, [method].concat(params));
         }
 
-        return this.transition_events = [];
+        this.transition_events = [];
     }
 
     getMethodContext(name) {

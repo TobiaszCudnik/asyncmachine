@@ -33,7 +33,17 @@ test:
 		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		test/asyncmachine.coffee
-		#test/*.coffee
+		#test/*.js
+
+test-build:
+	./node_modules/.bin/coffee \
+		-cm \
+		test/*.coffee
+
+test-build-watch:
+	./node_modules/.bin/coffee \
+		-cwm \
+		test/*.coffee
 
 test-grep:
 	./node_modules/mocha/bin/mocha \
@@ -42,7 +52,7 @@ test-grep:
 		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)"
-		test/*.coffee
+		test/*.js
 
 test-debug:
 	./node_modules/mocha/bin/mocha \
@@ -52,7 +62,7 @@ test-debug:
 		--reporter spec \
 		--grep "$(GREP)" \
 		test/asyncmachine.coffee
-		#test/*.coffee
+		#test/*.js
 
 test-grep-debug:
 	./node_modules/mocha/bin/mocha \
@@ -62,7 +72,7 @@ test-grep-debug:
 		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)" \
-		test/*.coffee
+		test/*.js
 
 docs:
 	typedoc \
@@ -77,7 +87,7 @@ spec:
 		--harmony \
 		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
-		test/*.coffee >> docs/spec.html
+		test/*.js >> docs/spec.html
 	echo "</pre></body></html>" >> docs/spec.html
 
 .PHONY: build test docs
