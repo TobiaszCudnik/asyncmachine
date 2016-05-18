@@ -1394,7 +1394,7 @@ export class AsyncMachine extends EventEmitter {
             self: null,
             enters: null,
             exits: null,
-            accepted: null
+            accepted: true
         }
         
         transitions.self = [states, params];
@@ -1455,38 +1455,43 @@ export class AsyncMachine extends EventEmitter {
         while (row = this.queue.shift()) {
             let target: AsyncMachine = row[QUEUE.TARGET] || this;
             let queue = target.queue;
-            let aborted = false
             let transitions = target.prepareTransitions(row[QUEUE.STATE_CHANGE], this.parseStates(row[QUEUE.STATES]),
                     row[QUEUE.PARAMS], row[QUEUE.AUTO])
+            let aborted = !transitions.accepted
 
             target.transition_events = []
             target.lock = true
             target.queue = [];
             
             try {
-                aborted = (false === target.selfTransitionExec_(transitions.self[0], transitions.self[1]))
-                if (aborted)
-                    continue
-                
-                for (let transition of transitions.exits) {
-                    if (false === target.transitionExit_(transition[0], transition[1], transition[2], transition[3])) {
-                        aborted = true
-                        continue
+                // self transitions
+                if (!aborted)
+                    aborted = (false === target.selfTransitionExec_(transitions.self[0], transitions.self[1]));
+                // exit transitions
+                if (!aborted) {
+                    for (let transition of transitions.exits) {
+                        if (false === target.transitionExit_(transition[0], transition[1], transition[2], transition[3])) {
+                            aborted = true;
+                            continue;
+                        }
                     }
                 }
-                if (aborted)
-                    continue
-                
-                for (let transition of transitions.enters) {
-                    if (false === target.transitionEnter_(transition[0], transition[1], transition[2])) {
-                        aborted = true
-                        continue
+                // enter transitions
+                if (!aborted) {
+                    for (let transition of transitions.enters) {
+                        if (false === target.transitionEnter_(transition[0], transition[1], transition[2])) {
+                            aborted = true;
+                            continue;
+                        }
                     }
                 }
-                this.setActiveStates_(transitions.states)
-                this.processPostTransition();
-                this.emit("change", transitions.before);
-                target.queue = aborted ? queue : queue.concat(target.queue);                
+                // state and end transitions (non-abortable)
+                if (!aborted) {
+                    this.setActiveStates_(transitions.states);
+                    this.processPostTransition();
+                    this.emit("change", transitions.before);
+                }
+                target.queue = aborted ? queue : queue.concat(target.queue)
             } catch (err) {
                 let queued_exception: IQueueRow = [STATE_CHANGE.ADD, ["Exception"], [err, transitions.states]]
                 target.queue = [queued_exception].concat(queue);

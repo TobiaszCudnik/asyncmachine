@@ -45,13 +45,12 @@ describe "asyncmachine", ->
 
 	beforeEach ->
 		@machine = new FooMachine
-		@machine.debug('foo')
 		@machine.set 'A'
 
 	it 'should allow to check if single state is active', ->
 		expect(@machine.is('A')).to.be.ok
 		
-	it 'should allow to check if couple of states is active', ->
+	it 'should allow to check if couple of states are active', ->
 		@machine.add 'B'
 		expect(@machine.every 'A', 'B').to.be.ok
 		
