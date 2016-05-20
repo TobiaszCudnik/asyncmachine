@@ -1,6 +1,4 @@
-/// <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
-
-import { EventEmitter } from "eventemitter3-abortable";
+import EventEmitter from "./ee";
 
 // TODO remove
 var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -12,23 +10,22 @@ export var STATE_CHANGE = {
     SET: 2
 };
 
-// TODO enum
-export var STATE_CHANGE_LABELS = {
-    0: "Drop",
-    1: "Add",
-    2: "Set"
+export enum STATE_CHANGE_LABELS {
+    Drop,
+    Add,
+    Set
 };
 
 /**
  * Queue enum defining param positions in queue's entries.
  * TODO enum
  */
-export enum QUEUE {
-    STATE_CHANGE,
-    STATES,
-    PARAMS,
-    AUTO,
-    TARGET
+export var QUEUE = {
+    STATE_CHANGE: 0,
+    STATES: 1,
+    PARAMS: 2,
+    AUTO: 3,
+    TARGET: 4
 };
 
 export interface IQueueRow {
@@ -92,6 +89,7 @@ export class AsyncMachine extends EventEmitter {
 
     public last_promise: Promise<any>;
 
+	// TODO change to log_prefix and log_level
     private debug_prefix: string = "";
 
     private debug_level: number = 1;
@@ -198,7 +196,7 @@ export class AsyncMachine extends EventEmitter {
      * 	foo = new SomeAsyncTask
      * 	foo.start()
      * 	foo.once 'error', (error) =>
-     * 		@add 'Exception', error, states
+     * 		this.add 'Exception', error, states
      * ```
      */
     public Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void {
@@ -209,7 +207,6 @@ export class AsyncMachine extends EventEmitter {
         if ((async_target_states != null ? async_target_states.length : void 0) != null) {
             this.log("Next states were supposed to be (add/drop/set):\n    " + exception_states.join(", "));
         }
-        // TODO sometimes err is missing
         console.dir(err);
         return this.setImmediate(() => {
             throw err;
@@ -228,9 +225,9 @@ export class AsyncMachine extends EventEmitter {
      * ```
      * class Foo
      * 	constructor: ->
-     * 		@states = AsyncMachine.factory ['A', 'B', 'C']
-     * 		@states.setTarget this
-     * 		@states.add 'A'
+     * 		this.states = AsyncMachine.factory ['A', 'B', 'C']
+     * 		this.states.setTarget this
+     * 		this.states.add 'A'
      *
      * 	A_state: ->
      * 		console.log 'State A set'
@@ -253,20 +250,24 @@ export class AsyncMachine extends EventEmitter {
      *
      * class Foo
      * 	constructor: ->
-     * 		@states = new States
-     * 		@states.registerAll()
+     * 		this.states = new States
+     * 		this.states.registerAll()
      * ```
      */
     public registerAll() {
         var _results;
         var name = "";
         var value = null;
+        
+		// test the instance vars
         for (name in this) {
             value = this[name];
             if ((this.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0 && !(this[name] instanceof Function)) {
                 this.register(name);
             }
         }
+        
+		// test the prototype chain
         var constructor = this.getInstance().constructor.prototype;
         _results = [];
         while (true) {
@@ -294,8 +295,10 @@ export class AsyncMachine extends EventEmitter {
      * TODO code sample
      */
     public getRelations(from_state: string, to_state: string): string[] {
+		// TODO enum
         var relations = ["blocks", "drops", "implies", "requires"];
         var state = this.get(from_state);
+		// TODO assert
 
         return relations.filter((relation) => __indexOf.call(state[relation] != null, to_state) >= 0);
     }
@@ -412,6 +415,7 @@ export class AsyncMachine extends EventEmitter {
      * ```
      */
     public register(...states: string[]) {
+		states = this.parseStates(states)
         return states.map((state) => {
             if (__indexOf.call(this.states_all, state) < 0) {
                 this.states_all.push(state);
@@ -1073,10 +1077,10 @@ export class AsyncMachine extends EventEmitter {
      * states = AsyncMachine.factory ['A', 'B', 'C']
      *
      * states.A_enter = ->
-     *   @duringTransition() # -> true
+     *   this.duringTransition() # -> true
      *
      * states.A_state = ->
-     *   @duringTransition() # -> true
+     *   this.duringTransition() # -> true
      *
      * states.add 'A'
      * ````
@@ -1218,7 +1222,9 @@ export class AsyncMachine extends EventEmitter {
      * TODO docs
      * TODO unify event name with transition name (remove the _state suffix if possible)
      */
-    public on(event: string, listener: Function, context?: Object): AsyncMachine {
+    public on(event: string, listener: Function, context?: Object): this {
+		// is event is a NAME_state event, fire at once if the state is set
+		// TODO last state params
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
             this.catchPromise(listener.call(context));
         }
@@ -1232,7 +1238,10 @@ export class AsyncMachine extends EventEmitter {
      * TODO unify event name with transition name (remove the _state suffix if possible)
      */
 
-    public once(event: string, listener: Function, context?: Object): AsyncMachine {
+    public once(event: string, listener: Function, context?: Object): this {
+		// is event is a NAME_state event, fire at once if the state is set
+		// and dont register the listener
+		// TODO last state params
         if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
             this.catchPromise(listener.call(context));
         } else {
@@ -1287,6 +1296,7 @@ export class AsyncMachine extends EventEmitter {
     }
 
     pipeBind(state, machine, target_state, local_queue, bindings) {
+		// switch params order
         if (state instanceof AsyncMachine) {
             if (target_state == null) {
                 target_state = true;
@@ -1299,6 +1309,8 @@ export class AsyncMachine extends EventEmitter {
         }
 
         this.log("Piping state " + state, 3);
+        
+		// cast to an array
         return [].concat(state).forEach((state) => {
             var new_state = target_state || state;
 
@@ -1323,16 +1335,20 @@ export class AsyncMachine extends EventEmitter {
      * Override for EventEmitter method calling a specific listener. Binds to
      * a promis if returned by the listener.
      */
-    private callListener(listener, context, params): Promise<any>;
-    private callListener(listener, context, params): any {
+    protected callListener(listener, context, params): Promise<any>;
+    protected callListener(listener, context, params): any {
         var ret = listener.apply(context, params);
+
+		// assume params[0] are the target states of the transition
         return this.catchPromise(ret, params[0]);
     }
 
+	// TODO remove
     private getInstance(): any {
         return this;
     }
 
+	// TODO make it cancellable
     setImmediate(fn, ...params) {
         if (setImmediate) {
             return setImmediate.apply(null, [fn].concat(params));
@@ -1341,6 +1357,8 @@ export class AsyncMachine extends EventEmitter {
         }
     }
 
+	// TODO log it better
+	// Returns a queue entry with
     private prepareAutoStates(): IQueueRow {
         var add = [];
         this.states_all.forEach((state) => {
@@ -1373,6 +1391,7 @@ export class AsyncMachine extends EventEmitter {
 
         return states_parsed.filter((state) => {
             if (typeof state !== "string" || !this.get(state)) {
+				// TODO trow a specific class once TS will stop complaining
                 throw new Error("Non existing state: " + state);
             }
 
@@ -1412,6 +1431,9 @@ export class AsyncMachine extends EventEmitter {
         transitions.states = 
             states_to_set = this.setupTargetStates_(states_to_set);
         
+
+        // Dropping states doesnt require an acceptance
+        // Autostates can be set partially (TODO check if any is a target?)
         if (type !== STATE_CHANGE.DROP && !is_autostate) {
             var states_accepted = states.every((state) => Boolean(~states_to_set.indexOf(state)));
             if (!states_accepted) {
@@ -1431,7 +1453,7 @@ export class AsyncMachine extends EventEmitter {
      */
     private enqueue_(type: number, states: string[] | string, params?: any[], target?: AsyncMachine) {
         var type_label = STATE_CHANGE_LABELS[type].toLowerCase();
-        let states_parsed = this.parseStates(states);
+        let states_parsed = (target || this).parseStates(states);
 
         if (this.duringTransition()) {
             if (target) {
@@ -1444,6 +1466,7 @@ export class AsyncMachine extends EventEmitter {
         return this.queue.push([type, states_parsed, params, false, target]);
     }
 
+	// Goes through the whole queue collecting return values.
     private processQueue_() {
         if (this.lock_queue) {
             return;
@@ -1491,9 +1514,11 @@ export class AsyncMachine extends EventEmitter {
                     target.processPostTransition();
                     target.emit("change", transitions.before);
                 }
+			    // if canceled then drop the queue created during the transition
                 target.queue = aborted ? queue : queue.concat(target.queue)
             } catch (err) {
                 let queued_exception: IQueueRow = [STATE_CHANGE.ADD, ["Exception"], [err, transitions.states]]
+			    // drop the queue created during the transition
                 target.queue = [queued_exception].concat(queue);
             }
             
@@ -1502,6 +1527,7 @@ export class AsyncMachine extends EventEmitter {
             if (aborted) {
                 target.emit("cancelled");
             } else if ((target.hasStateChanged(transitions.before)) && !row[QUEUE.AUTO]) {
+			    // prepend auto states to the beginning of the queue
                 var auto_states = target.prepareAutoStates();
                 if (auto_states) {
                     target.queue.unshift(auto_states);
@@ -1523,6 +1549,8 @@ export class AsyncMachine extends EventEmitter {
     }
 
     private createDeferred(fn: Function, target, states, state_params: any[]): Deferred {
+		// TODO use the current transition's states if available (for enter/exit
+		// transitons)
         var transition_states = this.is();
 
         var params = [target];
@@ -1558,13 +1586,14 @@ export class AsyncMachine extends EventEmitter {
         return (...params) => deferred.resolve(params);
     }
 
+	// Executes self transitions (eg ::A_A) based on active states.
     private selfTransitionExec_(states: string[], params?: any[]) {
         if (params == null) {
             params = [];
         }
         var transition_params = <any[]>[states].concat(params);
-        var ret = states.some((state) => {
-            ret = void 0;
+        return !states.some((state) => {
+            let ret;
             var name = state + "_" + state;
             if (~this.states_active.indexOf(state)) {
                 var context = this.getMethodContext(name);
@@ -1581,7 +1610,7 @@ export class AsyncMachine extends EventEmitter {
                     return true;
                 }
 
-                var ret = this.emit.apply(this, [name].concat(transition_params));
+                ret = this.emit.apply(this, [name].concat(transition_params));
                 if (ret !== false) {
                     this.transition_events.push([name, transition_params]);
                 }
@@ -1589,11 +1618,9 @@ export class AsyncMachine extends EventEmitter {
                 return ret === false;
             }
         });
-
-        return !ret;
     }
 
-    private setupTargetStates_(states: string[], exclude?: string[]) {
+    private setupTargetStates_(states: string[], exclude?: string[]): string[] {
         states = this.parseStates(states);
 
         if (exclude == null) {
@@ -1602,14 +1629,22 @@ export class AsyncMachine extends EventEmitter {
 
         states = this.parseImplies_(states);
         states = this.removeDuplicateStates_(states);
+        
+		// Check if state is blocked or excluded
         var already_blocked = [];
+
+		// Parsing required states allows to avoid cross-dropping of states
         states = this.parseRequires_(states);
+
+		// Remove states already blocked.
         states = states.reverse().filter((name) => {
             var blocked_by = this.isStateBlocked_(states, name);
             blocked_by = blocked_by.filter((blocker_name) => !~already_blocked.indexOf(blocker_name));
 
             if (blocked_by.length) {
                 already_blocked.push(name);
+				// if state wasn't implied by another state (was one of the current
+				// states) then make it a higher priority log msg
                 if (this.is(name)) {
                     this.log("State " + name + " dropped by " + (blocked_by.join(", ")), 2);
                 } else {
@@ -1618,9 +1653,12 @@ export class AsyncMachine extends EventEmitter {
             }
             return !blocked_by.length && !~exclude.indexOf(name);
         });
+
+		// Parsing required states allows to avoid cross-dropping of states
         return this.parseRequires_(states.reverse());
     }
-
+    
+	// Collect implied statestates: string[]): string[] {
     private parseImplies_(states: string[]): string[] {
         states.forEach((name) => {
             var state = this.get(name);
@@ -1633,20 +1671,20 @@ export class AsyncMachine extends EventEmitter {
         return states;
     }
 
+	// Check required states
+	// Loop until no change happens, as states can require themselves in a vector.
     private parseRequires_(states: string[]): string[] {
         var length_before = 0;
         var not_found_by_states = {};
+		// TODO compare states by name
         while (length_before !== states.length) {
             length_before = states.length;
             states = states.filter((name) => {
                 var state = this.get(name);
                 var not_found = [];
-                !(state.requires != null ? state.requires.forEach((req) => {
-                    var found = ~states.indexOf(req);
-                    if (!found) {
-                        return not_found.push(req);
-                    }
-                }) : void 0);
+                for (let req of state.requires || [])
+                    if (!~states.indexOf(req))
+                        not_found.push(req)
 
                 if (not_found.length) {
                     not_found_by_states[name] = not_found;
@@ -1717,6 +1755,7 @@ export class AsyncMachine extends EventEmitter {
 
         for (let state of to) {
             // dont enter to already set states, except when it's a MULTI state
+			// TODO write tests for multi state
             if (this.is(state) && !this.get(state).multi)
                 continue
             
@@ -1735,11 +1774,14 @@ export class AsyncMachine extends EventEmitter {
         var removed_states = this.diffStates(this.states_active, target);
         var nochange_states = this.diffStates(target, new_states);
         this.states_active = target;
+		// Tick all the new states.
         target.forEach((state) => {
             if (!~previous.indexOf(state)) {
                 return this.clock_[state]++;
             }
         });
+
+		// construct a logging msg
         var log_msg = [];
         if (new_states.length) {
             log_msg.push("+" + (new_states.join(" +")));
@@ -1747,6 +1789,7 @@ export class AsyncMachine extends EventEmitter {
         if (removed_states.length) {
             log_msg.push("-" + (removed_states.join(" -")));
         }
+		// TODO fix
         if (nochange_states.length && this.debug_level > 2) {
             if (new_states.length || removed_states.length) {
                 log_msg.push("\n    ");
@@ -1758,6 +1801,7 @@ export class AsyncMachine extends EventEmitter {
         }
     }
 
+	// TODO this is hacky, should be integrated into processTransition
     processPostTransition() {
         for (let transition of this.transition_events) {
             let name = transition[0];
@@ -1779,6 +1823,7 @@ export class AsyncMachine extends EventEmitter {
                 try {
                     ret = context[method](...params);
                 } catch (err) {
+				    // Drop the states in case it created an exception
                     this.drop(state);
                     throw err;
                 }
@@ -1801,6 +1846,7 @@ export class AsyncMachine extends EventEmitter {
         }
     }
 
+	// Exit transition handles state-to-state methods.
     private transitionExit_(from: string, to: string[], 
 		explicit_states: string[], params: any[]) {
         if (~explicit_states.indexOf(from)) {
@@ -1813,6 +1859,8 @@ export class AsyncMachine extends EventEmitter {
         if (ret === false) {
             return false;
         }
+
+		// TODO executes transitions which are beeing dropped now
         ret = to.some((state) => {
             var transition = from + "_" + state;
             if (~explicit_states.indexOf(state)) {
@@ -1828,6 +1876,8 @@ export class AsyncMachine extends EventEmitter {
         if (ret === true) {
             return false;
         }
+
+		// TODO pass args to explicitly dropped states
         ret = (this.transitionExec_(from + "_any", to)) === false;
 
         return !ret;
@@ -1864,6 +1914,7 @@ export class AsyncMachine extends EventEmitter {
             var is_exit = method.slice(-5) === "_exit";
             var is_enter = !is_exit && method.slice(-6) === "_enter";
             if (is_exit || is_enter) {
+				// TODO this is hacky
                 this.transition_events.push([method, transition_params]);
             }
             ret = this.emit.apply(this, [method].concat(transition_params));
@@ -1894,6 +1945,8 @@ export class AsyncMachine extends EventEmitter {
         return null;
     }
 
+	// TODO bind to _enter and _exit as well to support the negotiation phase in
+	// piped events
     private bindToStates(states: string[], listener: Function, abort?: Function, once?: boolean) {
         var fired = 0;
         var enter = () => {
@@ -1918,6 +1971,7 @@ export class AsyncMachine extends EventEmitter {
         });
     }
 
+	// TODO compose the existing abort function without recursion
     private getAbortFunction(state: string, tick: number, abort?: () => boolean): () => boolean {
         return () => {
             if (typeof abort === "function" ? abort() : void 0) {
@@ -1944,9 +1998,9 @@ export interface IState {
 	multi?: boolean;
 }
 
-export interface ITransitionHandler {
-	(states: string[], ...params: any[]): boolean;
-}
+// export interface ITransitionHandler {
+// 	(states: string[], ...params: any[]): boolean;
+// }
 
 interface IPreparedTransitions {
     states: string[];

@@ -11,10 +11,10 @@ all:
 
 
 build:
-	$(CCOFFEE) -o build -i src -p "asyncmachine.js:asyncmachine"
+	tsc --outDir build
 
 build-watch:
-	$(CCOFFEE) -o build -i src --watch -p "asyncmachine.js:asyncmachine"
+	tsc --outDir build --watch
 
 server:
 	node_modules/http-server/bin/http-server
@@ -61,8 +61,7 @@ test-debug:
 		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)" \
-		test/asyncmachine.coffee
-		#test/*.js
+		test/*.js
 
 test-grep-debug:
 	./node_modules/mocha/bin/mocha \
@@ -79,7 +78,7 @@ docs:
 		--out docs/ \
 		--module commonjs \
 		--name AsyncMachine \
-		build/asyncmachine.ts
+		src/asyncmachine.ts
 
 spec:
 	echo "<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><pre>" > docs/spec.html

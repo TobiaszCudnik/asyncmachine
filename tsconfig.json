@@ -10,6 +10,7 @@
     //    "strictNullChecks": true
     },
     "files": [
-        "build/asyncmachine.ts"
+        "src/asyncmachine.ts",
+        "src/ee.ts"
     ]
 }

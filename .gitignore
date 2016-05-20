@@ -4,3 +4,9 @@
 .c9revisions
 /.idea
 /asyncmachine.iml
+/build/*
+/.vscode/*
+.DS_Store
+/test/exceptions.js
+/test/asyncmachine.js
+/tsickle_externs.js
