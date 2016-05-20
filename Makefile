@@ -48,8 +48,6 @@ test-build-watch:
 test-grep:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
-		--compilers mocha \
-		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)"
 		test/*.js
@@ -58,7 +56,6 @@ test-debug:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
 		--debug-brk \
-		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)" \
 		test/*.js
@@ -67,8 +64,6 @@ test-grep-debug:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
 		--debug-brk \
-		--compilers mocha \
-		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)" \
 		test/*.js
