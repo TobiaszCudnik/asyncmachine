@@ -514,7 +514,6 @@ export class AsyncMachine extends EventEmitter {
      * ```
      *
      */
-
     public setByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
     public setByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
     public setByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
@@ -541,7 +540,6 @@ export class AsyncMachine extends EventEmitter {
      * emitter.on 'error', states.addByListener 'Exception'
      * ```
      */
-
     public setByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
     public setByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
     public setByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
@@ -564,7 +562,6 @@ export class AsyncMachine extends EventEmitter {
      * states.is() # -> ['A']
      * ```
      */
-
     public setNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
     public setNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
     public setNext(target: string, states: any, ...params: any[]): (...params) => void;
@@ -614,7 +611,6 @@ export class AsyncMachine extends EventEmitter {
      * 	states1.add states2, 'B'
      * ```
      */
-
     public add(target: AsyncMachine, states: string[], ...params: any[]): boolean;
     public add(target: AsyncMachine, states: string, ...params: any[]): boolean;
     public add(target: string[], states?: any, ...params: any[]): boolean;
@@ -650,7 +646,6 @@ export class AsyncMachine extends EventEmitter {
      * ```
      *
      */
-
     public addByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
     public addByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
     public addByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
@@ -677,7 +672,6 @@ export class AsyncMachine extends EventEmitter {
      * emitter.on 'error', states.addByListener 'Exception'
      * ```
      */
-
     public addByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
     public addByListener(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
     public addByListener(target: string[], states?: any, ...params: any[]): (...params) => void;
@@ -700,7 +694,6 @@ export class AsyncMachine extends EventEmitter {
      * states.is() # -> ['A', 'B']
      * ```
      */
-
     public addNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
     public addNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
     public addNext(target: string, states: any, ...params: any[]): (...params) => void;
@@ -750,7 +743,6 @@ export class AsyncMachine extends EventEmitter {
      * 	states1.add states2, 'B'
      * ```
      */
-
     public drop(target: AsyncMachine, states: string[], ...params: any[]): boolean;
     public drop(target: AsyncMachine, states: string, ...params: any[]): boolean;
     public drop(target: string[], states?: any, ...params: any[]): boolean;
@@ -786,7 +778,6 @@ export class AsyncMachine extends EventEmitter {
      * ```
      *
      */
-
     public dropByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
     public dropByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
     public dropByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
@@ -813,7 +804,6 @@ export class AsyncMachine extends EventEmitter {
      * emitter.on 'error', states.setByListener 'Exception'
      * ```
      */
-
     public dropByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
     public dropByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
     public dropByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
@@ -836,7 +826,6 @@ export class AsyncMachine extends EventEmitter {
      * states.is('A') # -> true
      * ```
      */
-
     public dropNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
     public dropNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
     public dropNext(target: string, states: any, ...params: any[]): (...params) => void;
@@ -870,7 +859,6 @@ export class AsyncMachine extends EventEmitter {
      * states2.is('A') # -> true
      * ```
      */
-
     public pipe(state: string, machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
     public pipe(state: string[], machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
     public pipe(state: AsyncMachine, machine?: string, target_state?: boolean);
@@ -907,7 +895,6 @@ export class AsyncMachine extends EventEmitter {
      * states2.is('A') # -> false
      * ```
      */
-
     pipeInverted(state, machine, target_state, local_queue) {
         var bindings = {
             state: "drop",
@@ -951,7 +938,6 @@ export class AsyncMachine extends EventEmitter {
      * states2.is('A') # -> false
      * ```
      */
-
     pipeNegotiation(state, machine, target_state, local_queue) {
         var bindings = {
             enter: "add",
@@ -995,7 +981,6 @@ export class AsyncMachine extends EventEmitter {
      * states2.is('A') # -> false
      * ```
      */
-
     pipeNegotiationInverted(state, machine, target_state, local_queue) {
         var bindings = {
             enter: "drop",
@@ -1031,7 +1016,6 @@ export class AsyncMachine extends EventEmitter {
      * states.clock('A') # -> 2
      * ````
      */
-
     clock(state: string): number {
         return this.clock_[state];
     }
@@ -1056,7 +1040,6 @@ export class AsyncMachine extends EventEmitter {
      * states1.is() # -> []
      * ````
      */
-
     createChild(): this {
         var child = Object.create(this);
         var child_states_active = [];
@@ -1085,7 +1068,6 @@ export class AsyncMachine extends EventEmitter {
      * states.add 'A'
      * ````
      */
-
     public duringTransition(): boolean {
         return this.lock;
     }
@@ -1121,7 +1103,6 @@ export class AsyncMachine extends EventEmitter {
      * @param abort Existing abort function (optional)
      * @return A new abort function
      */
-
     public getAbort(state: string, abort?: () => boolean): () => boolean {
         var tick = this.clock(state);
 
@@ -1148,7 +1129,6 @@ export class AsyncMachine extends EventEmitter {
      * @param abort Existing abort function (optional)
      * @return Promise resolved once all states are set concurrently.
      */
-
     public when(states: string | string[], abort?: Function): Promise<any> {
         let states_parsed = this.parseStates(states)
         return new Promise((resolve, reject) => this.bindToStates(states_parsed, resolve, abort));
@@ -1177,7 +1157,6 @@ export class AsyncMachine extends EventEmitter {
      * @param abort Existing abort function (optional)
      * @return Promise resolved once all states are set concurrently.
      */
-
     public whenOnce(states: string | string[], abort?: Function): Promise<any> {
         let states_parsed = this.parseStates(states)
         return new Promise((resolve, reject) => this.bindToStates(states_parsed, resolve, abort, true));
@@ -1203,7 +1182,6 @@ export class AsyncMachine extends EventEmitter {
      * @param prefix Prefix before all console messages.
      * @param level Error level (1-3).
      */
-
     debug(prefix : any = "", level : any = 1) {
         this.debug_ = true;
         this.debug_prefix = prefix;
@@ -1237,7 +1215,6 @@ export class AsyncMachine extends EventEmitter {
      * TODO docs
      * TODO unify event name with transition name (remove the _state suffix if possible)
      */
-
     public once(event: string, listener: Function, context?: Object): this {
 		// is event is a NAME_state event, fire at once if the state is set
 		// and dont register the listener

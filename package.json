@@ -26,5 +26,6 @@
     "typedoc": "^0.1.3",
     "typescript": "1.8"
   },
-  "main": "build/asyncmachine.js"
+  "main": "build/asyncmachine.js",
+  "typings": "build/asyncmachine.d.ts"
 }

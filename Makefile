@@ -11,10 +11,10 @@ all:
 
 
 build:
-	tsc --outDir build
+	tsc
 
 build-watch:
-	tsc --outDir build --watch
+	tsc --watch
 
 server:
 	node_modules/http-server/bin/http-server
