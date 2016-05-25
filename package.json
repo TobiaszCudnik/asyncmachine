@@ -27,5 +27,5 @@
     "typescript": "1.8"
   },
   "main": "build/asyncmachine.js",
-  "typings": "build/asyncmachine.d.ts"
+  "typings": "src/asyncmachine.ts"
 }

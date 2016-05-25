@@ -78,44 +78,30 @@ export class Deferred {
  * - loose bind in favor of closures
  */
 export class AsyncMachine extends EventEmitter {
-    private states_all: string[] = [];
-
-    private states_active: string[] = [];
-
-    // TODO type
-    private queue: IQueueRow[] = [];
-
-    private lock: boolean = false;
-
-    public last_promise: Promise<any>;
-
-	// TODO change to log_prefix and log_level
-    private debug_prefix: string = "";
-
-    private debug_level: number = 1;
-
-    private clock_: { [state: string]: number } = {};
-
-    private target: AsyncMachine = null;
-
-    // Events buffer
-    private transition_events: any[];
-
-    private debug_: boolean = false;
-
-    piped = {};
-
-    lock_queue = false;
-
-    /**
-     * TODO this have to go
-     */
-    private internal_fields: string[] = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields", "transition_events", "piped"];
 
     /**
      * Empty Exception state properties. See [[Exception_state]] transition handler.
      */
     Exception = {};
+    states_all: string[] = [];
+    last_promise: Promise<any>;
+    log_prefix: string = "";
+    log_level: number = 1;
+    piped = {};
+
+    protected states_active: string[] = [];
+    protected queue: IQueueRow[] = [];
+    protected lock: boolean = false;
+    protected clock_: { [state: string]: number } = {};
+    protected target: AsyncMachine = null;
+    // Events buffer
+    protected transition_events: any[];
+    protected debug_: boolean = false;
+    protected lock_queue = false;
+    /**
+     * TODO this has to dissapear
+     */
+    protected internal_fields: string[] = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields", "transition_events", "piped"];
 
     /**
      * Creates an AsyncMachine instance (not a constructor) with specified states.
@@ -1184,8 +1170,8 @@ export class AsyncMachine extends EventEmitter {
      */
     debug(prefix : any = "", level : any = 1) {
         this.debug_ = true;
-        this.debug_prefix = prefix;
-        this.debug_level = level;
+        this.log_prefix = prefix;
+        this.log_level = level;
 
         return null;
     }
@@ -1266,10 +1252,10 @@ export class AsyncMachine extends EventEmitter {
         if (!this.debug_) {
             return;
         }
-        if (level > this.debug_level) {
+        if (level > this.log_level) {
             return;
         }
-        return console.log(this.debug_prefix + msg);
+        return console.log(this.log_prefix + msg);
     }
 
     pipeBind(state, machine, target_state, local_queue, bindings) {
@@ -1767,7 +1753,7 @@ export class AsyncMachine extends EventEmitter {
             log_msg.push("-" + (removed_states.join(" -")));
         }
 		// TODO fix
-        if (nochange_states.length && this.debug_level > 2) {
+        if (nochange_states.length && this.log_level > 2) {
             if (new_states.length || removed_states.length) {
                 log_msg.push("\n    ");
             }
