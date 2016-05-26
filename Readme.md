@@ -246,21 +246,8 @@ is available. The wiki is comming...
 AsyncMachine's source code is transpiled from CoffeeScript to TypeScript, so it provides type definitions file at [/lib/asyncmachine.d.ts](https://github.com/TobiaszCudnik/asyncmachine/blob/master/lib/asyncmachine.d.ts).
 
 ## Change log
- 
-### v2.0
- 
-- states clock
-- synchronous queue across composed asyncmachines
-- abort functions
-- exception handling
-- state negotiation fixes
-- state piping fixes
-- event namespaces are gone
-- non-negotiation transitions
-- updated and extended API
-- log readability optimized
-- composition over inheritance
-- (almost) backwards compatible
+
+See CHANGELOG.md
  
 ## Related work
  

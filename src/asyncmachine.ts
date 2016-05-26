@@ -1450,7 +1450,7 @@ export class AsyncMachine extends EventEmitter {
 
         if (this.duringTransition()) {
             if (target) {
-                this.log(`Queued ${type_label} state(s) ${states_parsed.join(", ")} for an external machine ${target.id()}`, 2);
+                this.log(`Queued ${type_label} state(s) ${states_parsed.join(", ")} for an external machine "${target.id()}"`, 2);
             } else {
                 this.log(`Queued ${type_label} state(s) ${states_parsed.join(", ")}`, 2);
             }

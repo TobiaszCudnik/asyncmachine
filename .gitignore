@@ -9,4 +9,5 @@
 .DS_Store
 /test/exceptions.js
 /test/asyncmachine.js
+/test/*.js.map
 /tsickle_externs.js

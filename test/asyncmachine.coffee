@@ -298,9 +298,9 @@ describe "asyncmachine", ->
 		beforeEach ->
 			@log = []
 			@machine = new FooMachine [ 'A', 'B' ]
-			@machine.debug '', 3
-			@machine.log = (msg) =>
-				@log.push msg
+			@machine
+				.logLevel(3)
+				.logHandler @log.push.bind @log
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
 			@machine.C = blocks: [ 'D' ]
@@ -393,9 +393,9 @@ describe "asyncmachine", ->
 			
 			beforeEach ->
 				@log = []
-				@machine.debug()
-				@machine.log = (msg) =>
-					@log.push msg
+				@machine
+					.logLevel(1)
+					.logHandler @log.push.bind @log
 				@machine.set [ 'C', 'A' ]
 				
 			afterEach ->
@@ -433,9 +433,9 @@ describe "asyncmachine", ->
 			beforeEach ->
 				@machine.D_enter = -> no
 				@log = []
-				@machine.debug()
-				@machine.log = (msg) =>
-					@log.push msg
+				@machine
+					.logLevel(1)
+					.logHandler @log.push.bind @log
 
 			describe 'when setting a new state', ->
 				beforeEach ->
