@@ -85,8 +85,6 @@ export class AsyncMachine extends EventEmitter {
     Exception = {};
     states_all: string[] = [];
     last_promise: Promise<any>;
-    log_prefix: string = "";
-    log_level: number = 1;
     piped = {};
 
     protected states_active: string[] = [];
@@ -98,10 +96,13 @@ export class AsyncMachine extends EventEmitter {
     protected transition_events: any[];
     protected debug_: boolean = false;
     protected lock_queue = false;
+    protected log_level_: number = 0;
+    protected log_handler_: Function;
     /**
-     * TODO this has to dissapear
+     * TODO this should be automatic
      */
     protected internal_fields: string[] = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields", "transition_events", "piped"];
+    private id_: string;
 
     /**
      * Creates an AsyncMachine instance (not a constructor) with specified states.
@@ -141,7 +142,7 @@ export class AsyncMachine extends EventEmitter {
      * @param registerAll Automaticaly registers all defined states.
      * @see [[AsyncMachine]] for the usage example.
      */
-    constructor(target : any = null, register_all : any = false) {
+    constructor(target?: AsyncMachine, register_all: boolean = false) {
         super();
 
         this.setTarget(target || this);
@@ -193,10 +194,13 @@ export class AsyncMachine extends EventEmitter {
         if ((async_target_states != null ? async_target_states.length : void 0) != null) {
             this.log("Next states were supposed to be (add/drop/set):\n    " + exception_states.join(", "));
         }
-        console.dir(err);
-        return this.setImmediate(() => {
-            throw err;
-        });
+        // if the exception param was passed, print and throw (but outside of the current stack trace) 
+        if (err) {
+            console.error(err);
+            this.setImmediate(() => {
+                throw err;
+            });
+        }
     }
 
     /**
@@ -1149,37 +1153,55 @@ export class AsyncMachine extends EventEmitter {
     }
 
     /**
-     * Enabled debug messages sent to the console. There're 3 log levels:
-     *
-     * - 1 - displays only the state changes in a diff format
-     * - 2 - displays all operations which happened along with refused state
+     * Enabled debug messages sent to the console (or the custom handler).
+     * 
+     * There's 3 log levels:
+     * - 0: logging is off
+     * - 1: displays only the state changes in a diff format
+     * - 2: displays all operations which happened along with refused state
      *   changes
-     * - 3 - displays pretty much everything, including all possible operations
+     * - 3: displays pretty much everything, including all possible operations
      *
      * Example
      * ```
      * states = AsyncMachine.factory ['A', 'B', 'C']
-     * states.debug 'FOO ', 1
-     * states.add 'A'
-     * # -> FOO [add] state Enabled
-     * # -> FOO [states] +Enabled
+     * states.logLevel(1)
+     * states.add('A')
+     * # -> [add] state Enabled
+     * # -> [states] +Enabled
      * ````
      *
      * @param prefix Prefix before all console messages.
      * @param level Error level (1-3).
      */
-    debug(prefix : any = "", level : any = 1) {
-        this.debug_ = true;
-        this.log_prefix = prefix;
-        this.log_level = level;
-
-        return null;
+    logLevel(log_level: number): this;
+    logLevel(): number;
+    logLevel(log_level?: number): this | number {
+        if (log_level) {
+            this.log_level_ = log_level
+            return this
+        } else
+            return this.log_level_
     }
-
-    public debugOff(): void {
-        this.debug_ = false;
-
-        return null;
+    
+    logHandler(log_handler: Function): this;
+    logHandler(): Function;
+    logHandler(log_handler?: Function): this | Function {
+        if (log_handler) {
+            this.log_handler_ = log_handler
+            return this
+        } else
+            return this.log_handler_
+    }
+    
+    id(id: string): this;
+    id(): string;
+    id(id?: string): this | string {
+        if (id) {
+            this.id_ = id
+            return this
+        } else
+            return this.id_
     }
 
     /**
@@ -1244,21 +1266,23 @@ export class AsyncMachine extends EventEmitter {
     public diffStates(states1: string[], states2: string[]) {
         return states1.filter((name) => __indexOf.call(states2, name) < 0).map((name) => name);
     }
+    
+    // PRIVATES
 
-    private log(msg: string, level?: number): void {
-        if (level == null) {
-            level = 1;
-        }
-        if (!this.debug_) {
+    protected log(msg: string, level: number = 1) {
+        if (level > this.log_level_)
             return;
-        }
-        if (level > this.log_level) {
-            return;
-        }
-        return console.log(this.log_prefix + msg);
+            
+        let prefix = this.id() ? `[${this.id()}]` : ''
+        msg = prefix + msg
+        
+        if (this.log_handler_)
+            this.log_handler_(prefix + msg)
+        else
+            console.log(prefix + msg);
     }
 
-    pipeBind(state, machine, target_state, local_queue, bindings) {
+    protected pipeBind(state, machine, target_state, local_queue, bindings) {
 		// switch params order
         if (state instanceof AsyncMachine) {
             if (target_state == null) {
@@ -1267,9 +1291,8 @@ export class AsyncMachine extends EventEmitter {
             return this.pipeBind(this.states_all, state, machine, target_state, bindings);
         }
 
-        if (local_queue == null) {
+        if (!local_queue)
             local_queue = true;
-        }
 
         this.log("Piping state " + state, 3);
         
@@ -1283,6 +1306,10 @@ export class AsyncMachine extends EventEmitter {
                     state: new_state,
                     machine: machine
                 };
+                // assert target states
+                machine.parseStates(target_state)
+                // setup the forwarding listener
+                // TODO support un-piping
                 return this.on(state + "_" + event_type, () => {
                     if (local_queue) {
                         return this[method_name](machine, new_state);
@@ -1297,6 +1324,8 @@ export class AsyncMachine extends EventEmitter {
     /**
      * Override for EventEmitter method calling a specific listener. Binds to
      * a promis if returned by the listener.
+     * 
+     * TODO incorporate into EE, saving one call stack frame
      */
     protected callListener(listener, context, params): Promise<any>;
     protected callListener(listener, context, params): any {
@@ -1312,7 +1341,7 @@ export class AsyncMachine extends EventEmitter {
     }
 
 	// TODO make it cancellable
-    setImmediate(fn, ...params) {
+    protected setImmediate(fn, ...params) {
         if (setImmediate) {
             return setImmediate.apply(null, [fn].concat(params));
         } else {
@@ -1355,7 +1384,8 @@ export class AsyncMachine extends EventEmitter {
         return states_parsed.filter((state) => {
             if (typeof state !== "string" || !this.get(state)) {
 				// TODO trow a specific class once TS will stop complaining
-                throw new Error("Non existing state: " + state);
+                let id = this.id() ? ` for machine "${this.id()}"` : ""
+                throw new Error(`Non existing state "${state}"${id}`);
             }
 
             return true;
@@ -1420,9 +1450,9 @@ export class AsyncMachine extends EventEmitter {
 
         if (this.duringTransition()) {
             if (target) {
-                this.log("Queued " + type_label + " state(s) " + (states_parsed.join(", ")) + " for an external machine", 2);
+                this.log(`Queued ${type_label} state(s) ${states_parsed.join(", ")} for an external machine ${target.id()}`, 2);
             } else {
-                this.log("Queued " + type_label + " state(s) " + (states_parsed.join(", ")), 2);
+                this.log(`Queued ${type_label} state(s) ${states_parsed.join(", ")}`, 2);
             }
         }
 
@@ -1753,7 +1783,7 @@ export class AsyncMachine extends EventEmitter {
             log_msg.push("-" + (removed_states.join(" -")));
         }
 		// TODO fix
-        if (nochange_states.length && this.log_level > 2) {
+        if (nochange_states.length && this.log_level_ > 2) {
             if (new_states.length || removed_states.length) {
                 log_msg.push("\n    ");
             }
