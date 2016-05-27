@@ -1273,7 +1273,7 @@ export class AsyncMachine extends EventEmitter {
         if (level > this.log_level_)
             return;
             
-        let prefix = this.id() ? `[${this.id()}]` : ''
+        let prefix = this.id() ? `[${this.id()}] ` : ''
         msg = prefix + msg
         
         if (this.log_handler_)
