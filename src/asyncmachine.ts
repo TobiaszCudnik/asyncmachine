@@ -1277,9 +1277,9 @@ export class AsyncMachine extends EventEmitter {
         msg = prefix + msg
         
         if (this.log_handler_)
-            this.log_handler_(prefix + msg)
+            this.log_handler_(msg)
         else
-            console.log(prefix + msg);
+            console.log(msg);
     }
 
     protected pipeBind(state, machine, target_state, local_queue, bindings) {
