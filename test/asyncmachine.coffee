@@ -60,16 +60,16 @@ describe "asyncmachine", ->
 		expect( @machine.is() ).to.eql ["A"]
 
 	it "should allow to set the state", ->
-		@machine.set "B"
+		expect( @machine.set "B" ).to.eql true
 		expect( @machine.is() ).to.eql ["B"]
 
 	it "should allow to add a new state", ->
-		@machine.add "B"
+		expect( @machine.add "B" ).to.eql true
 		expect( @machine.is() ).to.eql ["B", "A"]
 
 	it "should allow to drop a state", ->
 		@machine.set ["B", "C"]
-		@machine.drop 'C'
+		expect( @machine.drop 'C' ).to.eql true
 		expect( @machine.is() ).to.eql ["B"]
 
 
@@ -394,7 +394,7 @@ describe "asyncmachine", ->
 			beforeEach ->
 				@log = []
 				@machine
-					.logLevel(1)
+					.logLevel(3)
 					.logHandler @log.push.bind @log
 				@machine.set [ 'C', 'A' ]
 				
@@ -434,7 +434,7 @@ describe "asyncmachine", ->
 				@machine.D_enter = -> no
 				@log = []
 				@machine
-					.logLevel(1)
+					.logLevel(3)
 					.logHandler @log.push.bind @log
 
 			describe 'when setting a new state', ->
@@ -448,7 +448,7 @@ describe "asyncmachine", ->
 					expect( @machine.is() ).to.eql [ 'A' ]
 
 				it 'should explain the reason in the log', ->
-					expect(@log).to.contain 'Cancelled transition to D by the method D_enter'
+					expect(@log).to.contain 'Transition to D cancelled by the method D_enter'
 
 				it 'should not change the auto states'
 

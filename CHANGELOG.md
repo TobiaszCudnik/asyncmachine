@@ -1,3 +1,11 @@
+### ROADMAP
+
+- auto unbinding unreachable transitions
+- state as an object (shorter API calls, like `states.A.add()`
+- closure compiler support
+- visualizer with support for stepping through the history (based on the d3s forced layout)
+- unbind error handlers from not-in-the-scope promises
+
 ### v2.1
 
 - tail call optimizations and reduced number of stack frames

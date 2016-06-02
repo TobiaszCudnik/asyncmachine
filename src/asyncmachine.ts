@@ -1,4 +1,5 @@
 import EventEmitter from "./ee";
+import * as assert from 'assert'
 
 // TODO remove
 var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -187,7 +188,7 @@ export class AsyncMachine extends EventEmitter {
      * ```
      */
     public Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void {
-        console.log("EXCEPTION from AsyncMachine");
+        console.error("EXCEPTION from AsyncMachine");
         if ((exception_states != null ? exception_states.length : void 0) != null) {
             this.log(("Exception \"" + err + "\" when setting the following states:\n    ") + exception_states.join(", "));
         }
@@ -195,8 +196,8 @@ export class AsyncMachine extends EventEmitter {
             this.log("Next states were supposed to be (add/drop/set):\n    " + exception_states.join(", "));
         }
         // if the exception param was passed, print and throw (but outside of the current stack trace) 
+        console.error(err);
         if (err) {
-            console.error(err);
             this.setImmediate(() => {
                 throw err;
             });
@@ -832,7 +833,7 @@ export class AsyncMachine extends EventEmitter {
      * (see pipeNegotiation]] for these).
      *
      * @param state Source state's name. Optional - if none is given, all states
-     * from the source asyncmachine are piped.
+     * from the source asyncmachine are piped (besides the Exception state).
      * @param machine Target machine to which the state(s) should be forwarded.
      * @param target_state If the target state name should be different, this is
      * the name.
@@ -849,16 +850,15 @@ export class AsyncMachine extends EventEmitter {
      * states2.is('A') # -> true
      * ```
      */
-    public pipe(state: string, machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
-    public pipe(state: string[], machine?: AsyncMachine, target_state?: string, local_queue?: boolean);
-    public pipe(state: AsyncMachine, machine?: string, target_state?: boolean);
-    public pipe(state: any, machine?: any, target_state?: any, local_queue?: any) {
-        var bindings = {
+    pipe(state: string | string[], machine: AsyncMachine, target_state?: string, local_queue?: boolean);
+    pipe(state: AsyncMachine, machine?: string, target_state?: boolean);
+    pipe(state: any, machine?: any, target_state?: any, local_queue?: any) {
+        let bindings: IPipeStateBindings = {
             state: "add",
             end: "drop"
         };
 
-        return this.pipeBind(state, machine, target_state, local_queue, bindings);
+        return this.pipeBind(bindings, state, machine, target_state, local_queue);
     }
 
     /**
@@ -886,12 +886,12 @@ export class AsyncMachine extends EventEmitter {
      * ```
      */
     pipeInverted(state, machine, target_state, local_queue) {
-        var bindings = {
+        var bindings: IPipeStateBindings = {
             state: "drop",
             end: "add"
         };
 
-        return this.pipeBind(state, machine, target_state, local_queue, bindings);
+        return this.pipeBind(bindings, state, machine, target_state, local_queue);
     }
 
     /**
@@ -902,7 +902,7 @@ export class AsyncMachine extends EventEmitter {
      * to other states from the same transition).
      *
      * @param state Source state's name. Optional - if none is given, all states
-     * from the source asyncmachine are piped.
+     * from the source asyncmachine are piped (besides the Exception state).
      * @param machine Target machine to which the state(s) should be forwarded.
      * @param target_state If the target state name should be different, this is
      * the name.
@@ -929,12 +929,12 @@ export class AsyncMachine extends EventEmitter {
      * ```
      */
     pipeNegotiation(state, machine, target_state, local_queue) {
-        var bindings = {
+        var bindings: IPipeNegotiationBindings = {
             enter: "add",
             exit: "drop"
         };
 
-        return this.pipeBind(state, machine, target_state, local_queue, bindings);
+        return this.pipeBind(bindings, state, machine, target_state, local_queue);
     }
 
     /**
@@ -945,7 +945,7 @@ export class AsyncMachine extends EventEmitter {
      * to other states from the same transition).
      *
      * @param state Source state's name. Optional - if none is given, all states
-     * from the source asyncmachine are piped.
+     * from the source asyncmachine are piped (besides the Exception state).
      * @param machine Target machine to which the state(s) should be forwarded.
      * @param target_state If the target state name should be different, this is
      * the name.
@@ -972,12 +972,12 @@ export class AsyncMachine extends EventEmitter {
      * ```
      */
     pipeNegotiationInverted(state, machine, target_state, local_queue) {
-        var bindings = {
+        var bindings: IPipeNegotiationBindings = {
             enter: "drop",
             exit: "add"
         };
 
-        return this.pipeBind(state, machine, target_state, local_queue, bindings);
+        return this.pipeBind(bindings, state, machine, target_state, local_queue);
     }
 
     public pipeOff(): void {
@@ -1282,43 +1282,55 @@ export class AsyncMachine extends EventEmitter {
             console.log(msg);
     }
 
-    protected pipeBind(state, machine, target_state, local_queue, bindings) {
-		// switch params order
+    private pipeBind(bindings: TPipeBindings, state: AsyncMachine, machine?: string, target_state?: Boolean, local_queue?: void);
+    private pipeBind(bindings: TPipeBindings, state: string | string[], machine?: AsyncMachine, target_state?: string, local_queue?: Boolean);
+    private pipeBind(bindings: TPipeBindings, state: AsyncMachine | string | string[], machine: AsyncMachine | string, target_state?: string | Boolean, local_queue?: Boolean | void) {
+		// Forwarding all the states, switch the params order
         if (state instanceof AsyncMachine) {
-            if (target_state == null) {
+            if (!target_state == null) {
                 target_state = true;
             }
-            return this.pipeBind(this.states_all, state, machine, target_state, bindings);
-        }
+            // Do not forward the Exception state
+            var states_all = this.states_all.filter( (state) => state !== 'Exception' )
+            return this.pipeBind(bindings, states_all, state, <string>machine, <boolean>target_state);
+        } else if ((typeof state == 'string' || state instanceof Array) && machine instanceof AsyncMachine) {
 
-        if (!local_queue)
-            local_queue = true;
+            if (!local_queue)
+                local_queue = true;
 
-        this.log("Piping state " + state, 3);
-        
-		// cast to an array
-        return [].concat(state).forEach((state) => {
-            var new_state = target_state || state;
+            this.log("Piping state " + state, 3);
+            
+            // cast to an array
+            return [].concat(state).forEach((state: string) => {
+                var target = (target_state && target_state.toString()) || state;
 
-            return Object.keys(bindings).forEach((event_type) => {
-                var method_name = bindings[event_type];
-                this.piped[state] = {
-                    state: new_state,
-                    machine: machine
-                };
-                // assert target states
-                machine.parseStates(target_state)
-                // setup the forwarding listener
-                // TODO support un-piping
-                return this.on(state + "_" + event_type, () => {
-                    if (local_queue) {
-                        return this[method_name](machine, new_state);
-                    } else {
-                        return machine[method_name](new_state);
+                return Object.keys(bindings).forEach((event_type) => {
+                    var method_name = bindings[event_type];
+                    let listener = () => {
+                        if (local_queue) {
+                            return this[method_name](machine, target);
+                        } else {
+                            return machine[method_name](target);
+                        }
                     }
-                });
-            });
-        });
+                    this.piped[state] = {
+                        state: target,
+                        machine: machine,
+                        event_type,
+                        listener
+                    };
+                    // assert target states
+                    machine.parseStates(target)
+                    // setup the forwarding listener
+                    // TODO support un-piping
+                    // TODO check if already piped!
+                    this.on(state + "_" + event_type, listener)
+                    this.emit('change')
+                    if (machine !== this)
+                        machine.emit('change')
+                })
+            })
+        }
     }
 
     /**
@@ -1474,6 +1486,7 @@ export class AsyncMachine extends EventEmitter {
             let transitions = target.prepareTransitions(row[QUEUE.STATE_CHANGE], this.parseStates(row[QUEUE.STATES]),
                     row[QUEUE.PARAMS], row[QUEUE.AUTO])
             let aborted = !transitions.accepted
+            let hasStateChanged = false
 
             target.transition_events = []
             target.lock = true
@@ -1505,7 +1518,10 @@ export class AsyncMachine extends EventEmitter {
                 if (!aborted) {
                     target.setActiveStates_(transitions.states);
                     target.processPostTransition();
-                    target.emit("change", transitions.before);
+                    hasStateChanged = target.hasStateChanged(transitions.before)
+                    if (hasStateChanged)
+                        // TODO rename to "tick" 
+                        target.emit("change", transitions.before)
                 }
 			    // if canceled then drop the queue created during the transition
                 target.queue = aborted ? queue : queue.concat(target.queue)
@@ -1519,7 +1535,7 @@ export class AsyncMachine extends EventEmitter {
             
             if (aborted) {
                 target.emit("cancelled");
-            } else if ((target.hasStateChanged(transitions.before)) && !row[QUEUE.AUTO]) {
+            } else if (hasStateChanged && !row[QUEUE.AUTO]) {
 			    // prepend auto states to the beginning of the queue
                 var auto_states = target.prepareAutoStates();
                 if (auto_states) {
@@ -1527,8 +1543,9 @@ export class AsyncMachine extends EventEmitter {
                 }
             }
 
+            // If this's a DROP transition, check if all explicite states has been dropped.
             if (row[QUEUE.STATE_CHANGE] === STATE_CHANGE.DROP) {
-                ret.push(target.allStatesNotSet(transitions.states))
+                ret.push(target.allStatesNotSet(row[QUEUE.STATES]))
             } else {
                 ret.push(target.every(...transitions.states))
             }
@@ -1699,7 +1716,7 @@ export class AsyncMachine extends EventEmitter {
                 }
                 return _results;
             })();
-            this.log("Can't set the following states " + (names.join(", ")), 2);
+            this.log(`Can't set the following states ${names.join(", ")}`, 2);
         }
 
         return states;
@@ -1912,10 +1929,10 @@ export class AsyncMachine extends EventEmitter {
             }
             ret = this.emit.apply(this, [method].concat(transition_params));
             if (ret === false) {
-                this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the event " + method), 2);
+                this.log(("Transition to " + (target_states.join(", ")) + " cancelled by ") + ("the event " + method), 2);
             }
         } else {
-            this.log(("Cancelled transition to " + (target_states.join(", ")) + " by ") + ("the method " + method), 2);
+            this.log(("Transition to " + (target_states.join(", ")) + " cancelled by ") + ("the method " + method), 2);
         }
 
         return ret;
@@ -2003,5 +2020,19 @@ interface IPreparedTransitions {
     exits: any[];
     accepted: boolean;
 }
+
+type TStateActions = 'add' | 'drop' | 'set'
+
+interface IPipeNegotiationBindings {
+    enter: TStateActions,
+    exit: TStateActions
+}
+
+interface IPipeStateBindings {
+    state: TStateActions,
+    end: TStateActions
+}
+
+type TPipeBindings = IPipeStateBindings | IPipeNegotiationBindings
 
 export default AsyncMachine;
