@@ -1,8 +1,3 @@
-#/ <reference path="../typings/commonjs.d.ts" />
-#/ <reference path="../typings/settimeout.d.ts" />
-#/ <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
-#/ <reference path="../typings/es6-promise/es6-promise.d.ts" />
-
 asyncmachine = require '../build/asyncmachine'
 chai = require 'chai'
 expect = chai.expect
@@ -11,6 +6,8 @@ sinonChai = require "sinon-chai"
 
 # TODO
 # - no self transition for non accepted states
+
+factory = asyncmachine.factory
 
 chai.use sinonChai
 
@@ -727,39 +724,43 @@ describe "asyncmachine", ->
 				@child.add 'B'
 				(expect @machine.is()).to.not.eql @child.is()
 
-		describe 'piping', ->
+	describe 'piping', ->
 
-			it 'should forward a specific state', ->
-				emitter = new EventMachine 'A'
-				@machine.pipe 'B', emitter
-				@machine.set 'B'
-				expect( emitter.is() ).to.eql [ 'B', 'A' ]
+		beforeEach ->
+			@machine = new EventMachine 'A'
 
-			it 'should forward a specific state as a different one', ->
-				emitter = new EventMachine 'A'
-				@machine.pipe 'B', emitter, 'C'
-				@machine.set 'B'
-				expect( emitter.is() ).to.eql [ 'C', 'A' ]
+		it 'should forward a specific state', ->
+			target = new EventMachine 'A'
+			@machine.pipe 'B', target
+			@machine.set 'B'
+			expect( target.is() ).to.eql [ 'B', 'A' ]
 
-			it 'should invert a specific state as a different one', ->
-				emitter = new EventMachine 'A'
-				@machine.pipeInverted 'A', emitter, 'C'
-				@machine.set 'B'
-				expect( emitter.is() ).to.eql [ 'C', 'A' ]
+		it 'should forward a specific state as a different one', ->
+			target = factory ['X', 'Y', 'Z']
+			@machine.pipe 'B', target, 'X'
+			@machine.set 'B'
+			expect( target.is() ).to.eql [ 'X' ]
 
-			it 'should forward a whole machine', ->
-				machine2 = new EventMachine [ 'A', 'D' ]
-				expect( machine2.is() ).to.eql [ 'A', 'D' ]
-				@machine.pipe machine2
-				@machine.set [ 'B', 'C' ]
-				expect( machine2.is() ).to.eql [ 'C', 'B', 'D' ]
+		it 'should invert a specific state as a different one', ->
+			target = factory ['X', 'Y', 'Z']
+			debugger
+			@machine.pipeInverted 'A', target, 'X'
+			@machine.drop 'A'
+			expect( target.is() ).to.eql [ 'X' ]
 
-			it 'can be turned off'
-	# machine2 = new EventMachine [ 'A', 'D' ]
-	# @machine.pipeOff 'B', emitter #, 'BB'
-	# @machine.pipe machine2
-	# @machine.set [ 'B', 'C' ]
-	# expect( machine2.is() ).to.eql [ 'D', 'B', 'C' ]
+		it 'should forward a whole machine', ->
+			machine2 = new EventMachine [ 'A', 'D' ]
+			expect( machine2.is() ).to.eql [ 'A', 'D' ]
+			@machine.pipe machine2
+			@machine.set [ 'B', 'C' ]
+			expect( machine2.is() ).to.eql [ 'C', 'B', 'D' ]
+
+		it 'can be turned off'
+			# machine2 = new EventMachine [ 'A', 'D' ]
+			# @machine.pipeOff 'B', target #, 'BB'
+			# @machine.pipe machine2
+			# @machine.set [ 'B', 'C' ]
+			# expect( machine2.is() ).to.eql [ 'D', 'B', 'C' ]
 
 
 	describe 'queue', ->

@@ -32,8 +32,7 @@ test:
 		--compilers mocha \
 		--compilers coffee:coffee-script/register \
 		--reporter spec \
-		test/asyncmachine.coffee
-		#test/*.js
+		test/*.js
 
 test-build:
 	./node_modules/.bin/coffee \

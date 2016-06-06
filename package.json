@@ -14,9 +14,6 @@
     "type": "git",
     "url": "http://github.com/TobiaszCudnik/asyncmachine.git"
   },
-  "dependencies": {
-    "assert": "^1.4.1"
-  },
   "devDependencies": {
     "bluebird": "^3.3.5",
     "chai": "^3.5.0",

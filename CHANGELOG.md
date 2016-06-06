@@ -5,6 +5,7 @@
 - closure compiler support
 - visualizer with support for stepping through the history (based on the d3s forced layout)
 - unbind error handlers from not-in-the-scope promises
+- memory leaks load tests
 
 ### v2.1
 

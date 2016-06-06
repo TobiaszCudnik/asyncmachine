@@ -1,5 +1,4 @@
 import EventEmitter from "./ee";
-import * as assert from 'assert'
 
 // TODO remove
 var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -50,6 +49,37 @@ export class Deferred {
             this.reject = reject;
         });
     }
+}
+
+function assert(exp) {
+    if (!exp) {
+        throw new Error('Assertion error')
+    }
+}
+
+/**
+ * Creates an AsyncMachine instance (not a constructor) with specified states.
+ * States properties are empty, so you'd need to set it by yourself.
+ *
+ * @param states List of state names to register on the new instance.
+ * @return
+ *
+ * ```
+ * states = AsyncMachine.factory ['A', 'B','C']
+ * states.A = implies: ['B']
+ * states.add 'A'
+ * states.is() # -> ['A', 'B']
+ * ```
+ */
+export function factory<T extends AsyncMachine>(states: string[] = [], constructor?: { new(...params): AsyncMachine; }): T {
+    var instance = new (constructor || AsyncMachine);
+
+    for (let state of states) {
+        instance[state] = {};
+        instance.register(state);
+    }
+
+    return instance;
 }
 
 /**
@@ -104,33 +134,6 @@ export class AsyncMachine extends EventEmitter {
      */
     protected internal_fields: string[] = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields", "transition_events", "piped"];
     private id_: string;
-
-    /**
-     * Creates an AsyncMachine instance (not a constructor) with specified states.
-     * States properties are empty, so you'd need to set it by yourself.
-     *
-     * @param states List of state names to register on the new instance.
-     * @return
-     *
-     * ```
-     * states = AsyncMachine.factory ['A', 'B','C']
-     * states.A = implies: ['B']
-     * states.add 'A'
-     * states.is() # -> ['A', 'B']
-     * ```
-     */
-    static factory(states, constructor) {
-        if (states == null) {
-            states = [];
-        }
-        var instance = new (constructor || AsyncMachine);
-        states.forEach((state) => {
-            instance[state] = {};
-            return instance.register(state);
-        });
-
-        return instance;
-    }
 
     /**
      * Creates a new instance with only state one registered, which is the
@@ -1483,7 +1486,7 @@ export class AsyncMachine extends EventEmitter {
         while (row = this.queue.shift()) {
             let target: AsyncMachine = row[QUEUE.TARGET] || this;
             let queue = target.queue;
-            let transitions = target.prepareTransitions(row[QUEUE.STATE_CHANGE], this.parseStates(row[QUEUE.STATES]),
+            let transitions = target.prepareTransitions(row[QUEUE.STATE_CHANGE], target.parseStates(row[QUEUE.STATES]),
                     row[QUEUE.PARAMS], row[QUEUE.AUTO])
             let aborted = !transitions.accepted
             let hasStateChanged = false
@@ -2021,6 +2024,7 @@ interface IPreparedTransitions {
     accepted: boolean;
 }
 
+// TODO merge with the enum
 type TStateActions = 'add' | 'drop' | 'set'
 
 interface IPipeNegotiationBindings {
