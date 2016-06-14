@@ -116,7 +116,7 @@ export class AsyncMachine extends EventEmitter {
     Exception = {};
     states_all: string[] = [];
     last_promise: Promise<any>;
-    piped = {};
+    piped: { [state: string]: IPipeStateTarget[] } = {};
 
     protected states_active: string[] = [];
     protected queue: IQueueRow[] = [];
@@ -830,7 +830,7 @@ export class AsyncMachine extends EventEmitter {
     }
 
     /**
-     * Pipes (forwards) the state to other instance.
+     * Pipes (forwards) a state to another state machine.
      *
      * Piped are "_state" and "_end" methods, not the negotiation ones
      * (see pipeNegotiation]] for these).
@@ -865,7 +865,7 @@ export class AsyncMachine extends EventEmitter {
     }
 
     /**
-     * Pipes (forwards) the state to other instance in an inverted manner.
+     * Pipes (forwards) a state to another state machine in an inverted manner.
      *
      * Piped are "_state" and "_end" methods, not the negatiation ones
      * (see pipeNegotiation]] for these).
@@ -898,7 +898,7 @@ export class AsyncMachine extends EventEmitter {
     }
 
     /**
-     * Pipes (forwards) the state to other instance.
+     * Pipes (forwards) a state negotiation to another state machine.
      *
      * Piped are "_enter" and "_exit" methods, which returned values can manage
      * the state negotiation, but also can be executed in random order (relatively
@@ -941,7 +941,7 @@ export class AsyncMachine extends EventEmitter {
     }
 
     /**
-     * Pipes (forwards) the state to other instance in an inverted manner.
+     * Pipes (forwards) a state negotiation to another state machine in an inverted manner.
      *
      * Piped are "_enter" and "_exit" methods, which returned values can manage
      * the state negotiation, but also can be executed in random order (relatively
@@ -983,7 +983,7 @@ export class AsyncMachine extends EventEmitter {
         return this.pipeBind(bindings, state, machine, target_state, local_queue);
     }
 
-    public pipeOff(): void {
+    public removePipe(): void {
         throw new Error("not implemented yet");
     }
 
@@ -1294,7 +1294,7 @@ export class AsyncMachine extends EventEmitter {
                 target_state = true;
             }
             // Do not forward the Exception state
-            var states_all = this.states_all.filter( (state) => state !== 'Exception' )
+            var states_all = this.states_all.filter( state => state !== 'Exception' )
             return this.pipeBind(bindings, states_all, state, <string>machine, <boolean>target_state);
         } else if ((typeof state == 'string' || state instanceof Array) && machine instanceof AsyncMachine) {
 
@@ -1304,10 +1304,10 @@ export class AsyncMachine extends EventEmitter {
             this.log("Piping state " + state, 3);
             
             // cast to an array
-            return [].concat(state).forEach((state: string) => {
+            [].concat(state).forEach((state: string) => {
                 var target = (target_state && target_state.toString()) || state;
 
-                return Object.keys(bindings).forEach((event_type) => {
+                Object.keys(bindings).forEach((event_type: TStateMethod) => {
                     var method_name = bindings[event_type];
                     let listener = () => {
                         if (local_queue) {
@@ -1316,22 +1316,27 @@ export class AsyncMachine extends EventEmitter {
                             return machine[method_name](target);
                         }
                     }
-                    this.piped[state] = {
+                    // TODO extract
+                    // TODO check for duplicates
+                    if (!this.piped[state])
+                        this.piped[state] = []
+                    this.piped[state].push({
                         state: target,
                         machine: machine,
                         event_type,
                         listener
-                    };
+                    })
                     // assert target states
                     machine.parseStates(target)
                     // setup the forwarding listener
                     // TODO support un-piping
-                    // TODO check if already piped!
                     this.on(state + "_" + event_type, listener)
-                    this.emit('change')
-                    if (machine !== this)
-                        machine.emit('change')
                 })
+
+                // TODO emit only once per machine
+                this.emit('pipe')
+                if (machine !== this)
+                    machine.emit('pipe')
             })
         }
     }
@@ -2025,18 +2030,26 @@ interface IPreparedTransitions {
 }
 
 // TODO merge with the enum
-type TStateActions = 'add' | 'drop' | 'set'
+export type TStateAction = 'add' | 'drop' | 'set'
+export type TStateMethod = 'enter' | 'exit' | 'state' | 'end'
 
 interface IPipeNegotiationBindings {
-    enter: TStateActions,
-    exit: TStateActions
+    enter: TStateAction,
+    exit: TStateAction
 }
 
 interface IPipeStateBindings {
-    state: TStateActions,
-    end: TStateActions
+    state: TStateAction,
+    end: TStateAction
 }
 
 type TPipeBindings = IPipeStateBindings | IPipeNegotiationBindings
+
+export interface IPipeStateTarget {
+    state: string,
+    machine: AsyncMachine,
+    event_type: TStateMethod,
+    listener: Function
+}
 
 export default AsyncMachine;

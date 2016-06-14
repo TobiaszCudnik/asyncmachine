@@ -1,11 +1,18 @@
 ### ROADMAP
 
-- auto unbinding unreachable transitions
+- graph visualizer with support for stepping through the history
+- - based on the d3s forced layout
+- GC and memory management
+- - track the context of all the bindings
+- - auto unbinding unreachable transitions
+- - auto unbinding unreachable promises' error handlers
+- - memory leaks load tests
+- remote state machines
+- case insensitive state names (when strings)
+- d.ts generator with string literal types
 - state as an object (shorter API calls, like `states.A.add()`
-- closure compiler support
-- visualizer with support for stepping through the history (based on the d3s forced layout)
-- unbind error handlers from not-in-the-scope promises
-- memory leaks load tests
+- closure compiler support (eg compose all the attributes)
+- dynamic states
 
 ### v2.1
 
@@ -13,7 +20,7 @@
 - moved to regular typescript (1.8)
 - better logging API
 - multi states
-- dropped promise dependency
+- dropped the promise dependency
  
 ### v2.0
  
