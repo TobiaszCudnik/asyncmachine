@@ -1,6 +1,13 @@
-var asyncmachine = require('../../lib/asyncmachine')
-require('object-mixin')
+var asyncmachine = require('../../build/asyncmachine.cjs.js')
 
+
+class States extends asyncmachine.AsyncMachine {
+	constructor(...params) {
+		super(...params)
+
+		this.A = {}
+	}
+}
 
 class QueryFetcherStates extends asyncmachine.AsyncMachine {
 	constructor(target) {

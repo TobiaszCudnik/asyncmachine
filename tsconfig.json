@@ -2,16 +2,13 @@
     "compilerOptions": {
         "outDir": "build/",
         "target": "es6",
-        "module": "commonjs",
+        "module": "es6",
         "declaration": true,
         "noImplicitAny": false,
         "removeComments": false,
         "noLib": false
-        //,
-    //    "strictNullChecks": true
     },
     "files": [
-        "src/asyncmachine.ts",
-        "src/ee.ts"
+        "src/asyncmachine.ts"
     ]
 }

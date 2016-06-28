@@ -11,7 +11,9 @@ all:
 
 
 build:
-	tsc
+	-tsc
+	rollup -c rollup.config.js
+	rollup -c rollup-shims.config.js
 
 build-watch:
 	tsc --watch
@@ -68,9 +70,9 @@ test-grep-debug:
 		test/*.js
 
 docs:
-	typedoc \
+	./node_modules/.bin/typedoc \
 		--out docs/ \
-		--module commonjs \
+		--ignoreCompilerErrors \
 		--name AsyncMachine \
 		src/asyncmachine.ts
 

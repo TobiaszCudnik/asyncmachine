@@ -1,4 +1,5 @@
-import EventEmitter from "./ee";
+import EventEmitter from "./ee"
+import uuid from './uuid-v4'
 
 // TODO remove
 var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -133,7 +134,7 @@ export class AsyncMachine extends EventEmitter {
      * TODO this should be automatic
      */
     protected internal_fields: string[] = ["_events", "states_all", "states_active", "queue", "lock", "last_promise", "debug_prefix", "debug_level", "clock_", "debug_", "target", "internal_fields", "transition_events", "piped"];
-    private id_: string;
+    private id_: string = uuid();
 
     /**
      * Creates a new instance with only state one registered, which is the
@@ -294,7 +295,8 @@ export class AsyncMachine extends EventEmitter {
         var state = this.get(from_state);
 		// TODO assert
 
-        return relations.filter((relation) => __indexOf.call(state[relation] != null, to_state) >= 0);
+        return relations.filter( relation => state[relation] && 
+            state[relation].indexOf(to_state) >= 0);
     }
 
     /**

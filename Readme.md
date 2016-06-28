@@ -1,17 +1,20 @@
 # AsyncMachine
  
-  Swiss army knife for complex async systems.
+  A smart, multi-state dependency graph
+
+## Description
+
+Declarative modeling of the control flow, based on states interconnected by relations.
+Activating a state triggers a two-pass transition - negotiation and set. If a
+state change is triggered during an ongoing transition, it's gonna be queued. Each
+state has a clock, which allows to distinguish state's "instances" (prevents the
+double callback execution problem).
+
 
 ## Install
 
-NPM, build systems, browserify:
 ```
 npm install asyncmachine
-```
-
-Browser ready version is at [build-pkg/asyncmachine.js](https://github.com/TobiaszCudnik/asyncmachine/blob/master/build-pkg/asyncmachine.js) or use the CDN:
-```html
-<script src="https://cdn.rawgit.com/TobiaszCudnik/asyncmachine/coffee/build-pkg/asyncmachine.js" type="application/javascript"></script>
 ```
 
 ## Disclaimer
