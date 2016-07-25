@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "outDir": "build/",
+        "target": "es6",
+        "module": "es6",
+        "declaration": true,
+        "noImplicitAny": false,
+        "removeComments": false,
+        "noLib": false
+    },
+    "files": [
+        "src/asyncmachine.ts"
+    ]
+}

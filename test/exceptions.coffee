@@ -1,4 +1,4 @@
-asyncmachine = require '../build/asyncmachine'
+am = require '../build/asyncmachine'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
@@ -8,12 +8,12 @@ bluebird = require 'bluebird'
 # https://github.com/petkaantonov/bluebird/issues/352
 #bluebird.onPossiblyUnhandledRejection ->
 
-AM = asyncmachine.AsyncMachine
+factory = am.factory
 
 describe "Exceptions", ->
 
   beforeEach ->
-    @foo = new AM.factory ['A']
+    @foo = factory ['A']
 
   it 'should be thrown on the next tick', ->
     setImmediate = sinon.stub @foo, 'setImmediate'
@@ -81,8 +81,8 @@ describe "Exceptions", ->
       asyncMock = (cb) ->
         setTimeout (cb.bind null), 0
 
-      @foo = AM.factory ['A', 'B', 'C']
-      @bar = AM.factory ['D']
+      @foo = factory ['A', 'B', 'C']
+      @bar = factory ['D']
       @bar.pipe 'D', @foo, 'A'
       @foo.A_enter = -> @add 'B'
       @foo.B_state = bluebird.coroutine ->

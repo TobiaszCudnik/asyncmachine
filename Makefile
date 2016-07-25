@@ -11,11 +11,12 @@ all:
 
 
 build:
-	$(CCOFFEE) -o build -i src -p "asyncmachine.js:asyncmachine"
-	@echo "\n" >> build/asyncmachine.js
+	-tsc
+	rollup -c rollup.config.js
+	rollup -c rollup-shims.config.js
 
 build-watch:
-	$(CCOFFEE) -o build -i src --watch -p "asyncmachine.js:asyncmachine"
+	tsc --watch
 
 server:
 	node_modules/http-server/bin/http-server
@@ -30,42 +31,49 @@ setup:
 test:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
-		--compilers mocha --compilers coffee:coffee-script/register \
+		--compilers mocha \
 		--reporter spec \
+		test/*.js
+
+test-build:
+	./node_modules/.bin/coffee \
+		-cm \
+		test/*.coffee
+
+test-build-watch:
+	./node_modules/.bin/coffee \
+		-cwm \
 		test/*.coffee
 
 test-grep:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
-		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)"
-		test/*.coffee
+		test/*.js
 
 test-debug:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
 		--debug-brk \
-		--compilers coffee:coffee-script \
 		--reporter spec \
 		--grep "$(GREP)" \
-		test/*.coffee
+		test/*.js
 
 test-grep-debug:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
 		--debug-brk \
-		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
 		--grep "$(GREP)" \
-		test/*.coffee
+		test/*.js
 
 docs:
-	typedoc \
+	./node_modules/.bin/typedoc \
 		--out docs/ \
-		--module commonjs \
+		--ignoreCompilerErrors \
 		--name AsyncMachine \
-		build/asyncmachine.ts
+		src/asyncmachine.ts
 
 spec:
 	echo "<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><pre>" > docs/spec.html
@@ -73,7 +81,7 @@ spec:
 		--harmony \
 		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
-		test/*.coffee >> docs/spec.html
+		test/*.js >> docs/spec.html
 	echo "</pre></body></html>" >> docs/spec.html
 
 .PHONY: build test docs

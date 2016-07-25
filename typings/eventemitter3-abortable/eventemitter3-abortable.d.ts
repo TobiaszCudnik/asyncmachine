@@ -1,8 +1,4 @@
 declare module 'eventemitter3-abortable' {
-    export class EventEmitter extends EventEmitter3Abortable.EventEmitter {}
-}
-
-declare module EventEmitter3Abortable {
     export class EventEmitter {
         addListener(event: string, listener: Function): EventEmitter;
         on(event: string, listener: Function, context?: Object): EventEmitter;

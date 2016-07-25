@@ -1,73 +1,23 @@
-#/ <reference path="../typings/commonjs.d.ts" />
-#/ <reference path="../typings/settimeout.d.ts" />
-#/ <reference path="../typings/eventemitter3-abortable/eventemitter3-abortable.d.ts" />
-#/ <reference path="../typings/es6-promise/es6-promise.d.ts" />
-
-asyncmachine = require '../build/asyncmachine'
+asyncmachine = require '../'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
-promise = require 'es6-promise'
-sinonChai = require("sinon-chai");
+sinonChai = require "sinon-chai"
+
+# TODO
+# - no self transition for non accepted states
+
+factory = asyncmachine.factory
 
 chai.use sinonChai
 
-class FooMachine extends asyncmachine.AsyncMachine
-	A: {}
-	B: {}
-	C: {}
-	D: {}
-
-	constructor: (initialState = null, config = {}) ->
-		super()
-		@register 'A', 'B', 'C', 'D'
-		@set initialState if initialState
-
-class EventMachine extends FooMachine
-	TestNamespace: {}
-	
-	constructor: (initial, config = {}) ->
-		super()
-		@register 'TestNamespace'
-		@set initial if initial
-
-class Sub extends asyncmachine.AsyncMachine
-	A: {}
-	B: {}
-	A_enter: null
-	B_enter: null
-					
-	constructor: (initial, a_spy, b_spy) ->
-		super()
-		@register 'A', 'B'
-		@A_enter = a_spy
-		@B_enter = b_spy
-		@set initial if initial
-
-class SubCrossBlockedByImplied extends asyncmachine.AsyncMachine
-	A:
-		blocks: [ 'B' ]
-	B:
-		blocks: [ 'A' ]
-	C:
-		implies: [ 'B' ]
-
-	constructor: (config = {}) ->
-		super()
-		@register 'A', 'B', 'C'
-		@set 'C'
-		
-class CrossBlocked extends asyncmachine.AsyncMachine
-	A:
-		blocks: [ 'B' ]
-	B:
-		blocks: [ 'A' ]
-
-	constructor: (config = {}) ->
-		super()
-		@register 'A', 'B'
-		@set 'A'
-		@set 'B'
+{
+    FooMachine,
+    EventMachine,
+    Sub,
+    SubCrossBlockedByImplied,
+    CrossBlocked
+} = require './classes'
 					
 describe "asyncmachine", ->
 
@@ -97,9 +47,9 @@ describe "asyncmachine", ->
 		@machine.set 'A'
 
 	it 'should allow to check if single state is active', ->
-		expect(@machine.is 'A').to.be.ok
+		expect(@machine.is('A')).to.be.ok
 		
-	it 'should allow to check if many states are active', ->
+	it 'should allow to check if couple of states are active', ->
 		@machine.add 'B'
 		expect(@machine.every 'A', 'B').to.be.ok
 		
@@ -107,16 +57,16 @@ describe "asyncmachine", ->
 		expect( @machine.is() ).to.eql ["A"]
 
 	it "should allow to set the state", ->
-		@machine.set "B"
+		expect( @machine.set "B" ).to.eql true
 		expect( @machine.is() ).to.eql ["B"]
 
 	it "should allow to add a new state", ->
-		@machine.add "B"
+		expect( @machine.add "B" ).to.eql true
 		expect( @machine.is() ).to.eql ["B", "A"]
 
 	it "should allow to drop a state", ->
 		@machine.set ["B", "C"]
-		@machine.drop 'C'
+		expect( @machine.drop 'C' ).to.eql true
 		expect( @machine.is() ).to.eql ["B"]
 
 
@@ -345,9 +295,9 @@ describe "asyncmachine", ->
 		beforeEach ->
 			@log = []
 			@machine = new FooMachine [ 'A', 'B' ]
-			@machine.debug '', 3
-			@machine.log = (msg) =>
-				@log.push msg
+			@machine
+				.logLevel(3)
+				.logHandler @log.push.bind @log
 			# mock
 			mock_states @machine, [ 'A', 'B', 'C', 'D' ]
 			@machine.C = blocks: [ 'D' ]
@@ -440,9 +390,9 @@ describe "asyncmachine", ->
 			
 			beforeEach ->
 				@log = []
-				@machine.debug()
-				@machine.log = (msg) =>
-					@log.push msg
+				@machine
+					.logLevel(3)
+					.logHandler @log.push.bind @log
 				@machine.set [ 'C', 'A' ]
 				
 			afterEach ->
@@ -480,9 +430,9 @@ describe "asyncmachine", ->
 			beforeEach ->
 				@machine.D_enter = -> no
 				@log = []
-				@machine.debug()
-				@machine.log = (msg) =>
-					@log.push msg
+				@machine
+					.logLevel(3)
+					.logHandler @log.push.bind @log
 
 			describe 'when setting a new state', ->
 				beforeEach ->
@@ -495,7 +445,7 @@ describe "asyncmachine", ->
 					expect( @machine.is() ).to.eql [ 'A' ]
 
 				it 'should explain the reason in the log', ->
-					expect(@log).to.contain 'Cancelled transition to D by the method D_enter'
+					expect(@log).to.contain 'Transition to D cancelled by the method D_enter'
 
 				it 'should not change the auto states'
 
@@ -624,7 +574,7 @@ describe "asyncmachine", ->
 				delete @promise
 
 			it 'should return a promise', ->
-				expect( @promise instanceof promise.Promise ).to.be.ok
+				expect( @promise instanceof Promise ).to.be.ok
 
 			it 'should execute the change', (done) ->
 				# call without an error
@@ -774,39 +724,43 @@ describe "asyncmachine", ->
 				@child.add 'B'
 				(expect @machine.is()).to.not.eql @child.is()
 
-		describe 'piping', ->
+	describe 'piping', ->
 
-			it 'should forward a specific state', ->
-				emitter = new EventMachine 'A'
-				@machine.pipe 'B', emitter
-				@machine.set 'B'
-				expect( emitter.is() ).to.eql [ 'B', 'A' ]
+		beforeEach ->
+			@machine = new EventMachine 'A'
 
-			it 'should forward a specific state as a different one', ->
-				emitter = new EventMachine 'A'
-				@machine.pipe 'B', emitter, 'C'
-				@machine.set 'B'
-				expect( emitter.is() ).to.eql [ 'C', 'A' ]
+		it 'should forward a specific state', ->
+			target = new EventMachine 'A'
+			@machine.pipe 'B', target
+			@machine.set 'B'
+			expect( target.is() ).to.eql [ 'B', 'A' ]
 
-			it 'should invert a specific state as a different one', ->
-				emitter = new EventMachine 'A'
-				@machine.pipeInverted 'A', emitter, 'C'
-				@machine.set 'B'
-				expect( emitter.is() ).to.eql [ 'C', 'A' ]
+		it 'should forward a specific state as a different one', ->
+			target = factory ['X', 'Y', 'Z']
+			@machine.pipe 'B', target, 'X'
+			@machine.set 'B'
+			expect( target.is() ).to.eql [ 'X' ]
 
-			it 'should forward a whole machine', ->
-				machine2 = new EventMachine [ 'A', 'D' ]
-				expect( machine2.is() ).to.eql [ 'A', 'D' ]
-				@machine.pipe machine2
-				@machine.set [ 'B', 'C' ]
-				expect( machine2.is() ).to.eql [ 'C', 'B', 'D' ]
+		it 'should invert a specific state as a different one', ->
+			target = factory ['X', 'Y', 'Z']
+			debugger
+			@machine.pipeInverted 'A', target, 'X'
+			@machine.drop 'A'
+			expect( target.is() ).to.eql [ 'X' ]
 
-			it 'can be turned off'
-	# machine2 = new EventMachine [ 'A', 'D' ]
-	# @machine.pipeOff 'B', emitter #, 'BB'
-	# @machine.pipe machine2
-	# @machine.set [ 'B', 'C' ]
-	# expect( machine2.is() ).to.eql [ 'D', 'B', 'C' ]
+		it 'should forward a whole machine', ->
+			machine2 = new EventMachine [ 'A', 'D' ]
+			expect( machine2.is() ).to.eql [ 'A', 'D' ]
+			@machine.pipe machine2
+			@machine.set [ 'B', 'C' ]
+			expect( machine2.is() ).to.eql [ 'C', 'B', 'D' ]
+
+		it 'can be turned off'
+			# machine2 = new EventMachine [ 'A', 'D' ]
+			# @machine.pipeOff 'B', target #, 'BB'
+			# @machine.pipe machine2
+			# @machine.set [ 'B', 'C' ]
+			# expect( machine2.is() ).to.eql [ 'D', 'B', 'C' ]
 
 
 	describe 'queue', ->
