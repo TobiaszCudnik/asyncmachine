@@ -15,7 +15,8 @@ double callback execution problem).
 
 ```
 npm install asyncmachine
- 
+```
+
 ## Features
  
 - state negotiation

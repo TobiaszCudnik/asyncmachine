@@ -14,13 +14,15 @@
 - closure compiler support (eg compose all the attributes)
 - dynamic states
 
-### v2.1
+### v2.3
 
 - tail call optimizations and reduced number of stack frames
-- moved to regular typescript (1.8)
+- moved to the regular typescript (1.8)
 - better logging API
 - multi states
 - dropped the promise dependency
+- exception state enhancements
+- new build system
  
 ### v2.0
  
