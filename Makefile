@@ -31,7 +31,6 @@ setup:
 test:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
-		--compilers mocha \
 		--reporter spec \
 		test/*.js
 

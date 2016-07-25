@@ -1,4 +1,4 @@
-am = require '../build/asyncmachine'
+am = require '../'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'

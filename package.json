@@ -9,6 +9,7 @@
     "states"
   ],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
+  "license": "MIT",
   "url": "https://github.com/TobiaszCudnik/asyncmachine",
   "repository": {
     "type": "git",

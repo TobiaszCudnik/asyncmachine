@@ -3,7 +3,7 @@
  * TODO move all of these to factory calls.
  */
 
-var asyncmachine = require('../build/asyncmachine')
+var asyncmachine = require('../')
 
 class FooMachine extends asyncmachine.AsyncMachine {
 
