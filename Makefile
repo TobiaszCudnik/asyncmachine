@@ -32,7 +32,6 @@ test:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
 		--compilers mocha \
-		--compilers coffee:coffee-script/register \
 		--reporter spec \
 		test/*.js
 

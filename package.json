@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "2.1.1",
+  "version": "2.3.0",
   "description": "Swiss army knife for complex async systems",
   "keywords": [
     "async",
@@ -29,7 +29,7 @@
     "sinon": "^1.17.4",
     "sinon-chai": "^2.8.0",
     "typedoc": "^0.4.4",
-    "typescript": "^1.8",
+    "typescript": "^1.8.10",
     "uglify-js": "mishoo/UglifyJS2#harmony"
   },
   "scripts": {
