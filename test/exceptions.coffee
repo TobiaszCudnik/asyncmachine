@@ -1,4 +1,4 @@
-am = require '../'
+am = require '../build/asyncmachine.cjs.js'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
