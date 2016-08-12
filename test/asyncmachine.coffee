@@ -1,4 +1,4 @@
-asyncmachine = require '../build/asyncmachine.cjs.js'
+asyncmachine = require '../build/asyncmachine.js'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
@@ -18,7 +18,7 @@ chai.use sinonChai
     SubCrossBlockedByImplied,
     CrossBlocked
 } = require './classes'
-					
+
 describe "asyncmachine", ->
 
 	mock_states = (instance, states) ->
@@ -296,6 +296,7 @@ describe "asyncmachine", ->
 			@log = []
 			@machine = new FooMachine [ 'A', 'B' ]
 			@machine
+				.id('')
 				.logLevel(3)
 				.logHandler @log.push.bind @log
 			# mock
@@ -314,7 +315,7 @@ describe "asyncmachine", ->
 				expect( @ret ).to.eql no
 
 			it 'should explain the reason in the log', ->
-				expect(@log).to.contain 'State D dropped by C'
+				expect(@log).to.contain '[drop] D by C'
 
 			afterEach ->
 				delete @ret
@@ -391,6 +392,7 @@ describe "asyncmachine", ->
 			beforeEach ->
 				@log = []
 				@machine
+					.id('')
 					.logLevel(3)
 					.logHandler @log.push.bind @log
 				@machine.set [ 'C', 'A' ]
@@ -402,7 +404,7 @@ describe "asyncmachine", ->
 				expect( @machine.is() ).to.eql [ 'A' ]
 
 			it 'should explain the reason in the log', ->
-				msg = "Can't set the following states C(-D)"
+				msg = "[rejected] C(-D)"
 				expect( @log ).to.contain msg
 
 	describe 'when state is changed', ->
@@ -431,6 +433,7 @@ describe "asyncmachine", ->
 				@machine.D_enter = -> no
 				@log = []
 				@machine
+					.id('')
 					.logLevel(3)
 					.logHandler @log.push.bind @log
 
@@ -445,7 +448,7 @@ describe "asyncmachine", ->
 					expect( @machine.is() ).to.eql [ 'A' ]
 
 				it 'should explain the reason in the log', ->
-					expect(@log).to.contain 'Transition to D cancelled by the method D_enter'
+					expect(@log).to.contain '[cancelled] D by the method D_enter'
 
 				it 'should not change the auto states'
 
@@ -513,8 +516,7 @@ describe "asyncmachine", ->
 						expect( @machine.D_enter.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
 
 					it 'should forward arguments to self transition methods', ->
-						# TODO this passes only explicite states array, not all target states
-						expect( @machine.D_D.calledWith ['D'], 'foo', 2 ).to.be.ok
+						expect( @machine.D_D.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
 
 					it 'should forward arguments to transition methods', ->
 						expect( @machine.C_D.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
@@ -546,8 +548,7 @@ describe "asyncmachine", ->
 						expect( @machine.D_enter.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
 
 					it 'should forward arguments to self transition methods', ->
-						# TODO this passes only explicite states array, not all target states
-						expect( @machine.D_D.calledWith ['D'], 'foo', 2 ).to.be.ok
+						expect( @machine.D_D.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
 
 					it 'should forward arguments to transition methods', ->
 						expect( @machine.C_D.calledWith ['D', 'B'], 'foo', 2 ).to.be.ok
@@ -743,7 +744,6 @@ describe "asyncmachine", ->
 
 		it 'should invert a specific state as a different one', ->
 			target = factory ['X', 'Y', 'Z']
-			debugger
 			@machine.pipeInverted 'A', target, 'X'
 			@machine.drop 'A'
 			expect( target.is() ).to.eql [ 'X' ]

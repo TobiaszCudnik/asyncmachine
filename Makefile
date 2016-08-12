@@ -15,15 +15,14 @@ build:
 	rollup -c rollup.config.js
 	rollup -c rollup-shims.config.js
 
-build-watch:
+build-dev:
+	-tsc --watch --isolatedModules --module commonjs
+
+compile-watch:
 	tsc --watch
 
 server:
 	node_modules/http-server/bin/http-server
-	
-example-basic:
-	babel examples/basic/basic.js --out-file examples/basic/basic.es5.js
-	node examples/basic/basic.es5.js
 	
 setup:
 	npm install

@@ -189,11 +189,10 @@ export class AsyncMachine extends EventEmitter {
         super();
 
         this.setTarget(target || this);
-        if (register_all) {
-            this.registerAll();
-        } else {
-            this.register("Exception");
-        }
+        if (register_all)
+            this.registerAll()
+        else
+            this.register("Exception")
     }
 
     /**
@@ -233,19 +232,15 @@ export class AsyncMachine extends EventEmitter {
      */
     public Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void {
         console.error("EXCEPTION from AsyncMachine");
-        if ((exception_states != null ? exception_states.length : void 0) != null) {
-            this.log(("Exception \"" + err + "\" when setting the following states:\n    ") + exception_states.join(", "));
-        }
-        if ((async_target_states != null ? async_target_states.length : void 0) != null) {
-            this.log("Next states that were supposed to be (add|drop|set):\n    " + exception_states.join(", "));
-        }
+        if (exception_states && exception_states.length > 0)
+            this.log(`Exception \"${err}\" when setting the following states:\n    ${exception_states.join(", ")}`);
+
+        if (async_target_states && async_target_states.length > 0)
+            this.log(`Next states that were supposed to be (add|drop|set):\n    ${exception_states.join(", ")}`);
         // if the exception param was passed, print and throw (but outside of the current stack trace) 
-        console.error(err);
-        if (err) {
-            this.setImmediate(() => {
-                throw err;
-            });
-        }
+        console.error(err)
+        if (err)
+            this.setImmediate(() => { throw err })
     }
 
     /**
@@ -1206,7 +1201,7 @@ export class AsyncMachine extends EventEmitter {
      * There's 3 log levels:
      * - 0: logging is off
      * - 1: displays only the state changes in a diff format
-     * - 2: displays all operations which happened along with refused state
+     * - 2: displays all operations which happened along with rejected state
      *   changes
      * - 3: displays pretty much everything, including all possible operations
      *
@@ -1493,11 +1488,11 @@ export class AsyncMachine extends EventEmitter {
             transitions.self = [states, states_to_set, params]
 
         // Dropping states doesnt require an acceptance
-        // Autostates can be set partially (TODO check if any is a target?)
+        // Autostates can be set partially
         if (type !== STATE_CHANGE.DROP && !is_autostate) {
-            var states_accepted = states.every((state) => Boolean(~states_to_set.indexOf(state)));
-            if (!states_accepted) {
-                this.log("Cancelled the transition, as not all target states were accepted", 3);
+            var not_accepted = this.diffStates(states, states_to_set)
+            if (not_accepted.length) {
+                this.log(`[cancelled:rejected] ${not_accepted.join(', ')}`, 3);
                 transitions.accepted = false;
             }
         }
@@ -1663,36 +1658,39 @@ export class AsyncMachine extends EventEmitter {
     }
 
 	// Executes self transitions (eg ::A_A) based on active states.
-    private selfTransitionExec_(states: string[], target_states: string[], params?: any[]) {
-        if (params == null) {
-            params = [];
-        }
+    // TODO pass explicite states, pass params only to those
+    private selfTransitionExec_(explicite_states: string[], target_states: string[],
+            params: any[] = []) {
         var transition_params = <any[]>[target_states].concat(params);
-        return !states.some((state) => {
+        return !target_states.some((state) => {
+            // only the active states
+            if (!~this.states_active.indexOf(state))
+                return false
+
             let ret;
-            var name = state + "_" + state;
-            if (~this.states_active.indexOf(state)) {
-                var context = this.getMethodContext(name);
-                if (context) {
-                    this.log("[transition] " + name, 2);
-                    ret = context[name](...transition_params);
-                    this.catchPromise(ret, states);
-                } else {
-                    this.log("[transition] " + name, 3);
-                }
+            let name = `${state}_${state}`
+            // pass the transition params only to the explicite states
+            let params = ~explicite_states.indexOf(state) ?
+                transition_params : [target_states]
+            let context = this.getMethodContext(name)
 
-                if (ret === false) {
-                    this.log("Self transition for " + state + " cancelled", 2);
-                    return true;
-                }
+            if (context) {
+                this.log("[transition] " + name, 2);
+                ret = context[name](...params);
+                this.catchPromise(ret, target_states);
+            } else
+                this.log("[transition] " + name, 3);
 
-                ret = this.emit.apply(this, [name].concat(transition_params));
-                if (ret !== false) {
-                    this.transition_events.push([name, transition_params]);
-                }
-
-                return ret === false;
+            if (ret === false) {
+                this.log(`[cancelled:self] ${state}`, 2)
+                return true;
             }
+
+            ret = this.emit.apply(this, [name].concat(params));
+            if (ret !== false)
+                this.transition_events.push([name, params]);
+
+            return ret === false;
         });
     }
 
@@ -1780,7 +1778,7 @@ export class AsyncMachine extends EventEmitter {
                 return _results;
             })();
             // TODO support ":auto" suffix, checked using #duringTransition()
-            this.log(`[refused] ${names.join(" ")}`, 2);
+            this.log(`[rejected] ${names.join(" ")}`, 2);
         }
 
         return states;

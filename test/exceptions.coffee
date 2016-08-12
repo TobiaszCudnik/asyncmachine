@@ -1,12 +1,8 @@
-am = require '../build/asyncmachine.cjs.js'
+am = require '../build/asyncmachine.js'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
 bluebird = require 'bluebird'
-
-# turn off "possibly unhandled error", which is buggy
-# https://github.com/petkaantonov/bluebird/issues/352
-#bluebird.onPossiblyUnhandledRejection ->
 
 factory = am.factory
 
@@ -31,6 +27,8 @@ describe "Exceptions", ->
     @foo.Exception_state = ->
     @foo.add 'A'
     expect(@foo.is()).to.eql ['Exception']
+
+    null
 
   describe 'should be caught', ->
 
