@@ -2,7 +2,60 @@ const asyncmachine = require('../../build/asyncmachine.cjs.js')
 require('source-map-support').install()
 
 
+/**
+ * Scenario:
+ * 1. User clicks the button
+ * 2. Data download begins
+ * 3. Preloader appears
+ * 4. Once data is fetched, the dialog replaces the preloader
+ * 
+ * This example presents following concepts:
+ * - usage of auto states
+ * - working with async actions
+ * - loosely coupling states (data downloading logic doesnt know anything about the preloader)
+ * 
+ * Log output (level 1):
+[DialogManager] [states] +Enabled                                                                                                                              
+[DialogManager] [states] +ButtonClicked
+[DialogManager] [states] +ShowingDialog
+[DialogManager] [states] +DownloadingData +PreloaderVisible
+Preloader show()
+[DialogManager] [states] -ButtonClicked
+[DialogManager] [states] +DataDownloaded -DownloadingData -PreloaderVisible
+Preloader hide()
+[DialogManager] [states] +DialogVisible
+Dialog shown
+ * 
+ * Log output (level 2):
+[DialogManager] [add] Enabled
+[DialogManager] [states] +Enabled
+[DialogManager] [add] ButtonClicked
+[DialogManager] [states] +ButtonClicked
+[DialogManager] [transition] ButtonClicked_state
+[DialogManager] [queue:add] ShowingDialog
+[DialogManager] [queue:drop] ButtonClicked
+[DialogManager] [add] ShowingDialog
+[DialogManager] [states] +ShowingDialog
+[DialogManager] [states] +DownloadingData +PreloaderVisible
+[DialogManager] [transition] DownloadingData_state
+[DialogManager] [transition] PreloaderVisible_state
+Preloader show()
+[DialogManager] [drop] ButtonClicked
+[DialogManager] [states] -ButtonClicked
+[DialogManager] [add] DataDownloaded
+[DialogManager] [drop] DownloadingData by DataDownloaded
+[DialogManager] [rejected] PreloaderVisible(-DownloadingData)
+[DialogManager] [states] +DataDownloaded -DownloadingData -PreloaderVisible
+[DialogManager] [transition] PreloaderVisible_end
+Preloader hide()
+[DialogManager] [states] +DialogVisible
+[DialogManager] [transition] DialogVisible_state
+Dialog shown
+ */
+
+
 class States extends asyncmachine.AsyncMachine {}
+// you can save the state map directly to the prototype
 Object.assign(States.prototype, {
 	Enabled: {},
 
@@ -11,9 +64,9 @@ Object.assign(States.prototype, {
 	},
 
 	ShowingDialog: {
-		drops: ['DialogShown']
+		drops: ['DialogVisible']
 	},
-	DialogShown: {
+	DialogVisible: {
 		auto: true,
 		requires: ['DataDownloaded']
 	},
@@ -37,7 +90,7 @@ class DialogManager {
 	constructor(button, preloader) {
 		this.preloader = preloader
 		this.states = new States(this)
-				.logLevel(1)
+				.logLevel(2)
 				.id('DialogManager')
 
 		this.dialog = new Dialog()
@@ -63,7 +116,7 @@ class DialogManager {
 		this.states.drop('ButtonClicked')
 	}
 
-	DialogShown_state() {
+	DialogVisible_state() {
 		// this.data is guaranteed by the DataDownloaded state
 		this.dialog.show(this.data)
 	}
