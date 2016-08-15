@@ -875,7 +875,7 @@ export class AsyncMachine extends EventEmitter {
      * 
      * @param machine Target machine to which the state should be forwarded.
      */
-    pipeAll(machine: AsyncMachine, flags: PipeFlags) {
+    pipeAll(machine: AsyncMachine, flags?: PipeFlags) {
         // Do not forward the Exception state
         let states_all = this.states_all.filter( state => state !== 'Exception' )
 
@@ -1101,7 +1101,7 @@ export class AsyncMachine extends EventEmitter {
     /**
      * Enabled debug messages sent to the console (or the custom handler).
      * 
-     * There's 3 log levels:
+     * There's 4 log levels:
      * - 0: logging is off
      * - 1: displays only the state changes in a diff format
      * - 2: displays all operations which happened along with rejected state
@@ -2001,9 +2001,11 @@ export class AsyncMachine extends EventEmitter {
             if (!should_abort && this.is(states))
                 listener()
 
-            this.log(`[bind:off] ${states.join(', ')}`, 3)
-            for (let state of states)
-                this.removeListener(`${state}_state`, enter)
+            if (this.is(states)) {
+                this.log(`[bind:off] ${states.join(', ')}`, 3)
+                for (let state of states)
+                    this.removeListener(`${state}_state`, enter)
+            }
         }
         
         this.log(`[bind:on] ${states.join(', ')}`, 3)
