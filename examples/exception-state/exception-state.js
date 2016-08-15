@@ -9,7 +9,7 @@ const states = asyncmachine.factory({
   B: {}
 })
 
-states.id('').logLevel(3)
+states.id('').logLevel(2)
 
 // states.A_enter = function() {
 //     if (this.clock('Exception') > 5) {
@@ -18,6 +18,7 @@ states.id('').logLevel(3)
 //     }
 // }
 
+// state negotiation
 states.SometimesBroken_enter = function() {
   console.log('clock', this.clock('Exception'))
   if (this.clock('Exception') > 5) {
@@ -26,6 +27,7 @@ states.SometimesBroken_enter = function() {
   }
 }
 
+// state set
 states.SometimesBroken_state = function() {
   throw Error('random exception')
 }
