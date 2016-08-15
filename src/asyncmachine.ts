@@ -26,7 +26,8 @@ import {
     IPreparedTransitions,
     IState,
     TPipeBindings,
-    TStateMethod
+    TStateMethod,
+    TransitionException
 } from './types'
 // shims for current engines
 import 'core-js/fn/array/keys'
@@ -136,6 +137,7 @@ export class AsyncMachine extends EventEmitter {
     protected lock_queue = false;
     protected log_level_: number = 0;
     protected log_handler_: Function;
+    protected current_transition: IPreparedTransitions;
     /**
      * TODO this should be automatic
      * TODO write a test for this asserting states_all
@@ -143,7 +145,7 @@ export class AsyncMachine extends EventEmitter {
     protected internal_fields: string[] = ["_events", "states_all", "lock_queue",
         "states_active", "queue", "lock", "last_promise", "debug_prefix",
         "log_level_", "log_handler_", "clock_", "target", "internal_fields",
-        "transition_events", "piped", 'id_', 'print_exception'];
+        "transition_events", "piped", 'id_', 'print_exception', 'current_transition'];
     private id_: string = uuid();
 
     /**
@@ -173,11 +175,11 @@ export class AsyncMachine extends EventEmitter {
      * handle exceptions based on their type and target states of the transition
      * during which they appeared.
      *
-     * @param states States to which the machine is transitioning rigt now.
-     * 	This means post-exception states.
      * @param err The exception object.
-     * @param exception_states Target states of the transition during
+     * @param target_states Target states of the transition during
      * 	which the exception was thrown.
+     * @param base_states Base states in which the transition orginated.
+     * @param exception_state The explicite state which thrown the exception.
      * @param async_target_states Only for async transitions like
      * [[addByCallback]], these are states which we're supposed to be set by the
      * callback.
@@ -186,7 +188,7 @@ export class AsyncMachine extends EventEmitter {
      * Example of exception handling
      * ```
      * states = asyncmachine.factory ['A', 'B', 'C']
-     * states.Exception_state = (states, err, exception_states) ->
+     * states.Exception_state = (err, target_states) ->
      * 	# Re-adds state 'C' in case of an exception if A is set.
      * 	if exception_states.some((state) -> state is 'C') and @is 'A'
      * 		states.add 'C'
@@ -200,15 +202,17 @@ export class AsyncMachine extends EventEmitter {
      * 		this.add 'Exception', error, states
      * ```
      * 
-     * TODO pass the exact state which caused the exception
+     * TODO update the docs
+     * TODO change from stdout to the log
      */
-    Exception_state(states: string[], err: Error, exception_states: string[], async_target_states?: string[]): void {
+    Exception_state(err: Error, target_states: string[], base_states: string[], 
+            exception_transition: string, async_target_states?: string[]): void {
         if (this.print_exception)
             console.error("EXCEPTION from AsyncMachine");
-        if (exception_states && exception_states.length > 0)
-            this.log(`Exception \"${err}\" when setting the following states:\n    ${exception_states.join(", ")}`);
+        if (target_states && target_states.length > 0)
+            this.log(`Exception \"${err}\" when setting the following states:\n    ${target_states.join(", ")}`);
         if (async_target_states && async_target_states.length > 0)
-            this.log(`Next states that were supposed to be (add|drop|set):\n    ${exception_states.join(", ")}`);
+            this.log(`Next states that were supposed to be (add|drop|set):\n    ${target_states.join(", ")}`);
         // if the exception param was passed, print and throw (but outside of the current stack trace)
         if (err) {
             if (this.print_exception) 
@@ -1004,8 +1008,34 @@ export class AsyncMachine extends EventEmitter {
      * TODO expose the current transition entry (target states and autostate
      *   info are required)
      */
-    duringTransition(): boolean {
-        return this.lock;
+    duringTransition(): IPreparedTransitions {
+        return this.current_transition;
+    }
+
+    /**
+     * Returns the list of states from which the current transition started.
+     * 
+     * Requires [[duringTranstion]] to be true or it'll throw.
+     */
+    from() {
+        let transition = this.duringTransition()
+        if (!transition)
+            throw new Error(`AsyncMachine ${this.id()} not during transition`)
+
+        return transition.before
+    }
+
+    /**
+     * Returns the list of states to which the current transition is heading.
+     * 
+     * Requires [[duringTranstion]] to be true or it'll throw.
+     */
+    to() {
+        let transition = this.duringTransition()
+        if (!transition)
+            throw new Error(`AsyncMachine ${this.id()} not during transition`)
+
+        return transition.states
     }
 
     /**
@@ -1081,7 +1111,8 @@ export class AsyncMachine extends EventEmitter {
      * - 1: displays only the state changes in a diff format
      * - 2: displays all operations which happened along with rejected state
      *   changes
-     * - 3: displays pretty much everything, including all possible operations
+     * - 3: displays more decision logic
+     * - 4: displays everything, including all possible operations
      *
      * Example
      * ```
@@ -1128,7 +1159,6 @@ export class AsyncMachine extends EventEmitter {
 
     /**
      * TODO docs
-     * TODO unify event name with transition name (remove the _state suffix if possible)
      */
     on(event: string, listener: Function, context?: Object): this {
 		// is event is a NAME_state event, fire at once if the state is set
@@ -1143,7 +1173,6 @@ export class AsyncMachine extends EventEmitter {
 
     /**
      * TODO docs
-     * TODO unify event name with transition name (remove the _state suffix if possible)
      */
     once(event: string, listener: Function, context?: Object): this {
 		// is event is a NAME_state event, fire at once if the state is set
@@ -1168,6 +1197,8 @@ export class AsyncMachine extends EventEmitter {
      * @param target_states States for which the promise was created (the
      *   one that failed).
      * @return The source promise, for piping.
+     * 
+     * TODO target_states are redundant
      */
     catchPromise(promise: Promise<any>, target_states?: string[]): Promise<any>;
     catchPromise(promise: any, target_states?: string[]): any {
@@ -1349,6 +1380,7 @@ export class AsyncMachine extends EventEmitter {
         }
         
         let transitions: IPreparedTransitions = {
+            auto: is_autostate,
             before: this.is(),
             states: null,
             self: null,
@@ -1367,7 +1399,7 @@ export class AsyncMachine extends EventEmitter {
                     return states;
             }
         })()
-        transitions.states = this.setupTargetStates_(states_to_set);
+        transitions.states = this.setupTargetStates_(states_to_set, null, is_autostate);
 
         let implied_states = this.diffStates(transitions.states, states_to_set)
         if (implied_states.length)
@@ -1429,6 +1461,7 @@ export class AsyncMachine extends EventEmitter {
             let aborted = !transitions.accepted
             let hasStateChanged = false
 
+            target.current_transition = transitions
             target.transition_events = []
             target.lock = true
             target.queue = [];
@@ -1476,12 +1509,20 @@ export class AsyncMachine extends EventEmitter {
                 target.queue = aborted ? queue : queue.concat(target.queue)
             } catch (err) {
                 aborted = true
-                let queued_exception: IQueueRow =
-                    [STATE_CHANGE.ADD, ["Exception"], [err, transitions.states]]
-			    // drop the queue created during the transition
-                target.queue = [queued_exception].concat(queue);
+                // Its an exception to an exception when the exception throws... an exception
+                if (err.transition.match(/^Exception_/) || err.transition.match(/_Exception$/)) {
+                    target.queue = queue
+                    this.setImmediate( () => { throw err.err } )
+                } else {
+                    debugger
+                    let queued_exception: IQueueRow = [STATE_CHANGE.ADD, ["Exception"], [err.err, 
+                            transitions.states, transitions.before, err.transition]]
+                    // drop the queue created during the transition
+                    target.queue = [queued_exception].concat(queue);
+                }
             }
             
+            target.current_transition = null
             target.lock = false;
             
             if (aborted) {
@@ -1552,44 +1593,7 @@ export class AsyncMachine extends EventEmitter {
         return (...params) => deferred.resolve(params);
     }
 
-	// Executes self transitions (eg ::A_A) based on active states.
-    // TODO pass explicite states, pass params only to those
-    private selfTransitionExec_(explicite_states: string[], target_states: string[],
-            params: any[] = []) {
-        var transition_params = <any[]>[target_states].concat(params);
-        return !explicite_states.some((state) => {
-            // only the active states
-            if (!~this.states_active.indexOf(state))
-                return false
-
-            let ret;
-            let name = `${state}_${state}`
-            // pass the transition params only to the explicite states
-            let params = ~explicite_states.indexOf(state) ?
-                transition_params : [target_states]
-            let context = this.getMethodContext(name)
-
-            if (context) {
-                this.log("[transition] " + name, 2);
-                ret = context[name](...params);
-                this.catchPromise(ret, target_states);
-            } else
-                this.log("[transition] " + name, 3);
-
-            if (ret === false) {
-                this.log(`[cancelled:self] ${state}`, 2)
-                return true;
-            }
-
-            ret = this.emit.apply(this, [name].concat(params));
-            if (ret !== false)
-                this.transition_events.push([name, params]);
-
-            return ret === false;
-        });
-    }
-
-    private setupTargetStates_(states: string[], exclude?: string[]): string[] {
+    private setupTargetStates_(states: string[], exclude?: string[], is_auto = false): string[] {
         states = this.parseStates(states);
 
         if (exclude == null) {
@@ -1603,7 +1607,7 @@ export class AsyncMachine extends EventEmitter {
         var already_blocked = [];
 
 		// Parsing required states allows to avoid cross-dropping of states
-        states = this.parseRequires_(states);
+        states = this.parseRequires_(states, is_auto)
 
 		// Remove states already blocked.
         states = states.reverse().filter((name) => {
@@ -1621,7 +1625,7 @@ export class AsyncMachine extends EventEmitter {
         });
 
 		// Parsing required states allows to avoid cross-dropping of states
-        return this.parseRequires_(states.reverse());
+        return this.parseRequires_(states.reverse(), is_auto);
     }
     
 	// Collect implied statestates: string[]): string[] {
@@ -1639,7 +1643,7 @@ export class AsyncMachine extends EventEmitter {
 
 	// Check required states
 	// Loop until no change happens, as states can require themselves in a vector.
-    private parseRequires_(states: string[]): string[] {
+    private parseRequires_(states: string[], is_auto = false): string[] {
         var length_before = 0;
         var not_found_by_states = {};
 		// TODO compare states by name
@@ -1672,8 +1676,10 @@ export class AsyncMachine extends EventEmitter {
                 }
                 return _results;
             })();
-            // TODO support ":auto" suffix, checked using #duringTransition()
-            this.log(`[rejected] ${names.join(" ")}`, 2);
+            if (is_auto)
+                this.log(`[rejected:auto] ${names.join(" ")}`, 3)
+            else
+                this.log(`[rejected] ${names.join(" ")}`, 2)
         }
 
         return states;
@@ -1777,7 +1783,7 @@ export class AsyncMachine extends EventEmitter {
     }
 
 	// TODO this is hacky, should be integrated into processTransition
-    processPostTransition() {
+    private processPostTransition() {
         // TODO refactor this.transition_events to look more like the queue
         let transition
         while (transition = this.transition_events.shift()) {
@@ -1798,29 +1804,31 @@ export class AsyncMachine extends EventEmitter {
                 continue
             }
 
-            var context = this.getMethodContext(method)
-            if (context) {
-                let ret
-                this.log("[transition] " + method, 2);
-                try {
+            try {
+                var context = this.getMethodContext(method)
+                if (context) {
+                    let ret
+                    this.log("[transition] " + method, 2);
                     ret = context[method](...params);
-                } catch (err) {
-                    this.processPostTransitionException(state, is_enter)
-                    throw err;
+                    this.catchPromise(ret, this.is());
+                } else {
+                    this.log("[transition] " + method, 4);
                 }
-                this.catchPromise(ret, this.is());
-            } else {
-                this.log("[transition] " + method, 3);
-            }
 
-            this.emit.apply(this, [method].concat(params));
+                this.emit.apply(this, [method].concat(params));
+            } catch (err) {
+                err = new TransitionException(err, method)
+                this.processPostTransitionException(state, is_enter)
+                throw err;
+            }
         }
 
+        // TODO move to processQueue_
         this.transition_events = [];
     }
 
     // TODO REFACTOR
-    processPostTransitionException(state: string, is_enter: boolean) {
+    private processPostTransitionException(state: string, is_enter: boolean) {
         var states_active = this.states_active
         let transition
         while (transition = this.transition_events.shift()) {
@@ -1843,20 +1851,62 @@ export class AsyncMachine extends EventEmitter {
         }
         // override the active states, reverting the un-executed transitions
         this.states_active = states_active
-        this.log('[exception] from ' + state + ', forced states to ' + states_active.join(', '))
+        this.log(`[exception] from ${state}, forced states to ${states_active.join(', ')}`)
     }
 
-    getMethodContext(name) {
-        if (this.target[name]) {
+    private getMethodContext(name) {
+        if (this.target[name] && this.target[name] instanceof Function) {
             return this.target;
-        } else if (this[name]) {
+        } else if (this[name] && this[name] instanceof Function) {
             return this;
         }
     }
 
+	// Executes self transitions (eg ::A_A) based on active states.
+    // TODO pass explicite states, pass params only to those
+    private selfTransitionExec_(explicite_states: string[], target_states: string[],
+            params: any[] = []) {
+        var transition_params = params;
+        return !explicite_states.some((state) => {
+            // only the active states
+            if (!~this.states_active.indexOf(state))
+                return false
+
+            let ret;
+            let name = `${state}_${state}`
+            // pass the transition params only to the explicite states
+            let params = ~explicite_states.indexOf(state) ?
+                transition_params : []
+            let context = this.getMethodContext(name)
+
+            try {
+                if (context) {
+                    this.log("[transition] " + name, 2);
+                    ret = context[name](...params);
+                    this.catchPromise(ret, target_states);
+                } else
+                    this.log("[transition] " + name, 4);
+
+                if (ret === false) {
+                    this.log(`[cancelled:self] ${state}`, 2)
+                    return true;
+                }
+
+                ret = this.emit.apply(this, [name].concat(params))
+            } catch (err) {
+                throw new TransitionException(err, name)
+            }
+
+            if (ret !== false)
+                this.transition_events.push([name, params]);
+
+            return ret === false;
+        });
+    }
+
 	// Exit transition handles state-to-state methods.
-    private transitionExit_(from: string, to: string[], 
-		    explicit_states: string[], params: any[]) {
+    private transitionExit_(from: string, to: string[], explicit_states: string[], 
+            params: any[]) {
         if (~explicit_states.indexOf(from)) {
             var transition_params = params;
         }
@@ -1900,37 +1950,32 @@ export class AsyncMachine extends EventEmitter {
         return this.transitionExec_(to + "_enter", target_states, params);
     }
 
-    private transitionExec_(method: string, target_states: string[], params?: string[]) {
-        var _ref;
-        if (params == null) {
-            params = [];
-        }
-        var transition_params = [];
-        transition_params = [target_states].concat(params);
-        var ret = void 0;
+    // TODO target_states are redundant
+    private transitionExec_(method: string, target_states: string[], params: string[] = []) {
+        let context = this.getMethodContext(method)
+        try {
+            if (context) {
+                this.log("[transition] " + method, 2)
+                var ret = context[method](...params)
+                this.catchPromise(ret, target_states)
+            } else
+                this.log("[transition] " + method, 4)
 
-        var context = this.getMethodContext(method);
-        if (context) {
-            this.log("[transition] " + method, 2);
-            ret = (_ref = context[method]) != null ? typeof _ref.apply === "function" ? _ref.apply(context, transition_params) : void 0 : void 0;
-            this.catchPromise(ret, target_states);
-        } else {
-            this.log("[transition] " + method, 3);
-        }
-
-        if (ret !== false) {
-            var is_exit = method.slice(-5) === "_exit";
-            var is_enter = !is_exit && method.slice(-6) === "_enter";
-            if (is_exit || is_enter) {
-				// TODO this is hacky
-                this.transition_events.push([method, transition_params]);
+            if (ret !== false) {
+                let is_exit = method.slice(-5) === "_exit";
+                let is_enter = !is_exit && method.slice(-6) === "_enter";
+                if (is_exit || is_enter) {
+                    // TODO this is hacky
+                    this.transition_events.push([method, params]);
+                }
+                ret = this.emit.apply(this, [method].concat(params));
+                if (ret === false)
+                    this.log(`[cancelled] ${target_states.join(", ")} by the event ${method}`, 2);
+            } else {
+                this.log(`[cancelled] ${target_states.join(", ")} by the method ${method}`, 2);
             }
-            ret = this.emit.apply(this, [method].concat(transition_params));
-            if (ret === false) {
-                this.log(`[cancelled] ${target_states.join(", ")} by the event ${method}`, 2);
-            }
-        } else {
-            this.log(`[cancelled] ${target_states.join(", ")} by the method ${method}`, 2);
+        } catch (err) {
+            throw new TransitionException(err, method)
         }
 
         return ret;

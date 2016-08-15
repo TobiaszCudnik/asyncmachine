@@ -2,7 +2,6 @@ am = require '../build/asyncmachine.js'
 chai = require 'chai'
 expect = chai.expect
 sinon = require 'sinon'
-bluebird = require 'bluebird'
 
 factory = am.factory
 
@@ -14,11 +13,7 @@ describe "Exceptions", ->
   it 'should be thrown on the next tick', ->
     setImmediate = sinon.stub @foo, 'setImmediate'
     @foo.A_enter = -> throw new Error
-    log = sinon.stub console, 'log'
-    dir = sinon.stub console, 'dir'
     @foo.add 'A'
-    log.restore()
-    dir.restore()
     expect(setImmediate.calledOnce).to.be.ok
     expect(setImmediate.firstCall.args[0]).to.throw Error
 
@@ -29,6 +24,24 @@ describe "Exceptions", ->
     expect(@foo.is()).to.eql ['Exception']
 
     null
+
+  it 'should pass all the params to the method', (done) ->
+    states = factory ['A', 'B', 'C']
+    states.C_enter = -> throw new Error
+
+    states.Exception_state = (err, target_states, base_states, exception_transition, async_target_states) ->
+      expect(target_states).to.eql ['B', 'C']
+      expect(base_states).to.eql ['A']
+      expect(exception_transition).to.eql 'C_enter'
+      expect(async_target_states).to.eql undefined
+      done()
+      
+    states.set ['A']
+    states.set ['B', 'C']
+
+    null
+
+  it 'should set accept completed transition'
 
   describe 'should be caught', ->
 
@@ -53,23 +66,23 @@ describe "Exceptions", ->
     describe 'in promises', ->
 
       it 'returned by transitions', (done) ->
-        @foo.Exception_state = (states, exception, target_states) ->
+        @foo.Exception_state = (exception, target_states, base_states, exception_state) ->
           expect(target_states).to.eql ['A']
           expect(exception).to.be.instanceOf Error
           done()
-        @foo.A_enter = bluebird.coroutine ->
-          yield bluebird.delay 0
-          throw new Error
+        @foo.A_enter = -> new Promise (resolve, reject) ->
+          setTimeout ->
+            reject new Error
         @foo.add 'A'
 
       it 'returned by listeners', (done) ->
-        @foo.Exception_state = (states, exception, target_states) ->
+        @foo.Exception_state = (exception, target_states, base_states, exception_state) ->
           expect(target_states).to.eql ['A']
           expect(exception).to.be.instanceOf Error
           done()
-        @foo.on 'A_enter', bluebird.coroutine ->
-          yield bluebird.delay 0
-          throw new Error
+        @foo.on 'A_enter', new Promise (resolve, reject) ->
+          setTimeout ->
+            reject new Error
         @foo.add 'A'
 
 
@@ -87,11 +100,10 @@ describe "Exceptions", ->
       @bar = factory ['D']
       @bar.pipe 'D', @foo, 'A'
       @foo.A_enter = -> @add 'B'
-      @foo.B_state = bluebird.coroutine ->
-        yield bluebird.delay 0
-        method = bluebird.promisify asyncMock
-        yield method()
-        @add 'C'
+      @foo.B_state = ->
+        new Promise (resolve, reject) =>
+          setTimeout =>
+            resolve @add 'C'
       @foo.C_enter = ->
         throw fake: yes
 

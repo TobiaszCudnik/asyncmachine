@@ -33,9 +33,9 @@ states.SometimesBroken_state = function() {
 }
 
 // use the state negotiation for fault tolerance
-states.Exception_state = function(states, err, exception_states, async_target_states) {
+states.Exception_state = function(err, target_states, async_target_states) {
   // try to rescue the A state
-  if (~states.indexOf('SometimesBroken')) {
+  if (~target_states.indexOf('SometimesBroken')) {
     console.log('Retrying the SometimesBroken state')
     this.add('SometimesBroken')
     this.drop('Exception')

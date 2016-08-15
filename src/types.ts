@@ -73,6 +73,7 @@ export interface IPreparedTransitions {
     enters: any[];
     exits: any[];
     accepted: boolean;
+    auto: boolean;
 }
 
 // TODO merge with the enum
@@ -113,4 +114,12 @@ export enum PipeFlags {
     NEGOTIATION = 0,
     INVERT = 1 << 0,
     LOCAL_QUEUE = 1 << 1
+}
+
+export class TransitionException extends Error {
+    constructor(
+            public err: Error,
+            public transition: string) {
+        super()
+    }
 }

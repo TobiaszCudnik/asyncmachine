@@ -15,19 +15,20 @@
 - dynamic states (???)
 - chai assertion helper
 - rewrite tests
+- ensure all the state lists and params are shallow copied
 
-### v2.3
+### v3.0
 
 - tail call optimizations and reduced number of stack frames
 - moved to the regular typescript (2.0)
 - better logging API
+- states array not passed to transition any more (use #from() and #to())
 - machine IDs
 - multi states
-- dropped the promise dependency
 - exception state enhancements
 - reworked piping
 - state binding fixes
-- new build system
+- new build system (shims supported)
 - bunch of small bugfixes
  
 ### v2.0
