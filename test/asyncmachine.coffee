@@ -48,13 +48,15 @@ describe "asyncmachine", ->
 
 	it 'should allow to check if single state is active', ->
 		expect(@machine.is('A')).to.be.ok
+		expect(@machine.is(['A'])).to.be.ok
 		
-	it 'should allow to check if couple of states are active', ->
+	it 'should allow to check if multiple states are active', ->
 		@machine.add 'B'
+		expect(@machine.is(['A', 'B'])).to.be.ok
 		expect(@machine.every 'A', 'B').to.be.ok
 		
-	it "should accept the starting state", ->
-		expect( @machine.is() ).to.eql ["A"]
+	it "should expose all available states", ->
+		expect( @machine.states_all ).to.eql [ 'Exception', 'A', 'B', 'C', 'D' ]
 
 	it "should allow to set the state", ->
 		expect( @machine.set "B" ).to.eql true
@@ -613,7 +615,13 @@ describe "asyncmachine", ->
 					@machine.B_enter
 				]
 				assert_order order
-			it 'should be executed only for explicitly called states'
+
+			it 'should be executed only for explicitly called states', ->
+				@machine.add 'B'
+				@machine.add 'A'
+				expect( @machine.A_A.calledOnce ).to.be.ok
+				expect( @machine.B_B.callCount ).to.eql 0
+
 			it 'should be cancellable', ->
 				@machine.A_A = sinon.stub().returns no
 				@machine.set( [ 'A', 'B' ] )
@@ -711,6 +719,12 @@ describe "asyncmachine", ->
 				@machine.set 'A'
 				(expect @machine.clock 'A').to.be.eql 1
 			
+			it 'should tick for Multi states when setting an already set state', ->
+				@machine.A.multi = yes
+				@machine.set 'A'
+				@machine.set 'A'
+				(expect @machine.clock 'A').to.be.eql 2
+			
 		describe 'proto child', ->
 			beforeEach ->
 				@machine = new FooMachine
@@ -725,47 +739,9 @@ describe "asyncmachine", ->
 				@child.add 'B'
 				(expect @machine.is()).to.not.eql @child.is()
 
-	describe 'piping', ->
-
-		beforeEach ->
-			@machine = new EventMachine 'A'
-
-		it 'should forward a specific state', ->
-			target = new EventMachine 'A'
-			@machine.pipe 'B', target
-			@machine.set 'B'
-			expect( target.is() ).to.eql [ 'B', 'A' ]
-
-		it 'should forward a specific state as a different one', ->
-			target = factory ['X', 'Y', 'Z']
-			@machine.pipe 'B', target, 'X'
-			@machine.set 'B'
-			expect( target.is() ).to.eql [ 'X' ]
-
-		it 'should invert a specific state as a different one', ->
-			target = factory ['X', 'Y', 'Z']
-			@machine.pipeInverted 'A', target, 'X'
-			@machine.drop 'A'
-			expect( target.is() ).to.eql [ 'X' ]
-
-		it 'should forward a whole machine', ->
-			machine2 = new EventMachine [ 'A', 'D' ]
-			expect( machine2.is() ).to.eql [ 'A', 'D' ]
-			@machine.pipe machine2
-			@machine.set [ 'B', 'C' ]
-			expect( machine2.is() ).to.eql [ 'C', 'B', 'D' ]
-
-		it 'can be turned off'
-			# machine2 = new EventMachine [ 'A', 'D' ]
-			# @machine.pipeOff 'B', target #, 'BB'
-			# @machine.pipe machine2
-			# @machine.set [ 'B', 'C' ]
-			# expect( machine2.is() ).to.eql [ 'D', 'B', 'C' ]
-
 
 	describe 'queue', ->
 	describe 'nested queue', ->
-	describe 'exceptions', ->
 
 	describe 'bugs', ->
 		# TODO use a constructor in Sub
@@ -789,8 +765,6 @@ describe "asyncmachine", ->
 			sub = new CrossBlocked
 			expect( sub.is() ).to.eql [ 'B' ]
 			
-		it 'should pass args to non-explicite transition methods if they are also queued ???'
-
 	describe 'Promises', ->
 		it 'can be resolved'
 		it 'can be rejected'

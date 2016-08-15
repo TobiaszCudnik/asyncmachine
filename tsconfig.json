@@ -6,7 +6,8 @@
         "declaration": true,
         "noImplicitAny": false,
         "removeComments": false,
-        "noLib": false
+        "noLib": false,
+        "sourceMap": true
     },
     "files": [
         "src/asyncmachine.ts"

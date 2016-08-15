@@ -9,7 +9,6 @@ all:
 	make build
 	make build-test
 
-
 build:
 	-tsc
 	rollup -c rollup.config.js
@@ -19,7 +18,7 @@ build-dev:
 	-tsc --watch --isolatedModules --module commonjs
 
 compile-watch:
-	tsc --watch
+	tsc --watch --noEmit
 
 server:
 	node_modules/http-server/bin/http-server
@@ -30,7 +29,6 @@ setup:
 test:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
-		--reporter spec \
 		test/*.js
 
 test-build:
@@ -46,7 +44,6 @@ test-build-watch:
 test-grep:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
-		--reporter spec \
 		--grep "$(GREP)"
 		test/*.js
 
@@ -54,7 +51,6 @@ test-debug:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
 		--debug-brk \
-		--reporter spec \
 		--grep "$(GREP)" \
 		test/*.js
 
@@ -62,7 +58,6 @@ test-grep-debug:
 	./node_modules/mocha/bin/mocha \
 		--harmony \
 		--debug-brk \
-		--reporter spec \
 		--grep "$(GREP)" \
 		test/*.js
 

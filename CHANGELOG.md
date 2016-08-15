@@ -19,10 +19,14 @@
 - tail call optimizations and reduced number of stack frames
 - moved to the regular typescript (1.8)
 - better logging API
+- machine IDs
 - multi states
 - dropped the promise dependency
 - exception state enhancements
+- reworked piping
+- state binding fixes
 - new build system
+- bunch of small bugfixes
  
 ### v2.0
  

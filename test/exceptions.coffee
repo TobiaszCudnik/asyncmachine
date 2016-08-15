@@ -73,6 +73,10 @@ describe "Exceptions", ->
         @foo.add 'A'
 
 
+      it 'returned by the state binding "when()"'
+        # TODO
+
+
   describe 'complex scenario', ->
 
     before ->
