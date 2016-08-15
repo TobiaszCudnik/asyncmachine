@@ -13,63 +13,30 @@
 
 import EventEmitter from "./ee"
 import uuid from './uuid-v4'
+import {
+    STATE_CHANGE,
+    STATE_CHANGE_LABELS,
+    QUEUE,
+    Deferred,
+    PipeFlags,
+    IQueueRow,
+    IPipeStateTarget,
+    IPipeStateBindings,
+    IPipeNegotiationBindings,
+    IPreparedTransitions,
+    IState,
+    TPipeBindings,
+    TStateMethod
+} from './types'
+// shims for current engines
+import 'core-js/fn/array/keys'
+import 'core-js/fn/array/includes'
 
-// TODO remove
-var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-// TODO enum
-export var STATE_CHANGE = {
-    DROP: 0,
-    ADD: 1,
-    SET: 2
-};
+export {
+    PipeFlags
+} from './types' 
 
-export enum STATE_CHANGE_LABELS {
-    Drop,
-    Add,
-    Set
-};
-
-/**
- * Queue enum defining param positions in queue's entries.
- * TODO enum
- */
-export var QUEUE = {
-    STATE_CHANGE: 0,
-    STATES: 1,
-    PARAMS: 2,
-    AUTO: 3,
-    TARGET: 4
-};
-
-export interface IQueueRow {
-    0: number;
-    1: string[];
-    2: any[];
-    3?: boolean;
-    4?: AsyncMachine;
-}
-
-export class Deferred {
-    promise: Promise<any>;
-
-    resolve: (...params: any[]) => void;
-
-    reject: (err?) => void;
-
-    constructor() {
-        this.promise = new Promise((resolve, reject) => {
-            this.resolve = resolve;
-            this.reject = reject;
-        });
-    }
-}
-
-function assert(exp) {
-    if (!exp) {
-        throw new Error('Assertion error')
-    }
-}
 
 /**
  * Creates an AsyncMachine instance (not a constructor) with specified states.
@@ -299,7 +266,7 @@ export class AsyncMachine extends EventEmitter {
 		// test the instance vars
         for (name in this) {
             value = this[name];
-            if ((this.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0 && !(this[name] instanceof Function)) {
+            if ((this.hasOwnProperty(name)) && !this.internal_fields.includes(name) && !(this[name] instanceof Function)) {
                 this.register(name);
             }
         }
@@ -312,7 +279,7 @@ export class AsyncMachine extends EventEmitter {
         while (true) {
             for (name in constructor) {
                 value = constructor[name];
-                if ((constructor.hasOwnProperty(name)) && __indexOf.call(this.internal_fields, name) < 0 && !(constructor[name] instanceof Function)) {
+                if ((constructor.hasOwnProperty(name)) && !this.internal_fields.includes(name) && !(constructor[name] instanceof Function)) {
                     this.register(name);
                 }
             }
@@ -452,13 +419,11 @@ export class AsyncMachine extends EventEmitter {
      * ```
      */
     register(...states: string[]) {
-		states = this.parseStates(states)
-        return states.map((state) => {
-            if (__indexOf.call(this.states_all, state) < 0) {
-                this.states_all.push(state);
-            }
-            return this.clock_[state] = 0;
-        });
+        for (let state of this.parseStates(states)) { 
+            if (!this.states_all.includes(state))
+                this.states_all.push(state)
+            this.clock_[state] = 0
+        }
     }
 
     /**
@@ -1221,7 +1186,7 @@ export class AsyncMachine extends EventEmitter {
      * @return List of states in states1 but not in states2.
      */
     diffStates(states1: string[], states2: string[]) {
-        return states1.filter((name) => __indexOf.call(states2, name) < 0).map((name) => name);
+        return states1.filter( name => !states2.includes(name) )
     }
     
     // PRIVATES
@@ -1558,11 +1523,15 @@ export class AsyncMachine extends EventEmitter {
             params.push.apply(params, state_params);
         }
 
-        var deferred = new Deferred;
-        deferred.promise.then((callback_params) => fn.apply(null, params.concat(callback_params)))["catch"]((err) => {
-            var async_states = [].concat(params[0] instanceof AsyncMachine ? params[1] : params[0]);
-            return this.add("Exception", err, transition_states, async_states);
-        });
+        var deferred = new Deferred
+
+        deferred.promise
+            .then( callback_params => {
+                return fn.apply(null, params.concat(callback_params))
+            }).catch( err => {
+                var async_states = [].concat(params[0] instanceof AsyncMachine ? params[1] : params[0]);
+                return this.add("Exception", err, transition_states, async_states);
+            });
 
         this.last_promise = deferred.promise;
 
@@ -2018,72 +1987,6 @@ export class AsyncMachine extends EventEmitter {
             return false;
         };
     }
-}
-
-export interface IState {
-    // TODO change to 'after'
-	depends?: string[];
-    // TODO change to 'add'
-	implies?: string[];
-    // TODO change to 'drop'
-	blocks?: string[];
-    // TODO change to 'require'
-	requires?: string[];
-	auto?: boolean;
-	multi?: boolean;
-}
-
-// export interface ITransitionHandler {
-// 	(states: string[], ...params: any[]): boolean;
-// }
-
-interface IPreparedTransitions {
-    states: string[];
-    before: string[];
-    self: any[];
-    enters: any[];
-    exits: any[];
-    accepted: boolean;
-}
-
-// TODO merge with the enum
-export type TStateAction = 'add' | 'drop' | 'set'
-export type TStateMethod = 'enter' | 'exit' | 'state' | 'end'
-
-export interface IPipeNegotiationBindings {
-    enter: TStateAction,
-    exit: TStateAction
-}
-
-export interface IPipeStateBindings {
-    state: TStateAction,
-    end: TStateAction
-}
-
-export type TPipeBindings = IPipeStateBindings | IPipeNegotiationBindings
-
-export interface IPipeStateTarget {
-    state: string,
-    machine: AsyncMachine,
-    event_type: TStateMethod,
-    listener: Function
-}
-
-/**
- * By default piped are "_state" and "_end" methods, not the negotiation ones.
- * Use the PipeFlags.NEGOTIATION flag to pipe "_enter" and "_exit" methods, and
- * thus, to participate in the state negotiation. This mode DOES NOT guarantee, that
- * the state was successfuly negotiated in the source machine.
- * 
- * To invert the state, use the PipeFlags.INVERT flag.
- * 
- * To append the transition to the local queue (instead of the target machine's one),
- * use the PipeFlags.LOCAL_QUEUE. This will alter the transition order.
- */
-export enum PipeFlags {
-    NEGOTIATION = 0,
-    INVERT = 1 << 0,
-    LOCAL_QUEUE = 1 << 1
 }
 
 

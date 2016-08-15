@@ -19,7 +19,7 @@
 ### v2.3
 
 - tail call optimizations and reduced number of stack frames
-- moved to the regular typescript (1.8)
+- moved to the regular typescript (2.0)
 - better logging API
 - machine IDs
 - multi states
