@@ -12,7 +12,9 @@
 - d.ts generator with string literal types
 - state as an object (shorter API calls, like `states.A.add()`
 - closure compiler support (eg compose all the attributes)
-- dynamic states
+- dynamic states (???)
+- chai assertion helper
+- rewrite tests
 
 ### v2.3
 
