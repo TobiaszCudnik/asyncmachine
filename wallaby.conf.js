@@ -1,27 +1,24 @@
 module.exports = function (wallaby) {
   return {
     files: [
-      'build/asyncmachine.js',
-      'build/ee.js',
-      'build/uuid-v4.js'
+      'src/**/*.ts',
+      'test/classes.ts'
     ],
-
     tests: [
-      'test/asyncmachine.coffee',
-      'test/classes.js'
+      'test/tests.ts'
     ],
     env: {
       type: 'node',
-      runner: 'node'  // or full path to any node executable
+      runner: 'node'
     },
     testFramework: 'mocha',
 
-    // compilers: {
-
-    //   'src/*.ts': wallaby.compilers.typeScript({
-    //     module: 'cjs',
-    //     target: 'es5'
-    //   })
-    // }
+    compilers: {
+      '**/*.ts': wallaby.compilers.typeScript({
+        outDir: null,
+        module: 'commonjs',
+        target: 'es5'
+      })
+    }
   };
 };

@@ -1,0 +1,11 @@
+{
+  "globalDependencies": {
+    "mocha": "registry:dt/mocha#2.2.5+20160720003353"
+  },
+  "dependencies": {
+    "chai": "registry:npm/chai#3.5.0+20160723033700",
+    "sinon": "registry:npm/sinon#1.16.0+20160723033700",
+    "sinon-chai": "registry:npm/sinon-chai#2.8.0+20160310030142",
+    "source-map-support": "registry:npm/source-map-support#0.3.0+20160723033700"
+  }
+}

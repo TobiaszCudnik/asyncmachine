@@ -16,9 +16,7 @@
     "url": "http://github.com/TobiaszCudnik/asyncmachine.git"
   },
   "devDependencies": {
-    "bluebird": "^3.3.5",
     "chai": "^3.5.0",
-    "coffee-script": "^1.10.0",
     "core-js": "^2.4.1",
     "mocha": "^2.5.3",
     "rollup": "^0.33.2",

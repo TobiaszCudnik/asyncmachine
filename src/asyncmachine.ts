@@ -1,13 +1,8 @@
 /**
  * TODO
  * - go through all the TODOs in the file
- * - extract types and enum outside of this file
- * - change the states API (keep the backwards compatibility, tmp)
  * - cleanup post-coffeescript code
  * - if possible, introduce TS'es strict null checks
- * - tests for
- *   - #register_all()
- *   - factory()
  */
 
 
