@@ -1,5 +1,4 @@
 /**
- * Classes have been extracted as CoffeeScript cant extend ES6 classes.
  * TODO move all of these to factory calls.
  */
 import AsyncMachine, {

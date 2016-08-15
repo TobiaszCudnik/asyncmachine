@@ -7,9 +7,10 @@
 /build/*
 /.vscode/*
 .DS_Store
-/test/exceptions.js
-/test/asyncmachine.js
-/test/piping.js
-/test/state-binding.js
-/test/*.js.map
+/src/**/*.js
+/src/**/*.js.map
+/src/**/*.d.ts
+/test/**/*.js
+/test/**/*.js.map
+/test/**/*.d.ts
 /tsickle_externs.js

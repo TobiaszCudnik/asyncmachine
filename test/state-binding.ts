@@ -27,7 +27,6 @@ describe('State binding', function () {
 
     it('should work for multiple states', function (done) {
         let states = factory(['A', 'B'])
-        states.id('').logLevel(3)
         states.when(['A', 'B']).then(function (value) {
             expect(value).to.eql(undefined);
             done();

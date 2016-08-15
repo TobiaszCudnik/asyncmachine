@@ -22,7 +22,7 @@ import {
 	FooMachine, 
 	EventMachine, 
 	Sub, 
-	SubCrossBlockedByImplied, 
+	SubCrossBlockedByImplied,
 	CrossBlocked
 } from './classes';
 

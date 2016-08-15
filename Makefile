@@ -18,7 +18,7 @@ build-dev:
 	-tsc --watch --isolatedModules --module commonjs
 
 compile-watch:
-	tsc --watch --noEmit
+	tsc --watch --noEmit --pretty
 
 server:
 	node_modules/http-server/bin/http-server
@@ -28,35 +28,32 @@ setup:
 
 test:
 	./node_modules/mocha/bin/mocha \
-		--harmony \
 		test/*.js
 
 test-build:
-	./node_modules/.bin/coffee \
-		-cm \
-		test/*.coffee
+	-tsc \
+		--isolatedModules \
+		-p test
 
 test-build-watch:
-	./node_modules/.bin/coffee \
-		-cwm \
-		test/*.coffee
+	-tsc \
+		--isolatedModules \
+		--watch \
+		-p test
 
 test-grep:
 	./node_modules/mocha/bin/mocha \
-		--harmony \
 		--grep "$(GREP)"
 		test/*.js
 
 test-debug:
 	./node_modules/mocha/bin/mocha \
-		--harmony \
 		--debug-brk \
 		--grep "$(GREP)" \
 		test/*.js
 
 test-grep-debug:
 	./node_modules/mocha/bin/mocha \
-		--harmony \
 		--debug-brk \
 		--grep "$(GREP)" \
 		test/*.js
@@ -71,8 +68,6 @@ docs:
 spec:
 	echo "<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><pre>" > docs/spec.html
 	./node_modules/mocha/bin/mocha \
-		--harmony \
-		--compilers mocha --compilers coffee:coffee-script/register \
 		--reporter spec \
 		test/*.js >> docs/spec.html
 	echo "</pre></body></html>" >> docs/spec.html

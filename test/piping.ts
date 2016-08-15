@@ -21,8 +21,8 @@ describe('piping', function () {
         source.pipe('A', target);
         source.pipe('B', target);
 
-        expect(source.piped.A).to.have.length(2);
-        expect(source.piped.B).to.have.length(2);
+        expect(source.piped['A']).to.have.length(2);
+        expect(source.piped['B']).to.have.length(2);
         expect(target.is()).to.be.eql(['A']);
         source.set('B');
         expect(target.is()).to.eql(['B']);
