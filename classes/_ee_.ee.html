@@ -1,9 +1,9 @@
-﻿<!doctype html>
+<!doctype html>
 <html class="default no-js">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Deferred | AsyncMachine</title>
+	<title>EE | AsyncMachine</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -57,24 +57,31 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_asyncmachine_.html">&quot;asyncmachine&quot;</a>
+					<a href="../modules/_ee_.html">&quot;ee&quot;</a>
 				</li>
 				<li>
-					<a href="_asyncmachine_.deferred.html">Deferred</a>
+					<a href="_ee_.ee.html">EE</a>
 				</li>
 			</ul>
-			<h1>Class Deferred</h1>
+			<h1>Class EE</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Representation of a single EventEmitter function.</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Deferred</span>
+						<span class="target">EE</span>
 					</li>
 				</ul>
 			</section>
@@ -82,74 +89,84 @@
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section ">
+						<section class="tsd-index-section tsd-is-external tsd-is-not-exported">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_asyncmachine_.deferred.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-external tsd-is-not-exported"><a href="_ee_.ee.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section ">
+						<section class="tsd-index-section tsd-is-external tsd-is-not-exported">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_asyncmachine_.deferred.html#promise" class="tsd-kind-icon">promise</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_asyncmachine_.deferred.html#reject" class="tsd-kind-icon">reject</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_asyncmachine_.deferred.html#resolve" class="tsd-kind-icon">resolve</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external tsd-is-not-exported"><a href="_ee_.ee.html#context" class="tsd-kind-icon">context</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external tsd-is-not-exported"><a href="_ee_.ee.html#fn" class="tsd-kind-icon">fn</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external tsd-is-not-exported"><a href="_ee_.ee.html#once" class="tsd-kind-icon">once</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group ">
+			<section class="tsd-panel-group tsd-member-group tsd-is-external tsd-is-not-exported">
 				<h2>Constructors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-external tsd-is-not-exported">
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
-					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Deferred<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_asyncmachine_.deferred.html" class="tsd-signature-type">Deferred</a></li>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-external tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">new EE<span class="tsd-signature-symbol">(</span>fn<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Function</span>, context<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Object</span>, once<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_ee_.ee.html" class="tsd-signature-type">EE</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in asyncmachine.ts:37</li>
+									<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/74b94dc/src/ee.ts#L4">ee.ts:4</a></li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns 
-								<a href="_asyncmachine_.deferred.html" class="tsd-signature-type">Deferred</a>
-							</h4>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>fn: <span class="tsd-signature-type">Function</span></h5>
+								</li>
+								<li>
+									<h5>context: <span class="tsd-signature-type">Object</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> once: <span class="tsd-signature-type">Boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_ee_.ee.html" class="tsd-signature-type">EE</a></h4>
 						</li>
 					</ul>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group ">
+			<section class="tsd-panel-group tsd-member-group tsd-is-external tsd-is-not-exported">
 				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="promise" class="tsd-anchor"></a>
-					<h3>promise</h3>
-					<div class="tsd-signature tsd-kind-icon">promise<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external tsd-is-not-exported">
+					<a name="context" class="tsd-anchor"></a>
+					<h3>context</h3>
+					<div class="tsd-signature tsd-kind-icon">context<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in asyncmachine.ts:33</li>
+							<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/74b94dc/src/ee.ts#L7">ee.ts:7</a></li>
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="reject" class="tsd-anchor"></a>
-					<h3>reject</h3>
-					<div class="tsd-signature tsd-kind-icon">reject<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Function</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external tsd-is-not-exported">
+					<a name="fn" class="tsd-anchor"></a>
+					<h3>fn</h3>
+					<div class="tsd-signature tsd-kind-icon">fn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in asyncmachine.ts:37</li>
+							<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/74b94dc/src/ee.ts#L6">ee.ts:6</a></li>
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="resolve" class="tsd-anchor"></a>
-					<h3>resolve</h3>
-					<div class="tsd-signature tsd-kind-icon">resolve<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Function</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external tsd-is-not-exported">
+					<a name="once" class="tsd-anchor"></a>
+					<h3>once</h3>
+					<div class="tsd-signature tsd-kind-icon">once<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in asyncmachine.ts:35</li>
+							<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/74b94dc/src/ee.ts#L8">ee.ts:8</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -161,54 +178,51 @@
 					<li class="globals  ">
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
-					<li class="current tsd-kind-external-module">
+					<li class="label tsd-is-external">
+						<span>Internals</span>
+					</li>
+					<li class=" tsd-kind-external-module">
 						<a href="../modules/_asyncmachine_.html">"asyncmachine"</a>
+					</li>
+					<li class="label tsd-is-external">
+						<span>Externals</span>
+					</li>
+					<li class="current tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_ee_.html">"ee"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_types_.html">"types"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_uuid_v4_.html">"uuid-<wbr>v4"</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_asyncmachine_.asyncmachine.html" class="tsd-kind-icon">Async<wbr>Machine</a>
-					</li>
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_asyncmachine_.deferred.html" class="tsd-kind-icon">Deferred</a>
+					<li class="current tsd-kind-class tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
+						<a href="_ee_.ee.html" class="tsd-kind-icon">EE</a>
 						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="_asyncmachine_.deferred.html#constructor" class="tsd-kind-icon">constructor</a>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-external tsd-is-not-exported">
+								<a href="_ee_.ee.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_asyncmachine_.deferred.html#promise" class="tsd-kind-icon">promise</a>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external tsd-is-not-exported">
+								<a href="_ee_.ee.html#context" class="tsd-kind-icon">context</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_asyncmachine_.deferred.html#reject" class="tsd-kind-icon">reject</a>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external tsd-is-not-exported">
+								<a href="_ee_.ee.html#fn" class="tsd-kind-icon">fn</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_asyncmachine_.deferred.html#resolve" class="tsd-kind-icon">resolve</a>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external tsd-is-not-exported">
+								<a href="_ee_.ee.html#once" class="tsd-kind-icon">once</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="../interfaces/_asyncmachine_.istate.html" class="tsd-kind-icon">IState</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="../interfaces/_asyncmachine_.itransitionhandler.html" class="tsd-kind-icon">ITransition<wbr>Handler</a>
-					</li>
-					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="../modules/_asyncmachine_.html#___indexof" class="tsd-kind-icon">___index<wbr>Of</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module">
-						<a href="../modules/_asyncmachine_.html#queue" class="tsd-kind-icon">QUEUE</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module">
-						<a href="../modules/_asyncmachine_.html#state_change-1" class="tsd-kind-icon">STATE_<wbr>CHANGE</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module">
-						<a href="../modules/_asyncmachine_.html#state_change_labels" class="tsd-kind-icon">STATE_<wbr>CHANGE_<wbr>LABELS</a>
+					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
+						<a href="_ee_.eventemitter.html" class="tsd-kind-icon">Event<wbr>Emitter</a>
 					</li>
 				</ul>
 			</nav>
