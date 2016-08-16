@@ -65,11 +65,4 @@ docs:
 		--name AsyncMachine \
 		src/asyncmachine.ts
 
-spec:
-	echo "<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><pre>" > docs/spec.html
-	./node_modules/mocha/bin/mocha \
-		--reporter spec \
-		test/*.js >> docs/spec.html
-	echo "</pre></body></html>" >> docs/spec.html
-
 .PHONY: build test docs

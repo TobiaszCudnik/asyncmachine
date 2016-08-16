@@ -52,7 +52,7 @@ interface IState {
 	requires?: string[];
 	// When true, the state will be set automatically, if it's not blocked
 	auto?: boolean;
-	// Multi states always triggers the enter and state transitions, plus
+	// Multi states trigger the enter and state transitions even when set, plus
 	// the clock is always incremented
 	multi?: boolean;
 }
