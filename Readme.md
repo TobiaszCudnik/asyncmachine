@@ -45,18 +45,18 @@ npm install asyncmachine
 ## States
 
 ```typescript
-interface IState {
+export interface IState {
 	// Decides about the order of activations (transitions)
-	depends?: string[];
-	// When set, activates also the following states
-	implies?: string[];
+	after?: string[];
+	// When set, sets also the following states
+	add?: string[];
 	// When set, blocks activation (or deactivates) given states
-	blocks?: string[];
+	drop?: string[];
 	// State will be rejected if any of those aren't set
-	requires?: string[];
+	require?: string[];
 	// When true, the state will be set automatically, if it's not blocked
 	auto?: boolean;
-	// Multi states trigger the enter and state transitions even when set, plus
+	// Multi states always triggers the enter and state transitions, plus
 	// the clock is always incremented
 	multi?: boolean;
 }

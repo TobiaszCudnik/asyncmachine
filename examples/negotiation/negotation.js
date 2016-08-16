@@ -19,8 +19,8 @@ require('source-map-support').install()
 
 // setup the states
 const states = asyncmachine.factory({
-	A: { implies: 'Foo' },
-	B: { implies: 'Foo' },
+	A: { add: ['Foo'] },
+	B: { add: ['Foo'] },
 	Foo: {}
 })
 // setup logging

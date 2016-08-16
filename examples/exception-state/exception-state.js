@@ -73,7 +73,7 @@ states [ 'Exception', 'A' ]
 
 const states = asyncmachine.factory({
   SometimesBroken: {},
-  A: { implies: ['SometimesBroken'] },
+  A: { add: ['SometimesBroken'] },
   B: {}
 })
 

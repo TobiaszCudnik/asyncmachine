@@ -4,12 +4,13 @@
 import AsyncMachine, {
     factory
 } from '../src/asyncmachine';
+import { IState } from '../src/types'
 
 class FooMachine extends AsyncMachine {
-    A = {};
-    B = {};
-    C = {};
-    D = {};
+    A: IState = {};
+    B: IState = {};
+    C: IState = {};
+    D: IState = {};
 
     constructor(initialState?) {
         super();
@@ -23,7 +24,7 @@ class FooMachine extends AsyncMachine {
 
 class EventMachine extends FooMachine {
 
-    TestNamespace = {}
+    TestNamespace: IState = {}
 
     constructor(initial?, config?) {
         super();
@@ -36,8 +37,8 @@ class EventMachine extends FooMachine {
 
 class Sub extends AsyncMachine {
 
-    A = {}
-    B = {}
+    A: IState = {}
+    B: IState = {}
 
     constructor(initial?, a_spy?, b_spy?) {
         super();
@@ -60,14 +61,14 @@ class Sub extends AsyncMachine {
 }
 
 class SubCrossBlockedByImplied extends AsyncMachine {
-    A = {
-        blocks: ["B"]
+    A: IState = {
+        drop: ["B"]
     };
-    B = {
-        blocks: ["A"]
+    B: IState = {
+        drop: ["A"]
     };
-    C = {
-        implies: ["B"]
+    C: IState = {
+        add: ["B"]
     };
     constructor() {
         super();
@@ -79,11 +80,11 @@ class SubCrossBlockedByImplied extends AsyncMachine {
 
 class CrossBlocked extends AsyncMachine {
 
-    A = {
-        blocks: ["B"]
+    A: IState = {
+        drop: ["B"]
     }
-    B = {
-        blocks: ["A"]
+    B: IState = {
+        drop: ["A"]
     }
 
     constructor() {

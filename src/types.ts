@@ -51,17 +51,13 @@ export class Deferred {
 
 export interface IState {
 	// Decides about the order of activations (transitions)
-	// TODO change to 'after'
-	depends?: string[];
+	after?: string[];
 	// When set, sets also the following states
-	// TODO change to 'add'
-	implies?: string[];
+	add?: string[];
 	// When set, blocks activation (or deactivates) given states
-	// TODO change to 'drop'
-	blocks?: string[];
+	drop?: string[];
 	// State will be rejected if any of those aren't set
-	// TODO change to 'require'
-	requires?: string[];
+	require?: string[];
 	// When true, the state will be set automatically, if it's not blocked
 	auto?: boolean;
 	// Multi states always triggers the enter and state transitions, plus

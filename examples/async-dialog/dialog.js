@@ -15,7 +15,7 @@ require('source-map-support').install()
  * - loosely coupling states (data downloading logic doesnt know anything about the preloader)
  * 
  * Log output (level 1):
-[DialogManager] [states] +Enabled                                                                                                                              
+[DialogManager] [states] +Enabled
 [DialogManager] [states] +ButtonClicked
 [DialogManager] [states] +ShowingDialog
 [DialogManager] [states] +DownloadingData +PreloaderVisible
@@ -23,7 +23,7 @@ Preloader show()
 [DialogManager] [states] -ButtonClicked
 [DialogManager] [states] +DataDownloaded -DownloadingData -PreloaderVisible
 Preloader hide()
-[DialogManager] [states] +DialogVisible
+[DialogManager] [states] +DialogVisible -ShowingDialog
 Dialog shown
  * 
  * Log output (level 2):
@@ -48,7 +48,8 @@ Preloader show()
 [DialogManager] [states] +DataDownloaded -DownloadingData -PreloaderVisible
 [DialogManager] [transition] PreloaderVisible_end
 Preloader hide()
-[DialogManager] [states] +DialogVisible
+[DialogManager] [drop] ShowingDialog by DialogVisible
+[DialogManager] [states] +DialogVisible -ShowingDialog
 [DialogManager] [transition] DialogVisible_state
 Dialog shown
  */
@@ -60,28 +61,27 @@ Object.assign(States.prototype, {
 	Enabled: {},
 
 	ButtonClicked: {
-		requires: ['Enabled']
+		require: ['Enabled']
 	},
 
-	ShowingDialog: {
-		drops: ['DialogVisible']
-	},
+	ShowingDialog: {},
 	DialogVisible: {
 		auto: true,
-		requires: ['DataDownloaded']
+		drop: ['ShowingDialog'],
+		require: ['DataDownloaded']
 	},
 
 	DownloadingData: {
 		auto: true,
-		requires: ['ShowingDialog']
+		require: ['ShowingDialog']
 	},
 	DataDownloaded: {
-		blocks: ['DownloadingData']
+		drop: ['DownloadingData']
 	},
 
 	PreloaderVisible: {
 		auto: true,
-		requires: ['DownloadingData']
+		require: ['DownloadingData']
 	}
 })
 
@@ -90,7 +90,7 @@ class DialogManager {
 	constructor(button, preloader) {
 		this.preloader = preloader
 		this.states = new States(this)
-				.logLevel(2)
+				.logLevel(1)
 				.id('DialogManager')
 
 		this.dialog = new Dialog()

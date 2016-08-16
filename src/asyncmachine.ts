@@ -45,7 +45,7 @@ export {
  * Using names:
  * ```
  * let states = asyncmachine.factory(['A', 'B','C'])
- * states.A = { implies: ['B'] }
+ * states.A = { add: ['B'] }
  * states.add('A')
  * states.is() // -> ['A', 'B']
  * ```
@@ -53,7 +53,7 @@ export {
  * Using a map:
  * ```
  * let states = asyncmachine.factory({
- *   A: { implies: ['B'] },
+ *   A: { add: ['B'] },
  *   B: {},
  *   C: {}
  * })
@@ -89,8 +89,8 @@ export function factory<T extends AsyncMachine>(
  * class FooStates extends AsyncMachine
  *   Enabled: {}
  *
- *   Downloading: blocks: 'Downloaded'
- *   Downloaded: blocks: 'Downloading'
+ *   Downloading: drop: 'Downloaded'
+ *   Downloaded: drop: 'Downloading'
  *
  * class Foo
  *   constructor: ->
@@ -293,13 +293,13 @@ export class AsyncMachine extends EventEmitter {
 
     /**
      * Returns an array of relations from one state to another.
-     * Maximum set is ['blocks', 'depends', 'implies', 'requires'].
+     * Maximum set is ["drop", "after", "add", "require"].
      *
      * TODO code sample
      */
     getRelations(from_state: string, to_state: string): string[] {
 		// TODO enum
-        var relations = ["blocks", "depends", "implies", "requires"];
+        var relations = ["drop", "after", "add", "require"];
         var state = this.get(from_state);
 		// TODO assert
 
@@ -409,7 +409,7 @@ export class AsyncMachine extends EventEmitter {
      * ```
      * states = new AsyncMachine
      * states.Enabled = {}
-     * states.Disposed = blocks: 'Enabled'
+     * states.Disposed = drop: 'Enabled'
      *
      * states.register 'Enabled', 'Disposed'
      *
@@ -433,9 +433,9 @@ export class AsyncMachine extends EventEmitter {
      *
      * ```
      * states = asyncmachine.factory ['A', 'B', 'C']
-     * states.A = blocks: ['B']
+     * states.A = drop: ['B']
      *
-     * states.get('A') # -> { blocks: ['B'] }
+     * states.get('A') # -> { drop: ['B'] }
      * ```
      */
     get(state: string): IState {
@@ -1326,10 +1326,10 @@ export class AsyncMachine extends EventEmitter {
         this.states_all.forEach((state) => {
             var is_current = () => this.is(state);
             var is_blocked = () => this.is().some((item) => {
-                    if (!(this.get(item)).blocks) {
+                    if (!(this.get(item)).drop) {
                         return false;
                     }
-                    return Boolean(~(this.get(item)).blocks.indexOf(state));
+                    return Boolean(~(this.get(item)).drop.indexOf(state));
                 });
 
             if (this[state].auto && !is_current() && !is_blocked()) {
@@ -1622,10 +1622,10 @@ export class AsyncMachine extends EventEmitter {
     private parseImplies_(states: string[]): string[] {
         states.forEach((name) => {
             var state = this.get(name);
-            if (!state.implies) {
+            if (!state.add) {
                 return;
             }
-            return states = states.concat(state.implies);
+            return states = states.concat(state.add);
         });
 
         return states;
@@ -1642,7 +1642,7 @@ export class AsyncMachine extends EventEmitter {
             states = states.filter((name) => {
                 var state = this.get(name);
                 var not_found = [];
-                for (let req of state.requires || [])
+                for (let req of state.require || [])
                     if (!~states.indexOf(req))
                         not_found.push(req)
 
@@ -1690,7 +1690,7 @@ export class AsyncMachine extends EventEmitter {
         var blocked_by = [];
         states.forEach((name2) => {
             var state = this.get(name2);
-            if (state.blocks && ~state.blocks.indexOf(name)) {
+            if (state.drop && ~state.drop.indexOf(name)) {
                 return blocked_by.push(name2);
             }
         });
@@ -1976,10 +1976,10 @@ export class AsyncMachine extends EventEmitter {
             var state1 = this.get(e1);
             var state2 = this.get(e2);
             var ret = 0;
-            if (state1.depends && ~state1.depends.indexOf(e2)) {
+            if (state1.after && ~state1.after.indexOf(e2)) {
                 ret = 1;
             } else {
-                if (state2.depends && ~state2.depends.indexOf(e1)) {
+                if (state2.after && ~state2.after.indexOf(e1)) {
                     ret = -1;
                 }
             }

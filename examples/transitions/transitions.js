@@ -7,7 +7,7 @@ require('source-map-support').install()
 
 
 const states = asyncmachine.factory({
-	Direct: { implies: ['Implied'] },
+	Direct: { add: ['Implied'] },
 	Implied: {},
 	Delayed: {}
 })

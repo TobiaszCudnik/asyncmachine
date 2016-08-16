@@ -355,8 +355,8 @@ describe("asyncmachine", function () {
 			this.machine = new FooMachine(['A', 'B']);
 			// mock
 			mock_states(this.machine, ['A', 'B', 'C', 'D']);
-			this.machine.C.depends = ['D'];
-			this.machine.A.depends = ['B'];
+			this.machine.C.after = ['D'];
+			this.machine.A.after = ['B'];
 			// exec
 			this.machine.set(['C', 'D']);
 		});
@@ -408,7 +408,7 @@ describe("asyncmachine", function () {
 				.logHandler(this.log.push.bind(this.log));
 			// mock
 			mock_states(this.machine, ['A', 'B', 'C', 'D']);
-			this.machine.C = { blocks: ['D'] };
+			this.machine.C = { drop: ['D'] };
 			this.machine.set('D');
 		});
 
@@ -446,7 +446,7 @@ describe("asyncmachine", function () {
 
 		describe('and cross blocking one is added', function () {
 			beforeEach(function () {
-				this.machine.D = { blocks: ['C'] };
+				this.machine.D = { drop: ['C'] };
 			});
 			after(function () {
 				this.machine.D = {};
@@ -491,8 +491,8 @@ describe("asyncmachine", function () {
 			this.machine = new FooMachine(['A']);
 			// mock
 			mock_states(this.machine, ['A', 'B', 'C', 'D']);
-			this.machine.C = { implies: ['D'] };
-			this.machine.A = { blocks: ['D'] };
+			this.machine.C = { add: ['D'] };
+			this.machine.A = { drop: ['D'] };
 			// exec
 			this.machine.set(['C']);
 		});
@@ -514,7 +514,7 @@ describe("asyncmachine", function () {
 			this.machine = new FooMachine(['A']);
 			// mock
 			mock_states(this.machine, ['A', 'B', 'C', 'D']);
-			this.machine.C = { requires: ['D'] };
+			this.machine.C = { require: ['D'] };
 		});
 		after(function () {
 			this.machine.C = {};
@@ -668,8 +668,8 @@ describe("asyncmachine", function () {
 		describe('with arguments', function () {
 			beforeEach(function () {
 				this.machine.D = {
-					implies: ['B'],
-					blocks: ['A']
+					add: ['B'],
+					drop: ['A']
 				};
 			});
 			after(function () {
