@@ -19,9 +19,6 @@ build-dev:
 
 compile-watch:
 	tsc --watch --noEmit --pretty
-
-server:
-	node_modules/http-server/bin/http-server
 	
 setup:
 	npm install
@@ -59,10 +56,10 @@ test-grep-debug:
 		test/*.js
 
 docs:
-	./node_modules/.bin/typedoc \
+	typedoc \
 		--out docs/ \
 		--ignoreCompilerErrors \
 		--name AsyncMachine \
 		src/asyncmachine.ts
 
-.PHONY: build test docs
+.PHONY: build test

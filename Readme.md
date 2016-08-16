@@ -37,7 +37,11 @@ npm install asyncmachine
 - fault tolerance
 - convenient resource disposal
 - avoiding race conditions
- 
+
+## [Examples](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples)
+
+## [API docs](http://tobiaszcudnik.github.io/asyncmachine/classes/_asyncmachine_.asyncmachine.html)
+
 ## States
 
 ```typescript
@@ -70,10 +74,6 @@ methods (and events) with these names will be called.
 - B_enter
 - A_end
 - B_state
- 
-## Examples
-
-https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples
 
 ## License
 
