@@ -32,10 +32,32 @@ npm install asyncmachine
 ## What for?
 
 - easy state management
+- async actions as a state
 - solving non-linear problems
 - fault tolerance
+- convenient resource disposal
 - avoiding race conditions
  
+## States
+
+```typescript
+interface IState {
+	// Decides about the order of activations (transitions)
+	depends?: string[];
+	// When set, activates also the following states
+	implies?: string[];
+	// When set, blocks activation (or deactivates) given states
+	blocks?: string[];
+	// State will be rejected if any of those aren't set
+	requires?: string[];
+	// When true, the state will be set automatically, if it's not blocked
+	auto?: boolean;
+	// Multi states always triggers the enter and state transitions, plus
+	// the clock is always incremented
+	multi?: boolean;
+}
+```
+
 ## Transitions
  
 Example order of listeners during a transition between states A and B. All

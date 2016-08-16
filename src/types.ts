@@ -3,15 +3,15 @@ import AsyncMachine from './asyncmachine'
 
 // TODO enum
 export var STATE_CHANGE = {
-    DROP: 0,
-    ADD: 1,
-    SET: 2
+	DROP: 0,
+	ADD: 1,
+	SET: 2
 };
 
 export enum STATE_CHANGE_LABELS {
-    Drop,
-    Add,
-    Set
+	Drop,
+	Add,
+	Set
 };
 
 /**
@@ -19,46 +19,53 @@ export enum STATE_CHANGE_LABELS {
  * TODO enum
  */
 export var QUEUE = {
-    STATE_CHANGE: 0,
-    STATES: 1,
-    PARAMS: 2,
-    AUTO: 3,
-    TARGET: 4
+	STATE_CHANGE: 0,
+	STATES: 1,
+	PARAMS: 2,
+	AUTO: 3,
+	TARGET: 4
 };
 
 export interface IQueueRow {
-    0: number;
-    1: string[];
-    2: any[];
-    3?: boolean;
-    4?: AsyncMachine;
+	0: number;
+	1: string[];
+	2: any[];
+	3?: boolean;
+	4?: AsyncMachine;
 }
 
 export class Deferred {
-    promise: Promise<any>;
+	promise: Promise<any>;
 
-    resolve: (...params: any[]) => void;
+	resolve: (...params: any[]) => void;
 
-    reject: (err?) => void;
+	reject: (err?) => void;
 
-    constructor() {
-        this.promise = new Promise((resolve, reject) => {
-            this.resolve = resolve;
-            this.reject = reject;
-        });
-    }
+	constructor() {
+		this.promise = new Promise((resolve, reject) => {
+			this.resolve = resolve;
+			this.reject = reject;
+		});
+	}
 }
 
 export interface IState {
-    // TODO change to 'after'
+	// Decides about the order of activations (transitions)
+	// TODO change to 'after'
 	depends?: string[];
-    // TODO change to 'add'
+	// When set, sets also the following states
+	// TODO change to 'add'
 	implies?: string[];
-    // TODO change to 'drop'
+	// When set, blocks activation (or deactivates) given states
+	// TODO change to 'drop'
 	blocks?: string[];
-    // TODO change to 'require'
+	// State will be rejected if any of those aren't set
+	// TODO change to 'require'
 	requires?: string[];
+	// When true, the state will be set automatically, if it's not blocked
 	auto?: boolean;
+	// Multi states always triggers the enter and state transitions, plus
+	// the clock is always incremented
 	multi?: boolean;
 }
 
@@ -67,13 +74,13 @@ export interface IState {
 // }
 
 export interface IPreparedTransitions {
-    states: string[];
-    before: string[];
-    self: any[];
-    enters: any[];
-    exits: any[];
-    accepted: boolean;
-    auto: boolean;
+	states: string[];
+	before: string[];
+	self: any[];
+	enters: any[];
+	exits: any[];
+	accepted: boolean;
+	auto: boolean;
 }
 
 // TODO merge with the enum
@@ -81,22 +88,22 @@ export type TStateAction = 'add' | 'drop' | 'set'
 export type TStateMethod = 'enter' | 'exit' | 'state' | 'end'
 
 export interface IPipeNegotiationBindings {
-    enter: TStateAction,
-    exit: TStateAction
+	enter: TStateAction,
+	exit: TStateAction
 }
 
 export interface IPipeStateBindings {
-    state: TStateAction,
-    end: TStateAction
+	state: TStateAction,
+	end: TStateAction
 }
 
 export type TPipeBindings = IPipeStateBindings | IPipeNegotiationBindings
 
 export interface IPipeStateTarget {
-    state: string,
-    machine: AsyncMachine,
-    event_type: TStateMethod,
-    listener: Function
+	state: string,
+	machine: AsyncMachine,
+	event_type: TStateMethod,
+	listener: Function
 }
 
 /**
@@ -111,15 +118,15 @@ export interface IPipeStateTarget {
  * use the PipeFlags.LOCAL_QUEUE. This will alter the transition order.
  */
 export enum PipeFlags {
-    NEGOTIATION = 0,
-    INVERT = 1 << 0,
-    LOCAL_QUEUE = 1 << 1
+	NEGOTIATION = 0,
+	INVERT = 1 << 0,
+	LOCAL_QUEUE = 1 << 1
 }
 
 export class TransitionException extends Error {
-    constructor(
-            public err: Error,
-            public transition: string) {
-        super()
-    }
+	constructor(
+			public err: Error,
+			public transition: string) {
+		super()
+	}
 }

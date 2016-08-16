@@ -1,51 +1,60 @@
-const asyncmachine = require('../../build/asyncmachine.cjs.js')
+const asyncmachine = require('../../build/asyncmachine.js')
 require('source-map-support').install()
 
 
-// SETUP THE MACHINES AND LOGGING
+/**
+ * This example presents how piping works between machines.
+ * 
+ * Log output (mixed levels)
+create the pipes (and sync the state)
 
+[foo] [pipe] A as AA to bar
+[bar] [drop] AA
+[foo] [pipe:invert] B as NotB to baz
+[baz] [add] NotB
+[baz] [states] +NotB
+[baz] [pipe] NotB as NotB to bar
+[bar] [add] NotB
+[bar] [states] +NotB
+
+play with [foo] a bit
+
+[foo] [states] +A
+[bar] [states] +AA
+[foo] [states] +B
+[baz] [states] -NotB
+[bar] [states] -NotB
+[foo] [states] -B
+[baz] [states] +NotB
+[bar] [states] +NotB
+*/
 
 const foo = asyncmachine.factory({
-	FooA: {},
-	FooB: {}
-})
-foo.id('foo').logLevel(1)
+	A: {},
+	B: {}
+}).id('foo').logLevel(2)
 
 const bar = asyncmachine.factory({
-	BarA: {},
-	BarB: {}
-})
-bar.id('bar').logLevel(1)
+	AA: {},
+	NotB: {}
+}).id('bar').logLevel(2)
 
 const baz = asyncmachine.factory({
-	BazA: {},
-	BazB: {}
-})
-baz.id('baz').logLevel(1)
+	NotB: {},
+}).id('baz').logLevel(2)
 
 
-// CREATE THE PIPES
+console.log("\ncreate the pipes (and sync the state)\n")
 
+foo.pipe('A', bar, 'AA')
+foo.pipe('B', baz, 'NotB', asyncmachine.PipeFlags.INVERT)
+baz.pipe('NotB', bar, 'NotB')
 
-foo.pipe('FooA', bar, 'BarA')
-foo.pipeInverted('FooB', baz, 'BazB')
-baz.pipe('BazB', bar, 'BarB')
+console.log("\nplay with [foo] a bit\n")
+foo.logLevel(1)
+bar.logLevel(1)
+baz.logLevel(1)
 
-
-// RUN
-
-foo.add('FooA')
-foo.add('FooB')
-foo.drop('FooB')
-
-
-/*
-Log output:
-
-[foo] [states] +FooA
-[bar] [states] +BarA
-[foo] [states] +FooB
-[foo] [states] -FooB
-[baz] [states] +BazB
-[bar] [states] +BarB
-*/
+foo.add('A')
+foo.add('B')
+foo.drop('B')

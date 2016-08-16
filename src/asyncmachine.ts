@@ -515,10 +515,8 @@ export class AsyncMachine extends EventEmitter {
      * ```
      *
      */
-    setByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
-    setByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
-    setByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
-    setByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    setByCallback(target: AsyncMachine, states: string[] | string, ...params: any[]): (err?: any, ...params) => void;
+    setByCallback(target: string[] | string, states?: any, ...params: any[]): (err?: any, ...params) => void;
     setByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
         return this.createCallback(this.createDeferred(this.set.bind(this), target, states, params));
     }
@@ -541,10 +539,8 @@ export class AsyncMachine extends EventEmitter {
      * emitter.on 'error', states.addByListener 'Exception'
      * ```
      */
-    setByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
-    setByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
-    setByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
-    setByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    setByListener(target: AsyncMachine, states: string[] | string, ...params: any[]): (err?: any, ...params) => void;
+    setByListener(target: string[] | string, states?: any, ...params: any[]): (err?: any, ...params) => void;
     setByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
         return this.createListener(this.createDeferred(this.set.bind(this), target, states, params));
     }
@@ -563,10 +559,8 @@ export class AsyncMachine extends EventEmitter {
      * states.is() # -> ['A']
      * ```
      */
-    setNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
-    setNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
-    setNext(target: string, states: any, ...params: any[]): (...params) => void;
-    setNext(target: string[], states: any, ...params: any[]): (...params) => void;
+    setNext(target: AsyncMachine, states: string[] | string, ...params: any[]): (...params) => void;
+    setNext(target: string[] | string, states: any, ...params: any[]): (...params) => void;
     setNext(target: any, states: any, ...params: any[]): (...params) => void {
         var fn = this.set.bind(this);
         return this.setImmediate(fn, target, states, params);
@@ -612,10 +606,8 @@ export class AsyncMachine extends EventEmitter {
      * 	states1.add states2, 'B'
      * ```
      */
-    add(target: AsyncMachine, states: string[], ...params: any[]): boolean;
-    add(target: AsyncMachine, states: string, ...params: any[]): boolean;
-    add(target: string[], states?: any, ...params: any[]): boolean;
-    add(target: string, states?: any, ...params: any[]): boolean;
+    add(target: AsyncMachine, states: string[] | string, ...params: any[]): boolean;
+    add(target: string[] | string, states?: any, ...params: any[]): boolean;
     add(target: any, states?: any, ...params: any[]): boolean {
         if (!(target instanceof AsyncMachine)) {
             if (states) {
@@ -647,10 +639,8 @@ export class AsyncMachine extends EventEmitter {
      * ```
      *
      */
-    addByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
-    addByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
-    addByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
-    addByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    addByCallback(target: AsyncMachine, states: string[] | string, ...params: any[]): (err?: any, ...params) => void;
+    addByCallback(target: string[] | string, states?: any, ...params: any[]): (err?: any, ...params) => void;
     addByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
         return this.createCallback(this.createDeferred(this.add.bind(this), target, states, params));
     }
@@ -673,10 +663,8 @@ export class AsyncMachine extends EventEmitter {
      * emitter.on 'error', states.addByListener 'Exception'
      * ```
      */
-    addByListener(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
-    addByListener(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
-    addByListener(target: string[], states?: any, ...params: any[]): (...params) => void;
-    addByListener(target: string, states?: any, ...params: any[]): (...params) => void;
+    addByListener(target: AsyncMachine, states: string[] | string, ...params: any[]): (...params) => void;
+    addByListener(target: string[] | string, states?: any, ...params: any[]): (...params) => void;
     addByListener(target: any, states?: any, ...params: any[]): (...params) => void {
         return this.createListener(this.createDeferred(this.add.bind(this), target, states, params));
     }
@@ -695,10 +683,8 @@ export class AsyncMachine extends EventEmitter {
      * states.is() # -> ['A', 'B']
      * ```
      */
-    addNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
-    addNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
-    addNext(target: string, states: any, ...params: any[]): (...params) => void;
-    addNext(target: string[], states: any, ...params: any[]): (...params) => void;
+    addNext(target: AsyncMachine, states: string[] | string, ...params: any[]): (...params) => void;
+    addNext(target: string[] | string, states: any, ...params: any[]): (...params) => void;
     addNext(target: any, states: any, ...params: any[]): (...params) => void {
         var fn = this.add.bind(this);
         return this.setImmediate(fn, target, states, params);
@@ -744,10 +730,8 @@ export class AsyncMachine extends EventEmitter {
      * 	states1.add states2, 'B'
      * ```
      */
-    drop(target: AsyncMachine, states: string[], ...params: any[]): boolean;
-    drop(target: AsyncMachine, states: string, ...params: any[]): boolean;
-    drop(target: string[], states?: any, ...params: any[]): boolean;
-    drop(target: string, states?: any, ...params: any[]): boolean;
+    drop(target: AsyncMachine, states: string[] | string, ...params: any[]): boolean;
+    drop(target: string[] | string, states?: any, ...params: any[]): boolean;
     drop(target: any, states?: any, ...params: any[]): boolean {
         if (!(target instanceof AsyncMachine)) {
             if (states) {
@@ -779,10 +763,8 @@ export class AsyncMachine extends EventEmitter {
      * ```
      *
      */
-    dropByCallback(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
-    dropByCallback(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
-    dropByCallback(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
-    dropByCallback(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    dropByCallback(target: AsyncMachine, states: string[] | string, ...params: any[]): (err?: any, ...params) => void;
+    dropByCallback(target: string[] | string, states?: any, ...params: any[]): (err?: any, ...params) => void;
     dropByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
         return this.createCallback(this.createDeferred(this.drop.bind(this), target, states, params));
     }
@@ -805,10 +787,8 @@ export class AsyncMachine extends EventEmitter {
      * emitter.on 'error', states.setByListener 'Exception'
      * ```
      */
-    dropByListener(target: AsyncMachine, states: string[], ...params: any[]): (err?: any, ...params) => void;
-    dropByListener(target: AsyncMachine, states: string, ...params: any[]): (err?: any, ...params) => void;
-    dropByListener(target: string[], states?: any, ...params: any[]): (err?: any, ...params) => void;
-    dropByListener(target: string, states?: any, ...params: any[]): (err?: any, ...params) => void;
+    dropByListener(target: AsyncMachine, states: string[] | string, ...params: any[]): (err?: any, ...params) => void;
+    dropByListener(target: string[] | string, states?: any, ...params: any[]): (err?: any, ...params) => void;
     dropByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
         return this.createListener(this.createDeferred(this.drop.bind(this), target, states, params));
     }
@@ -827,10 +807,8 @@ export class AsyncMachine extends EventEmitter {
      * states.is('A') # -> true
      * ```
      */
-    dropNext(target: AsyncMachine, states: string, ...params: any[]): (...params) => void;
-    dropNext(target: AsyncMachine, states: string[], ...params: any[]): (...params) => void;
-    dropNext(target: string, states: any, ...params: any[]): (...params) => void;
-    dropNext(target: string[], states: any, ...params: any[]): (...params) => void;
+    dropNext(target: AsyncMachine, states: string[] | string, ...params: any[]): (...params) => void;
+    dropNext(target: string[] | string, states: any, ...params: any[]): (...params) => void;
     dropNext(target: any, states: any, ...params: any[]): (...params) => void {
         var fn = this.drop.bind(this);
         return this.setImmediate(fn, target, states, params);
@@ -1156,9 +1134,12 @@ export class AsyncMachine extends EventEmitter {
      * TODO docs
      */
     on(event: string, listener: Function, context?: Object): this {
-		// is event is a NAME_state event, fire at once if the state is set
-		// TODO last state params
-        if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
+		// is event is a NAME_state event, fire immediately if the state is set
+        if ((event.slice(-6) === "_state" || event.slice(-6) === "_enter") && this.is(event.slice(0, -6))) {
+            this.catchPromise(listener.call(context));
+		// is event is a NAME_end event, fire immediately if the state isnt set
+        } else if ((event.slice(-4) === "_end" && !this.is(event.slice(0, -4))) ||
+                event.slice(-5) === "_exit" && !this.is(event.slice(0, -5)) ) {
             this.catchPromise(listener.call(context));
         }
 
@@ -1170,10 +1151,14 @@ export class AsyncMachine extends EventEmitter {
      * TODO docs
      */
     once(event: string, listener: Function, context?: Object): this {
-		// is event is a NAME_state event, fire at once if the state is set
+		// is event is a NAME_state event, fire immediately if the state is set
 		// and dont register the listener
-		// TODO last state params
-        if (event.slice(-6) === "_state" && this.is(event.slice(0, -6))) {
+        if ((event.slice(-6) === "_state" || event.slice(-6) === "_enter") && this.is(event.slice(0, -6))) {
+            this.catchPromise(listener.call(context));
+		// is event is a NAME_end event, fire immediately if the state is not set
+		// and dont register the listener
+        } else if ((event.slice(-4) === "_end" && !this.is(event.slice(0, -4))) ||
+                event.slice(-5) === "_exit" && !this.is(event.slice(0, -5)) ) {
             this.catchPromise(listener.call(context));
         } else {
             super.once(event, listener, context);
@@ -1236,7 +1221,7 @@ export class AsyncMachine extends EventEmitter {
                 state: "add",
                 end: "drop"
             }
-        } else if (flags & (PipeFlags.INVERT | PipeFlags.NEGOTIATION)) {
+        } else if (flags & PipeFlags.INVERT && flags & PipeFlags.NEGOTIATION) {
             return {
                 enter: "drop",
                 exit: "add"
@@ -1254,14 +1239,24 @@ export class AsyncMachine extends EventEmitter {
         }
     }
 
-    protected pipeBind(states: string | string[], machine?: AsyncMachine, target_state?: string, flags?: PipeFlags) {
+    protected pipeBind(states: string | string[], machine?: AsyncMachine, 
+            target_state?: string, flags?: PipeFlags) {
         var bindings = this.getPipeBindings(flags)
         let parsed_states = this.parseStates(states)
 
+        if (target_state !== undefined && typeof target_state !== 'string')
+            throw new Error('target_state has to be string or null')
+
+        let tags = ''
+        if (flags & PipeFlags.INVERT)
+            tags += ':invert'
+        if (flags & PipeFlags.NEGOTIATION)
+            tags += ':neg'
+
         if (parsed_states.length == 1 && target_state)
-            this.log(`[pipe] ${parsed_states[0]} as ${target_state}`, 3)
+            this.log(`[pipe${tags}] ${parsed_states[0]} as ${target_state} to ${machine.id()}`, 2)
         else
-            this.log(`[pipe] ${parsed_states.join(', ')}`, 3)
+            this.log(`[pipe${tags}] ${parsed_states.join(', ')} to ${machine.id()}`, 2)
         
         parsed_states.forEach( state => {
             // accept a different name only when one state is piped
