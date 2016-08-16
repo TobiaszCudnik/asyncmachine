@@ -1244,7 +1244,7 @@ export class AsyncMachine extends EventEmitter {
         var bindings = this.getPipeBindings(flags)
         let parsed_states = this.parseStates(states)
 
-        if (target_state !== undefined && typeof target_state !== 'string')
+        if (target_state && typeof target_state !== 'string')
             throw new Error('target_state has to be string or null')
 
         let tags = ''
@@ -1260,8 +1260,7 @@ export class AsyncMachine extends EventEmitter {
         
         parsed_states.forEach( state => {
             // accept a different name only when one state is piped
-            var target = (parsed_states.length == 1 && target_state &&
-                target_state.toString()) || state;
+            var target = (parsed_states.length == 1 && target_state) || state;
 
             Object.keys(bindings).forEach((event_type: TStateMethod) => {
                 var method_name = bindings[event_type];

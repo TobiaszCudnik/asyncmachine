@@ -60,7 +60,7 @@ describe('piping', function () {
         // TODO assert the number of pipes
         source.set(['B', 'C']);
 
-        expect(target.is()).to.eql(['C', 'B', 'D']);
+        expect(target.is()).to.eql(['C', 'B']);
     })
 
     it('support the local queue');
