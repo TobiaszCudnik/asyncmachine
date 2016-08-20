@@ -1,5 +1,9 @@
 ### ROADMAP
 
+- method
+  - now(): {A: 1, b: 34}
+  - is({A: 1, b: 34}): boolean
+- organize events, document, type them
 - graph visualizer with support for stepping through the history
   - based on the d3s forced layout
 - GC and memory management

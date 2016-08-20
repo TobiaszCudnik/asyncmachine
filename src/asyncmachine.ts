@@ -296,15 +296,29 @@ export class AsyncMachine extends EventEmitter {
      * Maximum set is ["drop", "after", "add", "require"].
      *
      * TODO code sample
+     * TODO test case
      */
-    getRelations(from_state: string, to_state: string): string[] {
+    getRelationsBetween(from_state: string, to_state: string): string[] {
 		// TODO enum
-        var relations = ["drop", "after", "add", "require"];
-        var state = this.get(from_state);
+        var relations = ["drop", "after", "add", "require"]
+        var state = this.get(from_state)
 		// TODO assert
 
         return relations.filter( relation => state[relation] && 
             state[relation].indexOf(to_state) >= 0);
+    }
+
+    /**
+     * Returns a list of relations for a given state.
+     * 
+     * TODO enum
+     * TODO test case
+     */
+    getRelationsOf(state: string): string[] {
+		// TODO enum
+        var relations = ["drop", "after", "add", "require"]
+        var data = this.get(state)
+        return relations.filter( name => data[name] )
     }
 
     /**
@@ -895,6 +909,7 @@ export class AsyncMachine extends EventEmitter {
             if (!pipes.length)
                 delete this.piped[state]
         }
+        // TODO emit an event on each of involved machines, once per machine
     }
 
     /**
@@ -1199,20 +1214,24 @@ export class AsyncMachine extends EventEmitter {
     diffStates(states1: string[], states2: string[]) {
         return states1.filter( name => !states2.includes(name) )
     }
+
+    logHandlerDefault(msg, level) {
+        if (level > this.log_level_)
+            return;
+
+        let prefix = this.id() ? `[${this.id()}] ` : ''
+        msg = prefix + msg
+
+        console.log(msg)
+    }
     
     // PRIVATES
 
     protected log(msg: string, level: number = 1) {
-        if (level > this.log_level_)
-            return;
-            
-        let prefix = this.id() ? `[${this.id()}] ` : ''
-        msg = prefix + msg
-        
         if (this.log_handler_)
-            this.log_handler_(msg)
+            this.log_handler_(msg, level)
         else
-            console.log(msg);
+            this.logHandlerDefault(msg, level)
     }
 
     protected getPipeBindings(flags): TPipeBindings {
@@ -1278,7 +1297,8 @@ export class AsyncMachine extends EventEmitter {
                     state: target,
                     machine: machine,
                     event_type,
-                    listener
+                    listener,
+                    flags
                 })
                 // assert target states
                 machine.parseStates(target)
@@ -1404,7 +1424,7 @@ export class AsyncMachine extends EventEmitter {
         if (type !== STATE_CHANGE.DROP && !is_autostate) {
             var not_accepted = this.diffStates(states, states_to_set)
             if (not_accepted.length) {
-                this.log(`[cancelled:rejected] ${not_accepted.join(', ')}`, 3);
+                this.log(`[cancelled:rejected] ${not_accepted.join(', ')}`, 2);
                 transitions.accepted = false;
             }
         }
@@ -1582,14 +1602,14 @@ export class AsyncMachine extends EventEmitter {
         return (...params) => deferred.resolve(params);
     }
 
-    private setupTargetStates_(states: string[], exclude?: string[], is_auto = false): string[] {
-        states = this.parseStates(states);
+    private setupTargetStates_(explicite_states: string[], exclude?: string[], is_auto = false): string[] {
+        explicite_states = this.parseStates(explicite_states);
 
         if (exclude == null) {
             exclude = [];
         }
 
-        states = this.parseImplies_(states);
+        var states = this.parseImplies_(explicite_states);
         states = this.removeDuplicateStates_(states);
         
 		// Check if state is blocked or excluded
@@ -1606,9 +1626,9 @@ export class AsyncMachine extends EventEmitter {
             if (blocked_by.length) {
                 already_blocked.push(name);
 				// if state wasn't implied by another state (was one of the current
-				// states) then make it a higher priority log msg
-                let level = this.is(name) ? 2 : 3
-                this.log(`[drop] ${name} by ${blocked_by.join(", ")}`, level);
+				// states) or was explicite (but not auto) then make it a higher priority log msg
+                let level = this.is(name) || (explicite_states.includes(name) && !is_auto) ? 2 : 3
+                this.log(`[rejected:drop] ${name} by ${blocked_by.join(", ")}`, level);
             }
             return !blocked_by.length && !~exclude.indexOf(name);
         });

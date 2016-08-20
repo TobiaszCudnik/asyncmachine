@@ -99,7 +99,8 @@ export interface IPipeStateTarget {
 	state: string,
 	machine: AsyncMachine,
 	event_type: TStateMethod,
-	listener: Function
+	listener: Function,
+	flags: PipeFlags
 }
 
 /**

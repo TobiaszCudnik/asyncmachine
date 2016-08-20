@@ -1,7 +1,7 @@
 {
   "name": "asyncmachine",
   "version": "3.0.0",
-  "description": "Swiss army knife for complex async systems",
+  "description": "Declarative scheduler for the event loop",
   "keywords": [
     "async",
     "statemachine",
