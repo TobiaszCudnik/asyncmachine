@@ -1,24 +1,19 @@
-ASSETS = buid/test/assets
-ONEJS = node_modules/one/bin/onejs
-COFFEE = test/node_modules/coffee-script/bin/coffee
-NODE = node
-CCOFFEE = node_modules/compiled-coffee/bin/ccoffee
-# CCOFFEE = node_modules/compiled-coffee/bin/ccoffee-osx
+BIN=./node_modules/.bin
 
 all:
 	make build
 	make build-test
 
 build:
-	-tsc
-	rollup -c rollup.config.js
-	rollup -c rollup-shims.config.js
+	-$(BIN)/tsc
+	-$(BIN)/rollup -c rollup.config.js
+	-$(BIN)/rollup -c rollup-shims.config.js
 
 build-dev:
-	-tsc --watch --isolatedModules --module commonjs
+	-$(BIN)/tsc --watch --isolatedModules --module commonjs
 
 compile-watch:
-	tsc --watch --noEmit --pretty
+	$(BIN)/tsc --watch --noEmit --pretty
 	
 setup:
 	npm install
@@ -28,29 +23,29 @@ test:
 		test/*.js
 
 test-build:
-	-tsc \
+	-$(BIN)/tsc \
 		--isolatedModules \
 		-p test
 
 test-build-watch:
-	-tsc \
+	-$(BIN)/tsc \
 		--isolatedModules \
 		--watch \
 		-p test
 
 test-grep:
-	./node_modules/mocha/bin/mocha \
+	$(BIN)/mocha \
 		--grep "$(GREP)"
 		test/*.js
 
 test-debug:
-	./node_modules/mocha/bin/mocha \
+	$(BIN)/mocha \
 		--debug-brk \
 		--grep "$(GREP)" \
 		test/*.js
 
 test-grep-debug:
-	./node_modules/mocha/bin/mocha \
+	$(BIN)/mocha \
 		--debug-brk \
 		--grep "$(GREP)" \
 		test/*.js

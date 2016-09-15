@@ -1,5 +1,7 @@
 ### ROADMAP
 
+- #now() -> { state: clock, state2: clock }
+- constructors from JSON
 - graph visualizer with support for stepping through the history
   - based on the d3s forced layout
 - GC and memory management

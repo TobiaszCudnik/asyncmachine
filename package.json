@@ -1,12 +1,16 @@
 {
   "name": "asyncmachine",
   "version": "3.0.0",
-  "description": "Swiss army knife for complex async systems",
+  "description": "Declarative scheduler for the event loop",
   "keywords": [
     "async",
     "statemachine",
     "eventemitter",
-    "states"
+    "states",
+    "transition",
+    "eventloop",
+    "declarative",
+    "relational"
   ],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
   "license": "MIT",

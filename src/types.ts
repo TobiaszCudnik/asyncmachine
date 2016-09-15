@@ -1,30 +1,22 @@
 import AsyncMachine from './asyncmachine'
 
 
-// TODO enum
-export var STATE_CHANGE = {
-	DROP: 0,
-	ADD: 1,
-	SET: 2
-};
-
-export enum STATE_CHANGE_LABELS {
-	Drop,
-	Add,
-	Set
-};
+export enum StateChangeTypes {
+	DROP,
+	ADD,
+	SET
+}
 
 /**
  * Queue enum defining param positions in queue's entries.
- * TODO enum
  */
-export var QUEUE = {
-	STATE_CHANGE: 0,
-	STATES: 1,
-	PARAMS: 2,
-	AUTO: 3,
-	TARGET: 4
-};
+export enum QueueRowFields {
+	STATE_CHANGE_TYPE,
+	STATES,
+	PARAMS,
+	AUTO,
+	TARGET
+}
 
 export interface IQueueRow {
 	0: number;
@@ -47,6 +39,41 @@ export class Deferred {
 			this.reject = reject;
 		});
 	}
+}
+
+export enum StateRelations {
+	AFTER = <any>'after',
+	ADD = <any>'add',
+	REQUIRE = <any>'require',
+	DROP = <any>'drop'
+}
+
+export enum TransitionStateRelations {
+	AFTER,
+	ADD,
+	REQUIRE,
+	DROP,
+	TRANSITION
+}
+
+export interface IStateStruct {
+	// machine ID
+	0: string,
+	// state name
+	1: string
+}
+
+export interface ITransitionTouch {
+	// target state
+	0: IStateStruct,
+	// source state
+	1?: IStateStruct,
+	// reason (empty means user input)
+	2?: TransitionStateRelations,
+	// did it cancel the transition?
+	3?: boolean,
+	// relations data (eg a transition method name)
+	4?: any
 }
 
 export interface IState {
@@ -95,7 +122,7 @@ export interface IPipeStateBindings {
 
 export type TPipeBindings = IPipeStateBindings | IPipeNegotiationBindings
 
-export interface IPipeStateTarget {
+export interface IPipedStateTarget {
 	state: string,
 	machine: AsyncMachine,
 	event_type: TStateMethod,
@@ -126,3 +153,7 @@ export class TransitionException extends Error {
 		super()
 	}
 }
+
+export class NonExistingStateError extends Error {}
+
+export type TLogHandler = (msg: string, level?: number) => any

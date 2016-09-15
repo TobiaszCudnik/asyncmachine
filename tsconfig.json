@@ -6,7 +6,7 @@
         "declaration": true,
         "noImplicitAny": false,
         "removeComments": false,
-        "lib": ["es7", "dom"],
+        "lib": ["es2017", "dom"],
         "sourceMap": true
     },
     "files": [
