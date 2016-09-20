@@ -4,12 +4,18 @@
         "target": "es6",
         "module": "es6",
         "declaration": true,
-        "noImplicitAny": false,
         "removeComments": false,
         "lib": ["es2017", "dom"],
-        "sourceMap": true
+        "sourceMap": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "strictNullChecks": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitAny": true,
+        "suppressImplicitAnyIndexErrors": true
     },
-    "files": [
-        "src/asyncmachine.ts"
+    "include": [
+        "src/**/*"
     ]
 }

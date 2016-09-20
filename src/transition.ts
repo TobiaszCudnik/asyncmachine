@@ -14,15 +14,24 @@ import 'core-js/fn/object/entries'
 
 
 /**
+ * TODO make it easier to parse
+ */
+interface IEvent {
+	0: string,
+	1: any[]
+}
+
+/**
  * TODO
- * - log touched transition methods and events
+ * - refactor the execution of calls to sth structured instead of strings
+ * - log touched calls (methods and events)
  */
 export default class Transition {
 
 	// ID of the machine which initiated the transition
 	source_machine_id: string;
 	// queue of events to fire
-	events = [];
+	private events: IEvent[] = [];
 	// states before the transition
 	before: string[];
 	// target states after parsing the relations
@@ -195,10 +204,6 @@ export default class Transition {
 			return target.every(...this.states)
 	}
 
-	merge(child_transition: Transition) {
-		this.touched.push(...child_transition.touched)
-	}
-
 	setupAccepted() {
 		// Dropping states doesn't require an acceptance
 		// Auto-states can be set partially
@@ -217,7 +222,7 @@ export default class Transition {
 		states = this.removeDuplicateStates_(states);
 
 		// Check if state is blocked or excluded
-		var already_blocked = [];
+		var already_blocked: string[] = [];
 
 		// Parsing required states allows to avoid cross-dropping of states
 		states = this.parseRequires_(states)
@@ -244,8 +249,8 @@ export default class Transition {
 
 	// TODO log it better
 	// Returns a queue entry with auto states
-	prepareAutoStates(): IQueueRow {
-		var add = [];
+	prepareAutoStates(): IQueueRow | null {
+		var add: string[] = [];
 
 		for (let state of this.machine.states_all) {
 			let is_current = () => this.machine.is(state);
@@ -262,14 +267,16 @@ export default class Transition {
 		}
 
 		if (add.length)
-			 return [StateChangeTypes.ADD, add, [], true, null]
+			 return [StateChangeTypes.ADD, add, [], true]
+
+		return null
 	}
 
 	// Collect implied states
 	parseImplies_(states: string[]): string[] {
 		let ret = [...states]
 		let changed = true
-		let visited = []
+		let visited: string[] = []
 		while(changed) {
 			changed = false
 			for (let name of ret) {
@@ -295,7 +302,7 @@ export default class Transition {
 			length_before = states.length;
 			states = states.filter((name) => {
 				let state = this.machine.get(name);
-				let not_found = [];
+				let not_found: string[] = [];
 				for (let req of state.require || []) {
 					this.touch(req, name, TransitionStateRelations.REQUIRE)
 					// TODO if required state is auto, add it (avoid an inf loop)
@@ -312,9 +319,9 @@ export default class Transition {
 		}
 
 		if (Object.keys(not_found_by_states).length) {
-			let names = []
+			let names: string[] = []
 			for (let [state, not_found] of Object.entries(not_found_by_states))
-				names.push(`${state} (-${not_found.join(" -")})`)
+				names.push(`${state}(-${not_found.join(" -")})`)
 
 			if (this.auto)
 				this.machine.log(`[rejected:auto] ${names.join(" ")}`, 3)
@@ -326,7 +333,7 @@ export default class Transition {
 	}
 
 	isStateBlocked_(states: string[], name: string): string[] {
-		var blocked_by = []
+		var blocked_by: string[] = []
 		for (let name2 of states) {
 			let state = this.machine.get(name2)
 			if (state.drop && state.drop.includes(name)) {
@@ -396,7 +403,7 @@ export default class Transition {
 			if (!this.machine.is(state))
 				return false
 
-			let ret
+			let ret = true
 			let name = `${state}_${state}`
 			// pass the transition params only to the explicite states
 			let params = this.requested_states.includes(state) ?
@@ -406,7 +413,7 @@ export default class Transition {
 			try {
 				if (context) {
 					this.machine.log("[transition] " + name, 2);
-					ret = context[name](...params);
+					ret = context[name](...params)
 					this.machine.catchPromise(ret, this.states);
 				} else
 					this.machine.log("[transition] " + name, 4);
@@ -439,7 +446,7 @@ export default class Transition {
 
 	// Exit transition handles state-to-state methods.
 	exit(from: string) {
-		let transition_params = []
+		let transition_params: any[] = []
 		// this means a 'drop' transition
 		if (this.requested_states.includes(from))
 			transition_params = this.params
@@ -495,13 +502,15 @@ export default class Transition {
 	}
 
 	// TODO this is hacky, should be integrated into processTransition
+	// the names arent the best way of queueing transition calls
 	processPostTransition() {
-		let transition
+		let transition: IEvent | undefined
 		while (transition = this.events.shift()) {
 			let name = transition[0];
 			let params = transition[1];
 			let is_enter = false
-			let state, method;
+			let state: string
+			let method: string
 
 			if (name.slice(-5) === "_exit") {
 				state = name.slice(0, -5);
@@ -518,9 +527,8 @@ export default class Transition {
 			try {
 				var context = this.machine.getMethodContext(method)
 				if (context) {
-					let ret
 					this.machine.log("[transition] " + method, 2)
-					ret = context[method](...params)
+					let ret = context[method](...params)
 					this.machine.catchPromise(ret, this.machine.is())
 				} else {
 					this.machine.log("[transition] " + method, 4)
@@ -538,10 +546,12 @@ export default class Transition {
 	// TODO REFACTOR
 	processPostTransitionException(state: string, is_enter: boolean) {
 		var states_active = this.machine.states_active
-		let transition
+		let transition: IEvent | undefined
+		// remove non transitioned states from the active list
+		// in case there was an exception thrown while settings them
 		while (transition = this.events.shift()) {
 			let name = transition[0];
-			let state
+			let state: string
 
 			if (name.slice(-5) === "_exit") {
 				state = name.slice(0, -5);
@@ -572,7 +582,7 @@ export default class Transition {
 			Array.isArray(target) ? target as IStateStruct
 				: [this.machine.id(), target as string],
 			Array.isArray(source) ? source as IStateStruct : source
-				? [this.machine.id(), source as string] : null,
+				? [this.machine.id(), source as string] : undefined,
 			type, cancelled, data
 		])
 	}

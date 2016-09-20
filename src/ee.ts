@@ -65,7 +65,7 @@ export default class EventEmitter {
   }
   
   /**
-   * Callback executor for overridding.
+   * Callback executor for overriding.
    */
   protected callListener(listener: Function, context: Object, params: any[]) {
     return listener.apply(context, params)
@@ -79,7 +79,7 @@ export default class EventEmitter {
     if (!this._events || !this._events[event]) return this;
 
     var listeners = this._events[event]
-        , events = [];
+        , events: EE[] = [];
 
     if (fn) {
       if (listeners instanceof EE) {

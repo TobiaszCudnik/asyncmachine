@@ -12,6 +12,9 @@ build:
 build-dev:
 	-$(BIN)/tsc --watch --isolatedModules --module commonjs
 
+compile:
+	$(BIN)/tsc --noEmit --pretty
+
 compile-watch:
 	$(BIN)/tsc --watch --noEmit --pretty
 	

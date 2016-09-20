@@ -2,7 +2,6 @@
  * TODO
  * - go through all the TODOs in the file
  * - cleanup post-coffeescript code
- * - if possible, introduce TS'es strict null checks
  */
 
 
@@ -20,7 +19,9 @@ import {
 		TStateMethod,
 		TLogHandler,
 		NonExistingStateError,
-		StateRelations, QueueRowFields
+		StateRelations,
+		QueueRowFields,
+		TAbortFunction
 } from './types'
 // shims for current engines
 import 'core-js/fn/array/keys'
@@ -62,7 +63,7 @@ export {
  */
 export function factory<T extends AsyncMachine>(
 		states: string[] | { [state: string]: IState } = [],
-		constructor?: { new(...params): AsyncMachine; }): T {
+		constructor?: { new(...params: any[]): AsyncMachine; }): T {
 	var instance = <T><any>(new (constructor || AsyncMachine))
 
 	if (states instanceof Array) {
@@ -96,7 +97,7 @@ export function factory<T extends AsyncMachine>(
  *   	this.states = new FooStates this, yes
  *
  *   Downloading_state: (states, @url)
- *   	fetch url, this.states.addByCallack 'Downloaded'
+ *   	fetch url, this.states.addByCallack('Downloaded')
  *
  *   Downloaded_state: (states, local_path) ->
  *   	console.log 'Downloaded #{this.url} to #{local_path}'
@@ -127,12 +128,12 @@ export class AsyncMachine extends EventEmitter {
 	queue_: IQueueRow[] = [];
 	lock: boolean = false;
 	clock_: { [state: string]: number } = {};
-	target: AsyncMachine = null;
+	target: Object;
 	// TODO merge with [[lock]]
 	lock_queue = false;
 	log_level_: number = 0;
 	log_handler_: TLogHandler;
-	transition: Transition;
+	transition: Transition | null;
 	/**
 	 * TODO write a test for this asserting states_all
 	 */
@@ -173,15 +174,14 @@ export class AsyncMachine extends EventEmitter {
 	 * @param target_states Target states of the transition during
 	 * 	which the exception was thrown.
 	 * @param base_states Base states in which the transition orginated.
-	 * @param exception_state The explicite state which thrown the exception.
+	 * @param exception_transition The explicit state which thrown the exception.
 	 * @param async_target_states Only for async transitions like
 	 * [[addByCallback]], these are states which we're supposed to be set by the
 	 * callback.
-	 * @return
 	 *
 	 * Example of exception handling
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 * states.Exception_state = (err, target_states) ->
 	 * 	# Re-adds state 'C' in case of an exception if A is set.
 	 * 	if exception_states.some((state) -> state is 'C') and @is 'A'
@@ -197,17 +197,29 @@ export class AsyncMachine extends EventEmitter {
 	 * ```
 	 *
 	 * TODO update the docs
-	 * TODO change from stdout to the log
 	 */
 	Exception_state(err: Error, target_states: string[], base_states: string[],
 			exception_transition: string, async_target_states?: string[]): void {
 		if (this.print_exception)
-			console.error("EXCEPTION from AsyncMachine");
-		if (target_states && target_states.length > 0)
-			this.log(`Exception \"${err}\" when setting the following states:\n    ${target_states.join(", ")}`);
-		if (async_target_states && async_target_states.length > 0)
-			this.log(`Next states that were supposed to be (add|drop|set):\n    ${target_states.join(", ")}`);
-		// if the exception param was passed, print and throw (but outside of the current stack trace)
+			console.error("EXCEPTION from AsyncMachine")
+		if (target_states && target_states.length > 0) {
+			this.log(`Exception \"${err}\" when setting states:\n` +
+				`${target_states.join(", ")}`);
+		}
+		if (Array.isArray(base_states)) {
+			this.log(`Source states of the transition were:\n` +
+				`${target_states.join(", ") || '-----'}`);
+		}
+		if (async_target_states && async_target_states.length > 0) {
+			this.log(`Next states that were supposed to be (add|drop|set):\n` +
+				`${async_target_states.join(", ")}`);
+		}
+		if (exception_transition) {
+			this.log(`The call which caused the exception was ` +
+				exception_transition);
+		}
+		// if the exception param was passed, print and throw (but outside of the
+		// current stack trace)
 		if (err) {
 			if (this.print_exception)
 				console.error(err)
@@ -222,12 +234,11 @@ export class AsyncMachine extends EventEmitter {
 	 * [[AsyncMachine.constructor]]'s param.
 	 *
 	 * @param target Target object.
-	 * @return
 	 *
 	 * ```
 	 * class Foo
 	 * 	constructor: ->
-	 * 		this.states = asyncmachine.factory ['A', 'B', 'C']
+	 * 		this.states = asyncmachine.factory(['A', 'B', 'C'])
 	 * 		this.states.setTarget this
 	 * 		this.states.add 'A'
 	 *
@@ -235,7 +246,7 @@ export class AsyncMachine extends EventEmitter {
 	 * 		console.log 'State A set'
 	 * ```
 	 */
-	setTarget(target) {
+	setTarget(target: Object) {
 		return this.target = target;
 	}
 
@@ -325,7 +336,7 @@ export class AsyncMachine extends EventEmitter {
 	 * states.is ['A', 'B'] // -> false
 	 * // assert the tick
 	 * tick = states.clock 'A'
-	 * states.drop 'A'
+	 * states.drop('A')
 	 * states.add 'A'
 	 * states.is 'A', tick // -> false
 	 * ```
@@ -357,7 +368,7 @@ export class AsyncMachine extends EventEmitter {
 	 * @return
 	 *
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 * states.add ['A', 'B']
 	 *
 	 * states.any 'A', 'C' // -> true
@@ -379,7 +390,7 @@ export class AsyncMachine extends EventEmitter {
 	 * Checks if all the passed states are set.
 	 *
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 * states.add ['A', 'B']
 	 *
 	 * states.every 'A', 'B' // -> true
@@ -429,7 +440,7 @@ export class AsyncMachine extends EventEmitter {
 	 * @return
 	 *
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 * states.A = drop: ['B']
 	 *
 	 * states.get('A') // -> { drop: ['B'] }
@@ -453,10 +464,10 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Basic usage
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
-	 * states.set 'A'
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states.set('A')
 	 * states.is() // -> ['A']
-	 * states.set 'B'
+	 * states.set('B')
 	 * states.is() // -> ['B']
 	 * ```
 	 *
@@ -507,15 +518,17 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
-	 * setTimeout states.setByCallback 'B'
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * setTimeout states.setByCallback('B')
 	 * ```
 	 *
 	 */
-	setByCallback(target: AsyncMachine, states: string[] | string, ...params: any[]): (err?: any, ...params) => void;
-	setByCallback(target: string[] | string, states?: any, ...params: any[]): (err?: any, ...params) => void;
-	setByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
-		return this.createCallback(this.createDeferred(this.set.bind(this), target, states, params));
+	setByCallback(target: AsyncMachine | string[] | string,
+			states?: string[] | string | any, ...params: any[])
+			: (err?: any, ...params: any[]) => void {
+		// TODO closure instead of bind
+		return this.createCallback(this.createDeferred(this.set.bind(this), target,
+			states, params));
 	}
 
 	/**
@@ -530,16 +543,18 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 * emitter = new EventEmitter
-	 * emitter.on 'ready', states.setByListener 'A'
-	 * emitter.on 'error', states.addByListener 'Exception'
+	 * emitter.on 'ready', states.setByListener('A')
+	 * emitter.on 'error', states.addByListener('Exception')
 	 * ```
 	 */
-	setByListener(target: AsyncMachine, states: string[] | string, ...params: any[]): (err?: any, ...params) => void;
-	setByListener(target: string[] | string, states?: any, ...params: any[]): (err?: any, ...params) => void;
-	setByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
-		return this.createListener(this.createDeferred(this.set.bind(this), target, states, params));
+	setByListener(target: AsyncMachine | string[] | string,
+			states?: string[] | string | any, ...params: any[])
+			: (...params: any[]) => void {
+		// TODO closure instead of bind
+		return this.createListener(this.createDeferred(this.set.bind(this), target,
+			states, params));
 	}
 
 	/**
@@ -550,16 +565,17 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
-	 * states.set 'A'
-	 * states.setNext 'B'
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states.set('A')
+	 * states.setNext('B')
 	 * states.is() // -> ['A']
 	 * ```
 	 */
-	setNext(target: AsyncMachine, states: string[] | string, ...params: any[]): (...params) => void;
-	setNext(target: string[] | string, states: any, ...params: any[]): (...params) => void;
-	setNext(target: any, states: any, ...params: any[]): (...params) => void {
-		var fn = this.set.bind(this);
+	setNext(target: AsyncMachine | string[] | string,
+			states?: string[] | string | any, ...params: any[])
+			: (...params: any[]) => void {
+		// TODO closure
+		let fn = this.set.bind(this);
 		return this.setImmediate(fn, target, states, params);
 	}
 
@@ -577,10 +593,10 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Basic usage
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 * states.add 'A'
 	 * states.is() // -> ['A']
-	 * states.add 'B'
+	 * states.add('B')
 	 * states.is() // -> ['B']
 	 * ```
 	 *
@@ -589,7 +605,7 @@ export class AsyncMachine extends EventEmitter {
 	 * states = asyncmachine.factory ['A', 'B']
 	 * # Transition enter negotiation
 	 * states.A_enter = -> no
-	 * states.add 'A' // -> false
+	 * states.add('A' )// -> false
 	 * ```
 	 *
 	 * Adding a state on an external machine
@@ -631,15 +647,17 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
-	 * someNodeCallback 'foo.com', states.addByCallback 'B'
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * someNodeCallback 'foo.com', states.addByCallback('B')
 	 * ```
 	 *
 	 */
-	addByCallback(target: AsyncMachine, states: string[] | string, ...params: any[]): (err?: any, ...params) => void;
-	addByCallback(target: string[] | string, states?: any, ...params: any[]): (err?: any, ...params) => void;
-	addByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
-		return this.createCallback(this.createDeferred(this.add.bind(this), target, states, params));
+	addByCallback(target: AsyncMachine | string[] | string,
+			states?: string[] | string | any, ...params: any[])
+			: (err?: any, ...params: any[]) => void {
+		// TODO closure instead of bind
+		return this.createCallback(this.createDeferred(this.add.bind(this), target,
+			states, params));
 	}
 
 	/**
@@ -654,16 +672,18 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 * emitter = new EventEmitter
-	 * emitter.on 'ready', states.addByListener 'A'
-	 * emitter.on 'error', states.addByListener 'Exception'
+	 * emitter.on 'ready', states.addByListener('A')
+	 * emitter.on 'error', states.addByListener('Exception')
 	 * ```
 	 */
-	addByListener(target: AsyncMachine, states: string[] | string, ...params: any[]): (...params) => void;
-	addByListener(target: string[] | string, states?: any, ...params: any[]): (...params) => void;
-	addByListener(target: any, states?: any, ...params: any[]): (...params) => void {
-		return this.createListener(this.createDeferred(this.add.bind(this), target, states, params));
+	addByListener(target: AsyncMachine | string[] | string,
+			states?: string[] | string | any, ...params: any[])
+			: (...params: any[]) => void {
+		// TODO closure instead of bind
+		return this.createListener(this.createDeferred(this.add.bind(this), target,
+			states, params));
 	}
 
 	/**
@@ -674,16 +694,17 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
-	 * states.add 'A'
-	 * states.addNext 'B'
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states.add('A')
+	 * states.addNext('B')
 	 * states.is() // -> ['A', 'B']
 	 * ```
 	 */
-	addNext(target: AsyncMachine, states: string[] | string, ...params: any[]): (...params) => void;
-	addNext(target: string[] | string, states: any, ...params: any[]): (...params) => void;
-	addNext(target: any, states: any, ...params: any[]): (...params) => void {
-		var fn = this.add.bind(this);
+	addNext(target: AsyncMachine | string[] | string,
+			states?: string[] | string | any, ...params: any[])
+			: (...params: any[]) => void {
+		// TODO closure
+		let fn = this.add.bind(this);
 		return this.setImmediate(fn, target, states, params);
 	}
 
@@ -701,10 +722,10 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Basic usage
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
-	 * states.drop 'A'
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states.drop('A')
 	 * states.is() // -> ['A']
-	 * states.drop 'B'
+	 * states.drop('B')
 	 * states.is() // -> ['B']
 	 * ```
 	 *
@@ -713,7 +734,7 @@ export class AsyncMachine extends EventEmitter {
 	 * states = asyncmachine.factory ['A', 'B']
 	 * # Transition enter negotiation
 	 * states.A_enter = -> no
-	 * states.add 'A' // -> false
+	 * states.add('A' )// -> false
 	 * ```
 	 *
 	 * Dropping a state on an external machine
@@ -755,14 +776,15 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
-	 * someNodeCallback 'foo.com', states.dropByCallback 'B'
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * someNodeCallback 'foo.com', states.dropByCallback('B')
 	 * ```
 	 *
 	 */
-	dropByCallback(target: AsyncMachine, states: string[] | string, ...params: any[]): (err?: any, ...params) => void;
-	dropByCallback(target: string[] | string, states?: any, ...params: any[]): (err?: any, ...params) => void;
-	dropByCallback(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
+	dropByCallback(target: AsyncMachine | string[] | string,
+			states?: string[] | string | any, ...params: any[])
+			: (err?: any, ...params: any[]) => void {
+		// TODO closure instead of bind
 		return this.createCallback(this.createDeferred(this.drop.bind(this), target, states, params));
 	}
 
@@ -778,16 +800,18 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 * emitter = new EventEmitter
-	 * emitter.on 'ready', states.dropByListener 'A'
-	 * emitter.on 'error', states.setByListener 'Exception'
+	 * emitter.on 'ready', states.dropByListener('A')
+	 * emitter.on 'error', states.setByListener('Exception')
 	 * ```
 	 */
-	dropByListener(target: AsyncMachine, states: string[] | string, ...params: any[]): (err?: any, ...params) => void;
-	dropByListener(target: string[] | string, states?: any, ...params: any[]): (err?: any, ...params) => void;
-	dropByListener(target: any, states?: any, ...params: any[]): (err?: any, ...params) => void {
-		return this.createListener(this.createDeferred(this.drop.bind(this), target, states, params));
+	dropByListener(target: AsyncMachine | string[] | string,
+			states?: string[] | string | any, ...params: any[])
+			: (...params: any[]) => void {
+		// TODO closure instead of bind
+		return this.createListener(this.createDeferred(this.drop.bind(this),
+			target, states, params));
 	}
 
 	/**
@@ -798,16 +822,17 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
-	 * states.add 'A'
-	 * states.dropNext 'A'
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states.add('A')
+	 * states.dropNext('A')
 	 * states.is('A') // -> true
 	 * ```
 	 */
-	dropNext(target: AsyncMachine, states: string[] | string, ...params: any[]): (...params) => void;
-	dropNext(target: string[] | string, states: any, ...params: any[]): (...params) => void;
-	dropNext(target: any, states: any, ...params: any[]): (...params) => void {
-		var fn = this.drop.bind(this);
+	dropNext(target: AsyncMachine | string[] | string,
+			states?: string[] | string | any, ...params: any[])
+			: (...params: any[]) => void {
+		// TODO closure
+		let fn = this.drop.bind(this);
 		return this.setImmediate(fn, target, states, params);
 	}
 
@@ -866,23 +891,21 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * TODO optimise, if needed
 	 */
-	pipeRemove(states?: string | string[], machine?: AsyncMachine, flags?: PipeFlags) {
-		if (flags) {
-			var bindings = this.getPipeBindings(flags)
-			var event_types = Object.keys(bindings)
-		}
-		if (states) {
-			var parsed_states = this.parseStates(states)
-		}
+	pipeRemove(states?: string | string[], machine?: AsyncMachine,
+			flags?: PipeFlags) {
+		let bindings = flags ? this.getPipeBindings(flags) : null
+		let event_types = flags ? Object.keys(bindings) : null
+		let parsed_states = states ? this.parseStates(states) : null
+
 		for (let state of Object.keys(this.piped)) {
 			let pipes = this.piped[state]
-			if (parsed_states && !~parsed_states.indexOf(state))
+			if (parsed_states && !parsed_states.includes(state))
 				continue
 			for (let i = 0; i < pipes.length; i++) {
 				let pipe = pipes[i]
 				if (machine && machine !== pipe.machine)
 					continue
-				if (flags && !~event_types.indexOf(pipe.event_type))
+				if (event_types && !event_types.includes(pipe.event_type))
 					continue
 				this.removeListener(`${state}_${pipe.event_type}`, pipe.listener)
 				pipes.splice(i, 1)
@@ -897,7 +920,7 @@ export class AsyncMachine extends EventEmitter {
 	/**
 	 * TODO should remove binding returned by pipe() and pipeAll() methods.
 	 */
-	pipeRemoveBinding(binding) {
+	pipeRemoveBinding(/*binding*/) {
 		throw new Error('TODO')
 	}
 
@@ -914,12 +937,12 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
-	 * states.add 'A'
-	 * states.add 'A'
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states.add('A')
+	 * states.add('A')
 	 * states.clock('A') // -> 1
-	 * states.drop 'A'
-	 * states.add 'A'
+	 * states.drop('A')
+	 * states.add('A')
 	 * states.clock('A') // -> 2
 	 * ````
 	 */
@@ -939,10 +962,10 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states1 = asyncmachine.factory ['A', 'B', 'C']
+	 * states1 = asyncmachine.factory(['A', 'B', 'C'])
 	 * states2 = states1.createChild()
 	 *
-	 * states2.add 'A'
+	 * states2.add('A')
 	 * states2.is() // -> ['A']
 	 * states1.is() // -> []
 	 * ````
@@ -966,7 +989,7 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 *
 	 * states.A_enter = ->
 	 *   this.duringTransition() // -> true
@@ -974,13 +997,13 @@ export class AsyncMachine extends EventEmitter {
 	 * states.A_state = ->
 	 *   this.duringTransition() // -> true
 	 *
-	 * states.add 'A'
+	 * states.add('A')
 	 * ````
 	 *
 	 * TODO expose the current transition entry (target states and autostate
 	 *   info are required)
 	 */
-	duringTransition(): Transition {
+	duringTransition(): Transition | null {
 		return this.transition;
 	}
 
@@ -1021,7 +1044,7 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 *
 	 * states.A_state = ->
 	 *   abort = @getAbort 'A'
@@ -1030,8 +1053,8 @@ export class AsyncMachine extends EventEmitter {
 	 *       console.log 'never reached'
 	 *     ), 0
 	 *
-	 * states.add 'A'
-	 * states.drop 'A'
+	 * states.add('A')
+	 * states.drop('A')
 	 * ````
 	 *
 	 * TODO support multiple states
@@ -1068,9 +1091,9 @@ export class AsyncMachine extends EventEmitter {
 	 * @param abort Existing abort function (optional)
 	 * @return Promise resolved once all states are set simultaneously.
 	 */
-	when(states: string | string[], abort?: Function): Promise<any> {
+	when(states: string | string[], abort?: TAbortFunction): Promise<null> {
 		let states_parsed = this.parseStates(states)
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			this.bindToStates(states_parsed, resolve, abort)
 		})
 	}
@@ -1088,7 +1111,7 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B', 'C']
+	 * states = asyncmachine.factory(['A', 'B', 'C'])
 	 * states.logLevel(1)
 	 * states.add('A')
 	 * // -> [add] state Enabled
@@ -1179,13 +1202,13 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * TODO target_states are redundant
 	 */
-	catchPromise(promise: Promise<any>, target_states?: string[]): Promise<any>;
-	catchPromise(promise: any, target_states?: string[]): any {
-		if ((promise != null ? promise.then : void 0) && (promise != null ? promise["catch"] : void 0)) {
-			promise["catch"](error => this.add("Exception", error, target_states));
+	catchPromise<T>(promise: T, target_states?: string[]): T {
+		if (isPromise(promise)) {
+			promise.catch( (error: any) => {
+				this.add("Exception", error, target_states)
+			})
 		}
-
-		return promise;
+		return promise
 	}
 
 	/**
@@ -1214,13 +1237,8 @@ export class AsyncMachine extends EventEmitter {
 			console.log(msg);
 	}
 
-	protected getPipeBindings(flags): TPipeBindings {
-		if (!flags) {
-			return {
-				state: "add",
-				end: "drop"
-			}
-		} else if (flags & PipeFlags.INVERT && flags & PipeFlags.NEGOTIATION) {
+	protected getPipeBindings(flags?: PipeFlags): TPipeBindings {
+		if (flags & PipeFlags.INVERT && flags & PipeFlags.NEGOTIATION) {
 			return {
 				enter: "drop",
 				exit: "add"
@@ -1236,14 +1254,18 @@ export class AsyncMachine extends EventEmitter {
 				end: "add"
 			}
 		}
+		return {
+			state: "add",
+			end: "drop"
+		}
 	}
 
-	protected pipeBind(states: string | string[], machine?: AsyncMachine,
-			target_state?: string, flags?: PipeFlags) {
-		var bindings = this.getPipeBindings(flags)
+	protected pipeBind(states: string | string[], machine: AsyncMachine,
+			requested_state?: string | null, flags?: PipeFlags) {
+		let bindings = this.getPipeBindings(flags)
 		let parsed_states = this.parseStates(states)
 
-		if (target_state && typeof target_state !== 'string')
+		if (requested_state && typeof requested_state !== 'string')
 			throw new Error('target_state has to be string or null')
 
 		if (flags & PipeFlags.NEGOTIATION && flags & PipeFlags.LOCAL_QUEUE)
@@ -1255,37 +1277,35 @@ export class AsyncMachine extends EventEmitter {
 		if (flags & PipeFlags.NEGOTIATION)
 			tags += ':neg'
 
-		if (parsed_states.length == 1 && target_state)
-			this.log(`[pipe${tags}] ${parsed_states[0]} as ${target_state} to ${machine.id()}`, 2)
+		if (parsed_states.length == 1 && requested_state)
+			this.log(`[pipe${tags}] ${parsed_states[0]} as ${requested_state} to ${machine.id()}`, 2)
 		else
 			this.log(`[pipe${tags}] ${parsed_states.join(', ')} to ${machine.id()}`, 2)
 
 		for (let state of parsed_states) {
 			// accept a different name only when one state is piped
-			var target = (parsed_states.length == 1 && target_state) || state;
+			let target_state = (parsed_states.length == 1 && requested_state) || state;
 
 			for (let [event_type, method_name] of Object.entries(bindings)) {
 				let listener = () => {
 					let target = (flags & PipeFlags.LOCAL_QUEUE) ? this : machine
-					target.once('transition-end', transition => {
-						this.duringTransition().merge(transition)
-					})
+					// TODO this shouldn't throw and is already handled inside Transition
 					if (flags & PipeFlags.NEGOTIATION && target.duringTransition())
 						throw new Error('Cant pipe negotiation into a running queue')
-					return target[method_name](machine, target)
+					return target[method_name](machine, target_state)
 				}
 				// TODO extract
 				// TODO check for duplicates
 				if (!this.piped[state])
 					this.piped[state] = []
 				this.piped[state].push({
-					state: target,
+					state: target_state,
 					machine: machine,
 					event_type: event_type as TStateMethod,
 					listener
 				})
 				// assert target states
-				machine.parseStates(target)
+				machine.parseStates(target_state)
 				// setup the forwarding listener
 				// TODO support un-piping
 				// TODO listener-less piping (read from #pipes directly)
@@ -1305,8 +1325,8 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * TODO incorporate into EE, saving one call stack frame
 	 */
-	protected callListener(listener, context, params): Promise<any>;
-	protected callListener(listener, context, params): any {
+	protected callListener(listener: Function, context: Object, params: any[])
+			: any {
 		var ret = listener.apply(context, params);
 
 		// assume params[0] are the target states of the transition
@@ -1314,7 +1334,7 @@ export class AsyncMachine extends EventEmitter {
 	}
 
 	// TODO make it cancellable
-	setImmediate(fn, ...params) {
+	setImmediate(fn: Function, ...params: any[]) {
 		if (setImmediate) {
 			return setImmediate.apply(null, [fn].concat(params));
 		} else {
@@ -1329,7 +1349,7 @@ export class AsyncMachine extends EventEmitter {
 	}
 
 	parseStates(states: string | string[]) {
-		var states_parsed = [].concat(states);
+		var states_parsed = (<string[]>[]).concat(states);
 
 		return states_parsed.filter((state) => {
 			if (typeof state !== "string" || !this.get(state)) {
@@ -1345,7 +1365,8 @@ export class AsyncMachine extends EventEmitter {
 	 * Puts a transition in the queue, handles a log msg and unifies the states
 	 * array.
 	 */
-	private enqueue_(type: number, states: string[] | string, params?: any[], target?: AsyncMachine) {
+	private enqueue_(type: number, states: string[] | string, params: any[] = [],
+			target?: AsyncMachine) {
 		var type_label = StateChangeTypes[type].toLowerCase();
 		let states_parsed = (target || this).parseStates(states);
 
@@ -1361,13 +1382,13 @@ export class AsyncMachine extends EventEmitter {
 	}
 
 	// Goes through the whole queue collecting return values.
-	private processQueue_() {
+	private processQueue_(): boolean {
 		if (this.lock_queue)
-			return
+			return false
 
 		let ret: boolean[] = [];
 		this.lock_queue = true;
-		let row: IQueueRow;
+		let row: IQueueRow | undefined;
 		while (row = this.queue_.shift()) {
 			if (!row[QueueRowFields.TARGET])
 				row[QueueRowFields.TARGET] = this
@@ -1378,16 +1399,17 @@ export class AsyncMachine extends EventEmitter {
 		return ret[0] || false;
 	}
 
-	allStatesNotSet(states): boolean {
-		return states.every((state) => !this.is(state));
+	allStatesNotSet(states: string[]): boolean {
+		return states.every((state) => !this.is(state))
 	}
 
-	private createDeferred(fn: Function, target, states, state_params: any[]): Deferred {
+	private createDeferred(fn: Function, target: AsyncMachine | string | string[],
+			states: string | string[] | any, state_params: any[]): Deferred {
 		// TODO use the current transition's states if available (for enter/exit
-		// transitons)
+		// transitions)
 		var transition_states = this.is();
 
-		var params = [target];
+		var params: any[] = [target];
 		if (states) {
 			params.push(states);
 		}
@@ -1410,8 +1432,8 @@ export class AsyncMachine extends EventEmitter {
 		return deferred;
 	}
 
-	private createCallback(deferred: Deferred): (err?, ...params) => void {
-		return (err : any = null, ...params) => {
+	private createCallback(deferred: Deferred): (err?: any, ...params: any[]) => void {
+		return (err : any = null, ...params: any[]) => {
 			if (err) {
 				return deferred.reject(err);
 			} else {
@@ -1420,8 +1442,8 @@ export class AsyncMachine extends EventEmitter {
 		};
 	}
 
-	private createListener(deferred: Deferred): (...params) => void {
-		return (...params) => deferred.resolve(params);
+	private createListener(deferred: Deferred): (...params: any[]) => void {
+		return (...params: any[]) => deferred.resolve(params);
 	}
 
 	/**
@@ -1444,10 +1466,10 @@ export class AsyncMachine extends EventEmitter {
 		}
 
 		// construct a logging msg
-		var log_msg = [];
-		if (new_states.length) {
-			log_msg.push("+" + (new_states.join(" +")));
-		}
+		var log_msg: string[] = [];
+		if (new_states.length)
+			log_msg.push("+" + new_states.join(" +"))
+
 		if (removed_states.length) {
 			log_msg.push("-" + (removed_states.join(" -")));
 		}
@@ -1465,17 +1487,19 @@ export class AsyncMachine extends EventEmitter {
 		return previous
 	}
 
-	getMethodContext(name) {
+	getMethodContext(name: string): Object | null {
 		if (this.target[name] && this.target[name] instanceof Function) {
 			return this.target;
 		} else if (this[name] && this[name] instanceof Function) {
 			return this;
 		}
+		return null
 	}
 
 	// TODO bind to _enter and _exit as well to support the negotiation phase in
 	// piped events
-	private bindToStates(states: string[], listener: Function, abort?: Function, once: boolean = false) {
+	private bindToStates(states: string[], listener: Function,
+			abort?: TAbortFunction) {
 		var enter = () => {
 			let should_abort = abort && abort()
 			if (!should_abort && this.is(states))
@@ -1509,6 +1533,11 @@ export class AsyncMachine extends EventEmitter {
 			return false;
 		};
 	}
+}
+
+
+function isPromise(promise: any): promise is Promise<any> {
+	return promise && promise.then && promise.catch
 }
 
 

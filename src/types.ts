@@ -92,19 +92,7 @@ export interface IState {
 	multi?: boolean;
 }
 
-// export interface ITransitionHandler {
-// 	(states: string[], ...params: any[]): boolean;
-// }
-
-export interface IPreparedTransitions {
-	states: string[];
-	before: string[];
-	self: any[];
-	enters: any[];
-	exits: any[];
-	accepted: boolean;
-	auto: boolean;
-}
+export type TAbortFunction = () => boolean
 
 // TODO merge with the enum
 export type TStateAction = 'add' | 'drop' | 'set'

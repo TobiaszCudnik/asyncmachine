@@ -1,6 +1,14 @@
 ### ROADMAP
 
+- piping self state transition
+- piping both the negotiation and state phase
+- edge case: piping negotiation, when a further state is cancelling
+  - makes the piping inconsistent
+  - for now, rely on the self transition
+  - in the future, wait with the 3rd transition phase in the machine B
+    till the negotiation is finished
 - #now() -> { state: clock, state2: clock }
+  - #wasLater(#now(), #now()) but with a better name
 - constructors from JSON
 - graph visualizer with support for stepping through the history
   - based on the d3s forced layout
@@ -9,6 +17,9 @@
   - auto unbinding unreachable transitions
   - auto unbinding unreachable promises' error handlers
   - memory leaks load tests
+- transition executing the queue via generator iteration
+  - -3 stack frames
+  - possibly avoid nesting when piping in the future
 - remote state machines
 - case insensitive state names (when strings)
 - d.ts generator with string literal types
@@ -18,6 +29,11 @@
 - chai assertion helper
 - rewrite tests
 - ensure all the state lists and params are shallow copied
+
+### v3.x
+
+- extracted the Transition class
+- stricter compiler checks (nulls, implicit any, returns)
 
 ### v3.0
 
@@ -42,7 +58,7 @@
 - state negotiation fixes
 - state piping fixes
 - event namespaces are gone
-- non-negotiation transitions
+- non-negotiable transition phase
 - updated and extended API
 - log readability optimized
 - composition over inheritance
