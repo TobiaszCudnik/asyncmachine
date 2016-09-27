@@ -306,17 +306,22 @@ export class AsyncMachine extends EventEmitter {
 	 * Maximum set is ["drop", "after", "add", "require"].
 	 *
 	 * TODO code sample
-	 * TODO make to_state optional
+	 * TODO test
 	 */
-	getRelationsOf(from_state: string, to_state: string): StateRelations[] {
+	getRelationsOf(from_state: string, to_state?: string): StateRelations[] {
 		this.parseStates(from_state)
 		this.parseStates(to_state)
 		let state = this.get(from_state)
 		let relations = [StateRelations.AFTER, StateRelations.ADD,
 			StateRelations.DROP, StateRelations.REQUIRE]
 
-		return relations.filter( relation => state[relation] &&
-			state[relation].includes(to_state));
+		return relations.filter( relation => {
+			if (!state[relation])
+				return false
+			if (to_state && !state[relation].includes(to_state))
+				return false
+			return true
+		})
 	}
 
 	/**
@@ -1236,14 +1241,14 @@ export class AsyncMachine extends EventEmitter {
 		console.log(msg)
 	}
 
-	// PRIVATES
-
-	protected log(msg: string, level: number = 1) {
+	log(msg: string, level: number = 1) {
 		if (this.log_handler_)
 			this.log_handler_(msg, level)
 		else
 			this.logHandlerDefault(msg, level)
 	}
+
+	// PRIVATES
 
 	protected getPipeBindings(flags?: PipeFlags): TPipeBindings {
 		if (flags & PipeFlags.INVERT && flags & PipeFlags.NEGOTIATION) {

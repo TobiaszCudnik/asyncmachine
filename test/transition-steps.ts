@@ -37,17 +37,18 @@ describe('Transition steps', function () {
         states.add(['A', 'D'])
         expect(states.is()).to.eql(['A', 'D', 'B', 'C'])
         expect(transition.steps.length).to.be.gt(0)
+				let types = TransitionStepTypes
         let steps = [
-            [["", "A"], undefined, 5],
-            [["", "D"], undefined, 5],
-            [["", "A"], undefined, 2],
-            [["", "D"], undefined, 2],
-            [["", "B"], ["", "D"], 0, "add"],
-            [["", "C"], ["", "D"], 0, "add"],
-            [["", "B"], undefined, 2],
-            [["", "C"], undefined, 2],
-            [["", "E"], ["", "D"], 0, "drop"],
-            [["", "E"], undefined, 3]
+            [["", "A"], undefined, types.REQUESTED, undefined],
+            [["", "D"], undefined, types.REQUESTED, undefined],
+            [["", "A"], undefined, types.SET, undefined],
+            [["", "D"], undefined, types.SET, undefined],
+            [["", "B"], ["", "D"], types.RELATION, "add"],
+            [["", "C"], ["", "D"], types.RELATION, "add"],
+            [["", "B"], undefined, types.SET, undefined],
+            [["", "C"], undefined, types.SET, undefined],
+            [["", "E"], ["", "D"], types.RELATION, "drop"],
+            [["", "E"], undefined, types.DROP, undefined]
         ]
         expect(transition.steps).to.eql(steps)
     })
@@ -71,15 +72,16 @@ describe('Transition steps', function () {
         states.set(['A', 'C'])
         expect(states.is()).to.eql(['A', 'C'])
         expect(transition.steps.length).to.be.gt(0)
+				let types = TransitionStepTypes
         let steps = [
-            [["", "A"], undefined, 5],
-            [["", "C"], undefined, 5],
-            [["", "C"], undefined, 2],
-            [["", "B"], undefined, 3],
-            [["", "A"], ["", "A"], 1, "A_A"],
-            [["", "B"], undefined, 1, "B_exit"],
-            [["", "B"], ["", "C"], 1, "B_C"],
-            [["", "C"], undefined, 1, "C_enter"]
+            [["", "A"], undefined, types.REQUESTED, undefined],
+            [["", "C"], undefined, types.REQUESTED, undefined],
+            [["", "C"], undefined, types.SET, undefined],
+            [["", "B"], undefined, types.DROP, undefined],
+            [["", "A"], ["", "A"], types.TRANSITION, "A_A"],
+            [["", "B"], undefined, types.TRANSITION, "B_exit"],
+            [["", "B"], ["", "C"], types.TRANSITION, "B_C"],
+            [["", "C"], undefined, types.TRANSITION, "C_enter"]
         ]
         expect(transition.steps).to.eql(steps)
     })
