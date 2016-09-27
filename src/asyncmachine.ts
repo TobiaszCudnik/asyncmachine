@@ -9,19 +9,20 @@ import Transition from "./transition";
 import EventEmitter from "./ee"
 import uuid from './uuid-v4'
 import {
-		StateChangeTypes,
-		Deferred,
-		PipeFlags,
-		IQueueRow,
-		IPipedStateTarget,
-		IState,
-		TPipeBindings,
-		TStateMethod,
-		TLogHandler,
-		NonExistingStateError,
-		StateRelations,
-		QueueRowFields,
-		TAbortFunction
+	StateChangeTypes,
+	Deferred,
+	PipeFlags,
+	IQueueRow,
+	IPipedStateTarget,
+	IState,
+	TPipeBindings,
+	TStateMethod,
+	TLogHandler,
+	NonExistingStateError,
+	StateRelations,
+	QueueRowFields,
+	TAbortFunction,
+	TransitionStepTypes
 } from './types'
 // shims for current engines
 import 'core-js/fn/array/keys'
@@ -31,7 +32,8 @@ import 'core-js/fn/object/entries'
 
 export {
 	PipeFlags
-} from './types' 
+} from './types'
+export { default as Transition } from './transition'
 
 
 /**
@@ -151,7 +153,7 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * @param target Target object for the transitions, useful when composing the
 	 * 	states instance.
-	 * @param registerAll Automaticaly registers all defined states.
+	 * @param register_all Automatically registers all defined states.
 	 * @see [[AsyncMachine]] for the usage example.
 	 */
 	constructor(target?: AsyncMachine, register_all: boolean = true) {
@@ -304,6 +306,7 @@ export class AsyncMachine extends EventEmitter {
 	 * Maximum set is ["drop", "after", "add", "require"].
 	 *
 	 * TODO code sample
+	 * TODO make to_state optional
 	 */
 	getRelations(from_state: string, to_state: string): StateRelations[] {
 		this.parseStates(from_state)
@@ -1289,9 +1292,12 @@ export class AsyncMachine extends EventEmitter {
 			for (let [event_type, method_name] of Object.entries(bindings)) {
 				let listener = () => {
 					let target = (flags & PipeFlags.LOCAL_QUEUE) ? this : machine
-					// TODO this shouldn't throw and is already handled inside Transition
-					if (flags & PipeFlags.NEGOTIATION && target.duringTransition())
-						throw new Error('Cant pipe negotiation into a running queue')
+					let transition = this.duringTransition()
+					if (transition) {
+						transition.addStep([machine.id(), target_state], [this.id(), state],
+							TransitionStepTypes.PIPE)
+					}
+
 					return target[method_name](machine, target_state)
 				}
 				// TODO extract
@@ -1302,13 +1308,14 @@ export class AsyncMachine extends EventEmitter {
 					state: target_state,
 					machine: machine,
 					event_type: event_type as TStateMethod,
+					flags,	// TODO keeping flags here isn't ideal
 					listener
 				})
 				// assert target states
 				machine.parseStates(target_state)
 				// setup the forwarding listener
-				// TODO support un-piping
-				// TODO listener-less piping (read from #pipes directly)
+				// TODO listener-less piping
+				// read from #pipes directly, inside the transition
 				this.on(`${state}_${event_type}`, listener)
 			}
 

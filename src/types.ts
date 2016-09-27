@@ -48,32 +48,46 @@ export enum StateRelations {
 	DROP = <any>'drop'
 }
 
-export enum TransitionStateRelations {
-	AFTER,
-	ADD,
-	REQUIRE,
+// TODO pipe?
+export enum TransitionStepTypes {
+	RELATION,
+	TRANSITION,
+	SET,
 	DROP,
-	TRANSITION
+	NO_SET,
+	REQUESTED,
+	CANCEL,
+	PIPE
+}
+
+export enum StateStructFields {
+	MACHINE_ID,
+	STATE_NAME
 }
 
 export interface IStateStruct {
-	// machine ID
+	/* StateStructFields.MACHINE_ID */
 	0: string,
-	// state name
+	/* StateStructFields.STATE_NAME */
 	1: string
 }
 
+export enum TransitionTouchFields {
+	STATE,
+	SOURCE_STATE,
+	TYPE,
+	DATA
+}
+
 export interface ITransitionTouch {
-	// target state
+	/* TransitionTouchFields.STATE */
 	0: IStateStruct,
-	// source state
+	/* TransitionTouchFields.SOURCE_STATE */
 	1?: IStateStruct,
-	// reason (empty means user input)
-	2?: TransitionStateRelations,
-	// did it cancel the transition?
-	3?: boolean,
-	// relations data (eg a transition method name)
-	4?: any
+	/* TransitionTouchFields.TYPE */
+	2?: TransitionStepTypes,
+	/* TransitionTouchFields.DATA (eg a transition method name, relation type) */
+	3?: any
 }
 
 export interface IState {
@@ -114,7 +128,8 @@ export interface IPipedStateTarget {
 	state: string,
 	machine: AsyncMachine,
 	event_type: TStateMethod,
-	listener: Function
+	listener: Function,
+	flags?: PipeFlags
 }
 
 /**
@@ -129,9 +144,11 @@ export interface IPipedStateTarget {
  * use the PipeFlags.LOCAL_QUEUE. This will alter the transition order.
  */
 export enum PipeFlags {
-	NEGOTIATION = 0,
-	INVERT = 1 << 0,
-	LOCAL_QUEUE = 1 << 1
+	NEGOTIATION = 1,
+	INVERT = 1 << 2,
+	LOCAL_QUEUE = 1 << 3,
+	// TODO implement
+	NEGOTIATION_BOTH = 1 << 4
 }
 
 export class TransitionException extends Error {

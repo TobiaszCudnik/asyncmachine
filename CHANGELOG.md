@@ -20,6 +20,7 @@
 - transition executing the queue via generator iteration
   - -3 stack frames
   - possibly avoid nesting when piping in the future
+- extend the multi states which create new machines (eg for requests)
 - remote state machines
 - case insensitive state names (when strings)
 - d.ts generator with string literal types

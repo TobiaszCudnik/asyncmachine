@@ -4,9 +4,12 @@ import {
 	StateChangeTypes,
 	IQueueRow,
 	QueueRowFields,
-	TransitionStateRelations,
+	TransitionStepTypes,
 	IStateStruct,
-	ITransitionTouch
+	ITransitionTouch,
+	StateRelations,
+	TransitionTouchFields,
+	StateStructFields
 } from "./types";
 // shims for current engines
 import 'core-js/fn/array/includes'
@@ -24,7 +27,7 @@ interface IEvent {
 /**
  * TODO
  * - refactor the execution of calls to sth structured instead of strings
- * - log touched calls (methods and events)
+ * - log steps calls (methods and events)
  */
 export default class Transition {
 
@@ -44,8 +47,8 @@ export default class Transition {
 	accepted = true;
 	// source queue row
 	row: IQueueRow;
-	// list of touched states with machine IDs
-	touched: ITransitionTouch[] = [];
+	// list of steps states with machine IDs
+	steps: ITransitionTouch[] = [];
 	// was transition cancelled during negotiation?
 	cancelled: boolean;
 
@@ -77,25 +80,37 @@ export default class Transition {
 
 		let type = this.type
 		let states = this.requested_states
+		this.addStepsFor(states, null, TransitionStepTypes.REQUESTED)
 
-		let type_label = StateChangeTypes[type].toLowerCase();
+		let type_label = StateChangeTypes[type].toLowerCase()
 		if (this.auto)
-			this.machine.log(`[${type_label}:auto] state ${states.join(", ")}`, 3);
+			this.machine.log(`[${type_label}:auto] state ${states.join(", ")}`, 3)
 		else
-			this.machine.log(`[${type_label}] ${states.join(", ")}`, 2);
+			this.machine.log(`[${type_label}] ${states.join(", ")}`, 2)
 
-		let states_to_set = (() => {
-			switch (type) {
-				case StateChangeTypes.DROP:
-					return this.machine.states_active
+		let states_to_set: string[] = []
+
+		switch (type) {
+			case StateChangeTypes.DROP:
+				states_to_set = this.machine.states_active
 						.filter( state => !states.includes(state))
-				case StateChangeTypes.ADD:
-					return [...states, ...this.machine.states_active]
-				case StateChangeTypes.SET:
-					return states
-			}
-		})()
-		this.setupTargetStates(states_to_set)
+				this.addStepsFor(states, null, TransitionStepTypes.DROP)
+				break
+			case StateChangeTypes.ADD:
+				states_to_set = [...states, ...this.machine.states_active]
+				this.addStepsFor(this.machine.diffStates(states_to_set,
+						this.machine.states_active), null, TransitionStepTypes.SET)
+				break
+			case StateChangeTypes.SET:
+				states_to_set = states
+				this.addStepsFor(this.machine.diffStates(states_to_set,
+						this.machine.states_active), null, TransitionStepTypes.SET)
+				this.addStepsFor(this.machine.diffStates(this.machine.states_active,
+						states_to_set), null, TransitionStepTypes.DROP)
+				break
+		}
+
+		this.resolveRelations(states_to_set)
 
 		let implied_states = this.machine.diffStates(this.states, states_to_set)
 		if (implied_states.length)
@@ -128,6 +143,8 @@ export default class Transition {
 		target.emit("transition-start", this)
 
 		try {
+			// NEGOTIATION CALLS PHASE (cancellable)
+
 			// self transitions
 			if (!aborted && this.type != StateChangeTypes.DROP)
 				aborted = (this.self() === false)
@@ -137,6 +154,7 @@ export default class Transition {
 				for (let state of this.exits) {
 					if (false === this.exit(state)) {
 						aborted = true
+						this.addStep(state, null, TransitionStepTypes.CANCEL)
 						continue
 					}
 				}
@@ -146,15 +164,17 @@ export default class Transition {
 				for (let state of this.enters) {
 					if (false === this.enter(state)) {
 						aborted = true
+						this.addStep(state, null, TransitionStepTypes.CANCEL)
 						continue
 					}
 				}
 			}
-			// state and end transitions (non-abortable)
+
+			// STATE CALLS PHASE (non cancellable)
 			if (!aborted) {
 				// TODO extract
 				target.setActiveStates_(this.requested_states, this.states)
-				this.processPostTransition();
+				this.processPostTransition()
 				hasStateChanged = target.hasStateChanged(this.before)
 				if (hasStateChanged)
 					// TODO rename to "tick"
@@ -189,9 +209,8 @@ export default class Transition {
 			// prepend auto states to the beginning of the queue
 			// TODO find prepareAutoStates ;]
 			var auto_states = this.prepareAutoStates();
-			if (auto_states) {
-				target.queue_.unshift(auto_states);
-			}
+			if (auto_states)
+				target.queue_.unshift(auto_states)
 		}
 
 		target.emit("transition-end", this)
@@ -211,12 +230,13 @@ export default class Transition {
 			let not_accepted = this.machine.diffStates(this.requested_states, this.states)
 			if (not_accepted.length) {
 				this.machine.log(`[cancelled:rejected] ${not_accepted.join(', ')}`, 3)
+				this.addStepsFor(not_accepted, null, TransitionStepTypes.CANCEL)
 				this.accepted = false;
 			}
 		}
 	}
 
-	setupTargetStates(states: string[]): void {
+	resolveRelations(states: string[]): void {
 		states = this.machine.parseStates(states);
 		states = this.parseImplies_(states);
 		states = this.removeDuplicateStates_(states);
@@ -229,15 +249,20 @@ export default class Transition {
 
 		// Remove states already blocked.
 		states = states.reverse().filter((name) => {
-			var blocked_by = this.isStateBlocked_(states, name);
-			blocked_by = blocked_by.filter( blocker_name => !~already_blocked.indexOf(blocker_name));
+			let blocked_by = this.isStateBlocked_(states, name);
+			blocked_by = blocked_by.filter( blocker_name => (
+					!already_blocked.includes(blocker_name)))
 
 			if (blocked_by.length) {
 				already_blocked.push(name);
 				// if state wasn't implied by another state (was one of the current
 				// states) then make it a higher priority log msg
 				let level = this.machine.is(name) ? 2 : 3
-				this.machine.log(`[drop] ${name} by ${blocked_by.join(", ")}`, level);
+				this.machine.log(`[drop] ${name} by ${blocked_by.join(", ")}`, level)
+				if (this.machine.is(name))
+					this.addStep(name, null, TransitionStepTypes.DROP)
+				else
+					this.addStep(name, null, TransitionStepTypes.NO_SET)
 			}
 			return !blocked_by.length
 		})
@@ -283,7 +308,9 @@ export default class Transition {
 				let state = this.machine.get(name)
 				if (visited.includes(name) || !state.add)
 					continue
-				this.touchMany(state.add, name, TransitionStateRelations.ADD)
+				this.addStepsFor(state.add, name, TransitionStepTypes.RELATION,
+						StateRelations.ADD)
+				this.addStepsFor(state.add, null, TransitionStepTypes.SET)
 				ret.push(...state.add)
 				visited.push(name)
 				changed = true
@@ -304,15 +331,17 @@ export default class Transition {
 				let state = this.machine.get(name);
 				let not_found: string[] = [];
 				for (let req of state.require || []) {
-					this.touch(req, name, TransitionStateRelations.REQUIRE)
+					this.addStep(req, name, TransitionStepTypes.RELATION,
+						StateRelations.REQUIRE)
 					// TODO if required state is auto, add it (avoid an inf loop)
-					if (!states.includes(req))
+					if (!states.includes(req)) {
 						not_found.push(req)
+						this.addStep(name, null, TransitionStepTypes.NO_SET)
+					}
 				}
 
-				if (not_found.length) {
+				if (not_found.length)
 					not_found_by_states[name] = not_found
-				}
 
 				return !not_found.length;
 			});
@@ -337,7 +366,8 @@ export default class Transition {
 		for (let name2 of states) {
 			let state = this.machine.get(name2)
 			if (state.drop && state.drop.includes(name)) {
-				this.touch(name2, name, TransitionStateRelations.DROP)
+				this.addStep(name, name2, TransitionStepTypes.RELATION,
+						StateRelations.DROP)
 				blocked_by.push(name2)
 			}
 		}
@@ -352,15 +382,17 @@ export default class Transition {
 			var ret = 0
 			if (state1.after && state1.after.includes(name2)) {
 				ret = 1
-				this.touch(name2, name1, TransitionStateRelations.AFTER)
+				this.addStep(name2, name1, TransitionStepTypes.RELATION,
+						StateRelations.AFTER)
 			} else {
 				if (state2.after && state2.after.includes(name1)) {
 					ret = -1
-					this.touch(name1, name2, TransitionStateRelations.AFTER)
+					this.addStep(name1, name2, TransitionStepTypes.RELATION,
+						StateRelations.AFTER)
 				}
 			}
 			return ret
-		});
+		})
 	}
 
 	// TODO use a module
@@ -413,6 +445,7 @@ export default class Transition {
 			try {
 				if (context) {
 					this.machine.log("[transition] " + name, 2);
+					this.addStep(state, state, TransitionStepTypes.TRANSITION, name)
 					ret = context[name](...params)
 					this.machine.catchPromise(ret, this.states);
 				} else
@@ -420,6 +453,7 @@ export default class Transition {
 
 				if (ret === false) {
 					this.machine.log(`[cancelled:self] ${state}`, 2)
+					this.addStep(state, null, TransitionStepTypes.CANCEL)
 					return true;
 				}
 
@@ -431,17 +465,22 @@ export default class Transition {
 			if (ret !== false)
 				this.events.push([name, params]);
 
-			return ret === false;
+			if (ret === false) {
+				this.machine.log(`[cancelled:self] ${state}`, 2)
+				this.addStep(state, null, TransitionStepTypes.CANCEL)
+				return true
+			}
+			return false
 		})
 	}
 
 	enter(to: string) {
 		let params = this.requested_states.includes(to) ? this.params : []
-		let ret = this.transitionExec_("any_" + to, params);
+		let ret = this.transitionExec_('Any', to, "any_" + to, params);
 		if (ret === false)
 			return false
 
-		return this.transitionExec_(to + "_enter", this.params);
+		return this.transitionExec_(to, null, to + "_enter", this.params);
 	}
 
 	// Exit transition handles state-to-state methods.
@@ -451,7 +490,7 @@ export default class Transition {
 		if (this.requested_states.includes(from))
 			transition_params = this.params
 
-		let ret = this.transitionExec_(from + "_exit", transition_params);
+		let ret = this.transitionExec_(from, null, from + "_exit", transition_params);
 		if (ret === false)
 			return false
 
@@ -459,21 +498,23 @@ export default class Transition {
 			let transition = from + "_" + state;
 			transition_params = this.requested_states.includes(state)
 				? this.params : [];
-			ret = this.transitionExec_(transition, transition_params);
+			ret = this.transitionExec_(from, state, transition, transition_params);
 			return ret === false;
 		})
 
 		if (ret === true)
 			return false
 
-		return !(this.transitionExec_(from + "_any") === false)
+		return !(this.transitionExec_(from, 'Any', from + "_any") === false)
 	}
 
-	transitionExec_(method: string, params: string[] = []) {
+	transitionExec_(from: string, to: string | null, method: string,
+			params: string[] = []) {
 		let context = this.machine.getMethodContext(method)
 		try {
 			if (context) {
 				this.machine.log("[transition] " + method, 2)
+				this.addStep(from, to, TransitionStepTypes.TRANSITION, method)
 				var ret = context[method](...params)
 				this.machine.catchPromise(ret, this.states)
 			} else
@@ -482,6 +523,7 @@ export default class Transition {
 			if (ret !== false) {
 				let is_exit = method.slice(-5) === "_exit";
 				let is_enter = !is_exit && method.slice(-6) === "_enter";
+				// TODO bad bad bad
 				if (is_exit || is_enter) {
 					this.events.push([method, params]);
 				}
@@ -528,6 +570,7 @@ export default class Transition {
 				var context = this.machine.getMethodContext(method)
 				if (context) {
 					this.machine.log("[transition] " + method, 2)
+					this.addStep(state, null, TransitionStepTypes.TRANSITION, name)
 					let ret = context[method](...params)
 					this.machine.catchPromise(ret, this.machine.is())
 				} else {
@@ -574,26 +617,64 @@ export default class Transition {
 	}
 
 	/**
-	 * Marks a touched relation between two states during the transition.
+	 * Marks a steps relation between two states during the transition.
 	 */
-	touch(target: string | IStateStruct, source?: string | IStateStruct,
-			type?: TransitionStateRelations, cancelled = false, data = null) {
-		this.touched.push([
-			Array.isArray(target) ? target as IStateStruct
-				: [this.machine.id(), target as string],
-			Array.isArray(source) ? source as IStateStruct : source
-				? [this.machine.id(), source as string] : undefined,
-			type, cancelled, data
-		])
+	addStep(target: string | IStateStruct, source?: string | IStateStruct | null,
+					type?: TransitionStepTypes, data?: any): void {
+		let state = Array.isArray(target) ? target as IStateStruct
+				: [this.machine.id(), target as string] as IStateStruct
+		let source_state: IStateStruct | undefined
+
+		if (source) {
+			source_state = Array.isArray(source) ? source as IStateStruct
+				: [this.machine.id(), source as string]
+		}
+
+		this.steps.push([state, source_state, type, data])
 	}
 
 	/**
-	 * Same as [[touch]], but produces a touch for many targets.
+	 * Same as [[addStep]], but produces a step for many targets.
 	 */
-	touchMany(targets: string[] | IStateStruct[], source?: string | IStateStruct,
-				type?: TransitionStateRelations, cancelled = false, data = null) {
-		for (let target of targets) {
-			this.touch(target, source, type, cancelled, data)
-		}
+	addStepsFor(targets: string[] | IStateStruct[], source?: string | IStateStruct
+			| null, type?: TransitionStepTypes, data?: any): void {
+		for (let target of targets)
+			this.addStep(target, source, type, data)
+	}
+
+	/**
+	 * Produces a readable list of steps states.
+	 *
+	 * Example:
+	 * ```
+	 * A   REQUESTED
+	 * D   REQUESTED
+	 * A   SET
+	 * D   SET
+	 * D -> B   RELATION   add
+	 * D -> C   RELATION   add
+	 * B   SET
+	 * C   SET
+	 * E -> D   RELATION   drop
+	 * E   DROP
+	 * ```
+	 */
+	toString() {
+    let fields = TransitionTouchFields
+		let s = StateStructFields
+		let types = TransitionStepTypes
+
+		return this.steps.map(touch => {
+			let line = ''
+			if (touch[fields.SOURCE_STATE])
+					line += touch[fields.SOURCE_STATE][s.STATE_NAME] + ' -> '
+			line += touch[fields.STATE][s.STATE_NAME]
+			line += '   '
+			line += types[touch[fields.TYPE]]
+			if (touch[fields.DATA])
+					line += '   ' + touch[fields.DATA]
+
+			return line
+		}).join("\n")
 	}
 }
