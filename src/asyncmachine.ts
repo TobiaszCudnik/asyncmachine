@@ -1367,6 +1367,7 @@ export class AsyncMachine extends EventEmitter {
     }
 
     private parseStates(states: string | string[]) {
+        // TODO remove duplicates
         var states_parsed = [].concat(states);
 
         return states_parsed.filter((state) => {
