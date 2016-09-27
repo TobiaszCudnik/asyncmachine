@@ -308,7 +308,7 @@ export class AsyncMachine extends EventEmitter {
 	 * TODO code sample
 	 * TODO make to_state optional
 	 */
-	getRelations(from_state: string, to_state: string): StateRelations[] {
+	getRelationsOf(from_state: string, to_state: string): StateRelations[] {
 		this.parseStates(from_state)
 		this.parseStates(to_state)
 		let state = this.get(from_state)
@@ -918,6 +918,7 @@ export class AsyncMachine extends EventEmitter {
 			if (!pipes.length)
 				delete this.piped[state]
 		}
+		// TODO emit an event on each of involved machines, once per machine
 	}
 
 	/**
@@ -1225,19 +1226,23 @@ export class AsyncMachine extends EventEmitter {
 		return states1.filter( name => !states2.includes(name) )
 	}
 
-	// PRIVATES
-
-	log(msg: string, level: number = 1) {
+	logHandlerDefault(msg, level) {
 		if (level > this.log_level_)
 			return;
 
 		let prefix = this.id() ? `[${this.id()}] ` : ''
 		msg = prefix + msg
 
+		console.log(msg)
+	}
+
+	// PRIVATES
+
+	protected log(msg: string, level: number = 1) {
 		if (this.log_handler_)
-			this.log_handler_(msg)
+			this.log_handler_(msg, level)
 		else
-			console.log(msg);
+			this.logHandlerDefault(msg, level)
 	}
 
 	protected getPipeBindings(flags?: PipeFlags): TPipeBindings {
@@ -1356,6 +1361,7 @@ export class AsyncMachine extends EventEmitter {
 	}
 
 	parseStates(states: string | string[]) {
+		// TODO remove duplicates
 		var states_parsed = (<string[]>[]).concat(states);
 
 		return states_parsed.filter((state) => {

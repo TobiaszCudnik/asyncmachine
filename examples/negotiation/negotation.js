@@ -12,7 +12,7 @@ require('source-map-support').install()
 [cancelled] B, Foo by the method Foo_enter
 [add] A
 [add:implied] Foo
-[transition] Foo_enter
+[transition] Foo_enter	
 [states] +A +Foo
 [ 'A', 'Foo' ]
  */
