@@ -50,14 +50,14 @@ export enum StateRelations {
 
 // TODO pipe?
 export enum TransitionStepTypes {
-	RELATION,
-	TRANSITION,
-	SET,
-	DROP,
-	NO_SET,
-	REQUESTED,
-	CANCEL,
-	PIPE
+	RELATION = 1,
+	TRANSITION = 1 << 2,
+	SET = 1 << 3,
+	DROP = 1 << 4,
+	NO_SET = 1 << 5,
+	REQUESTED = 1 << 6,
+	CANCEL = 1 << 7,
+	PIPE = 1 << 8
 }
 
 export enum StateStructFields {
@@ -147,7 +147,7 @@ export enum PipeFlags {
 	NEGOTIATION = 1,
 	INVERT = 1 << 2,
 	LOCAL_QUEUE = 1 << 3,
-	// TODO implement
+	// TODO write tests for this
 	NEGOTIATION_BOTH = 1 << 4
 }
 

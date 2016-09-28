@@ -90,8 +90,8 @@ class DialogManager {
 	constructor(button, preloader) {
 		this.preloader = preloader
 		this.states = new States(this)
-				.logLevel(1)
-				.id('DialogManager')
+			.logLevel(1)
+			.id('DialogManager')
 
 		this.dialog = new Dialog()
 		button.addEventListener('click',

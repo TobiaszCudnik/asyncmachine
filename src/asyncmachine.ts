@@ -31,7 +31,11 @@ import 'core-js/fn/object/entries'
 
 
 export {
-	PipeFlags
+	PipeFlags,
+	StateStructFields,
+	TransitionStepTypes,
+	TransitionTouchFields,
+	StateRelations
 } from './types'
 export { default as Transition } from './transition'
 
@@ -106,7 +110,6 @@ export function factory<T extends AsyncMachine>(
  *
  * ```
  * TODO
- * - exposing the current state during transition (via the #duringTransition() method)
  * - loose bind in favor of closures
  */
 export class AsyncMachine extends EventEmitter {
@@ -136,9 +139,6 @@ export class AsyncMachine extends EventEmitter {
 	log_level_: number = 0;
 	log_handler_: TLogHandler;
 	transition: Transition | null;
-	/**
-	 * TODO write a test for this asserting states_all
-	 */
 	protected internal_fields: string[] = ["states_all", "lock_queue",
 		"states_active", "queue_", "lock", "last_promise",
 		"log_level_", "log_handler_", "clock_", "target", "internal_fields",
@@ -259,14 +259,15 @@ export class AsyncMachine extends EventEmitter {
 	 * method as [[AsyncMachine.constructor]]'s param.
 	 *
 	 * ```
-	 * class States extends AsyncMachine
-	 * 	A: {}
-	 * 	B: {}
+	 * class States extends AsyncMachine {
+	 *   constructor() {
+	 *     this.A = {}
+	 *     this.B = {}
 	 *
-	 * class Foo
-	 * 	constructor: ->
-	 * 		this.states = new States
-	 * 		this.states.registerAll()
+	 *     this.registerAll()
+	 *     console.log(this.states_all) // -> ['Exception', 'A', 'B']
+	 *   }
+	 * }
 	 * ```
 	 */
 	registerAll() {
@@ -306,11 +307,11 @@ export class AsyncMachine extends EventEmitter {
 	 * Maximum set is ["drop", "after", "add", "require"].
 	 *
 	 * TODO code sample
-	 * TODO test
 	 */
 	getRelationsOf(from_state: string, to_state?: string): StateRelations[] {
 		this.parseStates(from_state)
-		this.parseStates(to_state)
+		if (to_state)
+			this.parseStates(to_state)
 		let state = this.get(from_state)
 		let relations = [StateRelations.AFTER, StateRelations.ADD,
 			StateRelations.DROP, StateRelations.REQUIRE]
@@ -904,6 +905,7 @@ export class AsyncMachine extends EventEmitter {
 		let bindings = flags ? this.getPipeBindings(flags) : null
 		let event_types = flags ? Object.keys(bindings) : null
 		let parsed_states = states ? this.parseStates(states) : null
+		let to_emit: AsyncMachine[] = []
 
 		for (let state of Object.keys(this.piped)) {
 			let pipes = this.piped[state]
@@ -919,11 +921,18 @@ export class AsyncMachine extends EventEmitter {
 				pipes.splice(i, 1)
 				// stay on the same index
 				i--
+				if (!to_emit.includes(pipe.machine))
+					to_emit.push(pipe.machine)
+				if (!to_emit.includes(this))
+					to_emit.push(this)
 			}
 			if (!pipes.length)
 				delete this.piped[state]
 		}
-		// TODO emit an event on each of involved machines, once per machine
+		for (let machine of to_emit) {
+			// TODO emit pipe-in-removed pipe-out-removed, passing the pipe binding
+			machine.emit('pipe')
+		}
 	}
 
 	/**
@@ -1008,9 +1017,6 @@ export class AsyncMachine extends EventEmitter {
 	 *
 	 * states.add('A')
 	 * ````
-	 *
-	 * TODO expose the current transition entry (target states and autostate
-	 *   info are required)
 	 */
 	duringTransition(): Transition | null {
 		return this.transition;
@@ -1166,7 +1172,8 @@ export class AsyncMachine extends EventEmitter {
 	 */
 	on(event: string, listener: Function, context?: Object): this {
 		// is event is a NAME_state event, fire immediately if the state is set
-		if ((event.slice(-6) === "_state" || event.slice(-6) === "_enter") && this.is(event.slice(0, -6))) {
+		if ((event.slice(-6) === "_state" || event.slice(-6) === "_enter")
+				&& this.is(event.slice(0, -6))) {
 			this.catchPromise(listener.call(context));
 		// is event is a NAME_end event, fire immediately if the state isnt set
 		} else if ((event.slice(-4) === "_end" && !this.is(event.slice(0, -4))) ||
@@ -1184,7 +1191,8 @@ export class AsyncMachine extends EventEmitter {
 	once(event: string, listener: Function, context?: Object): this {
 		// is event is a NAME_state event, fire immediately if the state is set
 		// and dont register the listener
-		if ((event.slice(-6) === "_state" || event.slice(-6) === "_enter") && this.is(event.slice(0, -6))) {
+		if ((event.slice(-6) === "_state" || event.slice(-6) === "_enter")
+				&& this.is(event.slice(0, -6))) {
 			this.catchPromise(listener.call(context));
 		// is event is a NAME_end event, fire immediately if the state is not set
 		// and dont register the listener
@@ -1208,8 +1216,6 @@ export class AsyncMachine extends EventEmitter {
 	 * @param target_states States for which the promise was created (the
 	 *   one that failed).
 	 * @return The source promise, for piping.
-	 *
-	 * TODO target_states are redundant
 	 */
 	catchPromise<T>(promise: T, target_states?: string[]): T {
 		if (isPromise(promise)) {
@@ -1231,7 +1237,7 @@ export class AsyncMachine extends EventEmitter {
 		return states1.filter( name => !states2.includes(name) )
 	}
 
-	logHandlerDefault(msg, level) {
+	logHandlerDefault(msg: string, level: number) {
 		if (level > this.log_level_)
 			return;
 
@@ -1255,6 +1261,13 @@ export class AsyncMachine extends EventEmitter {
 			return {
 				enter: "drop",
 				exit: "add"
+			}
+		} else if (flags & PipeFlags.NEGOTIATION_BOTH) {
+			return {
+				enter: "add",
+				exit: "drop",
+				state: "add",
+				end: "drop"
 			}
 		} else if (flags & PipeFlags.NEGOTIATION) {
 			return {
@@ -1281,7 +1294,8 @@ export class AsyncMachine extends EventEmitter {
 		if (requested_state && typeof requested_state !== 'string')
 			throw new Error('target_state has to be string or null')
 
-		if (flags & PipeFlags.NEGOTIATION && flags & PipeFlags.LOCAL_QUEUE)
+		if ((flags & PipeFlags.NEGOTIATION || flags & PipeFlags.NEGOTIATION_BOTH)
+				&& flags & PipeFlags.LOCAL_QUEUE)
 			throw new Error('Cant pipe negotiation into the local queue')
 
 		let tags = ''
@@ -1289,11 +1303,15 @@ export class AsyncMachine extends EventEmitter {
 			tags += ':invert'
 		if (flags & PipeFlags.NEGOTIATION)
 			tags += ':neg'
+		if (flags & PipeFlags.NEGOTIATION_BOTH)
+			tags += ':neg_both'
 
 		if (parsed_states.length == 1 && requested_state)
 			this.log(`[pipe${tags}] ${parsed_states[0]} as ${requested_state} to ${machine.id()}`, 2)
 		else
 			this.log(`[pipe${tags}] ${parsed_states.join(', ')} to ${machine.id()}`, 2)
+
+		let emit_on: AsyncMachine[] = []
 
 		for (let state of parsed_states) {
 			// accept a different name only when one state is piped
@@ -1318,7 +1336,7 @@ export class AsyncMachine extends EventEmitter {
 					state: target_state,
 					machine: machine,
 					event_type: event_type as TStateMethod,
-					flags,	// TODO keeping flags here isn't ideal
+					flags,
 					listener
 				})
 				// assert target states
@@ -1329,10 +1347,16 @@ export class AsyncMachine extends EventEmitter {
 				this.on(`${state}_${event_type}`, listener)
 			}
 
-			// TODO emit only once per machine
-			this.emit('pipe')
-			if (machine !== this)
-				machine.emit('pipe')
+			if (!emit_on.includes(this))
+				emit_on.push(this)
+			if (machine !== this && !emit_on.includes(machine))
+				emit_on.push(machine)
+		}
+
+		for (let machine of emit_on) {
+			// TODO emit pipe-in and pipe-out, on source and target respectively
+			// passing the pipe binding
+			machine.emit('pipe')
 		}
 	}
 

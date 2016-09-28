@@ -1,7 +1,8 @@
 /// <reference path="../typings/index.d.ts" />
 
 import AsyncMachine, {
-	factory
+	factory,
+	StateRelations
 } from '../src/asyncmachine';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -97,6 +98,15 @@ describe("asyncmachine", function () {
 		expect(this.machine.is()).to.eql(["B"]);
 	});
 
+	it("should properly register all the states", function() {
+		let machine = new AsyncMachine(null, false)
+		machine['A'] = {}
+		machine['B'] = {}
+
+		machine.registerAll()
+
+		expect(machine.states_all).to.eql(['Exception', 'A', 'B'])
+	})
 
 
 	it("should throw when setting an unknown state", function () {
@@ -114,6 +124,32 @@ describe("asyncmachine", function () {
 		machine.register('A');
 		machine.add('A');
 		expect(machine.is()).eql(['A']);
+	});
+
+
+	it('should allow to get relations of a state', function () {
+		let machine = <any>factory({
+			A: {
+				add: ['B'],
+				auto: 1
+			},
+			B: {}
+		})
+		expect(machine.getRelationsOf('A')).eql([StateRelations.ADD]);
+	});
+
+
+	it('should allow to get relations between 2 states', function () {
+		let machine = <any>factory({
+			A: {
+				add: ['B'],
+				require: ['C']
+				auto: 1
+			},
+			B: {},
+			C: {}
+		})
+		expect(machine.getRelationsOf('A', 'B')).eql([StateRelations.ADD]);
 	});
 
 	describe("when single to single state transition", function () {
