@@ -27,7 +27,7 @@ interface IEvent {
 /**
  * TODO
  * - refactor the execution of calls to sth structured instead of strings
- * - log steps calls (methods and events)
+ * - multi-step (keep couple of steps as one step)
  */
 export default class Transition {
 
@@ -77,6 +77,8 @@ export default class Transition {
 		this.source_machine_id = source_machine_id
 		this.row = row
 		this.before = this.machine.is()
+
+		this.machine.emit("transition-init", this)
 
 		let type = this.type
 		let states = this.requested_states
@@ -128,6 +130,8 @@ export default class Transition {
 		let aborted = !this.accepted
 		let hasStateChanged = false
 
+		this.machine.emit("transition-start", this)
+
 		// in case of using a local queue, we can hit a locked target machine
 		// TODO write a test
 		if (target.lock) {
@@ -139,8 +143,6 @@ export default class Transition {
 		this.events = []
 		target.lock = true
 		target.queue_ = [];
-
-		target.emit("transition-start", this)
 
 		try {
 			// NEGOTIATION CALLS PHASE (cancellable)

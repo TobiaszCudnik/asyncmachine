@@ -442,6 +442,11 @@ export class AsyncMachine extends EventEmitter {
 		}
 	}
 
+	unregister(name) {
+		// TODO dont unregister during transition
+		// TODO
+	}
+
 	/**
 	 * Returns state's properties.
 	 *
@@ -1169,13 +1174,44 @@ export class AsyncMachine extends EventEmitter {
 
 	/**
 	 * TODO docs
+	 * TODO rename TPipeBindings to TPipeBinding
 	 */
+	on(event: 'tick', listener:
+		(before: string[]) => boolean | undefined, context?: Object): this;
+	on(event: 'transition-start', listener:
+		(transition: Transition) => boolean | undefined, context?: Object): this;
+	on(event: 'transition-end', listener:
+		(transition: Transition) => boolean | undefined, context?: Object): this;
+	on(event: 'pipe-in', listener:
+		(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	on(event: 'pipe-out', listener:
+		(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	on(event: 'pipe-in-removed', listener:
+		(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	on(event: 'pipe-out-removed', listener:
+		(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	on(event: 'state-registered', listener:
+		(state: string) => boolean | undefined, context?: Object): this;
+	on(event: 'state-deregistered', listener:
+		(state: string) => boolean | undefined, context?: Object): this;
+	// State events
+	// TODO optional params
+	on(event: 'Exception_enter', listener: (err: Error, target_states: string[],
+		base_states: string[], exception_transition: string, async_target_states?: string[])
+		=> boolean | undefined, context?: Object): this;
+	on(event: 'Exception_state', listener: (err: Error, target_states: string[],
+		base_states: string[], exception_transition: string, async_target_states?: string[])
+		=> boolean | undefined, context?: Object): this;
+	on(event: 'Exception_exit', listener: () => boolean | undefined, context?: Object): this;
+	on(event: 'Exception_end', listener: () => boolean | undefined, context?: Object): this;
+	on(event: 'Exception_Any', listener: () => boolean | undefined, context?: Object): this;
+	on(event: 'Any_Exception', listener: () => boolean | undefined, context?: Object): this;
 	on(event: string, listener: Function, context?: Object): this {
-		// is event is a NAME_state event, fire immediately if the state is set
+		// if event is a NAME_state event, fire immediately if the state is set
 		if ((event.slice(-6) === "_state" || event.slice(-6) === "_enter")
 				&& this.is(event.slice(0, -6))) {
 			this.catchPromise(listener.call(context));
-		// is event is a NAME_end event, fire immediately if the state isnt set
+		// if event is a NAME_end event, fire immediately if the state isnt set
 		} else if ((event.slice(-4) === "_end" && !this.is(event.slice(0, -4))) ||
 				event.slice(-5) === "_exit" && !this.is(event.slice(0, -5)) ) {
 			this.catchPromise(listener.call(context));
