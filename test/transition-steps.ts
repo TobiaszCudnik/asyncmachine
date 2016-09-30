@@ -5,7 +5,7 @@ import AsyncMachine, {
 } from '../src/asyncmachine';
 import {
     TransitionStepTypes,
-    TransitionTouchFields
+    TransitionStepFields
 } from '../src/types'
 import * as chai from 'chai';
 import * as sinon from 'sinon';

@@ -6,9 +6,9 @@ import {
 	QueueRowFields,
 	TransitionStepTypes,
 	IStateStruct,
-	ITransitionTouch,
+	ITransitionStep,
 	StateRelations,
-	TransitionTouchFields,
+	TransitionStepFields,
 	StateStructFields
 } from "./types";
 // shims for current engines
@@ -48,7 +48,7 @@ export default class Transition {
 	// source queue row
 	row: IQueueRow;
 	// list of steps states with machine IDs
-	steps: ITransitionTouch[] = [];
+	steps: ITransitionStep[] = [];
 	// was transition cancelled during negotiation?
 	cancelled: boolean;
 
@@ -623,6 +623,15 @@ export default class Transition {
 	 */
 	addStep(target: string | IStateStruct, source?: string | IStateStruct | null,
 					type?: TransitionStepTypes, data?: any): void {
+		let step = this.addStepData(target, source, type, data)
+		this.machine.emit('transition-step', step)
+	}
+
+	/**
+	 * Marks a steps relation between two states during the transition.
+	 */
+	addStepData(target: string | IStateStruct, source?: string | IStateStruct | null,
+					type?: TransitionStepTypes, data?: any): ITransitionStep {
 		let state = Array.isArray(target) ? target as IStateStruct
 				: [this.machine.id(), target as string] as IStateStruct
 		let source_state: IStateStruct | undefined
@@ -632,7 +641,9 @@ export default class Transition {
 				: [this.machine.id(), source as string]
 		}
 
-		this.steps.push([state, source_state, type, data])
+		let step: ITransitionStep = [state, source_state, type, data]
+		this.steps.push(step)
+		return step
 	}
 
 	/**
@@ -640,8 +651,11 @@ export default class Transition {
 	 */
 	addStepsFor(targets: string[] | IStateStruct[], source?: string | IStateStruct
 			| null, type?: TransitionStepTypes, data?: any): void {
-		for (let target of targets)
-			this.addStep(target, source, type, data)
+		// TODO `targets as string[]` required as of TS 2.0
+		let steps: ITransitionStep[] = (targets as string[]).map( (target) => {
+			return this.addStepData(target, source, type, data)
+		})
+		this.machine.emit('transition-step', ...steps)
 	}
 
 	/**
@@ -662,7 +676,7 @@ export default class Transition {
 	 * ```
 	 */
 	toString() {
-    let fields = TransitionTouchFields
+    let fields = TransitionStepFields
 		let s = StateStructFields
 		let types = TransitionStepTypes
 

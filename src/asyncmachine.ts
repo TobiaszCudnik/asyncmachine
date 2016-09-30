@@ -22,7 +22,8 @@ import {
 	StateRelations,
 	QueueRowFields,
 	TAbortFunction,
-	TransitionStepTypes
+	TransitionStepTypes,
+	ITransitionStep
 } from './types'
 // shims for current engines
 import 'core-js/fn/array/keys'
@@ -34,7 +35,7 @@ export {
 	PipeFlags,
 	StateStructFields,
 	TransitionStepTypes,
-	TransitionTouchFields,
+	TransitionStepFields,
 	StateRelations
 } from './types'
 export { default as Transition } from './transition'
@@ -442,8 +443,14 @@ export class AsyncMachine extends EventEmitter {
 		}
 	}
 
-	unregister(name) {
-		// TODO dont unregister during transition
+	/**
+	 * TODO desc
+	 * TODO sample
+	 * TODO test
+	 * @param name
+	 */
+	deregister(name: string) {
+		// TODO dont deregister during transition
 		// TODO
 	}
 
@@ -1175,21 +1182,29 @@ export class AsyncMachine extends EventEmitter {
 	/**
 	 * TODO docs
 	 * TODO rename TPipeBindings to TPipeBinding
+	 * TODO copy these to once() and emit()
 	 */
 	on(event: 'tick', listener:
 		(before: string[]) => boolean | undefined, context?: Object): this;
+	on(event: 'transition-init', listener:
+		(transition: Transition) => boolean | undefined, context?: Object): this;
 	on(event: 'transition-start', listener:
 		(transition: Transition) => boolean | undefined, context?: Object): this;
 	on(event: 'transition-end', listener:
 		(transition: Transition) => boolean | undefined, context?: Object): this;
-	on(event: 'pipe-in', listener:
+	on(event: 'transition-step', listener:
+		(...steps: ITransitionStep[]) => boolean | undefined, context?: Object): this;
+	on(event: 'pipe', listener:
 		(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
-	on(event: 'pipe-out', listener:
-		(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
-	on(event: 'pipe-in-removed', listener:
-		(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
-	on(event: 'pipe-out-removed', listener:
-		(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	// TODO
+	// on(event: 'pipe-in', listener:
+	// 	(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	// on(event: 'pipe-out', listener:
+	// 	(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	// on(event: 'pipe-in-removed', listener:
+	// 	(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	// on(event: 'pipe-out-removed', listener:
+	// 	(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
 	on(event: 'state-registered', listener:
 		(state: string) => boolean | undefined, context?: Object): this;
 	on(event: 'state-deregistered', listener:

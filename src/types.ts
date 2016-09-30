@@ -31,7 +31,7 @@ export class Deferred {
 
 	resolve: (...params: any[]) => void;
 
-	reject: (err?) => void;
+	reject: (err?: any) => void;
 
 	constructor() {
 		this.promise = new Promise((resolve, reject) => {
@@ -72,21 +72,21 @@ export interface IStateStruct {
 	1: string
 }
 
-export enum TransitionTouchFields {
+export enum TransitionStepFields {
 	STATE,
 	SOURCE_STATE,
 	TYPE,
 	DATA
 }
 
-export interface ITransitionTouch {
-	/* TransitionTouchFields.STATE */
+export interface ITransitionStep {
+	/* TransitionStepFields.STATE */
 	0: IStateStruct,
-	/* TransitionTouchFields.SOURCE_STATE */
+	/* TransitionStepFields.SOURCE_STATE */
 	1?: IStateStruct,
-	/* TransitionTouchFields.TYPE */
+	/* TransitionStepFields.TYPE */
 	2?: TransitionStepTypes,
-	/* TransitionTouchFields.DATA (eg a transition method name, relation type) */
+	/* TransitionStepFields.DATA (eg a transition method name, relation type) */
 	3?: any
 }
 
