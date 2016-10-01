@@ -339,6 +339,8 @@ export default class Transition {
 					if (!states.includes(req)) {
 						not_found.push(req)
 						this.addStep(name, null, TransitionStepTypes.NO_SET)
+						if (this.requested_states.includes(name))
+							this.addStep(req, null, TransitionStepTypes.CANCEL)
 					}
 				}
 
