@@ -112,6 +112,7 @@ export function factory<T extends AsyncMachine>(
  * ```
  * TODO
  * - loose bind in favor of closures
+ * - piping to an un existing state breaks the event loop
  */
 export class AsyncMachine extends EventEmitter {
 

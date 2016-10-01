@@ -4,12 +4,13 @@
 
 ## Description
 
-Technically a *multi-state dependency graph*, allows for a declarative modeling of the control flow, based on states interconnected by relations.
+Technically, a *multi-state dependency graph*, allows for a declarative modeling of the control flow, based on states interconnected by relations.
 Activating a state triggers a two-pass transition - *negotiation* and *set*. If a
 state change is triggered during an ongoing transition, it's gonna be queued. Each
-state has a clock, which allows to distinguish *state's instances* (prevents the
+state has a clock, which allows to distinguish *state's instances* (eg prevents the
 double callback execution problem).
 
+![Demo](http://tobiaszcudnik.github.io/asyncmachine/demo.gif)
 
 ## Install
 

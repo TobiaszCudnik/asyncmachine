@@ -54,7 +54,7 @@ test-grep-debug:
 		test/*.js
 
 docs:
-	typedoc \
+	$(BIN)/typedoc \
 		--out docs/ \
 		--ignoreCompilerErrors \
 		--name AsyncMachine \
