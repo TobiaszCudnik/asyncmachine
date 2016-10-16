@@ -22,6 +22,15 @@ class FooMachine extends AsyncMachine {
     }
 }
 
+class SubClassRegisterAll extends AsyncMachine {
+    A = {}
+
+    constructor() {
+        super()
+        this.registerAll()
+    }
+}
+
 class EventMachine extends FooMachine {
 
     TestNamespace: IState = {}
@@ -97,6 +106,7 @@ class CrossBlocked extends AsyncMachine {
 }
 
 export {
+    SubClassRegisterAll,
     FooMachine,
     EventMachine,
     Sub,

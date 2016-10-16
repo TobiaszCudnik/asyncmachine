@@ -24,7 +24,8 @@ import {
 	EventMachine, 
 	Sub, 
 	SubCrossBlockedByImplied,
-	CrossBlocked
+	CrossBlocked,
+	SubClassRegisterAll
 } from './classes';
 
 describe("asyncmachine", function () {
@@ -108,6 +109,11 @@ describe("asyncmachine", function () {
 		expect(machine.states_all).to.eql(['Exception', 'A', 'B'])
 	})
 
+	it("should properly register all the states from a sub class", function() {
+		let machine = new SubClassRegisterAll()
+		expect(machine.states_all).to.eql(['Exception', 'A'])
+	})
+
 
 	it("should throw when setting an unknown state", function () {
 		let { machine } = this;
@@ -131,7 +137,7 @@ describe("asyncmachine", function () {
 		let machine = <any>factory({
 			A: {
 				add: ['B'],
-				auto: 1
+				auto: true
 			},
 			B: {}
 		})
@@ -143,8 +149,8 @@ describe("asyncmachine", function () {
 		let machine = <any>factory({
 			A: {
 				add: ['B'],
-				require: ['C']
-				auto: 1
+				require: ['C'],
+				auto: true
 			},
 			B: {},
 			C: {}

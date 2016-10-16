@@ -36,7 +36,8 @@ export {
 	StateStructFields,
 	TransitionStepTypes,
 	TransitionStepFields,
-	StateRelations
+	StateRelations,
+	// IState,
 } from './types'
 export { default as Transition } from './transition'
 
@@ -158,7 +159,7 @@ export class AsyncMachine extends EventEmitter {
 	 * @param register_all Automatically registers all defined states.
 	 * @see [[AsyncMachine]] for the usage example.
 	 */
-	constructor(target?: AsyncMachine, register_all: boolean = true) {
+	constructor(target?: {}, register_all: boolean = true) {
 		super();
 
 		this.setTarget(target || this);
@@ -275,15 +276,15 @@ export class AsyncMachine extends EventEmitter {
 	registerAll() {
 		// test the instance vars
 		for (let name in this) {
-			let value = this[name];
+			let value = this[name]
 			if ((this.hasOwnProperty(name)) && !this.internal_fields.includes(name)
 					&& !(value instanceof Function)) {
-				this.register(name);
+				this.register(name)
 			}
 		}
 
 		// test the prototype chain
-		var constructor = this.constructor.prototype;
+		var constructor = this.constructor.prototype
 		if (constructor === AsyncMachine.prototype)
 			return
 
@@ -293,14 +294,13 @@ export class AsyncMachine extends EventEmitter {
 				if ((constructor.hasOwnProperty(name))
 						&& !this.internal_fields.includes(name)
 						&& !(value instanceof Function)) {
-					this.register(name);
+					this.register(name)
 				}
 			}
 
-			constructor = Object.getPrototypeOf(constructor);
-			if (constructor === AsyncMachine.prototype) {
-				break;
-			}
+			constructor = Object.getPrototypeOf(constructor)
+			if (constructor === AsyncMachine.prototype)
+				break
 		}
 	}
 
@@ -437,6 +437,7 @@ export class AsyncMachine extends EventEmitter {
 	 * ```
 	 */
 	register(...states: string[]) {
+		// TODO dont register during a transition
 		for (let state of this.parseStates(states)) {
 			if (!this.states_all.includes(state))
 				this.states_all.push(state)
@@ -451,7 +452,7 @@ export class AsyncMachine extends EventEmitter {
 	 * @param name
 	 */
 	deregister(name: string) {
-		// TODO dont deregister during transition
+		// TODO dont deregister during a transition
 		// TODO
 	}
 
@@ -1149,12 +1150,12 @@ export class AsyncMachine extends EventEmitter {
 	 * @param prefix Prefix before all console messages.
 	 * @param level Error level (1-3).
 	 */
-	logLevel(log_level: number): this;
+	logLevel(log_level: number | string): this;
 	logLevel(): number;
-	logLevel(log_level?: number): this | number {
+	logLevel(log_level?: number | string): this | number {
 		if (log_level !== undefined) {
 			this.print_exception = Boolean(log_level)
-			this.log_level_ = log_level
+			this.log_level_ = parseInt(log_level as string, 10)
 			return this
 		} else
 			return this.log_level_
@@ -1174,7 +1175,9 @@ export class AsyncMachine extends EventEmitter {
 	id(): string;
 	id(id?: string): this | string {
 		if (id !== undefined) {
+			let old_id = this.id_
 			this.id_ = id
+			this.emit('id', id, old_id)
 			return this
 		} else
 			return this.id_
@@ -1187,6 +1190,8 @@ export class AsyncMachine extends EventEmitter {
 	 */
 	on(event: 'tick', listener:
 		(before: string[]) => boolean | undefined, context?: Object): this;
+	on(event: 'id', listener:
+		(new_id: string, old_id: string) => boolean | undefined, context?: Object): this;
 	on(event: 'transition-init', listener:
 		(transition: Transition) => boolean | undefined, context?: Object): this;
 	on(event: 'transition-start', listener:
@@ -1239,6 +1244,7 @@ export class AsyncMachine extends EventEmitter {
 
 	/**
 	 * TODO docs
+	 * TODO types
 	 */
 	once(event: string, listener: Function, context?: Object): this {
 		// is event is a NAME_state event, fire immediately if the state is set
@@ -1257,6 +1263,8 @@ export class AsyncMachine extends EventEmitter {
 
 		return this;
 	}
+
+	// TODO type all the emit calls
 
 	/**
 	 * Bind the Exception state to the promise error handler. Handy when working

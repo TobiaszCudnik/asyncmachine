@@ -28,11 +28,13 @@ test:
 test-build:
 	-$(BIN)/tsc \
 		--isolatedModules \
+		--skipLibCheck \
 		-p test
 
 test-build-watch:
 	-$(BIN)/tsc \
 		--isolatedModules \
+		--skipLibCheck \
 		--watch \
 		-p test
 
