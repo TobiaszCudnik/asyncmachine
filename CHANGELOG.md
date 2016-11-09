@@ -1,5 +1,6 @@
 ### ROADMAP
 
+- synchronous throw when not in a promise
 - piping self state transition
 - piping both the negotiation and state phase
 - edge case: piping negotiation, when a further state is cancelling
