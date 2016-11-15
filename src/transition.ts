@@ -11,6 +11,10 @@ import {
 	TransitionStepFields,
 	StateStructFields
 } from "./types";
+import {
+	IBind,
+	IEmit,
+} from './events'
 // shims for current engines
 import 'core-js/fn/array/includes'
 import 'core-js/fn/object/entries'
@@ -53,7 +57,7 @@ export default class Transition {
 	cancelled: boolean;
 
 	// target machine on which the transition is supposed to happen
-	get machine(): AsyncMachine {
+	get machine(): AsyncMachine<IBind, IEmit> {
 		return this.row[QueueRowFields.TARGET]
 	}
 	// is it an auto-state transition?
@@ -124,7 +128,7 @@ export default class Transition {
 			this.setupExitEnter()
 	}
 
-	exec() {
+	exec(): boolean {
 		let target = this.machine
 		let queue = this.machine.queue_;
 		let aborted = !this.accepted

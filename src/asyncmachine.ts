@@ -23,7 +23,6 @@ import {
 	QueueRowFields,
 	TAbortFunction,
 	TransitionStepTypes,
-	ITransitionStep,
 } from './types'
 import {
 	IBind,
@@ -103,7 +102,7 @@ export function factory<T extends AsyncMachine<any, any>>(
  *
  *   Downloading: drop: 'Downloaded'
  *   Downloaded = {
- * drop: 'Downloading'
+ *     drop: 'Downloading'
  * }
  *
  * class Foo
@@ -142,12 +141,12 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	queue_: IQueueRow[] = [];
 	lock: boolean = false;
 	clock_: { [state: string]: number } = {};
-	target: Object;
+	target: {};
 	// TODO merge with [[lock]]
 	lock_queue = false;
 	log_level_: number = 0;
 	log_handler_: TLogHandler;
-	transition: Transition | null;
+	transition: Transition<IBind, IEmit> | null;
 	protected internal_fields: string[] = ["states_all", "lock_queue",
 		"states_active", "queue_", "lock", "last_promise",
 		"log_level_", "log_handler_", "clock_", "target", "internal_fields",
@@ -257,7 +256,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * 		console.log 'State A set'
 	 * ```
 	 */
-	setTarget(target: Object) {
+	setTarget(target: {}) {
 		return this.target = target;
 	}
 
@@ -1235,6 +1234,11 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 		return this;
 	}
 
+	emit: IEmit;
+	// emit(event, ...params) {
+	// 	return super.emit(event, ...params);
+	// }
+
 	// TODO type all the emit calls
 
 	/**
@@ -1438,7 +1442,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * Returns the JSON structure of states along with their relations.
 	 */
 	states(): { [name: string]: IState } {
-		let ret: { [name: string]: IState }
+		let ret: { [name: string]: IState } = {}
 		for (let state of this.states_all)
 			ret[state] = this.get(state)
 		return ret
@@ -1475,7 +1479,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 		while (row = this.queue_.shift()) {
 			if (!row[QueueRowFields.TARGET])
 				row[QueueRowFields.TARGET] = this
-			this.transition = new Transition(this.id(), row)
+			this.transition = new Transition<TBind, TEmit>(this.id(), row)
 			ret.push(this.transition.exec())
 		}
 		this.lock_queue = false

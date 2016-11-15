@@ -4,6 +4,8 @@ import {
     TPipeBindings,
 } from './types'
 
+// TODO support pipe()
+
 
 export interface IBind {
 	on(event: 'tick', listener:
