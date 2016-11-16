@@ -91,7 +91,6 @@ let states = Object.keys({
 
 // TODO skip state call for exception
 states.push('Exception')
-console.log(states)
 let transitions = []
 
 for (let state1 of states) {
@@ -115,6 +114,22 @@ ${states.map(name=>(
     (event: '${name}_enter', listener: (/* param1, param2 */) => boolean | undefined, context?: Object): this;
     (event: '${name}_state', listener: (/* param1, param2 */) => any, context?: Object): this;
 `)).join('')}
+}
+
+export interface IEmit {
+
+${states.map(name => (
+	`    // ${name}
+    (event: '${name}_enter' /*, param1, param2 */): this;
+    (event: '${name}_state' /*, param1, param2 */): this;
+`)).join('')}
+}
+
+export type TStates = '${states.join("'\n  | '")}';
+
+export type TTransitions = '${transitions.join("'\n  | '")}';
+
+export interface IBind {
 
     // Non-params events
 ${states.map(name=>(
@@ -122,25 +137,16 @@ ${states.map(name=>(
     (event: '${name}_end', listener: () => any, context?: Object): this;
 `)).join('')}
     // Transitions
-${transitions.map(name=>(`
-    (event: '${name}'): this;`)).join('')}
+	(event: TTransitions): this;
 }
 
 export interface IEmit {
-    
-${states.map(name=>(
-`    // ${name}
-    (event: '${name}_enter' /*, param1, param2 */): this;
-    (event: '${name}_state' /*, param1, param2 */): this;
-`)).join('')}
-
     // Non-params events
 ${states.map(name=>(
 `    (event: '${name}_exit'): this;
     (event: '${name}_end'): this;
 `)).join('')}
     // Transitions
-${transitions.map(name=>(`
-    (event: '${name}'): this;`)).join('')}
+	(event: TTransitions): boolean;
 }
 `)

@@ -27,7 +27,8 @@ import {
 import {
 	IBind,
 	IEmit,
-} from './events'
+	States
+} from './types-states'
 // shims for current engines
 import 'core-js/fn/array/keys'
 import 'core-js/fn/array/includes'
@@ -72,9 +73,9 @@ export { default as Transition } from './transition'
  * states.is() // -> ['A', 'B']
  * ```
  */
-export function factory<T extends AsyncMachine<any, any>>(
+export function factory<T extends AsyncMachine<States, IBind, IEmit>>(
 		states: string[] | { [state: string]: IState } = [],
-		constructor?: { new(...params: any[]): AsyncMachine<any, any>; }): T {
+		constructor?: { new (...params: any[]): AsyncMachine<States, IBind, IEmit>; }): T {
 	var instance = <T><any>(new (constructor || AsyncMachine))
 
 	if (states instanceof Array) {
@@ -120,7 +121,7 @@ export function factory<T extends AsyncMachine<any, any>>(
  * - loose bind in favor of closures
  * - piping to an un existing state breaks the event loop
  */
-export class AsyncMachine<TBind, TEmit> extends EventEmitter {
+export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 
 	/**
 	 * Empty Exception state properties. See [[Exception_state]] transition handler.
@@ -315,7 +316,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 *
 	 * TODO code sample
 	 */
-	getRelationsOf(from_state: string, to_state?: string): StateRelations[] {
+	getRelationsOf(from_state: (TStates | States), to_state?: (TStates | States)): StateRelations[] {
 		this.parseStates(from_state)
 		if (to_state)
 			this.parseStates(to_state)
@@ -357,8 +358,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * states.is 'A', tick // -> false
 	 * ```
 	 */
-	is(states: string | string[], tick?: number): boolean;
-	is(): string[];
+	is(states: (TStates | States) | (TStates | States)[], tick?: number): boolean;
+	is(): (TStates | States)[];
 	is(states?: any, tick?: any): any {
 		if (!states) {
 			return this.states_active;
@@ -391,8 +392,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * states.any ['A', 'C'], 'C' // -> false
 	 * ```
 	 */
-	any(...states: string[]): boolean;
-	any(...states: string[][]): boolean;
+	any(...states: (TStates | States)[]): boolean;
+	any(...states: (TStates | States)[][]): boolean;
 	any(...states: any[]): boolean {
 		return states.some((name) => {
 			if (Array.isArray(name))
@@ -413,7 +414,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * states.every 'A', 'B', 'C' // -> false
 	 * ```
 	 */
-	every(...states: string[]): boolean {
+	every(...states: (TStates | States)[]): boolean {
 		return states.every((name) => Boolean(~this.states_active.indexOf(name)));
 	}
 
@@ -474,7 +475,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * states.get('A') // -> { drop: ['B'] }
 	 * ```
 	 */
-	get(state: string): IState {
+	get(state: (TStates | States)): IState {
 		return this[state];
 	}
 
@@ -518,8 +519,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * 	states1.add states2, 'B'
 	 * ```
 	 */
-	set(target: AsyncMachine<TBind, TEmit>, states: string[] | string, ...params: any[]): boolean;
-	set(target: string[] | string, states?: any, ...params: any[]): boolean;
+	set(target: AsyncMachine<States, TBind, TEmit>, states: (TStates | States)[] | (TStates | States), ...params: any[]): boolean;
+	set(target: (TStates | States)[] | (TStates | States), states?: any, ...params: any[]): boolean;
 	set(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
 			if (states) {
@@ -551,8 +552,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * ```
 	 *
 	 */
-	setByCallback(target: AsyncMachine<TBind, TEmit> | string[] | string,
-			states?: string[] | string | any, ...params: any[])
+	setByCallback(target: AsyncMachine<States, TBind, TEmit> | (TStates | States)[] | (TStates | States),
+			states?: (TStates | States)[] | (TStates | States) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createCallback(this.createDeferred(this.set.bind(this), target,
@@ -577,8 +578,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * emitter.on 'error', states.addByListener('Exception')
 	 * ```
 	 */
-	setByListener(target: AsyncMachine<TBind, TEmit> | string[] | string,
-			states?: string[] | string | any, ...params: any[])
+	setByListener(target: AsyncMachine<States, TBind, TEmit> | (TStates | States)[] | (TStates | States),
+			states?: (TStates | States)[] | (TStates | States) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createListener(this.createDeferred(this.set.bind(this), target,
@@ -599,8 +600,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * states.is() // -> ['A']
 	 * ```
 	 */
-	setNext(target: AsyncMachine<TBind, TEmit> | string[] | string,
-			states?: string[] | string | any, ...params: any[])
+	setNext(target: AsyncMachine<TBind, TEmit> | (TStates | States)[] | (TStates | States),
+			states?: (TStates | States)[] | (TStates | States) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure
 		let fn = this.set.bind(this);
@@ -647,8 +648,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * 	states1.add states2, 'B'
 	 * ```
 	 */
-	add(target: AsyncMachine<TBind, TEmit>, states: string[] | string, ...params: any[]): boolean;
-	add(target: string[] | string, states?: any, ...params: any[]): boolean;
+	add(target: AsyncMachine<TBind, TEmit>, states: (TStates | States)[] | (TStates | States), ...params: any[]): boolean;
+	add(target: (TStates | States)[] | (TStates | States), states?: any, ...params: any[]): boolean;
 	add(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
 			if (states) {
@@ -680,8 +681,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * ```
 	 *
 	 */
-	addByCallback(target: AsyncMachine<TBind, TEmit> | string[] | string,
-			states?: string[] | string | any, ...params: any[])
+	addByCallback(target: AsyncMachine<TBind, TEmit> | (TStates | States)[] | (TStates | States),
+			states?: (TStates | States)[] | (TStates | States) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createCallback(this.createDeferred(this.add.bind(this), target,
@@ -706,8 +707,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * emitter.on 'error', states.addByListener('Exception')
 	 * ```
 	 */
-	addByListener(target: AsyncMachine<TBind, TEmit> | string[] | string,
-			states?: string[] | string | any, ...params: any[])
+	addByListener(target: AsyncMachine<TBind, TEmit> | (TStates | States)[] | (TStates | States),
+			states?: (TStates | States)[] | (TStates | States) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createListener(this.createDeferred(this.add.bind(this), target,
@@ -728,8 +729,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * states.is() // -> ['A', 'B']
 	 * ```
 	 */
-	addNext(target: AsyncMachine<TBind, TEmit> | string[] | string,
-			states?: string[] | string | any, ...params: any[])
+	addNext(target: AsyncMachine<TBind, TEmit> | (TStates | States)[] | (TStates | States),
+			states?: (TStates | States)[] | (TStates | States) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure
 		let fn = this.add.bind(this);
@@ -776,8 +777,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * 	states1.add states2, 'B'
 	 * ```
 	 */
-	drop(target: AsyncMachine<TBind, TEmit>, states: string[] | string, ...params: any[]): boolean;
-	drop(target: string[] | string, states?: any, ...params: any[]): boolean;
+	drop(target: AsyncMachine<TBind, TEmit>, states: (TStates | States)[] | (TStates | States), ...params: any[]): boolean;
+	drop(target: (TStates | States)[] | (TStates | States), states?: any, ...params: any[]): boolean;
 	drop(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
 			if (states) {
@@ -809,8 +810,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * ```
 	 *
 	 */
-	dropByCallback(target: AsyncMachine<TBind, TEmit> | string[] | string,
-			states?: string[] | string | any, ...params: any[])
+	dropByCallback(target: AsyncMachine<TBind, TEmit> | (TStates | States)[] | (TStates | States),
+			states?: (TStates | States)[] | (TStates | States) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createCallback(this.createDeferred(this.drop.bind(this), target, states, params));
@@ -834,8 +835,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * emitter.on 'error', states.setByListener('Exception')
 	 * ```
 	 */
-	dropByListener(target: AsyncMachine<TBind, TEmit> | string[] | string,
-			states?: string[] | string | any, ...params: any[])
+	dropByListener(target: AsyncMachine<TBind, TEmit> | (TStates | States)[] | (TStates | States),
+			states?: (TStates | States)[] | (TStates | States) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createListener(this.createDeferred(this.drop.bind(this),
@@ -856,8 +857,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * states.is('A') // -> true
 	 * ```
 	 */
-	dropNext(target: AsyncMachine<TBind, TEmit> | string[] | string,
-			states?: string[] | string | any, ...params: any[])
+	dropNext(target: AsyncMachine<TBind, TEmit> | (TStates | States)[] | (TStates | States),
+			states?: (TStates | States)[] | (TStates | States) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure
 		let fn = this.drop.bind(this);
@@ -892,7 +893,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * states2.is('A') // -> false
 	 * ```
 	 */
-	pipe(state: string | string[], machine: AsyncMachine<TBind, TEmit>, target_state?: string, flags?: PipeFlags) {
+	pipe<S>(state: (TStates | States) | (TStates | States)[], machine: AsyncMachine<S, TBind, TEmit>, target_state?: S, flags?: PipeFlags) {
 		this.pipeBind(state, machine, target_state, flags)
 	}
 
@@ -919,7 +920,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 *
 	 * TODO optimise, if needed
 	 */
-	pipeRemove(states?: string | string[], machine?: AsyncMachine<TBind, TEmit>,
+	pipeRemove(states?: (TStates | States) | (TStates | States)[], machine?: AsyncMachine<TBind, TEmit>,
 			flags?: PipeFlags) {
 		let bindings = flags ? this.getPipeBindings(flags) : null
 		let event_types = flags ? Object.keys(bindings) : null
@@ -983,7 +984,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * states.clock('A') // -> 2
 	 * ````
 	 */
-	clock(state: string): number {
+	clock(state: (TStates | States)): number {
 		return this.clock_[state];
 	}
 
@@ -1096,7 +1097,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * @param abort Existing abort function (optional)
 	 * @return A new abort function
 	 */
-	getAbort(state: string, abort?: () => boolean): () => boolean {
+	getAbort(state: (TStates | States), abort?: () => boolean): () => boolean {
 		var tick = this.clock(state);
 
 		return this.getAbortFunction(state, tick, abort);
@@ -1123,7 +1124,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * @param abort Existing abort function (optional)
 	 * @return Promise resolved once all states are set simultaneously.
 	 */
-	when(states: string | string[], abort?: TAbortFunction): Promise<null> {
+	when(states: (TStates | States) | (TStates | States)[], abort?: TAbortFunction): Promise<null> {
 		let states_parsed = this.parseStates(states)
 		return new Promise<null>((resolve) => {
 			this.bindToStates(states_parsed, resolve, abort)
@@ -1247,7 +1248,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 *   one that failed).
 	 * @return The source promise, for piping.
 	 */
-	catchPromise<T>(promise: T, target_states?: string[]): T {
+	catchPromise<T>(promise: T, target_states?: (TStates | States)[]): T {
 		if (isPromise(promise)) {
 			promise.catch( (error: any) => {
 				this.add("Exception", error, target_states)
@@ -1316,8 +1317,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 		}
 	}
 
-	protected pipeBind(states: string | string[], machine: AsyncMachine<TBind, TEmit>,
-			requested_state?: string | null, flags?: PipeFlags) {
+	protected pipeBind<S>(states: (TStates | States) | (TStates | States)[], machine: AsyncMachine<S, TBind, TEmit>,
+			requested_state?: S | null, flags?: PipeFlags) {
 		let bindings = this.getPipeBindings(flags)
 		let parsed_states = this.parseStates(states)
 
@@ -1412,13 +1413,13 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 		}
 	}
 
-	hasStateChanged(states_before: string[]): boolean {
+	hasStateChanged(states_before: (TStates | States)[]): boolean {
 		var length_equals = this.is().length === states_before.length;
 
 		return !length_equals || Boolean(this.diffStates(states_before, this.is()).length);
 	}
 
-	parseStates(states: string | string[]) {
+	parseStates(states: (TStates | States) | (TStates | States)[]) {
 		// TODO remove duplicates
 		var states_parsed = (<string[]>[]).concat(states);
 
