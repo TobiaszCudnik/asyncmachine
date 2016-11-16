@@ -38,6 +38,8 @@
 - extracted the Transition class
 - stricter compiler checks (nulls, implicit any, returns)
 - structurized transition steps
+- use currently executing queue when available
+- type safety for events
 
 ### v3.0
 

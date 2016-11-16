@@ -146,7 +146,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	lock_queue = false;
 	log_level_: number = 0;
 	log_handler_: TLogHandler;
-	transition: Transition<IBind, IEmit> | null;
+	transition: Transition | null;
 	protected internal_fields: string[] = ["states_all", "lock_queue",
 		"states_active", "queue_", "lock", "last_promise",
 		"log_level_", "log_handler_", "clock_", "target", "internal_fields",
@@ -525,8 +525,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 			if (states) {
 				params = [states].concat(params);
 			}
-			states = target;
-			target = null;
+			states = target
+			target = this
 		}
 
 		this.enqueue_(StateChangeTypes.SET, states, params, target);
@@ -655,7 +655,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 				params = [states].concat(params);
 			}
 			states = target;
-			target = null;
+			target = this
 		}
 
 		this.enqueue_(StateChangeTypes.ADD, states, params, target);
@@ -781,15 +781,15 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	drop(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
 			if (states) {
-				params = [states].concat(params);
+				params = [states].concat(params)
 			}
-			states = target;
-			target = null;
+			states = target
+			target = this
 		}
 
-		this.enqueue_(StateChangeTypes.DROP, states, params, target);
+		this.enqueue_(StateChangeTypes.DROP, states, params, target)
 
-		return this.processQueue_();
+		return this.processQueue_()
 	}
 
 	/**
@@ -1037,8 +1037,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * states.add('A')
 	 * ````
 	 */
-	duringTransition(): Transition | null {
-		return this.transition;
+	duringTransition(): boolean {
+		return this.lock
 	}
 
 	/**
@@ -1047,11 +1047,10 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * Requires [[duringTranstion]] to be true or it'll throw.
 	 */
 	from() {
-		let transition = this.duringTransition()
-		if (!transition)
+		if (!this.transition)
 			throw new Error(`AsyncMachine ${this.id()} not during transition`)
 
-		return transition.before
+		return this.transition.before
 	}
 
 	/**
@@ -1060,11 +1059,10 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * Requires [[duringTranstion]] to be true or it'll throw.
 	 */
 	to() {
-		let transition = this.duringTransition()
-		if (!transition)
+		if (!this.transition)
 			throw new Error(`AsyncMachine ${this.id()} not during transition`)
 
-		return transition.states
+		return this.transition.states
 	}
 
 	/**
@@ -1127,7 +1125,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 */
 	when(states: string | string[], abort?: TAbortFunction): Promise<null> {
 		let states_parsed = this.parseStates(states)
-		return new Promise((resolve) => {
+		return new Promise<null>((resolve) => {
 			this.bindToStates(states_parsed, resolve, abort)
 		})
 	}
@@ -1234,10 +1232,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 		return this;
 	}
 
-	emit: IEmit;
-	// emit(event, ...params) {
-	// 	return super.emit(event, ...params);
-	// }
+	emit: TEmit & IEmit;
 
 	// TODO type all the emit calls
 
@@ -1346,7 +1341,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 		else
 			this.log(`[pipe${tags}] ${parsed_states.join(', ')} to ${machine.id()}`, 2)
 
-		let emit_on: this[] = []
+		let emit_on: AsyncMachine<IBind, IEmit>[] = []
 
 		for (let state of parsed_states) {
 			// accept a different name only when one state is piped
@@ -1355,9 +1350,8 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 			for (let [event_type, method_name] of Object.entries(bindings)) {
 				let listener = () => {
 					let target = (flags & PipeFlags.LOCAL_QUEUE) ? this : machine
-					let transition = this.duringTransition()
-					if (transition) {
-						transition.addStep([machine.id(), target_state], [this.id(), state],
+					if (this.transition) {
+						this.transition.addStep([machine.id(), target_state], [this.id(), state],
 							TransitionStepTypes.PIPE)
 					}
 
@@ -1379,7 +1373,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 				// setup the forwarding listener
 				// TODO listener-less piping
 				// read from #pipes directly, inside the transition
-				this.on(`${state}_${event_type}`, listener)
+				this.on(`${state}_${event_type}` as 'ts-dynamic', listener)
 			}
 
 			if (!emit_on.includes(this))
@@ -1453,25 +1447,35 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 	 * array.
 	 */
 	private enqueue_(type: number, states: string[] | string, params: any[] = [],
-			target?: AsyncMachine<TBind, TEmit>) {
+			target: AsyncMachine<TBind, TEmit> = this) {
 		var type_label = StateChangeTypes[type].toLowerCase();
-		let states_parsed = (target || this).parseStates(states);
+		let states_parsed = target.parseStates(states);
 
+		let queue = this.queue_
 		if (this.duringTransition()) {
-			if (target) {
+			if (this.transition && this.transition.source_machine !== this) {
+				// TODO log msg for using the parent queue
+				queue = this.transition.source_machine.queue_
+			}
+			if (target !== this) {
 				this.log(`[queue:${type_label}] [${target.id()}] ${states_parsed.join(", ")}`, 2);
 			} else {
 				this.log(`[queue:${type_label}] ${states_parsed.join(", ")}`, 2);
 			}
 		}
 
-		return this.queue_.push([type, states_parsed, params, false, target]);
+		return queue.push([type, states_parsed, params, false, target]);
 	}
 
 	// Goes through the whole queue collecting return values.
 	private processQueue_(): boolean {
 		if (this.lock_queue)
 			return false
+		if (this.lock) {
+			// instance is during a transition from an external queue
+			// wait for it to finish OR schedule this queue somehow
+			return false
+		}
 
 		let ret: boolean[] = [];
 		this.lock_queue = true;
@@ -1479,9 +1483,15 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 		while (row = this.queue_.shift()) {
 			if (!row[QueueRowFields.TARGET])
 				row[QueueRowFields.TARGET] = this
-			this.transition = new Transition<TBind, TEmit>(this.id(), row)
+			this.transition = new Transition(this, row)
+			// expose the current transition also on the target machine
+			row[QueueRowFields.TARGET].transition = this.transition
 			ret.push(this.transition.exec())
+			// GC the transition
+			row[QueueRowFields.TARGET].transition = null
 		}
+		// GC the transition
+		this.transition = null
 		this.lock_queue = false
 		return ret[0] || false;
 	}
@@ -1601,7 +1611,7 @@ export class AsyncMachine<TBind, TEmit> extends EventEmitter {
 
 		this.log(`[bind:on] ${states.join(', ')}`, 3)
 		for (let state of states)
-			this.on(`${state}_state`, enter)
+			this.on(`${state}_state` as 'ts-dynamic', enter)
 	}
 
 	// TODO compose the existing abort function without recursion

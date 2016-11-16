@@ -36,7 +36,7 @@ interface IEvent {
 export default class Transition {
 
 	// ID of the machine which initiated the transition
-	source_machine_id: string;
+	source_machine: AsyncMachine<IBind, IEmit>;
 	// queue of events to fire
 	private events: IEvent[] = [];
 	// states before the transition
@@ -62,7 +62,7 @@ export default class Transition {
 	}
 	// is it an auto-state transition?
 	get auto(): boolean {
-		return this.row[QueueRowFields.AUTO]
+		return this.row[QueueRowFields.AUTO] || false
 	}
 	// type of the transition
 	get type(): StateChangeTypes {
@@ -77,8 +77,8 @@ export default class Transition {
 		return this.row[QueueRowFields.PARAMS]
 	}
 
-	constructor(source_machine_id: string, row: IQueueRow) {
-		this.source_machine_id = source_machine_id
+	constructor(source_machine_id: AsyncMachine<IBind, IEmit>, row: IQueueRow) {
+		this.source_machine = source_machine_id
 		this.row = row
 		this.before = this.machine.is()
 
@@ -130,7 +130,7 @@ export default class Transition {
 
 	exec(): boolean {
 		let target = this.machine
-		let queue = this.machine.queue_;
+		let queue = this.machine.queue_
 		let aborted = !this.accepted
 		let hasStateChanged = false
 
@@ -139,14 +139,14 @@ export default class Transition {
 		// in case of using a local queue, we can hit a locked target machine
 		// TODO write a test
 		if (target.lock) {
-			target.log('[cancelled] Target machine already during a transition', 2)
+			target.log('[cancelled] Target machine already during a transition', 1)
 			return false
 		}
 
 		target.transition = this
 		this.events = []
 		target.lock = true
-		target.queue_ = [];
+		target.queue_ = []
 
 		try {
 			// NEGOTIATION CALLS PHASE (cancellable)
@@ -209,8 +209,7 @@ export default class Transition {
 		target.lock = false;
 
 		if (aborted) {
-			// TODO document, pass some params
-			target.emit("cancelled");
+			target.emit("transition-cancelled", this);
 		} else if (hasStateChanged && !this.row[QueueRowFields.AUTO]) {
 			// prepend auto states to the beginning of the queue
 			// TODO find prepareAutoStates ;]
@@ -465,7 +464,7 @@ export default class Transition {
 					return true;
 				}
 
-				ret = this.machine.emit(name, ...params)
+				ret = this.machine.emit(name as 'ts-dynamic', ...params)
 			} catch (err) {
 				throw new TransitionException(err, name)
 			}
@@ -535,7 +534,7 @@ export default class Transition {
 				if (is_exit || is_enter) {
 					this.events.push([method, params]);
 				}
-				ret = this.machine.emit(method, ...params)
+				ret = this.machine.emit(method as 'ts-dynamic', ...params)
 				if (ret === false) {
 					this.machine.log(`[cancelled] ${this.states.join(", ")} by ` +
 						`the event ${method}`, 2)
@@ -585,7 +584,7 @@ export default class Transition {
 					this.machine.log("[transition] " + method, 4)
 				}
 
-				this.machine.emit(method, ...params)
+				this.machine.emit(method as 'ts-dynamic', ...params)
 			} catch (err) {
 				err = new TransitionException(err, method)
 				this.processPostTransitionException(state, is_enter)
