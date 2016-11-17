@@ -91,8 +91,3 @@ export interface IEmit {
 	// skip compiler errors for dynamic calls
 	(event: 'ts-dynamic', ...params: any[]): boolean;
 }
-
-class Foo<T> {
-	a: { [K in T]: boolean };
-}
-

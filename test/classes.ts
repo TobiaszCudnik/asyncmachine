@@ -11,7 +11,9 @@ import {
 } from '../src/types-states';
 import { IState } from '../src/types'
 
-class FooMachine extends AsyncMachine<'A' | 'B' | 'C' | 'D' | BaseStates, IBind, IEmit> {
+
+class FooMachineExt<States extends string>
+        extends AsyncMachine<States | 'A' | 'B' | 'C' | 'D' | BaseStates, IBind, IEmit> {
     A: IState = {};
     B: IState = {};
     C: IState = {};
@@ -29,6 +31,8 @@ class FooMachine extends AsyncMachine<'A' | 'B' | 'C' | 'D' | BaseStates, IBind,
     }
 }
 
+class FooMachine extends FooMachineExt<null> {}
+
 class SubClassRegisterAll extends AsyncMachine<'A' | BaseStates, IBind, IEmit> {
     A = {}
 
@@ -38,7 +42,7 @@ class SubClassRegisterAll extends AsyncMachine<'A' | BaseStates, IBind, IEmit> {
     }
 }
 
-class EventMachine extends FooMachine {
+class EventMachine extends FooMachineExt<'TestNamespace'> {
 
     TestNamespace: IState = {}
 
@@ -111,6 +115,7 @@ class CrossBlocked extends AsyncMachine<'A' | 'B' | BaseStates, IBind, IEmit> {
         this.set("B");
     }
 }
+
 
 export {
     SubClassRegisterAll,

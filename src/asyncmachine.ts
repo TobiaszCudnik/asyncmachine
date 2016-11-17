@@ -121,7 +121,8 @@ export function factory<T extends AsyncMachine<BaseStates, IBind, IEmit>>(
  * - loose bind in favor of closures
  * - piping to an un existing state breaks the event loop
  */
-export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
+export class AsyncMachine<TStates extends string, TBind, TEmit>
+		extends EventEmitter {
 
 	/**
 	 * Empty Exception state properties. See [[Exception_state]] transition handler.
@@ -210,7 +211,7 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 	 * TODO update the docs
 	 */
 	Exception_state(err: Error, target_states: string[], base_states: string[],
-			exception_transition: string, async_target_states?: string[]): void {
+			exception_transition: string, async_target_states?: string[]): void{
 		if (this.print_exception)
 			console.error("EXCEPTION from AsyncMachine")
 		if (target_states && target_states.length > 0) {
@@ -896,7 +897,7 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 	 * 
 	 * TODO tighter typing for state names
 	 */
-	pipe<S>(state: (TStates | BaseStates) | (TStates | BaseStates)[],
+	pipe<S extends string>(state: (TStates | BaseStates) | (TStates | BaseStates)[],
 			machine: AsyncMachine<S, TBind, TEmit>, target_state?: S, flags?: PipeFlags) {
 		this.pipeBind(state, machine, target_state, flags)
 	}
@@ -1278,7 +1279,8 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 	 * @param states2 Set to diff against (picking up the non existing ones).
 	 * @return List of states in states1 but not in states2.
 	 */
-	diffStates(states1: (TStates | BaseStates)[], states2: (TStates | BaseStates)[]) {
+	diffStates(states1: (TStates | BaseStates)[], states2: (TStates |
+			BaseStates)[]) {
 		return states1.filter( name => !states2.includes(name) )
 	}
 
@@ -1301,6 +1303,7 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 
 	// PRIVATES
 
+	// TODO use enums
 	protected getPipeBindings(flags?: PipeFlags): TPipeBindings {
 		if (flags & PipeFlags.INVERT && flags & PipeFlags.NEGOTIATION) {
 			return {
@@ -1331,8 +1334,10 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 		}
 	}
 
-	protected pipeBind<S>(states: (TStates | BaseStates) | (TStates | BaseStates)[],
-			machine: AsyncMachine<S, TBind, TEmit>, requested_state?: S | null, flags?: PipeFlags) {
+	// TODO overload signatures for the optional requested_state 
+	protected pipeBind<S extends string>(states: (TStates | BaseStates) |
+			(TStates | BaseStates)[], machine: AsyncMachine<S, TBind, TEmit>,
+			requested_state?: S | null, flags?: PipeFlags) {
 		let bindings = this.getPipeBindings(flags)
 		let parsed_states = this.parseStates(states)
 
@@ -1360,11 +1365,12 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 
 		for (let state of parsed_states) {
 			// accept a different name only when one state is piped
-			let target_state = (parsed_states.length == 1 && requested_state) || state;
+			let target_state: S = (parsed_states.length == 1 && requested_state) || state as S;
 
 			for (let [event_type, method_name] of Object.entries(bindings)) {
 				let listener = () => {
-					let target = (flags & PipeFlags.LOCAL_QUEUE) ? this : machine
+					let target = (flags & PipeFlags.LOCAL_QUEUE)
+						? this : machine
 					if (this.transition) {
 						this.transition.addStep([machine.id(), target_state as string],
 							[this.id(), state as string], TransitionStepTypes.PIPE)
@@ -1463,7 +1469,8 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 	 * 
 	 * TODO generic for the machine param?
 	 */
-	private enqueue_(type: number, states: (TStates | BaseStates)[] | (TStates | BaseStates), params: any[] = [],
+	private enqueue_(type: number, states: (TStates | BaseStates)[] |
+			(TStates | BaseStates), params: any[] = [],
 			target: AsyncMachine<any, IBind, IEmit> = this) {
 		var type_label = StateChangeTypes[type].toLowerCase();
 		let states_parsed = target.parseStates(states);
@@ -1475,9 +1482,11 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 				queue = this.transition.source_machine.queue_
 			}
 			if (target !== this) {
-				this.log(`[queue:${type_label}] [${target.id()}] ${states_parsed.join(", ")}`, 2);
+				this.log(`[queue:${type_label}] [${target.id()}]`+
+					` ${states_parsed.join(", ")}`, 2);
 			} else {
-				this.log(`[queue:${type_label}] ${states_parsed.join(", ")}`, 2);
+				this.log(`[queue:${type_label}] ${states_parsed.join(", ")}`,
+					2);
 			}
 		}
 
@@ -1517,8 +1526,10 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 		return states.every((state) => !this.is(state))
 	}
 
-	private createDeferred(fn: Function, target: AsyncMachine<any, TBind, TEmit> | (TStates | BaseStates) | (TStates | BaseStates)[],
-			states: (TStates | BaseStates) | (TStates | BaseStates)[] | any, state_params: any[]): Deferred {
+	private createDeferred(fn: Function, target: AsyncMachine<any, TBind,
+			TEmit> | (TStates | BaseStates) | (TStates | BaseStates)[],
+			states: (TStates | BaseStates) | (TStates | BaseStates)[] | any,
+			state_params: any[]): Deferred {
 		// TODO use the current transition's states if available (for enter/exit
 		// transitions)
 		var transition_states = this.is();
@@ -1546,7 +1557,8 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 		return deferred;
 	}
 
-	private createCallback(deferred: Deferred): (err?: any, ...params: any[]) => void {
+	private createCallback(deferred: Deferred): (err?: any, ...params: any[])
+			=> void {
 		return (err : any = null, ...params: any[]) => {
 			if (err) {
 				return deferred.reject(err);
@@ -1564,7 +1576,8 @@ export class AsyncMachine<TStates, TBind, TEmit> extends EventEmitter {
 	 * Sets the new active states bumping the counters. Returns an array of
 	 * previously active states.
 	 */
-	setActiveStates_(explicite_states: (TStates | BaseStates)[], target: (TStates | BaseStates)[]): (TStates | BaseStates)[] {
+	setActiveStates_(explicite_states: (TStates | BaseStates)[], target:
+			(TStates | BaseStates)[]): (TStates | BaseStates)[] {
 		var previous = this.states_active;
 		var new_states = this.diffStates(target, this.states_active);
 		var removed_states = this.diffStates(this.states_active, target);
