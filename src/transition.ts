@@ -14,7 +14,7 @@ import {
 import {
 	IBind,
 	IEmit,
-} from './events'
+} from './types-states'
 // shims for current engines
 import 'core-js/fn/array/includes'
 import 'core-js/fn/object/entries'
@@ -36,7 +36,7 @@ interface IEvent {
 export default class Transition {
 
 	// ID of the machine which initiated the transition
-	source_machine: AsyncMachine<IBind, IEmit>;
+	source_machine: AsyncMachine<any, IBind, IEmit>;
 	// queue of events to fire
 	private events: IEvent[] = [];
 	// states before the transition
@@ -57,7 +57,7 @@ export default class Transition {
 	cancelled: boolean;
 
 	// target machine on which the transition is supposed to happen
-	get machine(): AsyncMachine<IBind, IEmit> {
+	get machine(): AsyncMachine<any, IBind, IEmit> {
 		return this.row[QueueRowFields.TARGET]
 	}
 	// is it an auto-state transition?
@@ -77,9 +77,10 @@ export default class Transition {
 		return this.row[QueueRowFields.PARAMS]
 	}
 
-	constructor(source_machine_id: AsyncMachine<IBind, IEmit>, row: IQueueRow) {
-		this.source_machine = source_machine_id
+	constructor(source_machine: AsyncMachine<any, IBind, IEmit>, row: IQueueRow) {
+		this.source_machine = source_machine
 		this.row = row
+		// TODO loose casting
 		this.before = this.machine.is()
 
 		this.machine.emit("transition-init", this)
@@ -188,7 +189,7 @@ export default class Transition {
 			}
 			// if canceled then drop the queue created during the transition
 			target.queue_ = aborted ? queue : [...queue, ...target.queue_]
-		} catch (ex: {}) {
+		} catch (ex) {
 			// TODO extract
 			let err = ex as TransitionException
 			aborted = true
@@ -199,7 +200,7 @@ export default class Transition {
 				this.machine.setImmediate( () => { throw err.err } )
 			} else {
 				let queued_exception: IQueueRow = [StateChangeTypes.ADD, ["Exception"],
-					[err.err, this.states, this.before, err.transition]]
+					[err.err, this.states, this.before, err.transition], false, target]
 				// drop the queue created during the transition
 				target.queue_ = [queued_exception, ...queue];
 			}
@@ -297,7 +298,7 @@ export default class Transition {
 		}
 
 		if (add.length)
-			 return [StateChangeTypes.ADD, add, [], true]
+			 return [StateChangeTypes.ADD, add, [], true, this.machine]
 
 		return null
 	}
@@ -679,6 +680,8 @@ export default class Transition {
 	 * E -> D   RELATION   drop
 	 * E   DROP
 	 * ```
+	 * 
+	 * TODO loose casts once condition guards work again
 	 */
 	toString() {
     let fields = TransitionStepFields
@@ -687,13 +690,16 @@ export default class Transition {
 
 		return this.steps.map(touch => {
 			let line = ''
-			if (touch[fields.SOURCE_STATE])
-					line += touch[fields.SOURCE_STATE][s.STATE_NAME] + ' -> '
+			if (touch[fields.SOURCE_STATE]) {
+				line += (touch[fields.SOURCE_STATE] as IStateStruct)
+					[s.STATE_NAME] + ' -> '
+			}
 			line += touch[fields.STATE][s.STATE_NAME]
 			line += '   '
-			line += types[touch[fields.TYPE]]
+			if (touch[fields.TYPE])
+				line += types[touch[fields.TYPE] as TransitionStepTypes]
 			if (touch[fields.DATA])
-					line += '   ' + touch[fields.DATA]
+				line += '   ' + touch[fields.DATA]
 
 			return line
 		}).join("\n")

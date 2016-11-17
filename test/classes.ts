@@ -4,9 +4,14 @@
 import AsyncMachine, {
     factory
 } from '../src/asyncmachine';
+import {
+    BaseStates,
+    IBind,
+    IEmit
+} from '../src/types-states';
 import { IState } from '../src/types'
 
-class FooMachine extends AsyncMachine {
+class FooMachine extends AsyncMachine<'A' | 'B' | 'C' | 'D' | BaseStates, IBind, IEmit> {
     A: IState = {};
     B: IState = {};
     C: IState = {};
@@ -19,10 +24,12 @@ class FooMachine extends AsyncMachine {
         if (initialState) {
             this.set(initialState);
         }
+
+        this.add('A')
     }
 }
 
-class SubClassRegisterAll extends AsyncMachine {
+class SubClassRegisterAll extends AsyncMachine<'A' | BaseStates, IBind, IEmit> {
     A = {}
 
     constructor() {
@@ -44,7 +51,7 @@ class EventMachine extends FooMachine {
     }
 }
 
-class Sub extends AsyncMachine {
+class Sub extends AsyncMachine<'A' | 'B' | BaseStates, IBind, IEmit> {
 
     A: IState = {}
     B: IState = {}
@@ -69,7 +76,7 @@ class Sub extends AsyncMachine {
     }
 }
 
-class SubCrossBlockedByImplied extends AsyncMachine {
+class SubCrossBlockedByImplied extends AsyncMachine<'A' | 'B' | 'C' | BaseStates, IBind, IEmit> {
     A: IState = {
         drop: ["B"]
     };
@@ -87,7 +94,7 @@ class SubCrossBlockedByImplied extends AsyncMachine {
     }
 }
 
-class CrossBlocked extends AsyncMachine {
+class CrossBlocked extends AsyncMachine<'A' | 'B' | BaseStates, IBind, IEmit> {
 
     A: IState = {
         drop: ["B"]

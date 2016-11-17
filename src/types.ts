@@ -1,4 +1,8 @@
 import AsyncMachine from './asyncmachine'
+import {
+	IBind,
+	IEmit
+} from './types-states'
 
 
 export enum StateChangeTypes {
@@ -22,8 +26,8 @@ export interface IQueueRow {
 	0: number;
 	1: string[];
 	2: any[];
-	3?: boolean;
-	4?: AsyncMachine;
+	3: boolean;
+	4: AsyncMachine<any, IBind, IEmit>;
 }
 
 export class Deferred {
@@ -126,7 +130,7 @@ export type TPipeBindings = IPipeStateBindings | IPipeNegotiationBindings
 
 export interface IPipedStateTarget {
 	state: string,
-	machine: AsyncMachine,
+	machine: AsyncMachine<any, IBind, IEmit>,
 	event_type: TStateMethod,
 	listener: Function,
 	flags?: PipeFlags

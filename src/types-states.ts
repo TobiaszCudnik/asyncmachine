@@ -11,7 +11,7 @@ import {
 // - all of their variants
 // Try to use "mapped types" to type call params per state 
 
-export type States = 'Exception';
+export type BaseStates = 'Exception';
 
 // 2nd approach, use with "<IBind, IEmit>"
 
@@ -91,3 +91,8 @@ export interface IEmit {
 	// skip compiler errors for dynamic calls
 	(event: 'ts-dynamic', ...params: any[]): boolean;
 }
+
+class Foo<T> {
+	a: { [K in T]: boolean };
+}
+
