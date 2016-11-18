@@ -316,12 +316,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		}
 	}
 
-	/**
-	 * Returns an array of relations from one state to another.
-	 * Maximum set is ["drop", "after", "add", "require"].
-	 *
-	 * TODO code sample
-	 */
 	getRelationsOf(from_state: (TStates | BaseStates), to_state?: (TStates | BaseStates)): StateRelations[] {
 		this.parseStates(from_state)
 		if (to_state)
@@ -526,7 +520,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * 	states1.add states2, 'B'
 	 * ```
 	 */
-	set(target: AsyncMachine<BaseStates, IBind, IEmit>, states: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[]): boolean;
+	set<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): boolean;
 	set(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	set(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
@@ -559,8 +553,12 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ```
 	 *
 	 */
-	setByCallback(target: AsyncMachine<BaseStates, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
-			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
+	setByCallback<S extends string>(target: AsyncMachine<S, IBind, IEmit>,
+			states?: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[])
+			: (err?: any, ...params: any[]) => void;
+	setByCallback(target: (TStates | BaseStates)[] | (TStates | BaseStates),
+			states?: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+	setByCallback(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createCallback(this.createDeferred(this.set.bind(this), target,
@@ -585,8 +583,12 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * emitter.on 'error', states.addByListener('Exception')
 	 * ```
 	 */
-	setByListener(target: AsyncMachine<BaseStates, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
-			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
+	setByListener<S extends string>(target: AsyncMachine<S, IBind, IEmit>,
+			states?: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[])
+			: (...params: any[]) => void;
+	setByListener(target: (TStates | BaseStates)[] | (TStates | BaseStates),
+			states?: any, ...params: any[]): (...params: any[]) => void;
+	setByListener(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createListener(this.createDeferred(this.set.bind(this), target,
@@ -607,9 +609,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * states.is() // -> ['A']
 	 * ```
 	 */
-	setNext(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
-			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
-			: (...params: any[]) => void {
+	setNext<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): number;
+	setNext(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): number;
+	setNext(target: any, states?: any, ...params: any[]): number {
 		// TODO closure
 		let fn = this.set.bind(this);
 		return this.setImmediate(fn, target, states, params);
@@ -655,7 +657,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * 	states1.add states2, 'B'
 	 * ```
 	 */
-	add(target: AsyncMachine<any, IBind, IEmit>, states: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[]): boolean;
+	add<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): boolean;
 	add(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	add(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
@@ -688,8 +690,12 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ```
 	 *
 	 */
-	addByCallback(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
-			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
+	addByCallback<S extends string>(target: AsyncMachine<S, IBind, IEmit>,
+			states?: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[])
+			: (err?: any, ...params: any[]) => void;
+	addByCallback(target: (TStates | BaseStates)[] | (TStates | BaseStates),
+			states?: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+	addByCallback(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createCallback(this.createDeferred(this.add.bind(this), target,
@@ -714,8 +720,12 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * emitter.on 'error', states.addByListener('Exception')
 	 * ```
 	 */
-	addByListener(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
-			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
+	addByListener<S extends string>(target: AsyncMachine<S, IBind, IEmit>,
+			states?: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[])
+			: (...params: any[]) => void;
+	addByListener(target: (TStates | BaseStates)[] | (TStates | BaseStates),
+			states?: any, ...params: any[]): (...params: any[]) => void;
+	addByListener(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createListener(this.createDeferred(this.add.bind(this), target,
@@ -736,9 +746,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * states.is() // -> ['A', 'B']
 	 * ```
 	 */
-	addNext(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
-			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
-			: (...params: any[]) => void {
+	addNext<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): number;
+	addNext(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): number;
+	addNext(target: any, states?: any, ...params: any[]): number {
 		// TODO closure
 		let fn = this.add.bind(this);
 		return this.setImmediate(fn, target, states, params);
@@ -784,7 +794,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * 	states1.add states2, 'B'
 	 * ```
 	 */
-	drop(target: AsyncMachine<any, IBind, IEmit>, states: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[]): boolean;
+	drop<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): boolean;
 	drop(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	drop(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
@@ -817,8 +827,12 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ```
 	 *
 	 */
-	dropByCallback(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
-			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
+	dropByCallback<S extends string>(target: AsyncMachine<S, IBind, IEmit>,
+			states?: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[])
+			: (err?: any, ...params: any[]) => void;
+	dropByCallback(target: (TStates | BaseStates)[] | (TStates | BaseStates),
+			states?: any, ...params: any[]): (err?: any, ...params: any[]) => void;
+	dropByCallback(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createCallback(this.createDeferred(this.drop.bind(this), target, states, params));
@@ -842,8 +856,12 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * emitter.on 'error', states.setByListener('Exception')
 	 * ```
 	 */
-	dropByListener(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
-			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
+	dropByListener<S extends string>(target: AsyncMachine<S, IBind, IEmit>,
+			states?: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[])
+			: (...params: any[]) => void;
+	dropByListener(target: (TStates | BaseStates)[] | (TStates | BaseStates),
+			states?: any, ...params: any[]): (...params: any[]) => void;
+	dropByListener(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure instead of bind
 		return this.createListener(this.createDeferred(this.drop.bind(this),
@@ -864,9 +882,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * states.is('A') // -> true
 	 * ```
 	 */
-	dropNext(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
-			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
-			: (...params: any[]) => void {
+	dropNext<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): number;
+	dropNext(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): number;
+	dropNext(target: any, states?: any, ...params: any[]): number {
 		// TODO closure
 		let fn = this.drop.bind(this);
 		return this.setImmediate(fn, target, states, params);
