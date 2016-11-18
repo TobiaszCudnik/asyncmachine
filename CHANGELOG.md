@@ -33,13 +33,14 @@
 - rewrite tests
 - ensure all the state lists and params are shallow copied
 
-### v3.x
+### v3.1
 
 - extracted the Transition class
 - stricter compiler checks (nulls, implicit any, returns)
 - structurized transition steps
 - use currently executing queue when available
-- type safety for events
+- type safety for events and states (TS only)
+- types generator from JSON and classes (TS only)
 
 ### v3.0
 

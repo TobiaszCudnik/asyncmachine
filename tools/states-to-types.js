@@ -17,7 +17,7 @@ const filename = path.join(process.cwd(), process.argv[2])
 
 let states
 if (filename.match(/\.json$/))
-	states = JSON.parse(fs.readFileSync(filename, { encoding: 'utf8' }))
+	states = Object.keys(JSON.parse(fs.readFileSync(filename, { encoding: 'utf8' })))
 else {
 	let mod = require(filename)
 	states = mod.States || mod.default || mod
