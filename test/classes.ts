@@ -5,19 +5,24 @@ import AsyncMachine, {
     factory
 } from '../src/asyncmachine';
 import {
-    BaseStates,
     IBind,
     IEmit
-} from '../src/types-states';
+} from '../src/types';
 import { IState } from '../src/types'
 
+type AB = 'A' | 'B'
+type ABC = 'A' | 'B' | 'C'
+type ABCD = 'A' | 'B' | 'C' | 'D'
+
+type FooMachineState = IState<ABCD>
+interface IFooMachineState<T extends string> extends IState<T | ABCD> {}
 
 class FooMachineExt<States extends string>
-        extends AsyncMachine<States | 'A' | 'B' | 'C' | 'D' | BaseStates, IBind, IEmit> {
-    A: IState = {};
-    B: IState = {};
-    C: IState = {};
-    D: IState = {};
+        extends AsyncMachine<States | ABCD, IBind, IEmit> {
+    A: FooMachineState = {};
+    B: FooMachineState = {};
+    C: FooMachineState = {};
+    D: FooMachineState = {};
 
     constructor(initialState?) {
         super();
@@ -33,8 +38,8 @@ class FooMachineExt<States extends string>
 
 class FooMachine extends FooMachineExt<null> {}
 
-class SubClassRegisterAll extends AsyncMachine<'A' | BaseStates, IBind, IEmit> {
-    A = {}
+class SubClassRegisterAll extends AsyncMachine<'A', IBind, IEmit> {
+    A: IState<'A'> = {}
 
     constructor() {
         super()
@@ -44,7 +49,7 @@ class SubClassRegisterAll extends AsyncMachine<'A' | BaseStates, IBind, IEmit> {
 
 class EventMachine extends FooMachineExt<'TestNamespace'> {
 
-    TestNamespace: IState = {}
+    TestNamespace: IFooMachineState<'TestNamespace'> = {}
 
     constructor(initial?, config?) {
         super();
@@ -55,10 +60,10 @@ class EventMachine extends FooMachineExt<'TestNamespace'> {
     }
 }
 
-class Sub extends AsyncMachine<'A' | 'B' | BaseStates, IBind, IEmit> {
+class Sub extends AsyncMachine<AB, IBind, IEmit> {
 
-    A: IState = {}
-    B: IState = {}
+    A: IState<AB> = {}
+    B: IState<AB> = {}
 
     constructor(initial?, a_spy?, b_spy?) {
         super();
@@ -80,14 +85,14 @@ class Sub extends AsyncMachine<'A' | 'B' | BaseStates, IBind, IEmit> {
     }
 }
 
-class SubCrossBlockedByImplied extends AsyncMachine<'A' | 'B' | 'C' | BaseStates, IBind, IEmit> {
-    A: IState = {
+class SubCrossBlockedByImplied extends AsyncMachine<ABC, IBind, IEmit> {
+    A: IState<ABC> = {
         drop: ["B"]
     };
-    B: IState = {
+    B: IState<ABC> = {
         drop: ["A"]
     };
-    C: IState = {
+    C: IState<ABC> = {
         add: ["B"]
     };
     constructor() {
@@ -98,12 +103,12 @@ class SubCrossBlockedByImplied extends AsyncMachine<'A' | 'B' | 'C' | BaseStates
     }
 }
 
-class CrossBlocked extends AsyncMachine<'A' | 'B' | BaseStates, IBind, IEmit> {
+class CrossBlocked extends AsyncMachine<AB, IBind, IEmit> {
 
-    A: IState = {
+    A: IState<AB> = {
         drop: ["B"]
     }
-    B: IState = {
+    B: IState<AB> = {
         drop: ["A"]
     }
 

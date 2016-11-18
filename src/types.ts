@@ -5,46 +5,46 @@ export type BaseStates = 'Exception';
 
 export interface IBind {
 	(event: 'tick', listener:
-		(before: string[]) => boolean | undefined, context?: Object): this;
+		(before: string[]) => boolean | void, context?: Object): this;
 	(event: 'id-changed', listener:
-		(new_id: string, old_id: string) => boolean | undefined, context?: Object): this;
+		(new_id: string, old_id: string) => boolean | void, context?: Object): this;
 	(event: 'transition-init', listener:
-		(transition: Transition) => boolean | undefined, context?: Object): this;
+		(transition: Transition) => boolean | void, context?: Object): this;
 	(event: 'transition-start', listener:
-		(transition: Transition) => boolean | undefined, context?: Object): this;
+		(transition: Transition) => boolean | void, context?: Object): this;
 	(event: 'transition-end', listener:
-		(transition: Transition) => boolean | undefined, context?: Object): this;
+		(transition: Transition) => boolean | void, context?: Object): this;
 	(event: 'transition-step', listener:
-		(...steps: ITransitionStep[]) => boolean | undefined, context?: Object): this;
+		(...steps: ITransitionStep[]) => boolean | void, context?: Object): this;
 	(event: 'pipe', listener:
-		(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+		(pipe: TPipeBindings) => boolean | void, context?: Object): this;
 	// TODO
 	// (event: 'pipe-in', listener:
-	// 	(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	// 	(pipe: TPipeBindings) => boolean | void, context?: Object): this;
 	// (event: 'pipe-out', listener:
-	// 	(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	// 	(pipe: TPipeBindings) => boolean | void, context?: Object): this;
 	// (event: 'pipe-in-removed', listener:
-	// 	(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	// 	(pipe: TPipeBindings) => boolean | void, context?: Object): this;
 	// (event: 'pipe-out-removed', listener:
-	// 	(pipe: TPipeBindings) => boolean | undefined, context?: Object): this;
+	// 	(pipe: TPipeBindings) => boolean | void, context?: Object): this;
 	(event: 'state-registered', listener:
-		(state: string) => boolean | undefined, context?: Object): this;
+		(state: string) => boolean | void, context?: Object): this;
 	(event: 'state-deregistered', listener:
-		(state: string) => boolean | undefined, context?: Object): this;
+		(state: string) => boolean | void, context?: Object): this;
 	(event: 'transition-cancelled', listener:
-		(transition: Transition) => boolean | undefined, context?: Object): this;
+		(transition: Transition) => boolean | void, context?: Object): this;
 	// State events
 	// TODO optional params
 	(event: 'Exception_enter', listener: (err: Error, target_states: string[],
 		base_states: string[], exception_transition: string, async_target_states?: string[])
-		=> boolean | undefined, context?: Object): this;
+		=> boolean | void, context?: Object): this;
 	(event: 'Exception_state', listener: (err: Error, target_states: string[],
 		base_states: string[], exception_transition: string, async_target_states?: string[])
 		=> any, context?: Object): this;
-	(event: 'Exception_exit', listener: () => boolean | undefined, context?: Object): this;
+	(event: 'Exception_exit', listener: () => boolean | void, context?: Object): this;
 	(event: 'Exception_end', listener: () => any, context?: Object): this;
-	(event: 'Exception_Any', listener: () => boolean | undefined, context?: Object): this;
-	(event: 'Any_Exception', listener: () => boolean | undefined, context?: Object): this;
+	(event: 'Exception_Any', listener: () => boolean | void, context?: Object): this;
+	(event: 'Any_Exception', listener: () => boolean | void, context?: Object): this;
 	// skip compiler errors for dynamic calls
 	(event: 'ts-dynamic', listener: Function): this;
 }
@@ -80,20 +80,21 @@ export interface IEmit {
 	(event: 'ts-dynamic', ...params: any[]): boolean;
 }
 
-// TODO make it a generic
-export interface IState {
-	// Decides about the order of activations (transitions)
-	after?: string[];
-	// When set, sets also the following states
-	add?: string[];
-	// When set, blocks activation (or deactivates) given states
-	drop?: string[];
-	// State will be rejected if any of those aren't set
-	require?: string[];
-	// When true, the state will be set automatically, if it's not blocked
+export interface IState<T extends string> {
+	/** Decides about the order of activations (transitions) */
+	after?: (T | BaseStates)[];
+	/** When set, sets also the following states */
+	add?: (T | BaseStates)[];
+	/** When set, blocks activation (or deactivates) given states */
+	drop?: (T | BaseStates)[];
+	/** State will be rejected if any of those aren't set */
+	require?: (T | BaseStates)[];
+	/** When true, the state will be set automatically, if it's not blocked */
 	auto?: boolean;
-	// Multi states always triggers the enter and state transitions, plus
-	// the clock is always incremented
+	/**
+	 * Multi states always triggers the enter and state transitions, plus
+	 * the clock is always incremented
+	 */
 	multi?: boolean;
 }
 

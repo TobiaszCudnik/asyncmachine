@@ -19,8 +19,8 @@ chai.use(sinonChai);
 describe('Transition steps', function () {
     it('for relations', function() {
         let states = factory({
-            A: {requires: ['B']},
-            B: {requires: ['C']},
+            A: {require: ['B']},
+            B: {require: ['C']},
             C: {after: ['A']},
             D: {
                 add: ['B', 'C'],
@@ -30,14 +30,14 @@ describe('Transition steps', function () {
         })
         states.id('')
         states.set('E')
-        let transition
+        let transition: Transition
         states.on('transition-end', (t: Transition) => {
             transition = t
         })
         states.add(['A', 'D'])
         expect(states.is()).to.eql(['A', 'D', 'B', 'C'])
         expect(transition.steps.length).to.be.gt(0)
-				let types = TransitionStepTypes
+        let types = TransitionStepTypes
         let steps = [
             [["", "A"], undefined, types.REQUESTED, undefined],
             [["", "D"], undefined, types.REQUESTED, undefined],
@@ -54,7 +54,7 @@ describe('Transition steps', function () {
     })
 
     it('for transitions', function() {
-        let states = factory(['A', 'B', 'C', 'D'])
+        let states = factory<'A'|'B'|'C'|'D'>(['A', 'B', 'C', 'D'])
         let f = function(){}
         let target = {
             Any_C: f,
@@ -65,14 +65,14 @@ describe('Transition steps', function () {
         }
         states.id('').setTarget(target)
         states.set(['A', 'B'])
-        let transition
+        let transition: Transition
         states.on('transition-end', (t: Transition) => {
             transition = t
         })
         states.set(['A', 'C'])
         expect(states.is()).to.eql(['A', 'C'])
         expect(transition.steps.length).to.be.gt(0)
-				let types = TransitionStepTypes
+        let types = TransitionStepTypes
         let steps = [
             [["", "A"], undefined, types.REQUESTED, undefined],
             [["", "C"], undefined, types.REQUESTED, undefined],

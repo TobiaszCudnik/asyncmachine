@@ -30,97 +30,6 @@ else {
 		states = Object.keys(states)
 }
 
-// 	{
-
-// 	Enabled: {},
-
-// 	Syncing: {
-// 		auto: true,
-// 		require: ['Enabled'],
-// 		drop: ['Synced', 'Restart']
-// 	},
-// 	Synced: {
-// 		drop: ['Syncing'],
-// 		require: ['CompletedTasksSynced', 'ThreadsToTasksSynced',
-// 			'TasksToThreadsSynced', 'CompletedThreadsSynced']
-// 	},
-
-// 	Restart: {
-// 		drop: ['TasksFetched', 'CompletedTasksSynced', 'ThreadsToTasksSynced',
-// 			'TasksToThreadsSynced', 'CompletedThreadsSynced', 'TasksCached']
-// 	},
-
-// 	// list
-// 	PreparingList: {
-// 		auto: true,
-// 		require: ['Syncing'],
-// 		drop: ['ListReady']
-// 	},
-// 	ListReady: {
-// 		drop: ['PreparingList']
-// 	},
-
-// 	// tasks
-// 	FetchingTasks: {
-// 		auto: true,
-// 		require: ['Syncing', 'ListReady'],
-// 		drop: ['TasksFetched']
-// 	},
-// 	TasksFetched: {
-// 		require: ['ListReady'], 
-// 		drop: ['FetchingTasks']
-// 	},
-// 	TasksCached: {},
-
-// 	// thread-to-tasks
-// 	SyncingThreadsToTasks: {
-// 		auto: true,
-// 		require: ['Syncing', 'TasksFetched', 'MsgsFetched'],
-// 		drop: ['ThreadsToTasksSynced']
-// 	},
-// 	ThreadsToTasksSynced: {
-// 		drop: ['SyncingThreadsToTasks']
-// 	},
-
-// 	// tasks-to-threads
-// 	SyncingTasksToThreads: {
-// 		auto: true,
-// 		require: ['Syncing', 'TasksFetched', 'ThreadsFetched'],
-// 		drop: ['TasksToThreadsSynced']
-// 	},
-// 	TasksToThreadsSynced: {
-// 		drop: ['SyncingTasksToThreads']
-// 	},
-
-// 	// complete threads
-// 	SyncingCompletedThreads: {
-// 		auto: true,
-// 		require: ['Syncing', 'TasksFetched', 'ThreadsFetched'],
-// 		drop: ['CompletedThreadsSynced']
-// 	},
-// 	CompletedThreadsSynced: {
-// 		drop: ['SyncingCompletedThreads']
-// 	},
-
-// 	// complete tasks
-// 	SyncingCompletedTasks: {
-// 		auto: true,
-// 		require: ['Syncing', 'TasksFetched', 'ThreadsFetched'],
-// 		drop: ['CompletedTasksSynced']
-// 	},
-// 	CompletedTasksSynced: {
-// 		drop: ['SyncingCompletedTasks']
-// 	},
-
-// //	SyncingTaskNames: {}
-
-// 	// ----- External States
-
-// 	ThreadsFetched: {},
-
-// 	MsgsFetched: {},
-// })
-
 // TODO skip state call for exception
 states.push('Exception')
 let transitions = []
@@ -139,6 +48,9 @@ for (let state1 of states) {
 states = states.filter(state=> state != 'Exception')
 
 let output = `
+import { IState as IStateBase } from 'asyncmachine/src/types'
+
+
 export interface IBind {
 
 ${states.map(name=>(
@@ -160,6 +72,12 @@ ${states.map(name => (
 export type TStates = '${states.join("'\n  | '")}';
 
 export type TTransitions = '${transitions.join("'\n  | '")}';
+
+// For this implementation
+export interface IState extends IStateBase<TStates> {}
+
+// For sub classes
+export interface IStateExt<T extends string> extends IStateBase<T | TStates> {}
 
 export interface IBind {
 

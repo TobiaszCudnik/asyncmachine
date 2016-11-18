@@ -1,10 +1,7 @@
 /**
  * TODO
  * - go through all the TODOs in the file
- * - cleanup post-coffeescript code
  */
-
-
 import Transition from "./transition";
 import EventEmitter from "./ee"
 import uuid from './uuid-v4'
@@ -72,14 +69,14 @@ export { default as Transition } from './transition'
  * ```
  */
 export function factory<States extends string, T extends AsyncMachine<BaseStates, IBind, IEmit>>(
-		states: string[] | { [K in keyof States]: IState },
+		states: string[] | { [K in keyof States]: IState<States> },
 		constructor?: { new (...params: any[]): T; }): T;
 export function factory<States extends string>(
 		states: string[]): AsyncMachine<States | BaseStates, IBind, IEmit>;
 export function factory<States extends string>(
-		states: {[K in States]: IState }): AsyncMachine<States | BaseStates, IBind, IEmit>;
+		states: {[K in States]: IState<States> }): AsyncMachine<States | BaseStates, IBind, IEmit>;
 export function factory<States extends string, T extends AsyncMachine<BaseStates, IBind, IEmit>>(
-		states: string[] | { [K in keyof States]: IState } = [],
+		states: string[] | {[K in keyof States]: IState<States> } = [],
 		constructor?: any ): any {
 	var instance = <T><any>(new (constructor || AsyncMachine))
 
@@ -99,7 +96,10 @@ export function factory<States extends string, T extends AsyncMachine<BaseStates
 }
 
 /**
- * Base class which you extend with your own one defining the states.
+ * Base class for extending. Defined states a prototype level properties or
+ * inside of the constructor. Remember to call this.registerAll() afterwards
+ * in the latter case.
+ * 
  * The [[Exception]] state is already provided.
  *
  * ```
@@ -126,13 +126,13 @@ export function factory<States extends string, T extends AsyncMachine<BaseStates
  * - loose bind in favor of closures
  * - piping to an un existing state breaks the event loop
  */
-export class AsyncMachine<TStates extends string, TBind, TEmit>
+export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		extends EventEmitter {
 
 	/**
 	 * Empty Exception state properties. See [[Exception_state]] transition handler.
 	 */
-	Exception = {
+	Exception: IState<TStates | BaseStates> = {
 		multi: true
 	};
 	states_all: (TStates | BaseStates)[] = [];
@@ -482,7 +482,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * states.get('A') // -> { drop: ['B'] }
 	 * ```
 	 */
-	get(state: (TStates | BaseStates)): IState {
+	get(state: (TStates | BaseStates)): IState<TStates> {
 		return this[state as string];
 	}
 
@@ -1461,11 +1461,11 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	/**
 	 * Returns the JSON structure of states along with their relations.
 	 */
-	states(): { [K in (TStates | BaseStates)]: IState } {
-		let ret: { [K in (TStates | BaseStates)]?: IState } = {}
+	states(): { [K in (TStates | BaseStates)]: IState<TStates> } {
+		let ret: { [K in (TStates | BaseStates)]?: IState<TStates> } = {}
 		for (let state of this.states_all)
 			ret[state as string] = this.get(state)
-		return ret as { [K in (TStates | BaseStates)]: IState }
+		return ret as { [K in (TStates | BaseStates)]: IState<TStates> }
 	}
 
 	/*
@@ -1667,10 +1667,6 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	}
 }
 
-
 function isPromise(promise: any): promise is Promise<any> {
 	return promise && promise.then && promise.catch
 }
-
-
-export default AsyncMachine;
