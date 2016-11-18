@@ -9,12 +9,10 @@ import {
 	ITransitionStep,
 	StateRelations,
 	TransitionStepFields,
-	StateStructFields
-} from "./types";
-import {
+	StateStructFields,
 	IBind,
 	IEmit,
-} from './types-states'
+} from "./types";
 // shims for current engines
 import 'core-js/fn/array/includes'
 import 'core-js/fn/object/entries'

@@ -23,12 +23,10 @@ import {
 	QueueRowFields,
 	TAbortFunction,
 	TransitionStepTypes,
-} from './types'
-import {
 	IBind,
 	IEmit,
 	BaseStates
-} from './types-states'
+} from './types'
 // shims for current engines
 import 'core-js/fn/array/keys'
 import 'core-js/fn/array/includes'
@@ -73,9 +71,16 @@ export { default as Transition } from './transition'
  * states.is() // -> ['A', 'B']
  * ```
  */
-export function factory<T extends AsyncMachine<BaseStates, IBind, IEmit>>(
-		states: string[] | { [state: string]: IState } = [],
-		constructor?: { new (...params: any[]): T; }): T {
+export function factory<States extends string, T extends AsyncMachine<BaseStates, IBind, IEmit>>(
+		states: string[] | { [K in keyof States]: IState },
+		constructor?: { new (...params: any[]): T; }): T;
+export function factory<States extends string>(
+		states: string[]): AsyncMachine<States | BaseStates, IBind, IEmit>;
+export function factory<States extends string>(
+		states: {[K in States]: IState }): AsyncMachine<States | BaseStates, IBind, IEmit>;
+export function factory<States extends string, T extends AsyncMachine<BaseStates, IBind, IEmit>>(
+		states: string[] | { [K in keyof States]: IState } = [],
+		constructor?: any ): any {
 	var instance = <T><any>(new (constructor || AsyncMachine))
 
 	if (states instanceof Array) {
@@ -521,7 +526,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * 	states1.add states2, 'B'
 	 * ```
 	 */
-	set(target: AsyncMachine<BaseStates, TBind, TEmit>, states: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[]): boolean;
+	set(target: AsyncMachine<BaseStates, IBind, IEmit>, states: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[]): boolean;
 	set(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	set(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
@@ -554,7 +559,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ```
 	 *
 	 */
-	setByCallback(target: AsyncMachine<BaseStates, TBind, TEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
+	setByCallback(target: AsyncMachine<BaseStates, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
 			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
 		// TODO closure instead of bind
@@ -580,7 +585,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * emitter.on 'error', states.addByListener('Exception')
 	 * ```
 	 */
-	setByListener(target: AsyncMachine<BaseStates, TBind, TEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
+	setByListener(target: AsyncMachine<BaseStates, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
 			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure instead of bind
@@ -602,7 +607,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * states.is() // -> ['A']
 	 * ```
 	 */
-	setNext(target: AsyncMachine<any, TBind, TEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
+	setNext(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
 			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure
@@ -650,7 +655,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * 	states1.add states2, 'B'
 	 * ```
 	 */
-	add(target: AsyncMachine<any, TBind, TEmit>, states: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[]): boolean;
+	add(target: AsyncMachine<any, IBind, IEmit>, states: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[]): boolean;
 	add(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	add(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
@@ -683,7 +688,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ```
 	 *
 	 */
-	addByCallback(target: AsyncMachine<any, TBind, TEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
+	addByCallback(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
 			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
 		// TODO closure instead of bind
@@ -709,7 +714,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * emitter.on 'error', states.addByListener('Exception')
 	 * ```
 	 */
-	addByListener(target: AsyncMachine<any, TBind, TEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
+	addByListener(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
 			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure instead of bind
@@ -731,7 +736,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * states.is() // -> ['A', 'B']
 	 * ```
 	 */
-	addNext(target: AsyncMachine<any, TBind, TEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
+	addNext(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
 			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure
@@ -779,7 +784,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * 	states1.add states2, 'B'
 	 * ```
 	 */
-	drop(target: AsyncMachine<any, TBind, TEmit>, states: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[]): boolean;
+	drop(target: AsyncMachine<any, IBind, IEmit>, states: (TStates | BaseStates)[] | (TStates | BaseStates), ...params: any[]): boolean;
 	drop(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	drop(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
@@ -812,7 +817,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ```
 	 *
 	 */
-	dropByCallback(target: AsyncMachine<any, TBind, TEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
+	dropByCallback(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
 			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
 		// TODO closure instead of bind
@@ -837,7 +842,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * emitter.on 'error', states.setByListener('Exception')
 	 * ```
 	 */
-	dropByListener(target: AsyncMachine<any, TBind, TEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
+	dropByListener(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
 			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure instead of bind
@@ -859,7 +864,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * states.is('A') // -> true
 	 * ```
 	 */
-	dropNext(target: AsyncMachine<any, TBind, TEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
+	dropNext(target: AsyncMachine<any, IBind, IEmit> | (TStates | BaseStates)[] | (TStates | BaseStates),
 			states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
 		// TODO closure
@@ -898,7 +903,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * TODO tighter typing for state names
 	 */
 	pipe<S extends string>(state: (TStates | BaseStates) | (TStates | BaseStates)[],
-			machine: AsyncMachine<S, TBind, TEmit>, target_state?: S, flags?: PipeFlags) {
+			machine: AsyncMachine<S, IBind, IEmit>, target_state?: S, flags?: PipeFlags) {
 		this.pipeBind(state, machine, target_state, flags)
 	}
 
@@ -909,7 +914,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * @param machine Target machine to which the state should be forwarded.
 	 */
-	pipeAll(machine: AsyncMachine<any, TBind, TEmit>, flags?: PipeFlags) {
+	pipeAll(machine: AsyncMachine<any, IBind, IEmit>, flags?: PipeFlags) {
 		// Do not forward the Exception state
 		let states_all = this.states_all.filter( state => state !== 'Exception' )
 
@@ -925,7 +930,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * TODO optimise, if needed
 	 */
-	pipeRemove(states?: (TStates | BaseStates) | (TStates | BaseStates)[], machine?: AsyncMachine<any, TBind, TEmit>,
+	pipeRemove(states?: (TStates | BaseStates) | (TStates | BaseStates)[], machine?: AsyncMachine<any, IBind, IEmit>,
 			flags?: PipeFlags) {
 		let bindings = flags ? this.getPipeBindings(flags) : null
 		let event_types = flags ? Object.keys(bindings) : null
@@ -1336,7 +1341,7 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 
 	// TODO overload signatures for the optional requested_state 
 	protected pipeBind<S extends string>(states: (TStates | BaseStates) |
-			(TStates | BaseStates)[], machine: AsyncMachine<S, TBind, TEmit>,
+			(TStates | BaseStates)[], machine: AsyncMachine<S, IBind, IEmit>,
 			requested_state?: S | null, flags?: PipeFlags) {
 		let bindings = this.getPipeBindings(flags)
 		let parsed_states = this.parseStates(states)
@@ -1526,8 +1531,8 @@ export class AsyncMachine<TStates extends string, TBind, TEmit>
 		return states.every((state) => !this.is(state))
 	}
 
-	private createDeferred(fn: Function, target: AsyncMachine<any, TBind,
-			TEmit> | (TStates | BaseStates) | (TStates | BaseStates)[],
+	private createDeferred(fn: Function, target: AsyncMachine<any, IBind,
+			IEmit> | (TStates | BaseStates) | (TStates | BaseStates)[],
 			states: (TStates | BaseStates) | (TStates | BaseStates)[] | any,
 			state_params: any[]): Deferred {
 		// TODO use the current transition's states if available (for enter/exit

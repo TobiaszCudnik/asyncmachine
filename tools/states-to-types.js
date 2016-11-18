@@ -1,93 +1,125 @@
-let states = Object.keys({
+const fs = require('fs')
+const path = require('path')
+const asyncmachine = require('..')
 
-	Enabled: {},
+if (!process.argv[2]) {
+	console.log(`USAGE:
 
-	Syncing: {
-		auto: true,
-		require: ['Enabled'],
-		drop: ['Synced', 'Restart']
-	},
-	Synced: {
-		drop: ['Syncing'],
-		require: ['CompletedTasksSynced', 'ThreadsToTasksSynced',
-			'TasksToThreadsSynced', 'CompletedThreadsSynced']
-	},
+1. Print to the console
+node states-to-type.js SOURCE_FILE.js
 
-	Restart: {
-		drop: ['TasksFetched', 'CompletedTasksSynced', 'ThreadsToTasksSynced',
-			'TasksToThreadsSynced', 'CompletedThreadsSynced', 'TasksCached']
-	},
+2. Save as a "SOURCE_FILE-types.ts" file
+node states-to-type.js SOURCE_FILE.js -s`)
+	process.exit(0)
+}
 
-	// list
-	PreparingList: {
-		auto: true,
-		require: ['Syncing'],
-		drop: ['ListReady']
-	},
-	ListReady: {
-		drop: ['PreparingList']
-	},
+const filename = path.join(process.cwd(), process.argv[2])
 
-	// tasks
-	FetchingTasks: {
-		auto: true,
-		require: ['Syncing', 'ListReady'],
-		drop: ['TasksFetched']
-	},
-	TasksFetched: {
-		require: ['ListReady'], 
-		drop: ['FetchingTasks']
-	},
-	TasksCached: {},
+let states
+if (filename.match(/\.json$/))
+	states = JSON.parse(fs.readFileSync(filename, { encoding: 'utf8' }))
+else {
+	let mod = require(filename)
+	states = mod.States || mod.default || mod
 
-	// thread-to-tasks
-	SyncingThreadsToTasks: {
-		auto: true,
-		require: ['Syncing', 'TasksFetched', 'MsgsFetched'],
-		drop: ['ThreadsToTasksSynced']
-	},
-	ThreadsToTasksSynced: {
-		drop: ['SyncingThreadsToTasks']
-	},
+	if (states.constructor) {
+		let instance = new states
+		if (instance instanceof asyncmachine.default)
+			states = (new states).states_all
+	} else
+		states = Object.keys(states)
+}
 
-	// tasks-to-threads
-	SyncingTasksToThreads: {
-		auto: true,
-		require: ['Syncing', 'TasksFetched', 'ThreadsFetched'],
-		drop: ['TasksToThreadsSynced']
-	},
-	TasksToThreadsSynced: {
-		drop: ['SyncingTasksToThreads']
-	},
+// 	{
 
-	// complete threads
-	SyncingCompletedThreads: {
-		auto: true,
-		require: ['Syncing', 'TasksFetched', 'ThreadsFetched'],
-		drop: ['CompletedThreadsSynced']
-	},
-	CompletedThreadsSynced: {
-		drop: ['SyncingCompletedThreads']
-	},
+// 	Enabled: {},
 
-	// complete tasks
-	SyncingCompletedTasks: {
-		auto: true,
-		require: ['Syncing', 'TasksFetched', 'ThreadsFetched'],
-		drop: ['CompletedTasksSynced']
-	},
-	CompletedTasksSynced: {
-		drop: ['SyncingCompletedTasks']
-	},
+// 	Syncing: {
+// 		auto: true,
+// 		require: ['Enabled'],
+// 		drop: ['Synced', 'Restart']
+// 	},
+// 	Synced: {
+// 		drop: ['Syncing'],
+// 		require: ['CompletedTasksSynced', 'ThreadsToTasksSynced',
+// 			'TasksToThreadsSynced', 'CompletedThreadsSynced']
+// 	},
 
-//	SyncingTaskNames: {}
+// 	Restart: {
+// 		drop: ['TasksFetched', 'CompletedTasksSynced', 'ThreadsToTasksSynced',
+// 			'TasksToThreadsSynced', 'CompletedThreadsSynced', 'TasksCached']
+// 	},
 
-	// ----- External States
+// 	// list
+// 	PreparingList: {
+// 		auto: true,
+// 		require: ['Syncing'],
+// 		drop: ['ListReady']
+// 	},
+// 	ListReady: {
+// 		drop: ['PreparingList']
+// 	},
 
-	ThreadsFetched: {},
+// 	// tasks
+// 	FetchingTasks: {
+// 		auto: true,
+// 		require: ['Syncing', 'ListReady'],
+// 		drop: ['TasksFetched']
+// 	},
+// 	TasksFetched: {
+// 		require: ['ListReady'], 
+// 		drop: ['FetchingTasks']
+// 	},
+// 	TasksCached: {},
 
-	MsgsFetched: {},
-})
+// 	// thread-to-tasks
+// 	SyncingThreadsToTasks: {
+// 		auto: true,
+// 		require: ['Syncing', 'TasksFetched', 'MsgsFetched'],
+// 		drop: ['ThreadsToTasksSynced']
+// 	},
+// 	ThreadsToTasksSynced: {
+// 		drop: ['SyncingThreadsToTasks']
+// 	},
+
+// 	// tasks-to-threads
+// 	SyncingTasksToThreads: {
+// 		auto: true,
+// 		require: ['Syncing', 'TasksFetched', 'ThreadsFetched'],
+// 		drop: ['TasksToThreadsSynced']
+// 	},
+// 	TasksToThreadsSynced: {
+// 		drop: ['SyncingTasksToThreads']
+// 	},
+
+// 	// complete threads
+// 	SyncingCompletedThreads: {
+// 		auto: true,
+// 		require: ['Syncing', 'TasksFetched', 'ThreadsFetched'],
+// 		drop: ['CompletedThreadsSynced']
+// 	},
+// 	CompletedThreadsSynced: {
+// 		drop: ['SyncingCompletedThreads']
+// 	},
+
+// 	// complete tasks
+// 	SyncingCompletedTasks: {
+// 		auto: true,
+// 		require: ['Syncing', 'TasksFetched', 'ThreadsFetched'],
+// 		drop: ['CompletedTasksSynced']
+// 	},
+// 	CompletedTasksSynced: {
+// 		drop: ['SyncingCompletedTasks']
+// 	},
+
+// //	SyncingTaskNames: {}
+
+// 	// ----- External States
+
+// 	ThreadsFetched: {},
+
+// 	MsgsFetched: {},
+// })
 
 // TODO skip state call for exception
 states.push('Exception')
@@ -106,7 +138,7 @@ for (let state1 of states) {
 
 states = states.filter(state=> state != 'Exception')
 
-console.log(`
+let output = `
 export interface IBind {
 
 ${states.map(name=>(
@@ -137,7 +169,7 @@ ${states.map(name=>(
     (event: '${name}_end', listener: () => any, context?: Object): this;
 `)).join('')}
     // Transitions
-	(event: TTransitions): this;
+    (event: TTransitions): this;
 }
 
 export interface IEmit {
@@ -147,6 +179,11 @@ ${states.map(name=>(
     (event: '${name}_end'): this;
 `)).join('')}
     // Transitions
-	(event: TTransitions): boolean;
+    (event: TTransitions): boolean;
 }
-`)
+`
+
+if (process.argv[3] == '-s')
+	fs.writeFileSync(filename.replace(/(\.[^.]+$)/, '-types.ts'), output)
+else
+	console.log(output)

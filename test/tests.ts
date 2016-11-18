@@ -134,7 +134,7 @@ describe("asyncmachine", function () {
 
 
 	it('should allow to get relations of a state', function () {
-		let machine = <any>factory({
+		let machine = factory<'A'|'B'>({
 			A: {
 				add: ['B'],
 				auto: true
