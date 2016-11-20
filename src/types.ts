@@ -3,6 +3,8 @@ import Transition from "./transition";
 
 export type BaseStates = 'Exception';
 
+export type AsyncMachine = AsyncMachine<any, IBind, IEmit>
+
 export interface IBind {
 	(event: 'tick', listener:
 		(before: string[]) => boolean | void, context?: Object): this;
@@ -116,7 +118,7 @@ export enum QueueRowFields {
 }
 
 export interface IQueueRow {
-	0: number;
+	0: StateChangeTypes;
 	1: string[];
 	2: any[];
 	3: boolean;

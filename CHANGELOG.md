@@ -1,5 +1,6 @@
 ### ROADMAP
 
+- rename pipe, pipe negotiation to add, add&require
 - synchronous throw when not in a promise
 - piping self state transition
 - piping both the negotiation and state phase

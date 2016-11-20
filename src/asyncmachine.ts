@@ -316,7 +316,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		}
 	}
 
-	getRelationsOf(from_state: (TStates | BaseStates), to_state?: (TStates | BaseStates)): StateRelations[] {
+	getRelationsOf(from_state: (TStates | BaseStates), to_state?: (TStates |
+			BaseStates)): StateRelations[] {
 		this.parseStates(from_state)
 		if (to_state)
 			this.parseStates(to_state)
@@ -1388,7 +1389,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 
 		for (let state of parsed_states) {
 			// accept a different name only when one state is piped
-			let target_state: S = (parsed_states.length == 1 && requested_state) || state as S;
+			let target_state: S = (parsed_states.length == 1 && requested_state) ||
+				state as S;
 
 			for (let [event_type, method_name] of Object.entries(bindings)) {
 				let listener = () => {
