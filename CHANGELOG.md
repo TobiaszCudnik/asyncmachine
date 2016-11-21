@@ -3,7 +3,7 @@
 - rename pipe, pipe negotiation to add, add&require
 - synchronous throw when not in a promise
 - piping self state transition
-- piping both the negotiation and state phase
+- states should be ordered by the order of setting them
 - edge case: piping negotiation, when a further state is cancelling
   - makes the piping inconsistent
   - for now, rely on the self transition
@@ -12,9 +12,6 @@
 - #now() -> { state: clock, state2: clock }
   - #wasLater(#now(), #now()) but with a better name
   - #is({A: 1, b: 34}): boolean
-- organize events, document, type them
-- graph visualizer with support for stepping through the history
-  - based on the d3s forced layout
 - GC and memory management
   - track the context of all the bindings
   - auto unbinding unreachable transitions
@@ -26,7 +23,6 @@
 - extend the multi states which create new machines (eg for requests)
 - remote state machines
 - case insensitive state names (when strings)
-- d.ts generator with string literal types
 - state as an object (shorter API calls, like `states.A.add()`
 - closure compiler support (eg compose all the attributes)
 - dynamic states (???)

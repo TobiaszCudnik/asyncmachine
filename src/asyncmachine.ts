@@ -68,14 +68,14 @@ export { default as Transition } from './transition'
  * states.is() // -> ['A', 'B']
  * ```
  */
-export function factory<States extends string, T extends AsyncMachine<BaseStates, IBind, IEmit>>(
+export function factory<States extends string, T extends AsyncMachine<any, IBind, IEmit>>(
 		states: string[] | { [K in keyof States]: IState<States> },
 		constructor?: { new (...params: any[]): T; }): T;
 export function factory<States extends string>(
-		states: string[]): AsyncMachine<States | BaseStates, IBind, IEmit>;
+		states: string[]): AsyncMachine<States, IBind, IEmit>;
 export function factory<States extends string>(
-		states: {[K in States]: IState<States> }): AsyncMachine<States | BaseStates, IBind, IEmit>;
-export function factory<States extends string, T extends AsyncMachine<BaseStates, IBind, IEmit>>(
+		states: {[K in States]: IState<States> }): AsyncMachine<States, IBind, IEmit>;
+export function factory<States extends string, T extends AsyncMachine<any, IBind, IEmit>>(
 		states: string[] | {[K in keyof States]: IState<States> } = [],
 		constructor?: any ): any {
 	var instance = <T><any>(new (constructor || AsyncMachine))
@@ -921,8 +921,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * 
 	 * TODO tighter typing for state names
 	 */
-	pipe<S extends string>(state: (TStates | BaseStates) | (TStates | BaseStates)[],
-			machine: AsyncMachine<S, IBind, IEmit>, target_state?: S, flags?: PipeFlags) {
+	pipe<S extends string>(state: (TStates | BaseStates) |
+			(TStates | BaseStates)[], machine: AsyncMachine<S, IBind, IEmit>, target_state?: S, flags?: PipeFlags) {
 		this.pipeBind(state, machine, target_state, flags)
 	}
 
@@ -949,8 +949,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * TODO optimise, if needed
 	 */
-	pipeRemove(states?: (TStates | BaseStates) | (TStates | BaseStates)[], machine?: AsyncMachine<any, IBind, IEmit>,
-			flags?: PipeFlags) {
+	pipeRemove(states?: (TStates | BaseStates) | (TStates | BaseStates)[],
+			machine?: AsyncMachine<any, IBind, IEmit>, flags?: PipeFlags) {
 		let bindings = flags ? this.getPipeBindings(flags) : null
 		let event_types = flags ? Object.keys(bindings) : null
 		let parsed_states = states ? this.parseStates(states) : null
@@ -1370,7 +1370,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 
 		if ((flags & PipeFlags.NEGOTIATION || flags & PipeFlags.NEGOTIATION_BOTH)
 				&& flags & PipeFlags.LOCAL_QUEUE)
-			throw new Error('Cant pipe negotiation into the local queue')
+			throw new Error('Cant pipe a negotiation into the local queue')
 
 		let tags = ''
 		if (flags & PipeFlags.INVERT)
