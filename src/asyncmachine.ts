@@ -1213,9 +1213,28 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			return this.log_handler_
 	}
 
+	/**
+	 * Managed the ID of the machine.
+	 * 
+	 * Sets or gets and also support returning a normalized version.
+	 * 
+	 * Example
+	 * ```
+	 * machine = factory()
+	 * // set
+	 * machine.id('a b c')
+	 * // get
+	 * machine.id() // -> 'a b c'
+	 * // get normalized
+	 * machine.id(true) // -> 'a-b-c'
+	 * ```
+   */
 	id(id: string): this;
+	id(get_normalized: true): string;
 	id(): string;
-	id(id?: string): this | string {
+	id(id?: any): this | string {
+		if (id === true)
+			return (this.id_ || '').replace(/[^\w\d]/g, '-')
 		if (id !== undefined) {
 			if (id != this.id_) {
 				let old_id = this.id_

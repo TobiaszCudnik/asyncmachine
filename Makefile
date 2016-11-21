@@ -62,4 +62,4 @@ docs:
 		--name AsyncMachine \
 		src/asyncmachine.ts
 
-.PHONY: build test
+.PHONY: build test docs
