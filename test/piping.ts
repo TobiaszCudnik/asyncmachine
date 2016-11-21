@@ -10,10 +10,14 @@ import {
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import {
+    assert_order,
+    mock_states
+} from './utils'
 
 
 let { expect } = chai;
-chai.use(sinonChai);
+chai.use(sinonChai)
 
 type ABCD = 'A' | 'B' | 'C' | 'D'
 type XYZ = 'X' | 'Y' | 'Z'
@@ -57,6 +61,52 @@ describe('piping', function () {
         expect(target.is()).to.eql(['X']);
     })
 
+    it('should work for negotiation', function() {
+        let source = factory<ABCD>(['A', 'B', 'C', 'D'])
+        let target = factory<ABCD>(['A', 'B', 'C', 'D'])
+        source.pipe('A', target, null, PipeFlags.NEGOTIATION)
+        target['A_enter'] = () => false
+        source.add('A')
+
+        expect(source.is()).to.eql([]);
+        expect(target.is()).to.eql([]);
+    })
+
+    it('should work for both negotiation and set', function() {
+        // piping negotiation-only phrase does not give you certantity,
+        // that the state was actually sucesfully set in the machine A
+        // in that case, fow now, assert the success via the self-transition
+        let source = factory<ABCD>(['A', 'B', 'C', 'D'])
+        let target1 = factory<ABCD>(['A', 'B', 'C', 'D'])
+        let target2 = factory<ABCD>(['A', 'B', 'C', 'D'])
+
+        source.pipe(['A', 'B'], target1, null, PipeFlags.NEGOTIATION_BOTH)
+        source.pipe(['A', 'B'], target2, null, PipeFlags.NEGOTIATION_BOTH)
+
+        target1['A_enter'] = sinon.spy()
+        target2['A_enter'] = sinon.stub().returns(false)
+        target1['A_A'] = sinon.spy()
+        target2['B_enter'] = sinon.spy()
+        target2['B_B'] = sinon.spy()
+
+        source.add('A')
+        source.add('B')
+
+        assert_order([
+            target1['A_enter'],
+            target2['A_enter'],
+            target2['B_enter'],
+            target2['B_B']
+        ])
+
+        expect(target1['A_A']).not.called
+
+        expect(source.is()).to.eql(['B']);
+        // TODO having 'A' here is an unwanted side effect
+        expect(target1.is()).to.eql(['B', 'A']);
+        expect(target2.is()).to.eql(['B']);
+    })
+
     it('should forward a whole machine', function () {
         let source = factory<ABCD>(['A', 'B', 'C', 'D']);
         source.set('A');
@@ -71,11 +121,54 @@ describe('piping', function () {
         expect(target.is()).to.eql(['C', 'B']);
     })
 
-    it('support the local queue'); // TODO
+    describe('queue handling', function() {
+
+        it('target machine\'s queue', function() {
+            let source = factory<ABCD>(['A', 'B', 'C', 'D'])
+            let target = factory<ABCD>(['A', 'B', 'C', 'D'])
+
+            source.pipe('B', target, null)
+            source['A_enter'] = function() {
+                source.add('B')
+                source.add('C')
+            }
+            mock_states(source, ['A', 'B', 'C', 'D'])
+            mock_states(target, ['A', 'B', 'C', 'D'])
+            source.add('A')
+
+            assert_order([
+                source['A_enter'],
+                source['B_enter'],
+                target['B_enter'],
+                source['C_enter']
+            ])
+        })
+
+        it('local queue', function() {
+            let source = factory<ABCD>(['A', 'B', 'C', 'D'])
+            let target = factory<ABCD>(['A', 'B', 'C', 'D'])
+
+            source.pipe('B', target, null, PipeFlags.LOCAL_QUEUE)
+            source['A_enter'] = function() {
+                source.add('B')
+                source.add('C')
+            }
+            mock_states(source, ['A', 'B', 'C', 'D'])
+            mock_states(target, ['A', 'B', 'C', 'D'])
+            source.add('A')
+
+            assert_order([
+                source['A_enter'],
+                source['B_enter'],
+                source['C_enter'],
+                target['B_enter']
+            ])
+        })
+    })
 
     describe('can be removed', function () {
-        let source: AsyncMachine<ABCD | BaseStates, IBind, IEmit>
-        let target: AsyncMachine<ABCD | BaseStates, IBind, IEmit>
+        let source: AsyncMachine<ABCD, IBind, IEmit>
+        let target: AsyncMachine<ABCD, IBind, IEmit>
 
         beforeEach(function () {
             source = factory(['A', 'B', 'C', 'D']);

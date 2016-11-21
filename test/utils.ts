@@ -9,6 +9,13 @@ import {
     IEmit
 } from '../src/types';
 import { IState } from '../src/types'
+import * as sinon from 'sinon';
+import * as chai from 'chai';
+import * as sinonChai from "sinon-chai";
+
+
+let { expect } = chai;
+chai.use(sinonChai);
 
 type AB = 'A' | 'B'
 type ABC = 'A' | 'B' | 'C'
@@ -121,6 +128,36 @@ class CrossBlocked extends AsyncMachine<AB, IBind, IEmit> {
     }
 }
 
+function mock_states(instance, states) {
+    for (let state of states) {
+        // deeply clone all the state's attrs
+        // proto = instance["#{state}"]
+        // instance["#{state}"] = {}
+        instance[`${state}_${state}`] = sinon.spy(instance[`${state}_${state}`])
+        instance[`${state}_enter`] = sinon.spy(instance[`${state}_enter`])
+        instance[`${state}_exit`] = sinon.spy(instance[`${state}_exit`])
+        instance[`${state}_state`] = sinon.spy(instance[`${state}_state`])
+        instance[`${state}_any`] = sinon.spy(instance[`${state}_any`])
+        // TODO any -> Any
+        instance[`any_${state}`] = sinon.spy(instance[`any_${state}`])
+        for (let inner of states)
+            instance[`${inner}_${state}`] = sinon.spy(instance[`${inner}_${state}`])
+    }
+}
+
+function assert_order(order) {
+    let m = null;
+    let k = null;
+    let iterable = order.slice(0, -1);
+    for (k = 0; k < iterable.length; k++) {
+        m = iterable[k];
+        order[k] = m.calledBefore(order[k + 1]);
+    }
+    for (let check of order.slice(0, -1)) {
+        expect(check).to.be.ok
+    }
+}
+
 
 export {
     SubClassRegisterAll,
@@ -128,5 +165,7 @@ export {
     EventMachine,
     Sub,
     SubCrossBlockedByImplied,
-    CrossBlocked
+    CrossBlocked,
+    mock_states,
+    assert_order
 }

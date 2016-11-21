@@ -8,56 +8,22 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from "sinon-chai";
 
-let { expect } = chai;
-
-// TODO
-// - switch to TS
-// - no self transition for non accepted states
-// - tests for
-//   - #register_all()
-//   - factory()
-
-chai.use(sinonChai);
-
 import {
 	FooMachine, 
 	EventMachine, 
 	Sub, 
 	SubCrossBlockedByImplied,
 	CrossBlocked,
-	SubClassRegisterAll
-} from './classes';
+	SubClassRegisterAll,
+	mock_states,
+	assert_order
+} from './utils';
+
+
+let { expect } = chai;
+chai.use(sinonChai);
 
 describe("asyncmachine", function () {
-
-	var mock_states = function(instance, states) {
-		for (let state of states) {
-			// deeply clone all the state's attrs
-			// proto = instance["#{state}"]
-			// instance["#{state}"] = {}
-			instance[`${state}_${state}`] = sinon.spy()
-			instance[`${state}_enter`] = sinon.spy()
-			instance[`${state}_exit`] = sinon.spy()
-			instance[`${state}_state`] = sinon.spy()
-			instance[`${state}_any`] = sinon.spy()
-			instance[`any_${state}`] = sinon.spy()
-			for (let inner of states)
-				instance[`${inner}_${state}`] = sinon.spy()
-		}
-	}
-
-	var assert_order = function (order) {
-		let m = null;
-		let k = null;
-		let iterable = order.slice(0, -1);
-		for (k = 0; k < iterable.length; k++) {
-			m = iterable[k];
-			order[k] = m.calledBefore(order[k + 1]);
-		}
-		for (let check of order.slice(0, -1)) {
-			expect(check).to.be.ok
-		}
-	};
 
 	beforeEach(function () {
 		this.machine = new FooMachine();
