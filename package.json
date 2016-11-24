@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Declarative scheduler for the event loop",
   "keywords": [
     "async",
@@ -32,6 +32,7 @@
     "sinon": "^1.17.4",
     "sinon-chai": "^2.8.0",
     "source-map-support": "^0.4.2",
+    "typedoc": "https://github.com/DatenMetzgerX/typedoc/tarball/typescript-2-build",
     "typescript": "^2.2.0",
     "uglify-js": "mishoo/UglifyJS2#harmony"
   },

@@ -1,8 +1,12 @@
 ### ROADMAP
 
+- state groups - FooA, FooB, FooC, when all in group 'Foo'
+  - then only one can be active at a time
+- make Any state a real thing
 - rename pipe, pipe negotiation to add, add&require
 - synchronous throw when not in a promise
 - piping self state transition
+- #toggle(state) helper method
 - states should be ordered by the order of setting them
 - edge case: piping negotiation, when a further state is cancelling
   - makes the piping inconsistent

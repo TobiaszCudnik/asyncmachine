@@ -1515,7 +1515,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 */
 	private enqueue_(type: number, states: (TStates | BaseStates)[] |
 			(TStates | BaseStates), params: any[] = [],
-			target: AsyncMachine<any, IBind, IEmit> = this) {
+			target: AsyncMachine<any, IBind, IEmit> = this): void {
 		var type_label = StateChangeTypes[type].toLowerCase();
 		let states_parsed = target.parseStates(states);
 
@@ -1534,7 +1534,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			}
 		}
 
-		return queue.push([type, states_parsed, params, false, target]);
+		queue.push([type, states_parsed, params, false, target]);
 	}
 
 	// Goes through the whole queue collecting return values.

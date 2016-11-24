@@ -1,3 +1,5 @@
+// TODO watch mode
+
 const fs = require('fs')
 const path = require('path')
 const asyncmachine = require('..')
@@ -51,6 +53,9 @@ let output = `
 import { IState as IStateBase } from 'asyncmachine/src/types'
 
 
+/**
+ * Signatures for EventEmitter to bind to transitions.
+ */
 export interface IBind {
 
 ${states.map(name=>(
@@ -60,23 +65,56 @@ ${states.map(name=>(
 `)).join('')}
 }
 
+/**
+ * Signatures for EventEmitter to emit transitions.
+ */
 export interface IEmit {
 
 ${states.map(name => (
 	`    // ${name}
-    (event: '${name}_enter' /*, param1, param2 */): this;
-    (event: '${name}_state' /*, param1, param2 */): this;
+    (event: '${name}_enter' /*, param1, param2 */): boolean | void;
+    (event: '${name}_state' /*, param1, param2 */): boolean | void;
 `)).join('')}
 }
 
+/**
+ * All the possible transition methods machine can define.
+ */
+export interface ITransitions {
+
+${states.map(name => (
+	`    // ${name}
+    ${name}_enter?(/*param1, param2 */): boolean | void;
+    ${name}_state?(/*param1, param2 */): boolean | void | Promise;
+`)).join('')}
+
+${states.map(name => (
+`    ${name}_exit?(): boolean | void;
+    ${name}_end?(): boolean | void | Promise;
+`)).join('')}
+${transitions.map(name => (
+`    ${name}?(): boolean | void;
+`)).join('')}
+}
+
+/**
+ * All the state names.
+ */
 export type TStates = '${states.join("'\n  | '")}';
 
+/**
+ * All the transition names.
+ */
 export type TTransitions = '${transitions.join("'\n  | '")}';
 
-// For this implementation
+/**
+ * Typesafe state interface.
+ */
 export interface IState extends IStateBase<TStates> {}
 
-// For sub classes
+/**
+ * Subclassable typesafe state interface.
+ */
 export interface IStateExt<T extends string> extends IStateBase<T | TStates> {}
 
 export interface IBind {
@@ -93,11 +131,11 @@ ${states.map(name=>(
 export interface IEmit {
     // Non-params events
 ${states.map(name=>(
-`    (event: '${name}_exit'): this;
-    (event: '${name}_end'): this;
+`    (event: '${name}_exit'): boolean | void;
+    (event: '${name}_end'): boolean | void;
 `)).join('')}
     // Transitions
-    (event: TTransitions): boolean;
+    (event: TTransitions): boolean | void;
 }
 `
 
