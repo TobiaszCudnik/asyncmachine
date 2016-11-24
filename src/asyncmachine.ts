@@ -1586,15 +1586,35 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			params.push.apply(params, state_params);
 		}
 
-		var deferred = new Deferred
-
-		deferred.promise
-			.then( callback_params => {
-				return fn.apply(null, params.concat(callback_params))
-			}).catch( err => {
-				var async_states = [].concat(params[0] instanceof AsyncMachine ? params[1] : params[0]);
-				return this.add("Exception", err, transition_states, async_states);
-			});
+		const async_states = [].concat(params[0] instanceof AsyncMachine ? params[1] : params[0]);
+		const gc = function() {
+			// GC
+			deferred = null
+			resolve = null
+			reject = null
+		}
+		let deferred: Deferred | null = new Deferred()
+		let resolve: Function | null = deferred.resolve
+		let reject: Function | null = deferred.reject
+		deferred.resolve = (callback_params) => {
+				try {
+					const ret = fn.apply(null, params.concat(callback_params))
+					if (resolve)
+						resolve(ret)
+				} catch (err) {
+					const ret = this.add("Exception", err, transition_states, async_states)
+					if (reject)
+						reject(ret)
+				} finally {
+					gc()
+				}
+		}
+		deferred.reject = (err) => {
+				const ret = this.add("Exception", err, transition_states, async_states)
+				if (reject)
+					reject(ret)
+				gc()
+		}
 
 		this.last_promise = deferred.promise;
 

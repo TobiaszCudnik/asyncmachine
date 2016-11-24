@@ -427,8 +427,10 @@ export default class Transition {
 		for (let state of this.states) {
 			// dont enter to already set states, except when it's a MULTI state
 			// TODO write tests for multi state
-			if (this.machine.is(state) && !this.machine.get(state).multi)
+			if (this.machine.is(state) && !(this.machine.get(state).multi &&
+					this.requested_states.includes(state))) {
 				continue
+			}
 
 			this.enters.push(state)
 		}

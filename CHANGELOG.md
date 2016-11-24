@@ -1,5 +1,6 @@
 ### ROADMAP
 
+- add negation support to #when()
 - state groups - FooA, FooB, FooC, when all in group 'Foo'
   - then only one can be active at a time
 - make Any state a real thing
@@ -42,6 +43,7 @@
 - use currently executing queue when available
 - type safety for events and states (TS only)
 - types generator from JSON and classes (TS only)
+- fixed addByCallback/Listener getting fired only once
 
 ### v3.0
 
