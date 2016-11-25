@@ -1,5 +1,7 @@
 ### ROADMAP
 
+- mute logging of failed tries to add (implied) states by
+  - non-new and non-requested states
 - add negation support to #when()
 - state groups - FooA, FooB, FooC, when all in group 'Foo'
   - then only one can be active at a time
@@ -28,11 +30,11 @@
 - extend the multi states which create new machines (eg for requests)
 - remote state machines
 - case insensitive state names (when strings)
-- state as an object (shorter API calls, like `states.A.add()`
-- closure compiler support (eg compose all the attributes)
+- state as an object (shorter API calls, like `states.A.add()`)
+  - considers signals composed out of event emitters (per each signal)
+- closure compiler support (tsickle)
 - dynamic states (???)
 - chai assertion helper
-- rewrite tests
 - ensure all the state lists and params are shallow copied
 
 ### v3.1
