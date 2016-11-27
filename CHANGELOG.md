@@ -1,31 +1,34 @@
 ### ROADMAP
 
+- fix the exception stack traces
+- 2nd oass for all of the A_B transitions
+  - eg `A_B_test` (for negotiation) and A_B
 - mute logging of failed tries to add (implied) states by
   - non-new and non-requested states
-- add negation support to #when()
-- state groups - FooA, FooB, FooC, when all in group 'Foo'
+- add negation support to `#when()`
+- state groups - `FooA`, `FooB`, `FooC`, when all in group `Foo`
   - then only one can be active at a time
 - make Any state a real thing
 - rename pipe, pipe negotiation to add, add&require
 - synchronous throw when not in a promise
 - piping self state transition
-- #toggle(state) helper method
+- `#toggle(state)` helper method
 - states should be ordered by the order of setting them
 - edge case: piping negotiation, when a further state is cancelling
   - makes the piping inconsistent
   - for now, rely on the self transition
   - in the future, wait with the 3rd transition phase in the machine B
     till the negotiation is finished
-- #now() -> { state: clock, state2: clock }
-  - #wasLater(#now(), #now()) but with a better name
-  - #is({A: 1, b: 34}): boolean
+- `#now()` -> `{ state: clock, state2: clock }`
+  - `#wasLater(#now(), #now())` but with a better name
+  - `#is({A: 1, b: 34}): boolean`
 - GC and memory management
   - track the context of all the bindings
   - auto unbinding unreachable transitions
   - auto unbinding unreachable promises' error handlers
   - memory leaks load tests
 - transition executing the queue via generator iteration
-  - -3 stack frames
+  - -2 stack frames
   - possibly avoid nesting when piping in the future
 - extend the multi states which create new machines (eg for requests)
 - remote state machines
@@ -39,13 +42,13 @@
 
 ### v3.1
 
-- extracted the Transition class
+- extracted the `Transition` class
 - stricter compiler checks (nulls, implicit any, returns)
 - structurized transition steps
 - use currently executing queue when available
 - type safety for events and states (TS only)
 - types generator from JSON and classes (TS only)
-- fixed addByCallback/Listener getting fired only once
+- fixed `addByCallback`/`Listener` getting fired only once
 
 ### v3.0
 
