@@ -232,7 +232,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 				`${async_target_states.join(", ")}`);
 		}
 		if (exception_transition) {
-			this.error(`The call which caused the exception was ` +
+			console.error(`The call which caused the exception was ` +
 				exception_transition);
 		}
 		// if the exception param was passed, print and throw (but outside of the
