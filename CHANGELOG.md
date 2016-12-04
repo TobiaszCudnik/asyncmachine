@@ -1,19 +1,20 @@
 ### ROADMAP
 
+- mark related states by the .rel property
 - fix the exception stack traces
-- 2nd oass for all of the A_B transitions
-  - eg `A_B_test` (for negotiation) and A_B
+- 2nd pass for all of the A_B transitions
+  - eg `A_B` (for negotiation) and A_B_end (for set)
 - mute logging of failed tries to add (implied) states by
   - non-new and non-requested states
 - add negation support to `#when()`
 - state groups - `FooA`, `FooB`, `FooC`, when all in group `Foo`
   - then only one can be active at a time
 - make Any state a real thing
-- rename pipe, pipe negotiation to add, add&require
+- rename `pipe`, `pipe negotiation` to `add`, `add & require`
 - synchronous throw when not in a promise
-- piping self state transition
+- piping `self` state transition
 - `#toggle(state)` helper method
-- states should be ordered by the order of setting them
+- states should be in order they were requested
 - edge case: piping negotiation, when a further state is cancelling
   - makes the piping inconsistent
   - for now, rely on the self transition
@@ -31,7 +32,9 @@
   - -2 stack frames
   - possibly avoid nesting when piping in the future
 - extend the multi states which create new machines (eg for requests)
+  - separate / mixin / util function / decorator
 - remote state machines
+  - separate / mixin / util function / decorator
 - case insensitive state names (when strings)
 - state as an object (shorter API calls, like `states.A.add()`)
   - considers signals composed out of event emitters (per each signal)
@@ -49,6 +52,7 @@
 - type safety for events and states (TS only)
 - types generator from JSON and classes (TS only)
 - fixed `addByCallback`/`Listener` getting fired only once
+- bugfixes
 
 ### v3.0
 
@@ -62,7 +66,7 @@
 - reworked piping
 - state binding fixes
 - new build system (shims supported)
-- bunch of small bugfixes
+- bugfixes
  
 ### v2.0
  
