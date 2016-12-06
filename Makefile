@@ -5,7 +5,7 @@ all:
 	make build-test
 
 build:
-	-$(BIN)/tsc
+	-tsc
 	-$(BIN)/rollup -c rollup.config.js
 	-$(BIN)/rollup -c rollup-shims.config.js
 

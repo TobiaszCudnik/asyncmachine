@@ -1,5 +1,7 @@
 ### ROADMAP
 
+- fix "Aborted AB listener as the tick changed." displayed too many times
+- make logs easier to work with
 - mark related states by the .rel property
 - fix the exception stack traces
 - 2nd pass for all of the A_B transitions

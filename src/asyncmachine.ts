@@ -525,9 +525,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	set(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	set(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
-			if (states) {
-				params = [states].concat(params);
-			}
+            // TODO test for `states === 0`
+            if (states !== undefined)
+                params = params ? [states, ...params] : [states]
 			states = target
 			target = this
 		}
@@ -662,9 +662,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	add(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	add(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
-			if (states) {
-				params = [states].concat(params);
-			}
+			// TODO test for `states === 0`
+			if (states !== undefined)
+				params = params ? [states, ...params] : [states]
 			states = target;
 			target = this
 		}
@@ -799,9 +799,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	drop(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	drop(target: any, states?: any, ...params: any[]): boolean {
 		if (!(target instanceof AsyncMachine)) {
-			if (states) {
-				params = [states].concat(params)
-			}
+			if (states !== undefined)
+				params = params ? [states, ...params] : [states]
 			states = target
 			target = this
 		}
