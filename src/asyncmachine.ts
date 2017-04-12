@@ -955,8 +955,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		let parsed_states = states ? this.parseStates(states) : null
 		let to_emit: this[] = []
 
-		for (let state of Object.keys(this.piped)) {
-			let pipes = this.piped[state]
+		for (let [state, pipes] of Object.entries(this.piped)) {
 			// TODO remove casting once Object.keys() is typed correctly
 			if (parsed_states && !parsed_states.includes(state as (TStates | BaseStates)))
 				continue
@@ -1014,7 +1013,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ````
 	 */
 	clock(state: (TStates | BaseStates)): number {
-		return this.clock_[state as string];
+		return this.clock_[state as string] || 0;
 	}
 
 	/**
@@ -1347,24 +1346,24 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 
 	// TODO use enums
 	protected getPipeBindings(flags?: PipeFlags): TPipeBindings {
-		if (flags & PipeFlags.INVERT && flags & PipeFlags.NEGOTIATION) {
+		if (flags && flags & PipeFlags.INVERT && flags & PipeFlags.NEGOTIATION) {
 			return {
 				enter: "drop",
 				exit: "add"
 			}
-		} else if (flags & PipeFlags.NEGOTIATION_BOTH) {
+		} else if (flags && flags & PipeFlags.NEGOTIATION_BOTH) {
 			return {
 				enter: "add",
 				exit: "drop",
 				state: "add",
 				end: "drop"
 			}
-		} else if (flags & PipeFlags.NEGOTIATION) {
+		} else if (flags && flags & PipeFlags.NEGOTIATION) {
 			return {
 				enter: "add",
 				exit: "drop"
 			}
-		} else if (flags & PipeFlags.INVERT) {
+		} else if (flags && flags & PipeFlags.INVERT) {
 			return {
 				state: "drop",
 				end: "add"
@@ -1386,16 +1385,16 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		if (requested_state && typeof requested_state !== 'string')
 			throw new Error('target_state has to be string or null')
 
-		if ((flags & PipeFlags.NEGOTIATION || flags & PipeFlags.NEGOTIATION_BOTH)
+		if (flags && (flags & PipeFlags.NEGOTIATION || flags & PipeFlags.NEGOTIATION_BOTH)
 				&& flags & PipeFlags.LOCAL_QUEUE)
 			throw new Error('Cant pipe a negotiation into the local queue')
 
 		let tags = ''
-		if (flags & PipeFlags.INVERT)
+		if (flags && flags & PipeFlags.INVERT)
 			tags += ':invert'
-		if (flags & PipeFlags.NEGOTIATION)
+		if (flags && flags & PipeFlags.NEGOTIATION)
 			tags += ':neg'
-		if (flags & PipeFlags.NEGOTIATION_BOTH)
+		if (flags && flags & PipeFlags.NEGOTIATION_BOTH)
 			tags += ':neg_both'
 
 		if (parsed_states.length == 1 && requested_state)
@@ -1412,7 +1411,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 
 			for (let [event_type, method_name] of Object.entries(bindings)) {
 				let listener = () => {
-					let target = (flags & PipeFlags.LOCAL_QUEUE)
+					let target = (flags && flags & PipeFlags.LOCAL_QUEUE)
 						? this : machine
 					if (this.transition) {
 						this.transition.addStep([machine.id(), target_state as string],
@@ -1425,6 +1424,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 				// TODO check for duplicates
 				if (!this.piped[state as string])
 					this.piped[state as string] = []
+				// TODO remove compiler fix
 				this.piped[state as string].push({
 					state: target_state,
 					machine: machine,
@@ -1641,27 +1641,27 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 */
 	setActiveStates_(explicite_states: (TStates | BaseStates)[], target:
 			(TStates | BaseStates)[]): (TStates | BaseStates)[] {
-		var previous = this.states_active;
-		var new_states = this.diffStates(target, this.states_active);
-		var removed_states = this.diffStates(this.states_active, target);
-		var nochange_states = this.diffStates(target, new_states);
-		this.states_active = target;
-		// Tick all the new states and the explicite multi states
+		let previous = this.states_active
+		let new_states = this.diffStates(target, this.states_active)
+		let removed_states = this.diffStates(this.states_active, target)
+		let nochange_states = this.diffStates(target, new_states)
+		this.states_active = target
+		// Tick all the new states and the explicit multi states
 		for (let state of target) {
 			let data = this.get(state)
-			if (!~previous.indexOf(state) ||
-					(~explicite_states.indexOf(state) && data.multi)) {
-				this.clock_[state as string]++;
+			if (!previous.includes(state) ||
+					(explicite_states.includes(state) && data.multi)) {
+				this.clock_[state as string]++
 			}
 		}
 
 		// construct a logging msg
-		var log_msg: string[] = [];
+		var log_msg: string[] = []
 		if (new_states.length)
 			log_msg.push("+" + new_states.join(" +"))
 
 		if (removed_states.length) {
-			log_msg.push("-" + (removed_states.join(" -")));
+			log_msg.push("-" + (removed_states.join(" -")))
 		}
 		// TODO fix
 		if (nochange_states.length && this.log_level_ > 2) {
@@ -1671,7 +1671,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			log_msg.push(nochange_states.join(", "));
 		}
 		if (log_msg.length) {
-			this.log("[states] " + (log_msg.join(" ")), 1);
+			this.log("[states] " + (log_msg.join(" ")), 1)
 		}
 
 		return previous
@@ -1710,14 +1710,23 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	// TODO compose the existing abort function without recursion
 	private getAbortFunction(state: (TStates | BaseStates), tick: number, abort?: () => boolean): () => boolean {
 		return () => {
-			if (typeof abort === "function" ? abort() : void 0) {
-				return true;
+			let quit = false
+			let msg = ''
+			if (abort && abort()) {
+				quit = true
+				msg = 'nested abort quit'
 			} else if (!this.is(state)) {
-				this.log(("Aborted " + state + " listener as the state is not set. ") + ("Current states:\n    (" + (this.is().join(", ")) + ")"), 1);
-				return true;
+				quit = true
+				msg = 'the state is not set'
 			} else if (!this.is(state, tick)) {
-				this.log(("Aborted " + state + " listener as the tick changed. Current states:") + ("\n    (" + (this.is().join(", ")) + ")"), 1);
-				return true;
+				quit = true
+				msg = 'the tick changed'
+			}
+
+			if (quit) {
+				this.log(`[abort] ${state}; reason - ${msg}\n\t${this.is().join(", ")}`,
+						1);
+				return true
 			}
 
 			return false;
