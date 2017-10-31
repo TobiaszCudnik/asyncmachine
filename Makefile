@@ -22,7 +22,7 @@ setup:
 	npm install
 
 docs:
-    ts2jsdoc .
+	ts2jsdoc .
 
 test:
 	./node_modules/mocha/bin/mocha \
