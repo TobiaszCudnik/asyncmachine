@@ -41,6 +41,6 @@
   },
   "main": "build/asyncmachine.cjs.js",
   "typings": "build/asyncmachine.d.ts",
-  "jsnext:main": "build/asyncmachine.js",
+  "module": "build/asyncmachine.js",
   "browser": "build/asyncmachine.umd.js"
 }

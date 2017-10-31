@@ -21,6 +21,9 @@ compile-watch:
 setup:
 	npm install
 
+docs:
+    ts2jsdoc .
+
 test:
 	./node_modules/mocha/bin/mocha \
 		test/*.js

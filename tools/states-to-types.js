@@ -1,4 +1,5 @@
 // TODO watch mode
+// TODO group by states to make params copying easier
 
 const fs = require('fs')
 const path = require('path')
@@ -22,12 +23,13 @@ if (filename.match(/\.json$/))
 	states = Object.keys(JSON.parse(fs.readFileSync(filename, { encoding: 'utf8' })))
 else {
 	let mod = require(filename)
-	states = mod.States || mod.default || mod
-
+    states = mod.States || mod.default || mod
+    
 	if (states.constructor) {
 		let instance = new states
-		if (instance instanceof asyncmachine.default)
-			states = (new states).states_all
+		// if (instance instanceof asyncmachine.default)
+		if (instance.states_all)
+            states = (new states).states_all
 	} else
 		states = Object.keys(states)
 }
@@ -85,12 +87,12 @@ export interface ITransitions {
 ${states.map(name => (
 	`    // ${name}
     ${name}_enter?(/*param1, param2 */): boolean | void;
-    ${name}_state?(/*param1, param2 */): boolean | void | Promise;
+    ${name}_state?(/*param1, param2 */): boolean | void | Promise<boolean | void>;
 `)).join('')}
 
 ${states.map(name => (
 `    ${name}_exit?(): boolean | void;
-    ${name}_end?(): boolean | void | Promise;
+    ${name}_end?(): boolean | void | Promise<boolean | void>;
 `)).join('')}
 ${transitions.map(name => (
 `    ${name}?(): boolean | void;

@@ -12,6 +12,8 @@
 - state groups - `FooA`, `FooB`, `FooC`, when all in group `Foo`
   - then only one can be active at a time
 - make Any state a real thing
+- skip 2 stack frames from deferred
+- use uuid from a module
 - rename `pipe`, `pipe negotiation` to `add`, `add & require`
 - synchronous throw when not in a promise
 - piping `self` state transition
@@ -30,7 +32,7 @@
   - auto unbinding unreachable transitions
   - auto unbinding unreachable promises' error handlers
   - memory leaks load tests
-- transition executing the queue via generator iteration
+- transition executing the queue via generator(?) iteration
   - -2 stack frames
   - possibly avoid nesting when piping in the future
 - extend the multi states which create new machines (eg for requests)
@@ -44,6 +46,7 @@
 - dynamic states (???)
 - chai assertion helper
 - ensure all the state lists and params are shallow copied
+- rename ./tools to ./bin
 
 ### v3.1
 

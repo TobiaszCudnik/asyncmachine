@@ -14,9 +14,11 @@
         "noImplicitThis": true,
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,
-        "preserveConstEnums": true
+        "preserveConstEnums": true,
+        "strict": true
     },
     "include": [
         "src/**/*"
-    ]
+    ],
+    "jsdoc": "docs"
 }

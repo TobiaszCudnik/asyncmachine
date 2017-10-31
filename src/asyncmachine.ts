@@ -448,7 +448,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		for (let state of this.parseStates(states)) {
 			if (!this.states_all.includes(state))
 				this.states_all.push(state)
-			this.clock_[state as string] = 0
+			this.clock_[state] = 0
 		}
 	}
 
@@ -786,13 +786,14 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Dropping a state on an external machine
 	 * ```
-	 * states1 = asyncmachine.factory ['A', 'B']
-	 * states2 = asyncmachine.factory ['C', 'D']
+	 * states1 = asyncmachine.factory(['A', 'B'])
+	 * states2 = asyncmachine.factory(['C', 'D'])
 	 *
-	 * states1.A_enter ->
-	 * 	# this transition will be queued and executed after the current transition
-	 * 	# fully finishes
-	 * 	states1.add states2, 'B'
+	 * states1.A_enter = function() {
+	 * 	 // the transition below will be queued and executed after the current
+	 * 	 // transition fully finishes
+	 * 	 states1.add(states2, 'B')
+	 * }
 	 * ```
 	 */
 	drop<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): boolean;
@@ -957,7 +958,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 
 		for (let [state, pipes] of Object.entries(this.piped)) {
 			// TODO remove casting once Object.keys() is typed correctly
-			if (parsed_states && !parsed_states.includes(state as (TStates | BaseStates)))
+			if (parsed_states && !parsed_states.includes(state as
+          (TStates | BaseStates)))
 				continue
 			for (let i = 0; i < pipes.length; i++) {
 				let pipe = pipes[i]
@@ -1013,7 +1015,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ````
 	 */
 	clock(state: (TStates | BaseStates)): number {
-		return this.clock_[state as string] || 0;
+		return this.clock_[state] || 0;
 	}
 
 	/**
@@ -1422,10 +1424,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 				}
 				// TODO extract
 				// TODO check for duplicates
-				if (!this.piped[state as string])
-					this.piped[state as string] = []
-				// TODO remove compiler fix
-				this.piped[state as string].push({
+				if (!this.piped[state])
+					this.piped[state] = []
+				this.piped[state].push({
 					state: target_state,
 					machine: machine,
 					event_type: event_type as TStateMethod,
@@ -1502,7 +1503,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	states(): { [K in (TStates | BaseStates)]: IState<TStates> } {
 		let ret: { [K in (TStates | BaseStates)]?: IState<TStates> } = {}
 		for (let state of this.states_all)
-			ret[state as string] = this.get(state)
+			ret[state] = this.get(state)
 		return ret as { [K in (TStates | BaseStates)]: IState<TStates> }
 	}
 
@@ -1585,7 +1586,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			params.push.apply(params, state_params);
 		}
 
-		const async_states = [].concat(params[0] instanceof AsyncMachine ? params[1] : params[0]);
+		const async_states = [].concat(params[0] instanceof AsyncMachine
+				? params[1] : params[0]);
 		const gc = function() {
 			// GC
 			deferred = null
@@ -1601,7 +1603,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 					if (resolve)
 						resolve(ret)
 				} catch (err) {
-					const ret = this.add("Exception", err, transition_states, async_states)
+					const ret = this.add("Exception", err, transition_states,
+							async_states)
 					if (reject)
 						reject(ret)
 				} finally {
@@ -1651,7 +1654,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			let data = this.get(state)
 			if (!previous.includes(state) ||
 					(explicite_states.includes(state) && data.multi)) {
-				this.clock_[state as string]++
+				this.clock_[state]++
 			}
 		}
 
