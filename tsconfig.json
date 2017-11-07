@@ -14,8 +14,7 @@
         "noImplicitThis": true,
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,
-        "preserveConstEnums": true,
-        "strict": true
+        "preserveConstEnums": true
     },
     "include": [
         "src/**/*"
