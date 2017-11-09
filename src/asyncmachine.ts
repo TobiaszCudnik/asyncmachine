@@ -1489,9 +1489,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 
 		return states_parsed.filter( state => {
 			if (typeof state !== "string" || !this.get(state)) {
-				let id = this.id() ? ` for machine "${this.id()}"` : ""
-				// TODO ambiguous when thrown
-				throw new NonExistingStateError(state + id);
+				let id = this.id() ? ` in machine "${this.id()}"` : ""
+				throw new NonExistingStateError(`State "${state}" doesn't exist${id}`);
 			}
 
 			return true;
