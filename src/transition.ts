@@ -129,7 +129,6 @@ export default class Transition {
 
 	exec(): boolean {
 		let target = this.machine
-		let queue = this.machine.queue_
 		let aborted = !this.accepted
 		let hasStateChanged = false
 
@@ -138,6 +137,7 @@ export default class Transition {
 		// in case of using a local queue, we can hit a locked target machine
 		// TODO write a test
 		if (target.lock) {
+			// TODO this should be a warning
 			target.log('[cancelled] Target machine already during a transition', 1)
 			return false
 		}
@@ -145,7 +145,6 @@ export default class Transition {
 		target.transition = this
 		this.events = []
 		target.lock = true
-		target.queue_ = []
 
 		try {
 			// NEGOTIATION CALLS PHASE (cancellable)
@@ -185,8 +184,6 @@ export default class Transition {
 					// TODO rename to "tick"
 					target.emit("change", this.before)
 			}
-			// if canceled then drop the queue created during the transition
-			target.queue_ = aborted ? queue : [...queue, ...target.queue_]
 		} catch (ex) {
 			// TODO extract
 			let err = ex as TransitionException
@@ -194,13 +191,12 @@ export default class Transition {
 			// Its an exception to an exception when the exception throws... an exception
 			if (err.transition.match(/^Exception_/)
 					|| err.transition.match(/_Exception$/)) {
-				target.queue_ = queue
 				this.machine.setImmediate( () => { throw err.err } )
 			} else {
 				let queued_exception: IQueueRow = [StateChangeTypes.ADD, ["Exception"],
 					[err.err, this.states, this.before, err.transition], false, target]
 				// drop the queue created during the transition
-				target.queue_ = [queued_exception, ...queue];
+				this.source_machine.queue_.unshift(queued_exception)
 			}
 		}
 
@@ -210,11 +206,11 @@ export default class Transition {
 		if (aborted) {
 			target.emit("transition-cancelled", this);
 		} else if (hasStateChanged && !this.row[QueueRowFields.AUTO]) {
-			// prepend auto states to the beginning of the queue
-			// TODO find prepareAutoStates ;]
 			var auto_states = this.prepareAutoStates();
 			if (auto_states)
-				target.queue_.unshift(auto_states)
+				// prepend auto states to the beginning of the queue
+				this.source_machine.queue_.unshift(auto_states)
+				// target.queue_.unshift(auto_states)
 		}
 
 		target.emit("transition-end", this)
@@ -278,6 +274,7 @@ export default class Transition {
 
 	// TODO log it better
 	// Returns a queue entry with auto states
+	// TODO should pass them through resolveRelations() ?
 	prepareAutoStates(): IQueueRow | null {
 		var add: string[] = [];
 
@@ -285,9 +282,9 @@ export default class Transition {
 			let is_current = () => this.machine.is(state);
 			let is_blocked = () => this.machine.is().some( current => {
 				let relations = this.machine.get(current)
-					if (!relations.drop)
-						 return false
-					return relations.drop.includes(state)
+				if (!relations.drop)
+					 return false
+				return relations.drop.includes(state)
 			})
 
 			if (this.machine.get(state).auto && !is_current() && !is_blocked()) {
