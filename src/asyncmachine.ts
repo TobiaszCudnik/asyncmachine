@@ -1,10 +1,7 @@
-/**
- * TODO
- * - go through all the TODOs in the file
- */
 import Transition from "./transition";
 import EventEmitter from "./ee"
 import uuid from './uuid-v4'
+// import * as uuid from 'uuid-v4'
 import {
 	StateChangeTypes,
 	Deferred,
@@ -24,11 +21,6 @@ import {
 	IEmit,
 	BaseStates
 } from './types'
-// shims for current engines
-import 'core-js/fn/array/keys'
-import 'core-js/fn/array/includes'
-import 'core-js/fn/object/entries'
-
 
 export {
 	PipeFlags,
@@ -40,6 +32,10 @@ export {
 } from './types'
 export { default as Transition } from './transition'
 
+const assert = function(cond: boolean, msg: string) {
+  if (!cond)
+    throw Error(msg)
+}
 
 /**
  * Creates an AsyncMachine instance (not a constructor) with specified states.
@@ -524,6 +520,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	set<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): boolean;
 	set(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	set(target: any, states?: any, ...params: any[]): boolean {
+	  assert(target, 'First param required')
 		if (!(target instanceof AsyncMachine)) {
             // TODO test for `states === 0`
             if (states !== undefined)
@@ -561,6 +558,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			states?: any, ...params: any[]): (err?: any, ...params: any[]) => void;
 	setByCallback(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
+	  assert(target, 'First param required')
 		// TODO closure instead of bind
 		return this.createCallback(this.createDeferred(this.set.bind(this), target,
 			states, params));
@@ -591,6 +589,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			states?: any, ...params: any[]): (...params: any[]) => void;
 	setByListener(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
+	  assert(target, 'First param required')
 		// TODO closure instead of bind
 		return this.createListener(this.createDeferred(this.set.bind(this), target,
 			states, params));
@@ -613,6 +612,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	setNext<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): number;
 	setNext(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): number;
 	setNext(target: any, states?: any, ...params: any[]): number {
+	  assert(target, 'First param required')
 		// TODO closure
 		let fn = this.set.bind(this);
 		return this.setImmediate(fn, target, states, params);
@@ -661,6 +661,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	add<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): boolean;
 	add(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	add(target: any, states?: any, ...params: any[]): boolean {
+	  assert(target, 'First param required')
 		if (!(target instanceof AsyncMachine)) {
 			// TODO test for `states === 0`
 			if (states !== undefined)
@@ -698,6 +699,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			states?: any, ...params: any[]): (err?: any, ...params: any[]) => void;
 	addByCallback(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
+	  assert(target, 'First param required')
 		// TODO closure instead of bind
 		return this.createCallback(this.createDeferred(this.add.bind(this), target,
 			states, params));
@@ -728,6 +730,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			states?: any, ...params: any[]): (...params: any[]) => void;
 	addByListener(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
+	  assert(target, 'First param required')
 		// TODO closure instead of bind
 		return this.createListener(this.createDeferred(this.add.bind(this), target,
 			states, params));
@@ -750,6 +753,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	addNext<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): number;
 	addNext(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): number;
 	addNext(target: any, states?: any, ...params: any[]): number {
+	  assert(target, 'First param required')
 		// TODO closure
 		let fn = this.add.bind(this);
 		return this.setImmediate(fn, target, states, params);
@@ -799,6 +803,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	drop<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): boolean;
 	drop(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): boolean;
 	drop(target: any, states?: any, ...params: any[]): boolean {
+	  assert(target, 'First param required')
 		if (!(target instanceof AsyncMachine)) {
 			if (states !== undefined)
 				params = params ? [states, ...params] : [states]
@@ -835,6 +840,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			states?: any, ...params: any[]): (err?: any, ...params: any[]) => void;
 	dropByCallback(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (err?: any, ...params: any[]) => void {
+	  assert(target, 'First param required')
 		// TODO closure instead of bind
 		return this.createCallback(this.createDeferred(this.drop.bind(this), target, states, params));
 	}
@@ -864,6 +870,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			states?: any, ...params: any[]): (...params: any[]) => void;
 	dropByListener(target: any, states?: (TStates | BaseStates)[] | (TStates | BaseStates) | any, ...params: any[])
 			: (...params: any[]) => void {
+	  assert(target, 'First param required')
 		// TODO closure instead of bind
 		return this.createListener(this.createDeferred(this.drop.bind(this),
 			target, states, params));
@@ -886,6 +893,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	dropNext<S extends string>(target: AsyncMachine<S, IBind, IEmit>, states: (S | BaseStates)[] | (S | BaseStates), ...params: any[]): number;
 	dropNext(target: (TStates | BaseStates)[] | (TStates | BaseStates), states?: any, ...params: any[]): number;
 	dropNext(target: any, states?: any, ...params: any[]): number {
+	  assert(target, 'First param required')
 		// TODO closure
 		let fn = this.drop.bind(this);
 		return this.setImmediate(fn, target, states, params);

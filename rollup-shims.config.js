@@ -1,17 +1,17 @@
 import config from './rollup.config'
 
-config.entry = 'src/shims.ts'
-config.targets = [
+config.input = 'src/shims.ts'
+config.output = [
   {
-    dest: 'build/asyncmachine-shims.cjs.js',
+    file: 'build/asyncmachine-shims.cjs.js',
     format: 'cjs' },
   {
-    dest: 'build/asyncmachine-shims.umd.js',
-    moduleName: 'asyncmachine',
+    file: 'build/asyncmachine-shims.umd.js',
+    name: 'asyncmachine',
     format: 'umd'
   },
   {
-    dest: 'build/asyncmachine-shims.es6.js',
+    file: 'build/asyncmachine-shims.es6.js',
     format: 'es'
   }
 ]

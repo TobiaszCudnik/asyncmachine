@@ -23,18 +23,18 @@
     "chai": "^3.5.0",
     "core-js": "^2.4.1",
     "mocha": "^2.5.3",
-    "rollup": "^0.33.2",
-    "rollup-plugin-commonjs": "^3.1.0",
-    "rollup-plugin-node-resolve": "^1.7.1",
-    "rollup-plugin-typescript": "^0.7.7",
-    "rollup-plugin-uglify": "^1.0.1",
-    "rollup-watch": "^2.4.0",
+    "rollup": "^0.51.5",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-typescript": "^0.8.1",
+    "rollup-plugin-uglify": "^2.0.1",
+    "rollup-watch": "^4.3.1",
     "sinon": "^1.17.4",
     "sinon-chai": "^2.8.0",
     "source-map-support": "^0.4.2",
     "typedoc": "https://github.com/DatenMetzgerX/typedoc/tarball/typescript-2-build",
     "typescript": "^2.2.0",
-    "uglify-js": "mishoo/UglifyJS2#harmony"
+    "uglify-es": "^3.1.9"
   },
   "scripts": {
     "prepublish": "make build"
@@ -42,5 +42,8 @@
   "main": "build/asyncmachine.cjs.js",
   "typings": "build/asyncmachine.d.ts",
   "module": "build/asyncmachine.js",
-  "browser": "build/asyncmachine.umd.js"
+  "browser": "build/asyncmachine.umd.js",
+  "dependencies": {
+    "node-uuid": "^1.4.8"
+  }
 }

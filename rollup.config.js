@@ -3,10 +3,10 @@ import nodeResolve from 'rollup-plugin-node-resolve'
 import typescript from 'rollup-plugin-typescript'
 import tsc from 'typescript'
 import uglify from 'rollup-plugin-uglify'
-import { minify } from 'uglify-js'
+import { minify } from 'uglify-es'
 
 export default {
-  entry: 'src/asyncmachine.ts',
+  input: 'src/asyncmachine.ts',
   plugins: [
     typescript({
       target: 'es5',
@@ -26,18 +26,18 @@ export default {
     uglify({}, minify)
   ],
   exports: 'named',
-  sourceMap: true,
-  targets: [
+  sourcemap: true,
+  output: [
     {
-      dest: 'build/asyncmachine.cjs.js',
+      file: 'build/asyncmachine.cjs.js',
       format: 'cjs' },
     {
-      dest: 'build/asyncmachine.umd.js',
+      file: 'build/asyncmachine.umd.js',
       moduleName: 'asyncmachine',
       format: 'umd'
     },
     {
-      dest: 'build/asyncmachine.es6.js',
+      file: 'build/asyncmachine.es6.js',
       format: 'es'
     }
   ]
