@@ -13,9 +13,6 @@ import {
 	IBind,
 	IEmit,
 } from "./types";
-// shims for current engines
-import 'core-js/fn/array/includes'
-import 'core-js/fn/object/entries'
 
 
 /**
