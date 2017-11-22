@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "3.1.0-3",
+  "version": "3.2.0-dev1",
   "description": "Declarative scheduler for the event loop",
   "keywords": [
     "async",
@@ -37,7 +37,7 @@
     "uglify-es": "^3.1.9"
   },
   "scripts": {
-    "prepublish": "make build"
+    "prepare": "make build"
   },
   "main": "build/asyncmachine.cjs.js",
   "typings": "build/asyncmachine.d.ts",

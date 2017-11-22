@@ -48,7 +48,7 @@
 - ensure all the state lists and params are shallow copied
 - rename ./tools to ./bin
 
-### v3.2
+### v3.2 (dev)
 
 - auto states prepended to the currently executing queue
 - cancelled transition doesnt cancel transitions queued in the meantime
