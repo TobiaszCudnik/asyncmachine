@@ -75,7 +75,6 @@ export default class Transition {
 	constructor(source_machine: AsyncMachine<any, IBind, IEmit>, row: IQueueRow) {
 		this.source_machine = source_machine
 		this.row = row
-		// TODO loose casting
 		this.before = this.machine.is()
 
 		this.machine.emit("transition-init", this)
@@ -125,23 +124,23 @@ export default class Transition {
 	}
 
 	exec(): boolean {
-		let target = this.machine
+		let machine = this.machine
 		let aborted = !this.accepted
 		let hasStateChanged = false
 
-		this.machine.emit("transition-start", this)
+		machine.emit("transition-start", this)
 
 		// in case of using a local queue, we can hit a locked target machine
 		// TODO write a test
-		if (target.lock) {
+		if (machine.lock) {
 			// TODO this should be a warning
-			target.log('[cancelled] Target machine already during a transition', 1)
+			machine.log('[cancelled] Target machine already during a transition', 1)
 			return false
 		}
 
-		target.transition = this
+		machine.transition = this
 		this.events = []
-		target.lock = true
+		machine.lock = true
 
 		try {
 			// NEGOTIATION CALLS PHASE (cancellable)
@@ -174,12 +173,12 @@ export default class Transition {
 			// STATE CALLS PHASE (non cancellable)
 			if (!aborted) {
 				// TODO extract
-				target.setActiveStates_(this.requested_states, this.states)
+				machine.setActiveStates_(this.requested_states, this.states)
 				this.processPostTransition()
-				hasStateChanged = target.hasStateChanged(this.before)
+				hasStateChanged = machine.hasStateChanged(this.before)
 				if (hasStateChanged)
 					// TODO rename to "tick"
-					target.emit("change", this.before)
+					machine.emit("change", this.before)
 			}
 		} catch (ex) {
 			// TODO extract
@@ -188,20 +187,20 @@ export default class Transition {
 			// Its an exception to an exception when the exception throws... an exception
 			if (err.transition.match(/^Exception_/)
 					|| err.transition.match(/_Exception$/)) {
-				this.machine.setImmediate( () => { throw err.err } )
+				machine.setImmediate( () => { throw err.err } )
 			} else {
 				let queued_exception: IQueueRow = [StateChangeTypes.ADD, ["Exception"],
-					[err.err, this.states, this.before, err.transition], false, target]
+					[err.err, this.states, this.before, err.transition], false, machine]
 				// drop the queue created during the transition
 				this.source_machine.queue_.unshift(queued_exception)
 			}
 		}
 
-		target.transition = null
-		target.lock = false;
+		machine.transition = null
+		machine.lock = false;
 
 		if (aborted) {
-			target.emit("transition-cancelled", this);
+			machine.emit("transition-cancelled", this);
 		} else if (hasStateChanged && !this.row[QueueRowFields.AUTO]) {
 			var auto_states = this.prepareAutoStates();
 			if (auto_states)
@@ -210,14 +209,14 @@ export default class Transition {
 				// target.queue_.unshift(auto_states)
 		}
 
-		target.emit("transition-end", this)
+		machine.emit("transition-end", this)
 		this.events = []
 
 		// If this's a DROP transition, check if all explicit states has been dropped.
 		if (this.row[QueueRowFields.STATE_CHANGE_TYPE] === StateChangeTypes.DROP)
-			return target.allStatesNotSet(this.row[QueueRowFields.STATES])
+			return machine.allStatesNotSet(this.row[QueueRowFields.STATES])
 		else
-			return target.every(...this.states)
+			return machine.every(...this.states)
 	}
 
 	setupAccepted() {

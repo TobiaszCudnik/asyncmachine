@@ -117,6 +117,7 @@ export enum QueueRowFields {
 	TARGET
 }
 
+// TODO refactor to a named enum
 export interface IQueueRow {
 	0: StateChangeTypes;
 	1: string[];

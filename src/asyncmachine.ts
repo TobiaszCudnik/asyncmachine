@@ -522,9 +522,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	set(target: any, states?: any, ...params: any[]): boolean {
 	  assert(target, 'First param required')
 		if (!(target instanceof AsyncMachine)) {
-            // TODO test for `states === 0`
-            if (states !== undefined)
-                params = params ? [states, ...params] : [states]
+			// TODO test for `states === 0`
+			if (states !== undefined)
+				params = params ? [states, ...params] : [states]
 			states = target
 			target = this
 		}
@@ -1242,7 +1242,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	id(): string;
 	id(id?: any): this | string {
 		if (id === true)
-			return (this.id_ || '').replace(/[^\w\d]/g, '-')
+			return (this.id_ || '').replace(/[^\w\d]/g, '-').toLocaleLowerCase()
 		if (id !== undefined) {
 			if (id != this.id_) {
 				let old_id = this.id_
@@ -1547,14 +1547,20 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 
 	// Goes through the whole queue collecting return values.
 	private processQueue_(): boolean {
-		if (this.lock_queue)
+		if (!this.queue_.length)
 			return false
-		if (this.lock) {
+		let queued = false
+		if (this.lock_queue)
+			queued = true
+		else if (this.lock) {
 			// instance is during a transition from an external queue
 			// wait for it to finish OR schedule this queue somehow
+			queued = true
+		}
+		if (queued) {
+			this.emit('queue-changed')
 			return false
 		}
-
 		let ret: boolean[] = [];
 		this.lock_queue = true;
 		let row: IQueueRow | undefined;
