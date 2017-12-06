@@ -83,7 +83,8 @@ export default class Transition {
 		let states = this.requested_states
 		this.addStepsFor(states, null, TransitionStepTypes.REQUESTED)
 
-		let type_label = StateChangeTypes[type].toLowerCase()
+		const types = StateChangeTypes
+		const type_label = types[type].toLowerCase()
 		if (this.auto)
 			this.machine.log(`[${type_label}:auto] state ${states.join(", ")}`, 3)
 		else
@@ -92,17 +93,17 @@ export default class Transition {
 		let states_to_set: string[] = []
 
 		switch (type) {
-			case StateChangeTypes.DROP:
+			case types.DROP:
 				states_to_set = this.machine.states_active
 						.filter( state => !states.includes(state))
 				this.addStepsFor(states, null, TransitionStepTypes.DROP)
 				break
-			case StateChangeTypes.ADD:
+			case types.ADD:
 				states_to_set = [...states, ...this.machine.states_active]
 				this.addStepsFor(this.machine.diffStates(states_to_set,
 						this.machine.states_active), null, TransitionStepTypes.SET)
 				break
-			case StateChangeTypes.SET:
+			case types.SET:
 				states_to_set = states
 				this.addStepsFor(this.machine.diffStates(states_to_set,
 						this.machine.states_active), null, TransitionStepTypes.SET)
@@ -134,6 +135,7 @@ export default class Transition {
 		// TODO write a test
 		if (machine.lock) {
 			// TODO this should be a warning
+			// TODO push the transition at the end of the current queue?
 			machine.log('[cancelled] Target machine already during a transition', 1)
 			return false
 		}
@@ -632,12 +634,12 @@ export default class Transition {
 	addStepData(target: string | IStateStruct, source?: string | IStateStruct | null,
 					type?: TransitionStepTypes, data?: any): ITransitionStep {
 		let state = Array.isArray(target) ? target as IStateStruct
-				: [this.machine.id(), target as string] as IStateStruct
+				: [this.machine.id(true), target as string] as IStateStruct
 		let source_state: IStateStruct | undefined
 
 		if (source) {
 			source_state = Array.isArray(source) ? source as IStateStruct
-				: [this.machine.id(), source as string]
+				: [this.machine.id(true), source as string]
 		}
 
 		let step: ITransitionStep = [state, source_state, type, data]

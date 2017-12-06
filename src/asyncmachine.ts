@@ -1408,9 +1408,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			tags += ':neg_both'
 
 		if (parsed_states.length == 1 && requested_state)
-			this.log(`[pipe${tags}] ${parsed_states[0]} as ${requested_state} to ${machine.id()}`, 2)
+			this.log(`[pipe${tags}] '${parsed_states[0]}' as ${requested_state} to '${machine.id()}'`, 2)
 		else
-			this.log(`[pipe${tags}] ${parsed_states.join(', ')} to ${machine.id()}`, 2)
+			this.log(`[pipe${tags}] '${parsed_states.join(', ')}' to '${machine.id()}'`, 2)
 
 		let emit_on: AsyncMachine<any, IBind, IEmit>[] = []
 
@@ -1424,8 +1424,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 					let target = (flags && flags & PipeFlags.LOCAL_QUEUE)
 						? this : machine
 					if (this.transition) {
-						this.transition.addStep([machine.id(), target_state as string],
-							[this.id(), state as string], TransitionStepTypes.PIPE)
+						this.transition.addStep([machine.id(true), target_state as string],
+							[this.id(true), state as string], TransitionStepTypes.PIPE)
 					}
 
 					return target[method_name](machine, target_state)
