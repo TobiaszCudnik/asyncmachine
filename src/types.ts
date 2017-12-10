@@ -147,7 +147,6 @@ export enum StateRelations {
 	DROP = <any>'drop'
 }
 
-// TODO pipe?
 export enum TransitionStepTypes {
 	RELATION = 1,
 	TRANSITION = 1 << 2,

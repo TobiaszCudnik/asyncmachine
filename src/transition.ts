@@ -46,7 +46,7 @@ export default class Transition {
 	accepted = true;
 	// source queue row
 	row: IQueueRow;
-	// list of steps states with machine IDs
+	// list of steps with machine IDs
 	steps: ITransitionStep[] = [];
 	// was transition cancelled during negotiation?
 	cancelled: boolean;
