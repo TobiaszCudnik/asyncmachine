@@ -4,8 +4,11 @@ all:
 	make build
 	make build-test
 
+build-es6:
+	-$(BIN)/rollup -c rollup-es6.config.js
+
 build:
-	-tsc
+	make build-es6
 	-$(BIN)/rollup -c rollup.config.js
 	-$(BIN)/rollup -c rollup-shims.config.js
 
@@ -21,7 +24,7 @@ compile-watch:
 setup:
 	npm install
 
-docs:
+jsdocs:
 	ts2jsdoc .
 
 test:

@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "3.2.0-dev1",
+  "version": "3.2.0",
   "description": "Declarative scheduler for the event loop",
   "keywords": [
     "async",
@@ -34,16 +34,14 @@
     "source-map-support": "^0.4.2",
     "typedoc": "https://github.com/DatenMetzgerX/typedoc/tarball/typescript-2-build",
     "typescript": "^2.2.0",
-    "uglify-es": "^3.1.9"
+    "uglify-es": "^3.1.9",
+    "node-uuid": "^1.4.8"
   },
   "scripts": {
     "prepare": "make build"
   },
   "main": "build/asyncmachine.cjs.js",
-  "typings": "build/asyncmachine.d.ts",
+  "types": "build/asyncmachine.d.ts",
   "module": "build/asyncmachine-es6.js",
-  "browser": "build/asyncmachine.umd.js",
-  "dependencies": {
-    "node-uuid": "^1.4.8"
-  }
+  "browser": "build/asyncmachine.umd.js"
 }

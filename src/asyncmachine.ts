@@ -145,7 +145,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	lock: boolean = false;
 	clock_: { [K in (TStates | BaseStates)]?: number } = {};
 	target: {};
-	// TODO merge with [[lock]]
 	lock_queue = false;
 	log_level_: number = 0;
 	log_handler_: TLogHandler;
@@ -994,7 +993,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	}
 
 	/**
-	 * TODO should remove binding returned by pipe() and pipeAll() methods.
+	 * TODO should remove a binding returned by pipe() and pipeAll() methods
 	 */
 	pipeRemoveBinding(/*binding*/) {
 		throw new Error('TODO')
@@ -1497,7 +1496,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 
 		return states_parsed.filter( state => {
 			if (typeof state !== "string" || !this.get(state)) {
-				let id = this.id() ? ` in machine "${this.id()}"` : ""
+				let id = this.id() ? ` in the machine "${this.id()}"` : ""
 				throw new NonExistingStateError(`State "${state}" doesn't exist${id}`);
 			}
 

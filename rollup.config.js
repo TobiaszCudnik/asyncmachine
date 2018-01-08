@@ -35,10 +35,6 @@ export default {
       file: 'build/asyncmachine.umd.js',
       moduleName: 'asyncmachine',
       format: 'umd'
-    },
-    {
-      file: 'build/asyncmachine.es6.js',
-      format: 'es'
     }
   ]
 };

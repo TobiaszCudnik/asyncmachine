@@ -134,9 +134,12 @@ export default class Transition {
 		// in case of using a local queue, we can hit a locked target machine
 		// TODO write a test
 		if (machine.lock) {
+			this.addStep(null, null, TransitionStepTypes.CANCEL)
+			machine.emit("transition-cancelled", this)
+			machine.emit("transition-end", this)
 			// TODO this should be a warning
-			// TODO push the transition at the end of the current queue?
-			machine.log('[cancelled] Target machine already during a transition', 1)
+			machine.log('[cancelled] Target machine already during a transition, ' +
+					'use a common queue', 1)
 			return false
 		}
 
@@ -213,6 +216,9 @@ export default class Transition {
 
 		machine.emit("transition-end", this)
 		this.events = []
+
+		if (aborted)
+			return false
 
 		// If this's a DROP transition, check if all explicit states has been dropped.
 		if (this.row[QueueRowFields.STATE_CHANGE_TYPE] === StateChangeTypes.DROP)
