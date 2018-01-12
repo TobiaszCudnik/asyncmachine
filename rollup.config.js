@@ -33,7 +33,7 @@ export default {
       format: 'cjs' },
     {
       file: 'build/asyncmachine.umd.js',
-      moduleName: 'asyncmachine',
+      name: 'asyncmachine',
       format: 'umd'
     }
   ]

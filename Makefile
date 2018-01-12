@@ -4,16 +4,23 @@ all:
 	make build
 	make build-test
 
-build-es6:
-	-$(BIN)/rollup -c rollup-es6.config.js
-
 build:
-	make build-es6
-	-$(BIN)/rollup -c rollup.config.js
-	-$(BIN)/rollup -c rollup-shims.config.js
+	-make build-ts 
+	make dist-es6
+	$(BIN)/rollup -c rollup.config.js
+	# $(BIN)/rollup -c rollup-shims.config.js
 
 build-dev:
-	-$(BIN)/tsc --watch --isolatedModules --module commonjs
+	$(BIN)/tsc --watch --isolatedModules --module commonjs
+
+dist-es6:
+	$(BIN)/rollup -c rollup-es6.config.js
+
+build-ts:
+	tsc --module commonjs --outDir build
+
+build-ts-watch:
+	tsc --module commonjs --outDir build --watch
 
 compile:
 	$(BIN)/tsc --noEmit --pretty

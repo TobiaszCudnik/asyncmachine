@@ -40,7 +40,7 @@
   "scripts": {
     "prepare": "make build"
   },
-  "main": "build/asyncmachine.cjs.js",
+  "main": "build/asyncmachine.js",
   "types": "build/asyncmachine.d.ts",
   "module": "build/asyncmachine-es6.js",
   "browser": "build/asyncmachine.umd.js"
