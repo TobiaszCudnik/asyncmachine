@@ -1,12 +1,31 @@
 ### ROADMAP
 
+- fix change events
+  - 'state-changed' (ignores tick per state changes)
+  - 'tick' (fired on any change) 
+  - instead of a single 'change'
+- TS type generator
+  - group by state, not declaration type
+  - ability to output to a different dir
+- maybe: State_rejected() method, triggered when a certain state wasnt accepted
+  - only for target, non-auto states
+- integrate cancellable generator functions with getAbort() and abort functions
+  - https://github.com/getify/CAF
+  - also provide abort.onAbort()
+- define machines as JSONs
+  - state inheritance example (via object spread)
+- state validation when registering
+- create TODO.md
+- stop auto states when Exception is active
 - #toggle(name) #api
+- #has(name) #api
 - history API, optional #features
   - logged as an used queue
   - add destination states
   - time?
 - state groups - `FooA`, `FooB`, `FooC`, when all in group `Foo` #engine #api
   - then only one can be active at a time
+  - defined by `group` or `switch` or `switch_group`
 - fix "Aborted AB listener as the tick changed." displayed too many times #debug
 - improve logs #debug
   - more consistent
@@ -49,10 +68,12 @@
 - ensure all the state lists and params are shallow copied #api #refactoring
 - rename ./tools to ./bin #project #3
 
-### v3.2 (dev)
+### v3.2
 
 - auto states prepended to the currently executing queue
 - cancelled transition doesnt cancel transitions queued in the meantime
+- fixed piping without negotiation
+- bugfixes
 
 ### v3.1
 
