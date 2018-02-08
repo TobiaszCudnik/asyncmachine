@@ -209,6 +209,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ```
 	 *
 	 * TODO update the docs
+	 * TODO make the log easier to read
 	 */
 	Exception_state(err: Error, target_states: string[], base_states: string[],
 			exception_transition: string, async_target_states?: string[]): void{
@@ -220,7 +221,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		}
 		if (Array.isArray(base_states)) {
 			this.log(`Source states of the transition were:\n` +
-				`${target_states.join(", ") || '-----'}`);
+				`${base_states.join(", ") || '-----'}`);
 		}
 		if (async_target_states && async_target_states.length > 0) {
 			this.log(`Next states that were supposed to be (add|drop|set):\n` +
@@ -309,6 +310,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			if (constructor === AsyncMachine.prototype)
 				break
 		}
+
+		// TODO validate relations
 	}
 
 	getRelationsOf(from_state: (TStates | BaseStates), to_state?: (TStates |
@@ -441,6 +444,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	register(...states: (TStates | BaseStates)[]) {
 		// TODO dont register during a transition
 		for (let state of this.parseStates(states)) {
+			if (!this[state]) {
+				console.error(`Missing state '${state}' in machine '${this.id()}'`)
+			}
 			if (!this.states_all.includes(state))
 				this.states_all.push(state)
 			this.clock_[state] = 0
@@ -1351,6 +1357,15 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			this.logHandlerDefault(msg, level)
 	}
 
+	toString() {
+		let ret = `${this.id()}\n`
+		for (const state of this.states_all) {
+			if (this.states_active.includes(state))
+				ret += `    ${state} (${this.clock(state)})\n`
+		}
+		return ret
+	}
+
 	// PRIVATES
 
 	// TODO use enums
@@ -1407,7 +1422,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			tags += ':neg_both'
 
 		if (parsed_states.length == 1 && requested_state)
-			this.log(`[pipe${tags}] '${parsed_states[0]}' as ${requested_state} to '${machine.id()}'`, 2)
+			this.log(`[pipe${tags}] '${parsed_states[0]}' as '${requested_state}' to '${machine.id()}'`, 2)
 		else
 			this.log(`[pipe${tags}] '${parsed_states.join(', ')}' to '${machine.id()}'`, 2)
 
@@ -1419,7 +1434,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 				state as S;
 
 			for (let [event_type, method_name] of Object.entries(bindings)) {
-				let listener = () => {
+				let pipe_listener = () => {
 					let target = (flags && flags & PipeFlags.LOCAL_QUEUE)
 						? this : machine
 					if (this.transition) {
@@ -1427,7 +1442,11 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 							[this.id(true), state as string], TransitionStepTypes.PIPE)
 					}
 
-					return target[method_name](machine, target_state)
+					const ret = target[method_name](machine, target_state)
+					// return only when negotiation requested
+					if (flags && (flags & PipeFlags.NEGOTIATION) || flags & PipeFlags.NEGOTIATION_BOTH) {
+						return ret
+					}
 				}
 				// TODO extract
 				// TODO check for duplicates
@@ -1438,14 +1457,14 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 					machine: machine,
 					event_type: event_type as TStateMethod,
 					flags,
-					listener
+					listener: pipe_listener
 				})
 				// assert target states
 				machine.parseStates(target_state)
 				// setup the forwarding listener
 				// TODO listener-less piping
 				// read from #pipes directly, inside the transition
-				this.on(`${state}_${event_type}` as 'ts-dynamic', listener)
+				this.on(`${state}_${event_type}` as 'ts-dynamic', pipe_listener)
 			}
 
 			if (!emit_on.includes(this))
@@ -1723,20 +1742,20 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			this.on(`${state}_state` as 'ts-dynamic', enter)
 	}
 
-	// TODO compose the existing abort function without recursion
+	// TODO compose abort functions without recursion
 	private getAbortFunction(state: (TStates | BaseStates), tick: number, abort?: () => boolean): () => boolean {
 		return () => {
 			let quit = false
 			let msg = ''
 			if (abort && abort()) {
 				quit = true
-				msg = 'nested abort quit'
+				msg = 'the parent abort function has quit'
 			} else if (!this.is(state)) {
 				quit = true
 				msg = 'the state is not set'
 			} else if (!this.is(state, tick)) {
 				quit = true
-				msg = 'the tick changed'
+				msg = 'the has tick changed'
 			}
 
 			if (quit) {
