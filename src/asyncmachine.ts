@@ -1438,13 +1438,17 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 					let target = (flags && flags & PipeFlags.LOCAL_QUEUE)
 						? this : machine
 					if (this.transition) {
-						this.transition.addStep([machine.id(true), target_state as string],
-							[this.id(true), state as string], TransitionStepTypes.PIPE)
+						this.transition.addStep([machine.id(true),
+							target_state as string], [this.id(true),
+							state as string], TransitionStepTypes.PIPE)
 					}
 
 					const ret = target[method_name](machine, target_state)
 					// return only when negotiation requested
-					if (flags && (flags & PipeFlags.NEGOTIATION) || flags & PipeFlags.NEGOTIATION_BOTH) {
+					if (flags && (flags & PipeFlags.NEGOTIATION
+							|| flags & PipeFlags.NEGOTIATION_BOTH)) {
+						// TODO add a canceled step in case of negotiation and a negative
+						// result
 						return ret
 					}
 				}
@@ -1576,6 +1580,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			queued = true
 		}
 		if (queued) {
+			this.log(`[abort] Aborting queue processing, machine locked`, 3)
 			this.emit('queue-changed')
 			return false
 		}
