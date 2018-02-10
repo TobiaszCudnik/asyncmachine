@@ -1216,6 +1216,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			return this.log_level_
 	}
 
+	// TODO remove this.log_handler_, logHandler
+	log_handlers = []
+
 	logHandler(log_handler: TLogHandler): this;
 	logHandler(): TLogHandler;
 	logHandler(log_handler?: TLogHandler): this | Function {
@@ -1246,8 +1249,10 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	id(get_normalized: true): string;
 	id(): string;
 	id(id?: any): this | string {
-		if (id === true)
-			return (this.id_ || '').replace(/[^\w\d]/g, '-').toLocaleLowerCase()
+		if (id === true) {
+			return (this.id_ || '').replace(/[^\w\d]/g, '-').replace(/-+/g, '-')
+				.toLocaleLowerCase()
+		}
 		if (id !== undefined) {
 			if (id != this.id_) {
 				let old_id = this.id_
@@ -1351,6 +1356,10 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	}
 
 	log(msg: string, level: number = 1) {
+		for (const handler of this.log_handlers) {
+			handler(msg, level)
+		}
+		// TODO remove this.log_handler_
 		if (this.log_handler_)
 			this.log_handler_(msg, level)
 		else
