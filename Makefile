@@ -11,16 +11,16 @@ build:
 	# $(BIN)/rollup -c rollup-shims.config.js
 
 build-dev:
-	$(BIN)/tsc --watch --isolatedModules --module commonjs
+	$(BIN)/tsc --watch --isolatedModules
 
 dist-es6:
 	$(BIN)/rollup -c rollup-es6.config.js
 
 build-ts:
-	tsc --module commonjs --outDir build
+	tsc
 
 build-ts-watch:
-	tsc --module commonjs --outDir build --watch
+	tsc --watch
 
 compile:
 	$(BIN)/tsc --noEmit --pretty

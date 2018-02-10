@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "es6",
-        "module": "es6",
+        "module": "commonjs",
         "declaration": true,
         "removeComments": false,
         "lib": ["es2017", "dom"],
@@ -13,7 +13,8 @@
         "noImplicitThis": true,
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,
-        "preserveConstEnums": true
+        "preserveConstEnums": true,
+        "outDir": "build"
     },
     "include": [
         "src/**/*"
