@@ -33,8 +33,7 @@
     "sinon-chai": "^2.8.0",
     "source-map-support": "^0.4.2",
     "typescript": "^2.2.0",
-    "uglify-es": "^3.1.9",
-    "node-uuid": "^1.4.8"
+    "uglify-es": "^3.1.9"
   },
   "scripts": {
     "prepare": "make build"
@@ -42,5 +41,8 @@
   "main": "build/asyncmachine.js",
   "types": "build/asyncmachine.d.ts",
   "module": "build/asyncmachine-es6.js",
-  "browser": "build/asyncmachine.umd.js"
+  "browser": "build/asyncmachine.umd.js",
+  "dependencies": {
+    "simple-random-id": "^1.0.1"
+  }
 }

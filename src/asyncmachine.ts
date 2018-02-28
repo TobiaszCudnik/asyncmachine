@@ -1,7 +1,6 @@
 import Transition from "./transition";
 import EventEmitter from "./ee"
-import uuid from './uuid-v4'
-// import * as uuid from 'uuid-v4'
+import * as uuidProxy from 'simple-random-id'
 import {
 	StateChangeTypes,
 	Deferred,
@@ -147,12 +146,13 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	target: {};
 	lock_queue = false;
 	log_level_: number = 0;
-	log_handler_: TLogHandler;
 	transition: Transition | null;
+	log_handlers: TLogHandler[] = []
 	protected internal_fields: string[] = ["states_all", "lock_queue",
 		"states_active", "queue_", "lock", "last_promise",
 		"log_level_", "log_handler_", "clock_", "target", "internal_fields",
-		"piped", 'id_', 'print_exception', 'transition'];
+		"piped", 'id_', 'print_exception', 'transition', 'log_handlers',
+		'postponed_queue'];
 	private id_: string = uuid();
 
 	/**
@@ -212,7 +212,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * TODO make the log easier to read
 	 */
 	Exception_state(err: Error, target_states: string[], base_states: string[],
-			exception_transition: string, async_target_states?: string[]): void{
+			exception_transition: string, async_target_states?: string[]): void {
 		if (this.print_exception)
 			console.error("EXCEPTION from AsyncMachine")
 		if (target_states && target_states.length > 0) {
@@ -1216,19 +1216,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			return this.log_level_
 	}
 
-	// TODO remove this.log_handler_, logHandler
-	log_handlers = []
-
-	logHandler(log_handler: TLogHandler): this;
-	logHandler(): TLogHandler;
-	logHandler(log_handler?: TLogHandler): this | Function {
-		if (log_handler) {
-			this.log_handler_ = log_handler
-			return this
-		} else
-			return this.log_handler_
-	}
-
 	/**
 	 * Managed the ID of the machine.
 	 * 
@@ -1345,7 +1332,10 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		return states1.filter( name => !states2.includes(name) )
 	}
 
-	logHandlerDefault(msg: string, level: number) {
+	log(msg: string, level: number = 1) {
+		for (const handler of this.log_handlers) {
+			handler(msg, level)
+		}
 		if (level > this.log_level_)
 			return;
 
@@ -1353,17 +1343,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		msg = prefix + msg
 
 		console.log(msg)
-	}
-
-	log(msg: string, level: number = 1) {
-		for (const handler of this.log_handlers) {
-			handler(msg, level)
-		}
-		// TODO remove this.log_handler_
-		if (this.log_handler_)
-			this.log_handler_(msg, level)
-		else
-			this.logHandlerDefault(msg, level)
 	}
 
 	toString() {
