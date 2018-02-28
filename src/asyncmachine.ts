@@ -31,6 +31,9 @@ export {
 } from './types'
 export { default as Transition } from './transition'
 
+// TODO thank you rollup for years of linking issues
+const uuid = (<any>uuidProxy).default || uuidProxy
+
 const assert = function(cond: boolean, msg: string) {
   if (!cond)
     throw Error(msg)
