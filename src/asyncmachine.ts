@@ -151,6 +151,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	log_level_: number = 0;
 	transition: Transition | null;
 	log_handlers: TLogHandler[] = []
+	postponed_queue = false
 	protected internal_fields: string[] = ["states_all", "lock_queue",
 		"states_active", "queue_", "lock", "last_promise",
 		"log_level_", "log_handler_", "clock_", "target", "internal_fields",
