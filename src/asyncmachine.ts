@@ -1563,15 +1563,26 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		if (!this.queue_.length)
 			return false
 		let queued = false
-		if (this.lock_queue)
+		if (this.lock_queue) {
+			this.log(`[postpone] postponing the transition, the queue is running`, 3)
 			queued = true
-		else if (this.lock) {
+		} else if (this.lock) {
 			// instance is during a transition from an external queue
 			// wait for it to finish OR schedule this queue somehow
+      // 			this.log(`[abort] Aborting queue processing, machine locked`, 3)
+			this.log(`[postpone] postponing the transition, machine locked by another`
+				+ ` one`, 3)
 			queued = true
+			if (!this.postponed_queue) {
+				this.postponed_queue = true
+				this.once('queue-end', () => {
+					this.postponed_queue = false
+					this.log('[resume] resuming an aborted queue', 3)
+					this.processQueue_()
+				})
+			}
 		}
 		if (queued) {
-			this.log(`[abort] Aborting queue processing, machine locked`, 3)
 			this.emit('queue-changed')
 			return false
 		}
@@ -1591,6 +1602,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		// GC the transition
 		this.transition = null
 		this.lock_queue = false
+		this.emit('queue-end')
 		return ret[0] || false;
 	}
 
