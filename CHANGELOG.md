@@ -2,6 +2,7 @@
 
 ### v3.2
 
+- better ./bin/am-types generator and type safety
 - auto resuming of postponed queues
 - `auto` states prepended to the currently executing queue
 - cancelled transition doesn't discard the transitions queued in the meantime

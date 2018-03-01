@@ -32,7 +32,7 @@
     "sinon": "^1.17.4",
     "sinon-chai": "^2.8.0",
     "source-map-support": "^0.4.2",
-    "typescript": "^2.2.0",
+    "typescript": "^2.7.2",
     "uglify-es": "^3.1.9"
   },
   "scripts": {
@@ -43,6 +43,10 @@
   "module": "build/asyncmachine-es6.js",
   "browser": "build/asyncmachine.umd.js",
   "dependencies": {
+    "commander": "^2.14.1",
     "simple-random-id": "^1.0.1"
+  },
+  "bin": {
+    "am-types": "./bin/am-types.js"
   }
 }

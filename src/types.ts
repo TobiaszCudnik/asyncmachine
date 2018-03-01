@@ -3,7 +3,7 @@ import Transition from "./transition";
 
 export type BaseStates = 'Exception';
 
-export type AsyncMachine = AsyncMachine<any, IBind, IEmit>
+export type TAsyncMachine = AsyncMachine<any, IBind, IEmit>
 
 export interface IBind {
 	(event: 'tick', listener:
@@ -47,7 +47,7 @@ export interface IBind {
 	(event: 'Exception_end', listener: () => any, context?: Object): this;
 	(event: 'Exception_Any', listener: () => boolean | void, context?: Object): this;
 	(event: 'Any_Exception', listener: () => boolean | void, context?: Object): this;
-	// skip compiler errors for dynamic calls
+	// TODO better compiler errors for incorrect calls
 	(event: 'ts-dynamic', listener: Function): this;
 }
 
@@ -122,14 +122,16 @@ export interface IQueueRow {
 	1: string[];
 	2: any[];
 	3: boolean;
-	4: AsyncMachine<any, IBind, IEmit>;
+	4: TAsyncMachine;
 }
 
 export class Deferred {
 	promise: Promise<any>;
 
+	// @ts-ignore
 	resolve: (...params: any[]) => void;
 
+	// @ts-ignore
 	reject: (err?: any) => void;
 
 	constructor() {
@@ -208,7 +210,7 @@ export type TPipeBindings = IPipeStateBindings | IPipeNegotiationBindings
 
 export interface IPipedStateTarget {
 	state: string,
-	machine: AsyncMachine<any, IBind, IEmit>,
+	machine: TAsyncMachine,
 	event_type: TStateMethod,
 	listener: Function,
 	flags?: PipeFlags
