@@ -7,14 +7,19 @@ all:
 build:
 	-make build-ts 
 	make dist-es6
-	$(BIN)/rollup -c rollup.config.js
-	# $(BIN)/rollup -c rollup-shims.config.js
+	make dist
 
 build-dev:
 	$(BIN)/tsc --watch --isolatedModules
 
+dist:
+	$(BIN)/rollup -c rollup.config.js
+
 dist-es6:
 	$(BIN)/rollup -c rollup-es6.config.js
+
+dist-shims:
+	$(BIN)/rollup -c rollup-shims.config.js
 
 build-ts:
 	tsc
