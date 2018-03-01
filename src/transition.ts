@@ -37,7 +37,7 @@ export default class Transition {
 	// states before the transition
 	before: string[];
 	// target states after parsing the relations
-	states: string[];
+	states: string[] = [];
 	// array of enter transition to execute
 	enters: string[] = [];
 	// array of exit transition to execute
@@ -49,7 +49,7 @@ export default class Transition {
 	// list of steps with machine IDs
 	steps: ITransitionStep[] = [];
 	// was transition cancelled during negotiation?
-	cancelled: boolean;
+	cancelled: boolean = false;
 
 	// target machine on which the transition is supposed to happen
 	get machine(): AsyncMachine<any, IBind, IEmit> {
@@ -134,6 +134,7 @@ export default class Transition {
 		// in case of using a local queue, we can hit a locked target machine
 		// TODO write a test
 		if (machine.lock) {
+			// @ts-ignore
 			this.addStep(null, null, TransitionStepTypes.CANCEL)
 			machine.emit("transition-cancelled", this)
 			machine.emit("transition-end", this)
@@ -182,8 +183,7 @@ export default class Transition {
 				this.processPostTransition()
 				hasStateChanged = machine.hasStateChanged(this.before)
 				if (hasStateChanged)
-					// TODO rename to "tick"
-					machine.emit("change", this.before)
+					machine.emit("tick", this.before)
 			}
 		} catch (ex) {
 			// TODO extract
