@@ -1,5 +1,5 @@
 import AsyncMachine, {
-    factory,
+    machine,
     PipeFlags,
     Transition
 } from '../src/asyncmachine';
@@ -18,7 +18,7 @@ chai.use(sinonChai);
 
 describe('Transition steps', function () {
     it('for relations', function() {
-        let states = factory({
+        let states = machine({
             A: {require: ['B']},
             B: {require: ['C']},
             C: {after: ['A']},
@@ -54,7 +54,7 @@ describe('Transition steps', function () {
     })
 
     it('for transitions', function() {
-        let states = factory<'A'|'B'|'C'|'D'>(['A', 'B', 'C', 'D'])
+        let states = machine<'A'|'B'|'C'|'D'>(['A', 'B', 'C', 'D'])
         let f = function(){}
         let target = {
             Any_C: f,

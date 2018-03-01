@@ -1,5 +1,6 @@
 import Transition from "./transition";
 import EventEmitter from "./ee"
+// @ts-ignore
 import * as uuidProxy from 'simple-random-id'
 import {
 	StateChangeTypes,
@@ -18,7 +19,9 @@ import {
 	TransitionStepTypes,
 	IBind,
 	IEmit,
-	BaseStates
+	BaseStates,
+	// @ts-ignore
+	TAsyncMachine
 } from './types'
 
 export {
@@ -27,7 +30,12 @@ export {
 	TransitionStepTypes,
 	TransitionStepFields,
 	StateRelations,
-	// IState,
+	// needed for factory()
+	IBind,
+	IEmit,
+	IState,
+	// useful for typing
+	TAsyncMachine
 } from './types'
 export { default as Transition } from './transition'
 
@@ -49,7 +57,9 @@ const assert = function(cond: boolean, msg: string) {
  *
  * Using names:
  * ```
- * let states = asyncmachine.factory(['A', 'B','C'])
+ * import { machine } from 'asyncmachine'
+ *
+ * let states = machine(['A', 'B','C'])
  * states.A = { add: ['B'] }
  * states.add('A')
  * states.is() // -> ['A', 'B']
@@ -57,7 +67,9 @@ const assert = function(cond: boolean, msg: string) {
  *
  * Using a map:
  * ```
- * let states = asyncmachine.factory({
+ * import { machine } from 'asyncmachine'
+ *
+ * let states = machine({
  *   A: { add: ['B'] },
  *   B: {},
  *   C: {}
@@ -66,31 +78,41 @@ const assert = function(cond: boolean, msg: string) {
  * states.is() // -> ['A', 'B']
  * ```
  */
-export function factory<States extends string, T extends AsyncMachine<any, IBind, IEmit>>(
-		states: string[] | { [K in keyof States]: IState<States> },
-		constructor?: { new (...params: any[]): T; }): T;
-export function factory<States extends string>(
-		states: string[]): AsyncMachine<States, IBind, IEmit>;
-export function factory<States extends string>(
-		states: {[K in States]: IState<States> }): AsyncMachine<States, IBind, IEmit>;
-export function factory<States extends string, T extends AsyncMachine<any, IBind, IEmit>>(
-		states: string[] | {[K in keyof States]: IState<States> } = [],
-		constructor?: any ): any {
-	var instance = <T><any>(new (constructor || AsyncMachine))
+export function machine<
+  States extends string,
+  T extends AsyncMachine<any, IBind, IEmit>
+>(
+  states: string[] | { [K in keyof States]?: IState<States> },
+  constructor?: { new (...params: any[]): T }
+): T
+export function machine<States extends string>(
+  states: string[]
+): AsyncMachine<States, IBind, IEmit>
+export function machine<States extends string>(
+  states: { [K in States]?: IState<States> }
+): AsyncMachine<States, IBind, IEmit>
+export function machine<
+  States extends string,
+  T extends AsyncMachine<any, IBind, IEmit>
+>(
+  states: string[] | { [K in keyof States]?: IState<States> } = [],
+  constructor?: any
+): any {
+  var instance = <T>(<any>new (constructor || AsyncMachine)())
 
-	if (states instanceof Array) {
-		for (let state of states) {
-			instance[state] = {};
-			instance.register(state as BaseStates);
-		}
-	} else {
-		for (let state of Object.keys(states)) {
-			instance[state] = states[state];
-			instance.register(state as BaseStates);
-		}
-	}
+  if (states instanceof Array) {
+    for (let state of states) {
+      instance[state] = {}
+      instance.register(state as BaseStates)
+    }
+  } else {
+    for (let state of Object.keys(states)) {
+      instance[state] = states[state]
+      instance.register(state as BaseStates)
+    }
+  }
 
-	return instance;
+  return instance
 }
 
 /**
@@ -134,7 +156,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		multi: true
 	};
 	states_all: (TStates | BaseStates)[] = [];
-	last_promise: Promise<any>;
+	// TODO still used?
+	last_promise: Promise<any> | null = null;
 	piped: { [K in (TStates | BaseStates)]?: IPipedStateTarget[] } = {};
 	/**
 	 * If true, an exception will be printed immediately after it's thrown.
@@ -146,15 +169,15 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	queue_: IQueueRow[] = [];
 	lock: boolean = false;
 	clock_: { [K in (TStates | BaseStates)]?: number } = {};
-	target: {};
+	target: {} | null = null;
 	lock_queue = false;
 	log_level_: number = 0;
-	transition: Transition | null;
+	transition: Transition | null = null;
 	log_handlers: TLogHandler[] = []
 	postponed_queue = false
 	protected internal_fields: string[] = ["states_all", "lock_queue",
 		"states_active", "queue_", "lock", "last_promise",
-		"log_level_", "log_handler_", "clock_", "target", "internal_fields",
+		"log_level_", "clock_", "target", "internal_fields",
 		"piped", 'id_', 'print_exception', 'transition', 'log_handlers',
 		'postponed_queue'];
 	private id_: string = uuid();
@@ -463,8 +486,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * TODO test
 	 * @param name
 	 */
-	deregister(name: string) {
-		throw new Error(`Not implemented deregister('${name}')`)
+	unregister(name: string) {
+		throw new Error(`Not implemented - unregister('${name}')`)
 		// TODO
 		// TODO dont deregister during a transition
 	}
@@ -974,7 +997,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		let to_emit: this[] = []
 
 		for (let [state, pipes] of Object.entries(this.piped)) {
-			// TODO remove casting once Object.keys() is typed correctly
+			// TODO remove casting once Object.entries() is typed correctly
 			if (parsed_states && !parsed_states.includes(state as
           (TStates | BaseStates)))
 				continue
@@ -1538,8 +1561,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	private enqueue_(type: number, states: (TStates | BaseStates)[] |
 			(TStates | BaseStates), params: any[] = [],
 			target: AsyncMachine<any, IBind, IEmit> = this): void {
-		var type_label = StateChangeTypes[type].toLowerCase();
-		let states_parsed = target.parseStates(states);
+		const type_label = StateChangeTypes[type].toLowerCase();
+		const states_parsed = target.parseStates(states);
 
 		let queue = this.queue_
 		if (this.duringTransition()) {

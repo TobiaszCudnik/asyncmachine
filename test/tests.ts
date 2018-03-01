@@ -1,7 +1,7 @@
 /// <reference path="../typings/index.d.ts" />
 
 import AsyncMachine, {
-	factory,
+	machine,
 	StateRelations
 } from '../src/asyncmachine';
 import * as chai from 'chai';
@@ -91,7 +91,7 @@ describe("asyncmachine", function () {
 
 
 	it('should allow to define a new state', function () {
-		let machine = <any>factory(['A'])
+		let machine = <any>machine(['A'])
 		machine.A = {};
 		machine.register('A');
 		machine.add('A');
@@ -100,7 +100,7 @@ describe("asyncmachine", function () {
 
 
 	it('should allow to get relations of a state', function () {
-		let machine = factory<'A'|'B'>({
+		let machine = machine<'A'|'B'>({
 			A: {
 				add: ['B'],
 				auto: true
@@ -112,7 +112,7 @@ describe("asyncmachine", function () {
 
 
 	it('should allow to get relations between 2 states', function () {
-		let machine = <any>factory({
+		let machine = <any>machine({
 			A: {
 				add: ['B'],
 				require: ['C'],

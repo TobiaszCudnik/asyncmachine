@@ -1,8 +1,11 @@
 TODO
 
+- markdown in comments, translate old cs examples
 - better npm package
   - export types.ts in main cjs bundle
   - publish only the /build dir
+  - include the tools, put in /bin
+  - example shuld use es6 modules
 - investigate `[drop:implied]`
 - include prettier in the workflow
 - manually specified queue for piping (piping from A to B using the queue from C)

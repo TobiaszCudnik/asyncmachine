@@ -2,7 +2,7 @@
  * TODO move all of these to factory calls.
  */
 import AsyncMachine, {
-    factory
+    machine
 } from '../src/asyncmachine';
 import {
     IBind,

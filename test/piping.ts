@@ -1,5 +1,5 @@
 import AsyncMachine, {
-    factory,
+    machine,
     PipeFlags
 } from '../src/asyncmachine';
 import {
@@ -25,9 +25,9 @@ type XYZ = 'X' | 'Y' | 'Z'
 describe('piping', function () {
 
     it('should forward a specific state', function () {
-        let source = factory<ABCD>(['A', 'B', 'C', 'D']);
+        let source = machine<ABCD>(['A', 'B', 'C', 'D']);
         source.set('A');
-        let target = factory<ABCD>(['A', 'B', 'C', 'D']);
+        let target = machine<ABCD>(['A', 'B', 'C', 'D']);
 
         source.pipe('A', target);
         source.pipe('B', target);
@@ -40,9 +40,9 @@ describe('piping', function () {
     })
 
     it('should forward a specific state as a different one', function () {
-        let source = factory<ABCD>(['A', 'B', 'C', 'D']);
+        let source = machine<ABCD>(['A', 'B', 'C', 'D']);
         source.set('A');
-        let target = factory<XYZ>(['X', 'Y', 'Z']);
+        let target = machine<XYZ>(['X', 'Y', 'Z']);
 
         source.pipe('B', target, 'X');
         source.set('B');
@@ -51,9 +51,9 @@ describe('piping', function () {
     })
 
     it('should invert a specific state as a different one', function () {
-        let source = factory<ABCD>(['A', 'B', 'C', 'D']);
+        let source = machine<ABCD>(['A', 'B', 'C', 'D']);
         source.set('A');
-        let target = factory<XYZ>(['X', 'Y', 'Z']);
+        let target = machine<XYZ>(['X', 'Y', 'Z']);
 
         source.pipe('A', target, 'X', PipeFlags.INVERT);
         source.drop('A');
@@ -62,8 +62,8 @@ describe('piping', function () {
     })
 
     it('should work for negotiation', function() {
-        let source = factory<ABCD>(['A', 'B', 'C', 'D'])
-        let target = factory<ABCD>(['A', 'B', 'C', 'D'])
+        let source = machine<ABCD>(['A', 'B', 'C', 'D'])
+        let target = machine<ABCD>(['A', 'B', 'C', 'D'])
         source.pipe('A', target, null, PipeFlags.NEGOTIATION)
         target['A_enter'] = () => false
         source.add('A')
@@ -76,9 +76,9 @@ describe('piping', function () {
         // piping negotiation-only phrase does not give you certantity,
         // that the state was actually sucesfully set in the machine A
         // in that case, fow now, assert the success via the self-transition
-        let source = factory<ABCD>(['A', 'B', 'C', 'D'])
-        let target1 = factory<ABCD>(['A', 'B', 'C', 'D'])
-        let target2 = factory<ABCD>(['A', 'B', 'C', 'D'])
+        let source = machine<ABCD>(['A', 'B', 'C', 'D'])
+        let target1 = machine<ABCD>(['A', 'B', 'C', 'D'])
+        let target2 = machine<ABCD>(['A', 'B', 'C', 'D'])
 
         source.pipe(['A', 'B'], target1, null, PipeFlags.NEGOTIATION_BOTH)
         source.pipe(['A', 'B'], target2, null, PipeFlags.NEGOTIATION_BOTH)
@@ -108,9 +108,9 @@ describe('piping', function () {
     })
 
     it('should forward a whole machine', function () {
-        let source = factory<ABCD>(['A', 'B', 'C', 'D']);
+        let source = machine<ABCD>(['A', 'B', 'C', 'D']);
         source.set('A');
-        let target = factory<ABCD>(['A', 'B', 'C', 'D']);
+        let target = machine<ABCD>(['A', 'B', 'C', 'D']);
         target.set(['A', 'D']);
 
         expect(target.is()).to.eql(['A', 'D']);
@@ -124,8 +124,8 @@ describe('piping', function () {
     describe('queue handling', function() {
 
         it('target machine\'s queue', function() {
-            let source = factory<ABCD>(['A', 'B', 'C', 'D'])
-            let target = factory<ABCD>(['A', 'B', 'C', 'D'])
+            let source = machine<ABCD>(['A', 'B', 'C', 'D'])
+            let target = machine<ABCD>(['A', 'B', 'C', 'D'])
 
             source.pipe('B', target, null)
             source['A_enter'] = function() {
@@ -145,8 +145,8 @@ describe('piping', function () {
         })
 
         it('local queue', function() {
-            let source = factory<ABCD>(['A', 'B', 'C', 'D'])
-            let target = factory<ABCD>(['A', 'B', 'C', 'D'])
+            let source = machine<ABCD>(['A', 'B', 'C', 'D'])
+            let target = machine<ABCD>(['A', 'B', 'C', 'D'])
 
             source.pipe('B', target, null, PipeFlags.LOCAL_QUEUE)
             source['A_enter'] = function() {
@@ -171,8 +171,8 @@ describe('piping', function () {
         let target: AsyncMachine<ABCD, IBind, IEmit>
 
         beforeEach(function () {
-            source = factory(['A', 'B', 'C', 'D']);
-            target = factory(['A', 'B', 'C', 'D']);
+            source = machine(['A', 'B', 'C', 'D']);
+            target = machine(['A', 'B', 'C', 'D']);
         });
 
         it('for single state', function () {

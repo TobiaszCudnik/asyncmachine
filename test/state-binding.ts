@@ -1,5 +1,5 @@
 import AsyncMachine, {
-    factory,
+    machine,
     PipeFlags
 } from '../src/asyncmachine';
 import * as chai from 'chai';
@@ -13,7 +13,7 @@ chai.use(sinonChai);
 describe('State binding', function () {
 
     it('should work for single states', function (done) {
-        let states = factory(['A', 'B']);
+        let states = machine(['A', 'B']);
         states.when('A').then(function (value) {
             expect(value).to.eql(undefined);
             done();
@@ -25,7 +25,7 @@ describe('State binding', function () {
     })
 
     it('should work for multiple states', function (done) {
-        let states = factory(['A', 'B'])
+        let states = machine(['A', 'B'])
         states.when(['A', 'B']).then(function (value) {
             expect(value).to.eql(undefined);
             done();

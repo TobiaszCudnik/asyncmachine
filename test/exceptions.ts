@@ -1,5 +1,5 @@
 import AsyncMachine, {
-  factory
+  machine
 } from '../src/asyncmachine';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -12,7 +12,7 @@ chai.use(sinonChai);
 describe("Exceptions", function () {
 
   beforeEach(function () {
-    this.foo = factory(['A']);
+    this.foo = machine(['A']);
   })
 
   it('should be thrown on the next tick', function () {
@@ -31,7 +31,7 @@ describe("Exceptions", function () {
   })
 
   it('should pass all the params to the method', function (done) {
-    let states = <any>factory(['A', 'B', 'C']);
+    let states = <any>machine(['A', 'B', 'C']);
     states.C_enter = function () { throw new Error(); };
 
     states.Exception_state = function (err, target_states, base_states, 
@@ -107,8 +107,8 @@ describe("Exceptions", function () {
     before(function () {
       let asyncMock = cb => setTimeout((cb.bind(null)), 0);
 
-      this.foo = factory(['A', 'B', 'C']);
-      this.bar = factory(['D']);
+      this.foo = machine(['A', 'B', 'C']);
+      this.bar = machine(['D']);
       this.bar.pipe('D', this.foo, 'A');
       this.foo.A_enter = function () { this.add('B'); };
       this.foo.B_state = function() {
