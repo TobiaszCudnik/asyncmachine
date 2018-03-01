@@ -6,12 +6,7 @@
         "removeComments": false,
         "lib": ["es2017", "dom"],
         "sourceMap": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "strictNullChecks": true,
-        "noImplicitReturns": true,
-        "noImplicitThis": true,
-        "noImplicitAny": true,
+        "strict": true,
         "suppressImplicitAnyIndexErrors": true,
         "preserveConstEnums": true,
         "outDir": "build"
