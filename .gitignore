@@ -5,7 +5,7 @@
 /.idea
 /asyncmachine.iml
 /build/*
-/.vscode/*
+/.vscode/
 .DS_Store
 /src/**/*.js
 /src/**/*.js.map
@@ -16,3 +16,4 @@
 /tsickle_externs.js
 /docs/
 /typings/
+/.rpt2_cache/
