@@ -471,7 +471,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	register(...states: (TStates | BaseStates)[]) {
 		// TODO dont register during a transition
 		for (let state of this.parseStates(states)) {
-	    // @ts-ignore
 			if (!this[state]) {
 				console.error(`Missing state '${state}' in machine '${this.id()}'`)
 			}
@@ -993,7 +992,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	pipeRemove(states?: (TStates | BaseStates) | (TStates | BaseStates)[],
 			machine?: AsyncMachine<any, IBind, IEmit>, flags?: PipeFlags) {
 		let bindings = flags ? this.getPipeBindings(flags) : null
-	  // @ts-ignore
 		let event_types = flags ? Object.keys(bindings) : null
 		let parsed_states = states ? this.parseStates(states) : null
 		let to_emit: this[] = []
@@ -1003,27 +1001,21 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			if (parsed_states && !parsed_states.includes(state as
           (TStates | BaseStates)))
 				continue
-	    // @ts-ignore
 			for (let i = 0; i < pipes.length; i++) {
-	      // @ts-ignore
 				let pipe = pipes[i]
 				if (machine && machine !== pipe.machine)
 					continue
 				if (event_types && !event_types.includes(pipe.event_type))
 					continue
 				this.removeListener(`${state}_${pipe.event_type}`, pipe.listener)
-	      // @ts-ignore
 				pipes.splice(i, 1)
 				// stay on the same index
 				i--
-        // @ts-ignore
 				if (!to_emit.includes(pipe.machine))
-	        // @ts-ignore
 					to_emit.push(pipe.machine)
 				if (!to_emit.includes(this))
 					to_emit.push(this)
 			}
-	    // @ts-ignore
 			if (!pipes.length)
 				delete this.piped[state]
 		}
@@ -1063,7 +1055,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ````
 	 */
 	clock(state: (TStates | BaseStates)): number {
-	  // @ts-ignore
 		return this.clock_[state] || 0;
 	}
 
@@ -1131,7 +1122,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * Requires [[duringTranstion]] to be true or it'll throw.
 	 */
 	from(): (TStates | BaseStates)[] {
-    // @ts-ignore
 		if (!this.transition || this.transition.machine !== this)
 			throw new Error(`[AsyncMachine] ${this.id()} not during an (own) transition`)
 
@@ -1146,7 +1136,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * Requires [[duringTranstion]] to be true or it'll throw.
 	 */
 	to(): (TStates | BaseStates)[] {
-    // @ts-ignore
 		if (!this.transition || this.transition.machine !== this)
 			throw new Error(`[AsyncMachine] ${this.id()} not during an (own) transition`)
 
@@ -1294,9 +1283,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * TODO rename TPipeBindings to TPipeBinding
 	 * TODO copy these to once() and emit()
 	 */
-	// @ts-ignore
 	on: TBind & IBind;
-	// @ts-ignore
 	on(event: string, listener: Function, context?: Object): this {
 		// if event is a NAME_state event, fire immediately if the state is set
 		if ((event.slice(-6) === "_state" || event.slice(-6) === "_enter")
@@ -1317,9 +1304,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * TODO extract eventToStateName(name: string): (TStates | States)
 	 *   and loose the type casting
 	 */
-	// @ts-ignore
 	once: TBind & IBind;
-	// @ts-ignore
 	once(event: string, listener: Function, context?: Object): this {
 		// is event is a NAME_state event, fire immediately if the state is set
 		// and dont register the listener
@@ -1338,7 +1323,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		return this;
 	}
 
-	// @ts-ignore
 	emit: TEmit & IEmit;
 
 	// TODO type all the emit calls
@@ -1487,7 +1471,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 				// TODO check for duplicates
 				if (!this.piped[state])
 					this.piped[state] = []
-	      // @ts-ignore
 				this.piped[state].push({
 					state: target_state,
 					machine: machine,
@@ -1503,11 +1486,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 				this.on(`${state}_${event_type}` as 'ts-dynamic', pipe_listener)
 			}
 
-	    // @ts-ignore
 			if (!emit_on.includes(this))
-	      // @ts-ignore
 				emit_on.push(this)
-	    // @ts-ignore
 			if (machine !== this && !emit_on.includes(machine))
 				emit_on.push(machine)
 		}
@@ -1580,19 +1560,16 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 */
 	private enqueue_(type: number, states: (TStates | BaseStates)[] |
 			(TStates | BaseStates), params: any[] = [],
-	    // @ts-ignore
 			target: AsyncMachine<any, IBind, IEmit> = this): void {
 		const type_label = StateChangeTypes[type].toLowerCase();
 		const states_parsed = target.parseStates(states);
 
 		let queue = this.queue_
 		if (this.duringTransition()) {
-      // @ts-ignore
 			if (this.transition && this.transition.source_machine !== this) {
 				// TODO log msg for using the parent queue
 				queue = this.transition.source_machine.queue_
 			}
-      // @ts-ignore
 			if (target !== this) {
 				this.log(`[queue:${type_label}] [${target.id()}]`+
 					` ${states_parsed.join(", ")}`, 2);
@@ -1622,7 +1599,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			queued = true
 			if (!this.postponed_queue) {
 				this.postponed_queue = true
-	      // @ts-ignore
 				this.once('queue-end', () => {
 					this.postponed_queue = false
 					this.log('[resume] resuming an aborted queue', 3)
@@ -1631,7 +1607,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			}
 		}
 		if (queued) {
-	    // @ts-ignore
 			this.emit('queue-changed')
 			return false
 		}
@@ -1640,13 +1615,10 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		let row: IQueueRow | undefined;
 		while (row = this.queue_.shift()) {
 			if (!row[QueueRowFields.TARGET])
-	      // @ts-ignore
 				row[QueueRowFields.TARGET] = this
-	    // @ts-ignore
 			this.transition = new Transition(this, row)
 			// expose the current transition also on the target machine
 			row[QueueRowFields.TARGET].transition = this.transition
-	    // @ts-ignore
 			ret.push(this.transition.exec())
 			// GC the transition
 			row[QueueRowFields.TARGET].transition = null
@@ -1654,7 +1626,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		// GC the transition
 		this.transition = null
 		this.lock_queue = false
-	  // @ts-ignore
 		this.emit('queue-end')
 		return ret[0] || false;
 	}
@@ -1747,7 +1718,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			let data = this.get(state)
 			if (!previous.includes(state) ||
 					(explicite_states.includes(state) && data.multi)) {
-	      // @ts-ignore
 				this.clock_[state]++
 			}
 		}
@@ -1775,7 +1745,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	}
 
 	getMethodContext(name: string): Object | null {
-	  // @ts-ignore
 		if (this.target[name] && this.target[name] instanceof Function) {
 			return this.target;
 		} else if (this[name] && this[name] instanceof Function) {

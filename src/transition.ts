@@ -134,7 +134,6 @@ export default class Transition {
 		// in case of using a local queue, we can hit a locked target machine
 		// TODO write a test
 		if (machine.lock) {
-			// @ts-ignore
 			this.addStep(null, null, TransitionStepTypes.CANCEL)
 			machine.emit("transition-cancelled", this)
 			machine.emit("transition-end", this)

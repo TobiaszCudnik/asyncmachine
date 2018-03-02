@@ -15,7 +15,6 @@ class EE {
  * EventEmitter interface.
  */
 export default class EventEmitter {
-  // @ts-ignore
   private _events: {
     [index: string]: EE[] | EE
   };
