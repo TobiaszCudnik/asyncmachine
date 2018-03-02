@@ -9,9 +9,12 @@ export default {
   input: 'src/asyncmachine.ts',
   plugins: [
     typescript({
-      target: 'es5',
-      isolatedModules: true,
-      module: 'es6',
+      check: false,
+      tsconfigDefaults: {
+        target: 'es5',
+        isolatedModules: true,
+        module: 'es6'
+      },
       typescript: tsc
     }),
     nodeResolve({

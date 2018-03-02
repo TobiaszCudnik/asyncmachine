@@ -3,11 +3,13 @@ import typescript from 'rollup-plugin-typescript2'
 import tsc from 'typescript'
 
 config.plugins[0] = typescript({
-  target: 'es6',
-  isolatedModules: true,
-  module: 'es6',
-  typescript: tsc,
-  noEmitOnError: false
+  check: false,
+  tsconfigDefaults: {
+    target: 'es6',
+    isolatedModules: true,
+    module: 'es6'
+  },
+  typescript: tsc
 })
 config.output = [
   {
