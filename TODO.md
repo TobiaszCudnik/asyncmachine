@@ -1,5 +1,15 @@
 TODO
 
+- rxjs integration parsing state sets coming from the network
+  - parse the stream of states and "mine" complex states eg user behavior
+- am-network as a separate module
+- TimeArray decorator for states, counting times with moment.js API
+  - eg number of state sets in last 10 minutes
+  - useful for counting request quota limits for API clients
+  - separate npm module
+  - support timezones
+- implement types using vadiatic types TS 1.8
+- move configs to a separate dir
 - markdown in comments, translate old cs examples
 - better npm package
   - export types.ts in main cjs bundle
