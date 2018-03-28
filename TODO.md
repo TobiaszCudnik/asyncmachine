@@ -45,7 +45,6 @@ TODO
 - state groups - `FooA`, `FooB`, `FooC`, when all in group `Foo` #engine #api
   - then only one can be active at a time
   - defined by `group` or `switch` or `switch_group`
-- fix "Aborted AB listener as the tick changed." displayed too many times #debug
 - improve logs #debug
   - more consistent
   - more levels and better assignments
@@ -53,10 +52,8 @@ TODO
     - skip 2 stack frames from deferred
 - make Any state a real thing #engine
   - arguments?
-- use uuid from a module #refactoring
 - make a comparison of `pipe`, `pipe negotiation` to `add`, `add & require` #docs
-- synchronous throw when not in a promise $engine
-  - why?
+- synchronous throw when not in a promise #engine
 - states should be in order they were requested #2 #engine
 - edge case: piping negotiation, when a further state is cancelling
   - makes the piping inconsistent
@@ -85,4 +82,3 @@ TODO
 - dynamic states (???) #engine #api
 - chai assertion helper #project #api
 - ensure all the state lists and params are shallow copied #api #refactoring
-- rename ./tools to ./bin #project #3
