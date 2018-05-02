@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "description": "Declarative scheduler for the event loop",
   "keywords": [
     "async",

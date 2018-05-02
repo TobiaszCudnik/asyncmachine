@@ -1,16 +1,8 @@
 # AsyncMachine
  
-  Declarative scheduler for the event loop
+  Decision making multi state machine
 
-## Description
-
-Technically, a *multi-state dependency graph*, allows for declarative modeling of the control flow based on states interconnected by relations.
-Activating a state triggers a two-pass transition - *negotiation* and *set*. If a
-state change is triggered during an ongoing transition, it's gonna be queued (non-synchronous). Each
-state has a clock distinguishing *state's instances* (eg prevents the
-double callback execution problem).
-
-![Demo](http://tobiaszcudnik.github.io/asyncmachine/demo.gif)
+## README IS OUTDATED
 
 ## Install
 
@@ -48,26 +40,28 @@ npm install asyncmachine
 
 ```typescript
 export interface IState {
-	// When set, sets also the following states
+	// When set, sets also the listed states
 	add?: string[];
-	// When set, blocks activation (or deactivates) given states
+	// When set, blocks activation (or deactivates) listed states
 	drop?: string[];
-	// State (and the transition) will be rejected, if any of these aren't set
+	// State (and the transition) will be rejected, if any of listed states
+	// isn't set (and isn't about to be set)
 	require?: string[];
-	// State will be set automatically, as long as it's not blocked
+	// State will be set automatically, as long as it's not blocked by
+	// any of the currently set states
 	auto?: boolean;
 	// Multi states always triggers the "enter" and "state" transitions, plus
 	// the clock is always incremented
 	multi?: boolean;
-	// Decides about the order of a transition
+	// Decides about the execution order of transition methods
 	after?: string[];
 }
 ```
 
 ## Transitions
  
-Example order of listeners during a transition between states A and B. All
-methods (and events) with these names will be called.
+Order of transition methods for an example transition from `A` to `B`. All
+methods (and events) with the following names will be called (if defined).
 
 - A_exit
 - A_B
