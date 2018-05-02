@@ -158,7 +158,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	states_all: (TStates | BaseStates)[] = [];
 	// TODO still used?
 	last_promise: Promise<any> | null = null;
-	piped: { [K in (TStates | BaseStates)]?: IPipedStateTarget[] } = {};
+	piped: { [K in (TStates | BaseStates)]: IPipedStateTarget[] } = {};
 	/**
 	 * If true, an exception will be printed immediately after it's thrown.
 	 * Automatically turned on with logLevel > 0.
@@ -286,8 +286,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * 		console.log 'State A set'
 	 * ```
 	 */
-	setTarget(target: {}) {
-		return this.target = target;
+	setTarget(target: {}): this {
+		this.target = target;
+		return this
 	}
 
 	/**
@@ -1283,7 +1284,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * TODO rename TPipeBindings to TPipeBinding
 	 * TODO copy these to once() and emit()
 	 */
+	// @ts-ignore
 	on: TBind & IBind;
+	// @ts-ignore
 	on(event: string, listener: Function, context?: Object): this {
 		// if event is a NAME_state event, fire immediately if the state is set
 		if ((event.slice(-6) === "_state" || event.slice(-6) === "_enter")
@@ -1304,7 +1307,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * TODO extract eventToStateName(name: string): (TStates | States)
 	 *   and loose the type casting
 	 */
+	// @ts-ignore
 	once: TBind & IBind;
+	// @ts-ignore
 	once(event: string, listener: Function, context?: Object): this {
 		// is event is a NAME_state event, fire immediately if the state is set
 		// and dont register the listener
@@ -1373,13 +1378,21 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	}
 
 	toString() {
-		let ret = `${this.id()}\n`
-		for (const state of this.states_all) {
-			if (this.states_active.includes(state))
-				ret += `    ${state} (${this.clock(state)})\n`
-		}
-		return ret
+	  return this.statesToString()
 	}
+
+	statesToString(include_inactive = false): string {
+		let ret = `${this.id()}\n`
+    let footer = ''
+		for (const state of this.states_all) {
+			if (this.states_active.includes(state)) {
+				ret += `    ${state} (${this.clock(state)})\n`
+      } else if (include_inactive) {
+        footer += `    -${state} (${this.clock(state)})\n`
+      }
+		}
+		return ret + footer
+  }
 
 	// PRIVATES
 
