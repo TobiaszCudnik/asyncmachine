@@ -1,21 +1,26 @@
-TODO
+# TODO
 
+- #whenNot - async method returning when a specific state is not set any more
+  - or #when('Foo', 'Bar', '-Baz')
+- `machine` factory when used without am-types highlights with an error
 - rxjs integration parsing state sets coming from the network
   - parse the stream of states and "mine" complex states eg user behavior
+- FSM interface?
+- sideEffects: false in package.json. 
 - am-network as a separate module
 - TimeArray decorator for states, counting times with moment.js API
   - eg number of state sets in last 10 minutes
   - useful for counting request quota limits for API clients
   - separate npm module
   - support timezones
-- implement types using vadiatic types TS 1.8
-- move configs to a separate dir
+- implement types using variadic types TS 2.8
+- move configs to ./configs
 - markdown in comments, translate old cs examples
 - better npm package
   - export types.ts in main cjs bundle
   - publish only the /build dir
   - include the tools, put in /bin
-  - example shuld use es6 modules
+  - examples should use es6 modules
 - investigate `[drop:implied]`
 - include prettier in the workflow
 - manually specified queue for piping (piping from A to B using the queue from C)
@@ -34,7 +39,6 @@ TODO
 - define machines as JSONs
   - state inheritance example (via object spread)
 - state validation when registering
-- create TODO.md
 - stop auto states when Exception is active
 - #toggle(name) #api
 - #has(name) #api
