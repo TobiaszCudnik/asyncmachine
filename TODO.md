@@ -1,7 +1,9 @@
 # TODO
 
-- #whenNot - async method returning when a specific state is not set any more
+- #whenNot - an async method returning when a specific state is not set any more
   - or #when('Foo', 'Bar', '-Baz')
+- #whenQueueDone - an async method returning when the whole queue got processed
+  - used when `if (this.duringTransition()) await this.whenQueueDone();`
 - `machine` factory when used without am-types highlights with an error
 - rxjs integration parsing state sets coming from the network
   - parse the stream of states and "mine" complex states eg user behavior
