@@ -2,12 +2,10 @@
  
   Decision making multi state machine
 
-## WIP: README IS OUTDATED
-
 ## Install
 
 ```
-npm install asyncmachine
+npm i asyncmachine
 ```
 
 ## Example
@@ -42,24 +40,21 @@ example.is() // -> ['Water', 'Wet']
 - expressive logging system
 - [inspector / debugger available](https://github.com/TobiaszCudnik/asyncmachine-inspector)
 - OOP and functional APIs
+- typescript types generator
  
 ## What for?
 
 - easy state management
-- async actions as a state
+- async operations as a state
 - solving non-linear problems
 - fault tolerance
 - convenient resource disposal
 - avoiding race conditions
 
-## [Examples](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples)
-
-## [API docs](http://tobiaszcudnik.github.io/asyncmachine/classes/_asyncmachine_.asyncmachine.html)
-
-## States
+## State definition
 
 ```typescript
-export interface IState {
+interface IState {
 	// When set, sets also the listed states
 	add?: string[];
 	// When set, blocks activation (or deactivates) listed states
@@ -83,13 +78,13 @@ export interface IState {
 Order of transition methods for an example transition from `A` to `B`. All
 methods (and events) with the following names will be called (if defined).
 
-- A_exit
-- A_B
-- A_any
-- any_B
-- B_enter
-- A_end
-- B_state
+- `A_exit`
+- `A_B`
+- `A_any`
+- `any_B`
+- `B_enter`
+- `A_end`
+- `B_state`
 
 ## License
 
