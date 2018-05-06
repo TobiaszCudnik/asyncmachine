@@ -1,6 +1,16 @@
 # AsyncMachine
  
-  Decision making multi state machine
+Hybrid State Machine
+  
+AsyncMachine is a loose combination of the following concepts:
+- Actor Model
+- Declarative Dependency Graph
+- Non-Deterministic Automaton
+- Async Control Flow
+- Declarative Scheduler
+- State Manager
+- Event Stream Processor
+- Aspect Oriented Programming
 
 ## Install
 
@@ -27,20 +37,24 @@ example.add('Water')
 example.is() // -> ['Water', 'Wet']
 ```
 
+See more in a real world project [using AsyncMachine](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src).
+
 ## Features
  
 - relations between states
 - multiple states active simultaneously
+- auto states
+- transitions defined as class methods
 - state negotiation phase
 - state clocks
 - state piping between machines
 - nested transitions queuing
-- exception as a state
+- exception is a state
 - compatible with promises, callbacks and emitters
 - expressive logging system
 - [inspector / debugger available](https://github.com/TobiaszCudnik/asyncmachine-inspector)
 - OOP and functional APIs
-- typescript types generator
+- TypeScript types generator
  
 ## What for?
 
