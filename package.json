@@ -1,7 +1,7 @@
 {
   "name": "asyncmachine",
   "version": "3.2.4",
-  "description": "Declarative scheduler for the event loop",
+  "description": "Hybrid State Machine",
   "keywords": [
     "async",
     "statemachine",
@@ -10,7 +10,10 @@
     "transition",
     "eventloop",
     "declarative",
-    "relational"
+    "relational",
+    "aop",
+    "actor-model",
+    "dependency-graph"
   ],
   "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
   "license": "MIT",
