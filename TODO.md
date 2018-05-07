@@ -1,7 +1,8 @@
 # TODO
 
-- #whenNot - an async method returning when a specific state is not set any more
-  - or #when('Foo', 'Bar', '-Baz')
+- `State_end` is missing ` | Promise<boolean | void>` in am-types
+- merge #when and #whenNot
+  - #when(['Foo', 'Bar'], ['Baz']) fires when +Foo+Bar-Baz
 - #whenQueueDone - an async method returning when the whole queue got processed
   - used when `if (this.duringTransition()) await this.whenQueueDone();`
 - `machine` factory when used without am-types highlights with an error

@@ -78,6 +78,11 @@ docs:
 		--out docs/ \
 		--ignoreCompilerErrors \
 		--name AsyncMachine \
+		--theme minimal \
+		--excludeNotExported \
+		--excludePrivate \
+		--readme none \
+		--mode file \
 		src/asyncmachine.ts
 
 .PHONY: build test docs

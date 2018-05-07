@@ -55,7 +55,7 @@ const assert = function(cond: boolean, msg: string) {
  *   of state names and their properties.
  * @return
  *
- * Using names:
+ * Using a list of names:
  * ```
  * import { machine } from 'asyncmachine'
  *
@@ -116,7 +116,7 @@ export function machine<
 }
 
 /**
- * Base class for extending. Defined states a prototype level properties or
+ * Base class to extend. Define states as prototype properties or
  * inside of the constructor. Remember to call this.registerAll() afterwards
  * in the latter case.
  * 
@@ -126,55 +126,85 @@ export function machine<
  * class FooStates extends AsyncMachine {
  *   Enabled: {}
  *
- *   Downloading: drop: 'Downloaded'
+ *   Downloading: {
+ *     drop: 'Downloaded'
+ *   }
+ *
  *   Downloaded = {
  *     drop: 'Downloading'
+ *   }
+ *
+ *   constructor(target) {
+ *     super(target)
+ *     this.registerAll()
+ *   }
  * }
  *
- * class Foo
- *   constructor: ->
- *   	this.states = new FooStates this, yes
+ * class Foo {
+ *   constructor() {
+ *     this.states = new FooStates(this)
+ *   }
  *
- *   Downloading_state: (states, @url)
- *   	fetch url, this.states.addByCallack('Downloaded')
+ *   Downloading_state(states, url) {
+ *   	 fetch(url, this.states.addByCallack('Downloaded'))
+ *   }
  *
- *   Downloaded_state: (states, local_path) ->
- *   	console.log 'Downloaded #{this.url} to #{local_path}'
- *
+ *   Downloaded_state(states, local_path) {
+ *   	 console.log(`Downloaded ${this.url} to ${local_path}`)
+ *   }
+ * }
  * ```
- * TODO
- * - loose bind in favor of closures
- * - piping to an un existing state breaks the event loop
  */
 export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		extends EventEmitter {
 
 	/**
-	 * Empty Exception state properties. See [[Exception_state]] transition handler.
+	 * Empty Exception state properties. See [[Exception_state]] transition
+   * handler.
+   * @type {IState}
 	 */
 	Exception: IState<TStates | BaseStates> = {
 		multi: true
 	};
+	/** List of all registered state names */
 	states_all: (TStates | BaseStates)[] = [];
-	// TODO still used?
+  /**
+   * Promise created by calling one of `...ByCallback` or `...ByListener`
+   * methods, eg `addByListener`. Resolved once the callback/listener gets
+   * called.
+   */
 	last_promise: Promise<any> | null = null;
+  /** Map of piped states and their targets. */
 	piped: { [K in (TStates | BaseStates)]: IPipedStateTarget[] } = {};
 	/**
 	 * If true, an exception will be printed immediately after it's thrown.
 	 * Automatically turned on with logLevel > 0.
 	 */
 	print_exception = false;
-
+  /** List of active states. */
 	states_active: (TStates | BaseStates)[] = [];
-	queue_: IQueueRow[] = [];
+	protected queue_: IQueueRow[] = [];
+  /** If true, this machine is currently during a transition. */
 	lock: boolean = false;
-	clock_: { [K in (TStates | BaseStates)]?: number } = {};
-	target: {} | null = null;
+  /** If true, this machine's queue is currently being executed. */
 	lock_queue = false;
-	log_level_: number = 0;
+	/** List of current ticks per state. */
+	protected clock_: { [K in (TStates | BaseStates)]?: number } = {};
+	/**
+   * Target object for the transitions, useful when composing the states
+   * instance.
+   */
+	target: {} | null = null;
+	protected log_level_: number = 0;
+	/** Currently executing transition (if any) */
 	transition: Transition | null = null;
+	/** List of handlers receiving log messeges */
 	log_handlers: TLogHandler[] = []
-	postponed_queue = false
+  /**
+   * Queue execution got postponed, because this machine is currently during
+   * a transition from another machine's queue.
+   */
+	protected postponed_queue = false
 	protected internal_fields: string[] = ["states_all", "lock_queue",
 		"states_active", "queue_", "lock", "last_promise",
 		"log_level_", "clock_", "target", "internal_fields",
@@ -220,7 +250,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Example of exception handling
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.Exception_state = (err, target_states) ->
 	 * 	# Re-adds state 'C' in case of an exception if A is set.
 	 * 	if exception_states.some((state) -> state is 'C') and @is 'A'
@@ -278,7 +308,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ```
 	 * class Foo
 	 * 	constructor: ->
-	 * 		this.states = asyncmachine.factory(['A', 'B', 'C'])
+	 * 		this.states = machine(['A', 'B', 'C'])
 	 * 		this.states.setTarget this
 	 * 		this.states.add 'A'
 	 *
@@ -373,7 +403,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * moment.
 	 *
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B'])
+	 * states = machine(['A', 'B'])
 	 * states.add('A')
 	 * states.is('A') // -> true
 	 * states.is(['A']) // -> true
@@ -427,7 +457,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * @return
 	 *
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.add ['A', 'B']
 	 *
 	 * states.any 'A', 'C' // -> true
@@ -449,7 +479,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * Checks if all the passed states are set.
 	 *
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.add ['A', 'B']
 	 *
 	 * states.every 'A', 'B' // -> true
@@ -515,7 +545,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * @return
 	 *
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.A = drop: ['B']
 	 *
 	 * states.get('A') // -> { drop: ['B'] }
@@ -539,7 +569,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Basic usage
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.set('A')
 	 * states.is() // -> ['A']
 	 * states.set('B')
@@ -548,7 +578,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * State negotiation
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B']
+	 * states = machine ['A', 'B']
 	 * # Transition enter negotiation
 	 * states.A_enter = -> no
 	 * states.add 'A' // -> false
@@ -556,8 +586,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Setting a state on an external machine
 	 * ```
-	 * states1 = asyncmachine.factory ['A', 'B']
-	 * states2 = asyncmachine.factory ['C', 'D']
+	 * states1 = machine ['A', 'B']
+	 * states2 = machine ['C', 'D']
 	 *
 	 * states1.A_enter ->
 	 * 	# this transition will be queued and executed after the current transition
@@ -587,14 +617,14 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * the state. Errors are handled automatically and forwarded to the Exception
 	 * state.
 	 *
-	 * After the call, the responsible promise object is available as the
+	 * After the call, the related promise object is available as the
 	 * [[last_promise]] attribute.
 	 *
 	 * See [[set]] for the params description.
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * setTimeout states.setByCallback('B')
 	 * ```
 	 *
@@ -617,14 +647,14 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * the state. Errors need to be handled manually by binding the exception
 	 * state to the 'error' event (or equivalent).
 	 *
-	 * After the call, the responsible promise object is available as the
+	 * After the call, the related promise object is available as the
 	 * [[last_promise]] attribute.
 	 *
 	 * See [[set]] for the params description.
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * emitter = new EventEmitter
 	 * emitter.on 'ready', states.setByListener('A')
 	 * emitter.on 'error', states.addByListener('Exception')
@@ -651,7 +681,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.set('A')
 	 * states.setNext('B')
 	 * states.is() // -> ['A']
@@ -680,7 +710,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Basic usage
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.add 'A'
 	 * states.is() // -> ['A']
 	 * states.add('B')
@@ -689,7 +719,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * State negotiation
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B']
+	 * states = machine ['A', 'B']
 	 * # Transition enter negotiation
 	 * states.A_enter = -> no
 	 * states.add('A' )// -> false
@@ -697,8 +727,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Adding a state on an external machine
 	 * ```
-	 * states1 = asyncmachine.factory ['A', 'B']
-	 * states2 = asyncmachine.factory ['C', 'D']
+	 * states1 = machine ['A', 'B']
+	 * states2 = machine ['C', 'D']
 	 *
 	 * states1.A_enter ->
 	 * 	# this transition will be queued and executed after the current transition
@@ -728,14 +758,14 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * the state. Errors are handled automatically and forwarded to the Exception
 	 * state.
 	 *
-	 * After the call, the responsible promise object is available as the
+	 * After the call, the related promise object is available as the
 	 * [[last_promise]] attribute.
 	 *
 	 * See [[add]] for the params description.
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * someNodeCallback 'foo.com', states.addByCallback('B')
 	 * ```
 	 *
@@ -758,14 +788,14 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * the state. Errors need to be handled manually by binding the exception
 	 * state to the 'error' event (or equivalent).
 	 *
-	 * After the call, the responsible promise object is available as the
+	 * After the call, the related promise object is available as the
 	 * [[last_promise]] attribute.
 	 *
 	 * See [[add]] for the params description.
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * emitter = new EventEmitter
 	 * emitter.on 'ready', states.addByListener('A')
 	 * emitter.on 'error', states.addByListener('Exception')
@@ -792,7 +822,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.add('A')
 	 * states.addNext('B')
 	 * states.is() // -> ['A', 'B']
@@ -821,7 +851,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Basic usage
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.drop('A')
 	 * states.is() // -> ['A']
 	 * states.drop('B')
@@ -830,7 +860,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * State negotiation
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B']
+	 * states = machine ['A', 'B']
 	 * # Transition enter negotiation
 	 * states.A_enter = -> no
 	 * states.add('A' )// -> false
@@ -838,8 +868,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Dropping a state on an external machine
 	 * ```
-	 * states1 = asyncmachine.factory(['A', 'B'])
-	 * states2 = asyncmachine.factory(['C', 'D'])
+	 * states1 = machine(['A', 'B'])
+	 * states2 = machine(['C', 'D'])
 	 *
 	 * states1.A_enter = function() {
 	 * 	 // the transition below will be queued and executed after the current
@@ -869,14 +899,14 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * the state. Errors are handled automatically and forwarded to the Exception
 	 * state.
 	 *
-	 * After the call, the responsible promise object is available as the
+	 * After the call, the related promise object is available as the
 	 * [[last_promise]] attribute.
 	 *
 	 * See [[drop]] for the params description.
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * someNodeCallback 'foo.com', states.dropByCallback('B')
 	 * ```
 	 *
@@ -898,14 +928,14 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * the state. Errors need to be handled manually by binding the exception
 	 * state to the 'error' event (or equivalent).
 	 *
-	 * After the call, the responsible promise object is available as the
+	 * After the call, the related promise object is available as the
 	 * [[last_promise]] attribute.
 	 *
 	 * See [[drop]] for the params description.
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * emitter = new EventEmitter
 	 * emitter.on 'ready', states.dropByListener('A')
 	 * emitter.on 'error', states.setByListener('Exception')
@@ -932,7 +962,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.add('A')
 	 * states.dropNext('A')
 	 * states.is('A') // -> true
@@ -958,8 +988,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Piping without negotiation
 	 * ```
-	 * states1 = asyncmachine.factory(['A', 'B', 'C'])
-	 * states2 = asyncmachine.factory(['A', 'B', 'C'])
+	 * states1 = machine(['A', 'B', 'C'])
+	 * states2 = machine(['A', 'B', 'C'])
 	 * states1.pipe('A', states2)
 	 * states1.add('A')
 	 * states2.is('A') // -> true
@@ -967,8 +997,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Piping with negotiation
 	 * ```
-	 * states1 = asyncmachine.factory(['A', 'B', 'C'])
-	 * states2 = asyncmachine.factory(['A', 'B', 'C'])
+	 * states1 = machine(['A', 'B', 'C'])
+	 * states2 = machine(['A', 'B', 'C'])
 	 * states2.A_enter = -> no
 	 * states1.pipe('A', states2, null, asyncmachine.PipeFlags.NEGOTIATION)
 	 * states1.add('A')
@@ -1061,7 +1091,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.add('A')
 	 * states.add('A')
 	 * states.clock('A') // -> 1
@@ -1086,7 +1116,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Example
 	 * ```
-	 * states1 = asyncmachine.factory(['A', 'B', 'C'])
+	 * states1 = machine(['A', 'B', 'C'])
 	 * states2 = states1.createChild()
 	 *
 	 * states2.add('A')
@@ -1110,11 +1140,12 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * Indicates if this instance is currently during a state transition.
 	 *
 	 * When a machine is during a transition, all state changes will be queued
-	 * and executed as a queue. See [[queue]].
+	 * and executed once the transition and the previously queued state
+	 * changes are finished. See [[queue]].
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 *
 	 * states.A_enter = ->
 	 *   this.duringTransition() // -> true
@@ -1171,14 +1202,15 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 *
-	 * states.A_state = ->
-	 *   abort = @getAbort 'A'
-	 *   setTimeout (->
-	 *       return if abort()
-	 *       console.log 'never reached'
-	 *     ), 0
+	 * states.A_state = function() {
+	 *   const abort = this.getAbort('A')
+	 *   setTimeout( () => {
+	 *     if (abort()) return
+	 *     console.log('never reached')
+	 *   }, 0)
+	 * }
 	 *
 	 * states.add('A')
 	 * states.drop('A')
@@ -1203,16 +1235,16 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.when(['A', 'B']).then( () => {
-	 *   console.log()'A, B')
+	 *   console.log('A, B')
 	 * }
 	 *
 	 * states.add('A')
 	 * states.add('B') // prints 'A, B'
 	 * ```
 	 *
-	 * # TODO support push cancellation
+	 * TODO support push cancellation
 	 *
 	 * @param state List of state names
 	 * @param abort Existing abort function (optional)
@@ -1246,7 +1278,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 *
 	 * Example
 	 * ```
-	 * states = asyncmachine.factory(['A', 'B', 'C'])
+	 * states = machine(['A', 'B', 'C'])
 	 * states.logLevel(1)
 	 * states.add('A')
 	 * // -> [add] state Enabled

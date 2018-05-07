@@ -24,9 +24,9 @@ npm i asyncmachine
 import { machine } from 'asyncmachine'
 // define
 const state = {
-  Wet: { drop: ['Dry'], require: ['Water'] },
-  Dry: { drop: ['Wet'] },
-  Water: { add: ['Wet'] }
+    Wet: { drop: ['Dry'], require: ['Water'] },
+    Dry: { drop: ['Wet'] },
+    Water: { add: ['Wet'] }
 }
 // initialize
 const example = machine(state)
@@ -37,7 +37,9 @@ example.add('Water')
 example.is() // -> ['Water', 'Wet']
 ```
 
-See more in a real world project [using AsyncMachine](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src).
+TypeScript based **[API docs](https://tobiaszcudnik.github.io/asyncmachine/classes/asyncmachine.html)**.
+
+See more in a real world project [which uses AsyncMachine](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src).
 
 ## Features
  
@@ -69,21 +71,21 @@ See more in a real world project [using AsyncMachine](https://github.com/Tobiasz
 
 ```typescript
 interface IState {
-	// When set, sets also the listed states
-	add?: string[];
-	// When set, blocks activation (or deactivates) listed states
-	drop?: string[];
-	// State (and the transition) will be rejected, if any of listed states
-	// isn't set (and isn't about to be set)
-	require?: string[];
-	// State will be set automatically, as long as it's not blocked by
-	// any of the currently set states
-	auto?: boolean;
-	// Multi states always triggers the "enter" and "state" transitions, plus
-	// the clock is always incremented
-	multi?: boolean;
-	// Decides about the execution order of transition methods
-	after?: string[];
+    // When set, sets also the listed states
+    add?: string[];
+    // When set, blocks activation (or deactivates) listed states
+    drop?: string[];
+    // State (and the transition) will be rejected, if any of listed states
+    // isn't set (and isn't about to be set)
+    require?: string[];
+    // State will be set automatically, as long as it's not blocked by
+    // any of the currently set states
+    auto?: boolean;
+    // Multi states always triggers the "enter" and "state" transitions, plus
+    // the clock is always incremented
+    multi?: boolean;
+    // Decides about the execution order of transition methods
+    after?: string[];
 }
 ```
 
