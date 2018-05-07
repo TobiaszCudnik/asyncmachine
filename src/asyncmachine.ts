@@ -373,16 +373,16 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * moment.
 	 *
 	 * ```
-	 * states = asyncmachine.factory ['A', 'B']
-	 * states.add 'A'
-	 * states.is 'A' // -> true
-	 * states.is ['A'] // -> true
-	 * states.is ['A', 'B'] // -> false
+	 * states = asyncmachine.factory(['A', 'B'])
+	 * states.add('A')
+	 * states.is('A') // -> true
+	 * states.is(['A']) // -> true
+	 * states.is(['A', 'B']) // -> false
 	 * // assert the tick
-	 * tick = states.clock 'A'
+	 * tick = states.clock('A')
 	 * states.drop('A')
-	 * states.add 'A'
-	 * states.is 'A', tick // -> false
+	 * states.add('A')
+	 * states.is('A', tick) // -> false
 	 * ```
 	 */
 	is(states: (TStates | BaseStates) | (TStates | BaseStates)[], tick?: number): boolean;
@@ -393,9 +393,24 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		}
 		let states_parsed = this.parseStates(states)
 		var active = states_parsed.every( (state) => {
-			return Boolean(~this.states_active.indexOf(state));
+			return Boolean(this.states_active.includes(state));
 		})
 		if (!active) {
+			return false;
+		}
+		if (states_parsed.length && tick !== undefined) {
+			return this.clock(states) === tick;
+		}
+		return true;
+	}
+
+	// TODO docs
+	not(states: (TStates | BaseStates) | (TStates | BaseStates)[], tick?: number): boolean {
+		let states_parsed = this.parseStates(states)
+		const inactive: boolean = states_parsed.every( (state) => {
+			return Boolean(!this.states_active.includes(state));
+		})
+		if (!inactive) {
 			return false;
 		}
 		if (states_parsed.length && tick !== undefined) {
@@ -1210,6 +1225,14 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		})
 	}
 
+	// TODO docs
+	whenNot(states: (TStates | BaseStates) | (TStates | BaseStates)[], abort?: TAbortFunction): Promise<null> {
+		let states_parsed = this.parseStates(states)
+		return new Promise<null>((resolve) => {
+			this.bindToNotStates(states_parsed, resolve, abort)
+		})
+	}
+
 	/**
 	 * Enabled debug messages sent to the console (or the custom handler).
 	 *
@@ -1770,7 +1793,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	// piped events
 	private bindToStates(states: (TStates | BaseStates)[], listener: Function,
 			abort?: TAbortFunction) {
-		var enter = () => {
+		const enter = () => {
 			let should_abort = abort && abort()
 			if (!should_abort && this.is(states))
 				listener()
@@ -1785,6 +1808,28 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		this.log(`[bind:on] ${states.join(', ')}`, 3)
 		for (let state of states)
 			this.on(`${state}_state` as 'ts-dynamic', enter)
+	}
+
+	// TODO bind to _enter and _exit as well to support the negotiation phase in
+	// piped events
+	// TODO merge with #with as `.with(['A', 'B'], ['C']) runs when `+A+B-C`
+	private bindToNotStates(states: (TStates | BaseStates)[], listener: Function,
+			abort?: TAbortFunction) {
+		const exit = () => {
+			let should_abort = abort && abort()
+			if (!should_abort && this.not(states))
+				listener()
+
+			if (this.not(states)) {
+				this.log(`[bind:off] ${states.join(', ')}`, 3)
+				for (let state of states)
+					this.removeListener(`${state}_end`, exit)
+			}
+		}
+
+		this.log(`[bind:on] ${states.join(', ')}`, 3)
+		for (let state of states)
+			this.on(`${state}_end` as 'ts-dynamic', exit)
 	}
 
 	// TODO compose abort functions without recursion
