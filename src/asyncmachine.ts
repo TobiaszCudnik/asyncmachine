@@ -38,6 +38,7 @@ export {
 	TAsyncMachine
 } from './types'
 export { default as Transition } from './transition'
+export { AsyncMachine }
 
 // TODO thank you rollup for years of linking issues
 const uuid = (<any>uuidProxy).default || uuidProxy

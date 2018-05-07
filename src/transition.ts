@@ -196,6 +196,7 @@ export default class Transition {
 				let queued_exception: IQueueRow = [StateChangeTypes.ADD, ["Exception"],
 					[err.err, this.states, this.before, err.transition], false, machine]
 				// drop the queue created during the transition
+				// @ts-ignore
 				this.source_machine.queue_.unshift(queued_exception)
 			}
 		}
@@ -209,6 +210,7 @@ export default class Transition {
 			var auto_states = this.prepareAutoStates();
 			if (auto_states)
 				// prepend auto states to the beginning of the queue
+				// @ts-ignore
 				this.source_machine.queue_.unshift(auto_states)
 				// target.queue_.unshift(auto_states)
 		}

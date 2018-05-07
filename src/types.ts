@@ -35,6 +35,8 @@ export interface IBind {
 		(state: string) => boolean | void, context?: Object): this;
 	(event: 'transition-cancelled', listener:
 		(transition: Transition) => boolean | void, context?: Object): this;
+	(event: 'queue-changed', listener:
+		() => boolean | void, context?: Object): this;
 	// State events
 	// TODO optional params
 	(event: 'Exception_enter', listener: (err: Error, target_states: string[],
@@ -68,6 +70,7 @@ export interface IEmit {
 	(event: 'state-registered', state: string): boolean;
 	(event: 'state-deregistered', state: string): boolean;
 	(event: 'transition-cancelled', transition: Transition): boolean;
+	(event: 'queue-changed'): boolean;
 	// State events
 	// TODO optional params
 	(event: 'Exception_enter', err: Error, target_states: string[],
