@@ -1,5 +1,7 @@
 # TODO
 
+- make it possible to serialize a machine to JSON
+  - no instance refs, indirect addressing
 - `State_end` is missing ` | Promise<boolean | void>` in am-types
 - merge #when and #whenNot
   - #when(['Foo', 'Bar'], ['Baz']) fires when +Foo+Bar-Baz

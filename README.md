@@ -1,8 +1,6 @@
 # AsyncMachine
  
-Hybrid State Machine
-  
-AsyncMachine is a loose combination of the following concepts:
+Hybrid State Machine - a loose combination of the following concepts:
 - Actor Model
 - Declarative Dependency Graph
 - Non-Deterministic Automaton
