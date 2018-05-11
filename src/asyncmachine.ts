@@ -1254,6 +1254,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	when(states: (TStates | BaseStates) | (TStates | BaseStates)[], abort?: TAbortFunction): Promise<null> {
 		let states_parsed = this.parseStates(states)
 		return new Promise<null>((resolve) => {
+			// early resolve if all the states are currently set
+			if (this.is(states_parsed))
+				resolve()
 			this.bindToStates(states_parsed, resolve, abort)
 		})
 	}
@@ -1262,6 +1265,9 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	whenNot(states: (TStates | BaseStates) | (TStates | BaseStates)[], abort?: TAbortFunction): Promise<null> {
 		let states_parsed = this.parseStates(states)
 		return new Promise<null>((resolve) => {
+			// early resolve if all the states are NOT currently set
+			if (this.not(states_parsed))
+				resolve()
 			this.bindToNotStates(states_parsed, resolve, abort)
 		})
 	}
