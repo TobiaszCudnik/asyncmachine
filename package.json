@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "3.2.6",
+  "version": "3.2.7",
   "description": "Hybrid State Machine",
   "keywords": [
     "async",
