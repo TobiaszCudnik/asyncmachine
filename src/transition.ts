@@ -188,9 +188,10 @@ export default class Transition {
 			// TODO extract
 			let err = ex as TransitionException
 			aborted = true
-			// Its an exception to an exception when the exception throws... an exception
-			if (err.transition.match(/^Exception_/)
-					|| err.transition.match(/_Exception$/)) {
+			// Its an exception to an exception when the exception throws...
+			// an exception
+			if (err.transition && (err.transition.match(/^Exception_/)
+					|| err.transition.match(/_Exception$/))) {
 				machine.setImmediate( () => { throw err.err } )
 			} else {
 				let queued_exception: IQueueRow = [StateChangeTypes.ADD, ["Exception"],
