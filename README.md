@@ -16,7 +16,7 @@ Hybrid State Machine - a loose combination of the following concepts:
 npm i asyncmachine
 ```
 
-## Example
+## Example ([edit live](https://stackblitz.com/edit/asyncmachine-example?file=index.ts))
 
 ```typescript
 import { machine } from 'asyncmachine'
@@ -69,20 +69,18 @@ See more in a real world project [which uses AsyncMachine](https://github.com/To
 
 ```typescript
 interface IState {
-    // When set, sets also the listed states
+    // Tries to set the listed states along with itself
     add?: string[];
-    // When set, blocks activation (or deactivates) listed states
+    // Prevents from setting or un-sets the listed states
     drop?: string[];
-    // State (and the transition) will be rejected, if any of listed states
-    // isn't set (and isn't about to be set)
+    // States required for this one to be set
     require?: string[];
-    // State will be set automatically, as long as it's not blocked by
-    // any of the currently set states
+    // State will try to set itself every time the state of the machine changes
     auto?: boolean;
     // Multi states always triggers the "enter" and "state" transitions, plus
     // the clock is always incremented
     multi?: boolean;
-    // Decides about the execution order of transition methods
+    // Transition method of this state will be executed after the listed states
     after?: string[];
 }
 ```
