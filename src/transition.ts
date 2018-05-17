@@ -277,6 +277,15 @@ export default class Transition {
 			return !blocked_by.length
 		})
 
+		// states dropped by the states which about to be set
+		const to_drop = states.reduce( (ret: string[], name: string) => {
+			const state = this.machine.get(name)
+			if (state.drop) {
+				ret.push(...state.drop)
+			}
+			return ret
+		}, [])
+		states = this.parseImplies_(states).filter(n => !to_drop.includes(n))
 		// Parsing required states allows to avoid cross-dropping of states
 		this.states = this.parseRequires_(states.reverse())
 		this.orderStates_(this.states)
@@ -374,6 +383,9 @@ export default class Transition {
 		return states;
 	}
 
+  /**
+	 * Returns the subset of states which block the state name.
+   */
 	isStateBlocked_(states: string[], name: string): string[] {
 		var blocked_by: string[] = []
 		for (let name2 of states) {
