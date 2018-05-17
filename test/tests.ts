@@ -1032,6 +1032,19 @@ describe("asyncmachine", function () {
 		});
 
 
+		it('implied block by one about to be dropped should be set', function () {
+			const state = {
+				Wet: { require: ['Water'] },
+				Dry: { drop: ['Wet'] },
+				Water: { add: ['Wet'], drop: ['Dry'] }
+			}
+			const example = machine(state)
+			example.add('Dry')
+			example.add('Water')
+			expect(example.is()).to.eql(['Wet', 'Water'])
+		});
+
+
 		it('should pass args to transition methods');
 
 		it('should drop states blocked by a new one if the one blocks it', function () {
