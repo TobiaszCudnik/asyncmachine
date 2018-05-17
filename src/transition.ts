@@ -13,7 +13,10 @@ import {
 	IBind,
 	IEmit,
 } from "./types";
+// @ts-ignore
+import * as uuidProxy from 'simple-random-id'
 
+const uuid = (<any>uuidProxy).default || uuidProxy
 
 /**
  * TODO make it easier to parse
@@ -30,6 +33,7 @@ interface IEvent {
  */
 export default class Transition {
 
+  id = uuid()
 	// ID of the machine which initiated the transition
 	source_machine: AsyncMachine<any, IBind, IEmit>;
 	// queue of events to fire
