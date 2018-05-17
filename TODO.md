@@ -1,7 +1,8 @@
 # TODO
 
+- return an ES6 Set when applicable
 - make it possible to serialize a machine to JSON
-  - no instance refs, indirect addressing
+  - no instance refs, indirect addressing, binary format
 - `State_end` is missing ` | Promise<boolean | void>` in am-types
 - merge #when and #whenNot
   - #when(['Foo', 'Bar'], ['Baz']) fires when +Foo+Bar-Baz

@@ -22,9 +22,9 @@ npm i asyncmachine
 import { machine } from 'asyncmachine'
 // define
 const state = {
-    Wet: { drop: ['Dry'], require: ['Water'] },
-    Dry: { drop: ['Wet'] },
-    Water: { add: ['Wet'] }
+  Wet: { require: ['Water'] },
+  Dry: { drop: ['Wet'] },
+  Water: { add: ['Wet'], drop: ['Dry'] }
 }
 // initialize
 const example = machine(state)
@@ -32,7 +32,7 @@ const example = machine(state)
 example.add('Dry')
 example.add('Water')
 // check the state
-example.is() // -> ['Water', 'Wet']
+example.is() // -> [ 'Wet', 'Water' ]
 ```
 
 TypeScript based **[API docs](https://tobiaszcudnik.github.io/asyncmachine/classes/asyncmachine.html)**.
