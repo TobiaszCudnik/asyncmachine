@@ -1,6 +1,6 @@
-### ROADMAP
+### CHANGELOG
 
-### v3.2
+## v3.2
 
 - better ./bin/am-types generator and type safety
 - auto resuming of postponed queues
@@ -10,7 +10,7 @@
 - better log handlers API
 - bugfixes
 
-### v3.1
+## v3.1
 
 - extracted the `Transition` class
 - stricter compiler checks (nulls, implicit any, returns)
@@ -21,7 +21,7 @@
 - fixed `addByCallback`/`Listener` getting fired only once
 - bugfixes
 
-### v3.0
+## v3.0
 
 - tail call optimizations and reduced number of stack frames
 - moved to the regular typescript (2.0)
@@ -35,7 +35,7 @@
 - new build system (shims supported)
 - bugfixes
  
-### v2.0
+## v2.0
  
 - states clock
 - synchronous queue across composed asyncmachines
@@ -50,7 +50,7 @@
 - composition over inheritance
 - (almost) backwards compatible
 
-### v1.0
+## v1.0
 
 - initial release
 - TODO

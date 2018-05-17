@@ -1025,10 +1025,13 @@ describe("asyncmachine", function () {
 
 
 		it('should drop states cross-blocked by implied states', function () {
-			// parse implied states before current ones
-			// hint: in blocked by
-			let sub = new SubCrossBlockedByImplied();
-			expect(sub.is()).to.eql(['C', 'B']);
+      const state = {
+        A: { drop: ['B'] },
+        B: { drop: ['A'] },
+        Z: { add: ['B'] } }
+      const example = machine(state)
+      example.add('Z')
+			expect(example.is()).to.eql(['Z', 'B'])
 		});
 
 

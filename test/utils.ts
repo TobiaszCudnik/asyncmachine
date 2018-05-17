@@ -92,24 +92,6 @@ class Sub extends AsyncMachine<AB, IBind, IEmit> {
     }
 }
 
-class SubCrossBlockedByImplied extends AsyncMachine<ABC, IBind, IEmit> {
-    A: IState<ABC> = {
-        drop: ["B"]
-    };
-    B: IState<ABC> = {
-        drop: ["A"]
-    };
-    C: IState<ABC> = {
-        add: ["B"]
-    };
-    constructor() {
-        super();
-
-        this.register("A", "B", "C");
-        this.set("C");
-    }
-}
-
 class CrossBlocked extends AsyncMachine<AB, IBind, IEmit> {
 
     A: IState<AB> = {
@@ -164,7 +146,6 @@ export {
     FooMachine,
     EventMachine,
     Sub,
-    SubCrossBlockedByImplied,
     CrossBlocked,
     mock_states,
     assert_order

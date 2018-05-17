@@ -286,6 +286,7 @@ export default class Transition {
 			return ret
 		}, [])
 		states = this.parseImplies_(states).filter(n => !to_drop.includes(n))
+		states = this.removeDuplicateStates_(states)
 		// Parsing required states allows to avoid cross-dropping of states
 		this.states = this.parseRequires_(states.reverse())
 		this.orderStates_(this.states)
