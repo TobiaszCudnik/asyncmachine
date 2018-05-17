@@ -35,9 +35,14 @@ example.add('Water')
 example.is() // -> [ 'Wet', 'Water' ]
 ```
 
-TypeScript based **[API docs](https://tobiaszcudnik.github.io/asyncmachine/classes/asyncmachine.html)**.
-
 See more in a real world project [which uses AsyncMachine](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src).
+
+## [API docs](https://tobiaszcudnik.github.io/asyncmachine/)
+
+- [machine() factory](https://tobiaszcudnik.github.io/asyncmachine/index.html#machine)
+- [AsyncMachine class](https://tobiaszcudnik.github.io/asyncmachine/classes/asyncmachine.html)
+- [Transition class](https://tobiaszcudnik.github.io/asyncmachine/classes/transition.html)
+- [list of emitted events](https://tobiaszcudnik.github.io/asyncmachine/interfaces/iemit.html)
 
 ## Features
  
