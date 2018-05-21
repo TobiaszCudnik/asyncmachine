@@ -138,6 +138,8 @@ export default class Transition {
 		// in case of using a local queue, we can hit a locked target machine
 		// TODO write a test
 		if (machine.lock) {
+      // `null` here means that the step wasnt originated by
+      // any particular state
 			this.addStep(null, null, TransitionStepTypes.CANCEL)
 			machine.emit("transition-cancelled", this)
 			machine.emit("transition-end", this)
@@ -648,7 +650,7 @@ export default class Transition {
 	/**
 	 * Marks a steps relation between two states during the transition.
 	 */
-	addStep(target: string | IStateStruct, source?: string | IStateStruct | null,
+	addStep(target: string | IStateStruct | null, source?: string | IStateStruct | null,
 					type?: TransitionStepTypes, data?: any): void {
 		let step = this.addStepData(target, source, type, data)
 		this.machine.emit('transition-step', step)
@@ -657,7 +659,7 @@ export default class Transition {
 	/**
 	 * Marks a steps relation between two states during the transition.
 	 */
-	addStepData(target: string | IStateStruct, source?: string | IStateStruct | null,
+	addStepData(target: string | IStateStruct | null, source?: string | IStateStruct | null,
 					type?: TransitionStepTypes, data?: any): ITransitionStep {
 		let state = Array.isArray(target) ? target as IStateStruct
 				: [this.machine.id(true), target as string] as IStateStruct

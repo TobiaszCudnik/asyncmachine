@@ -156,7 +156,7 @@ export function machine<
  * }
  * ```
  */
-export default class AsyncMachine<TStates extends string, TBind, TEmit>
+export default class AsyncMachine<TStates extends string, TBind extends IBind, TEmit extends IEmit>
 		extends EventEmitter {
 
 	/**
@@ -176,7 +176,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
    */
 	last_promise: Promise<any> | null = null;
   /** Map of piped states and their targets. */
-	piped: { [K in (TStates | BaseStates)]: IPipedStateTarget[] } = {};
+	piped: { [K in (TStates | BaseStates)]?: IPipedStateTarget[] } = {};
 	/**
 	 * If true, an exception will be printed immediately after it's thrown.
 	 * Automatically turned on with logLevel > 0.
@@ -444,9 +444,6 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 		if (!inactive) {
 			return false;
 		}
-		if (states_parsed.length && tick !== undefined) {
-			return this.clock(states) === tick;
-		}
 		return true;
 	}
 
@@ -518,7 +515,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	register(...states: (TStates | BaseStates)[]) {
 		// TODO dont register during a transition
 		for (let state of this.parseStates(states)) {
-			if (!this[state]) {
+			if (!this.get(state)) {
 				console.error(`Missing state '${state}' in machine '${this.id()}'`)
 			}
 			if (!this.states_all.includes(state))
@@ -1039,11 +1036,12 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	pipeRemove(states?: (TStates | BaseStates) | (TStates | BaseStates)[],
 			machine?: AsyncMachine<any, IBind, IEmit>, flags?: PipeFlags) {
 		let bindings = flags ? this.getPipeBindings(flags) : null
-		let event_types = flags ? Object.keys(bindings) : null
+		let event_types = flags && bindings ? Object.keys(bindings) : null
 		let parsed_states = states ? this.parseStates(states) : null
-		let to_emit: this[] = []
+		let to_emit: TAsyncMachine[] = []
 
 		for (let [state, pipes] of Object.entries(this.piped)) {
+      pipes = pipes as IPipedStateTarget[]
 			// TODO remove casting once Object.entries() is typed correctly
 			if (parsed_states && !parsed_states.includes(state as
           (TStates | BaseStates)))
@@ -1060,8 +1058,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 				i--
 				if (!to_emit.includes(pipe.machine))
 					to_emit.push(pipe.machine)
-				if (!to_emit.includes(this))
-					to_emit.push(this)
+				if (!to_emit.includes(this as TAsyncMachine))
+					to_emit.push(this as TAsyncMachine)
 			}
 			if (!pipes.length)
 				delete this.piped[state]
@@ -1102,6 +1100,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	 * ````
 	 */
 	clock(state: (TStates | BaseStates)): number {
+    // @ts-ignore
 		return this.clock_[state] || 0;
 	}
 
@@ -1389,7 +1388,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 
 		return this;
 	}
-
+	// @ts-ignore
 	emit: TEmit & IEmit;
 
 	// TODO type all the emit calls
@@ -1545,7 +1544,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 				// TODO extract
 				// TODO check for duplicates
 				if (!this.piped[state])
-					this.piped[state] = []
+          this.piped[state] = []
+        // @ts-ignore
 				this.piped[state].push({
 					state: target_state,
 					machine: machine,
@@ -1563,7 +1563,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 
 			if (!emit_on.includes(this))
 				emit_on.push(this)
-			if (machine !== this && !emit_on.includes(machine))
+			if (machine !== (this as TAsyncMachine) && !emit_on.includes(machine))
 				emit_on.push(machine)
 		}
 
@@ -1793,7 +1793,8 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 			let data = this.get(state)
 			if (!previous.includes(state) ||
 					(explicite_states.includes(state) && data.multi)) {
-				this.clock_[state]++
+        // @ts-ignore
+        this.clock_[state]++
 			}
 		}
 
@@ -1820,7 +1821,7 @@ export default class AsyncMachine<TStates extends string, TBind, TEmit>
 	}
 
 	getMethodContext(name: string): Object | null {
-		if (this.target[name] && this.target[name] instanceof Function) {
+		if (this.target && this.target[name] && this.target[name] instanceof Function) {
 			return this.target;
 		} else if (this[name] && this[name] instanceof Function) {
 			return this;
