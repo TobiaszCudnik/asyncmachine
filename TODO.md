@@ -1,7 +1,6 @@
 # TODO
 
 ## 3.x
-- add `// @ts-ignore` to the generated d.ts file
 - better npm package
   - export types.ts in main cjs bundle
   - publish only the /build dir

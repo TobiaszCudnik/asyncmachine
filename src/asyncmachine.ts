@@ -1111,9 +1111,6 @@ export default class AsyncMachine<TStates extends string, TBind extends IBind, T
 	 * Useful for creating new instances of dynamic classes (or factory created
 	 * instances).
 	 *
-	 * @param state Name of the state
-	 * @return Current tick of the passed state
-	 *
 	 * Example
 	 * ```
 	 * states1 = machine(['A', 'B', 'C'])
