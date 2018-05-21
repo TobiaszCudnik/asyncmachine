@@ -135,7 +135,9 @@ export default class Transition {
 
     this.setupAccepted()
 
-    if (this.accepted) this.setupExitEnter()
+    if (this.accepted) {
+      this.setupExitEnter()
+    }
   }
 
   exec(): boolean {
@@ -171,8 +173,9 @@ export default class Transition {
       // NEGOTIATION CALLS PHASE (cancellable)
 
       // self transitions
-      if (!aborted && this.type != StateChangeTypes.DROP)
+      if (!aborted && this.type != StateChangeTypes.DROP) {
         aborted = this.self() === false
+      }
 
       // exit transitions
       if (!aborted) {
@@ -201,7 +204,9 @@ export default class Transition {
         machine.setActiveStates_(this.requested_states, this.states)
         this.processPostTransition()
         hasStateChanged = machine.hasStateChanged(this.before)
-        if (hasStateChanged) machine.emit('tick', this.before)
+        if (hasStateChanged) {
+          machine.emit('tick', this.before)
+        }
       }
     } catch (ex) {
       // TODO extract
@@ -251,9 +256,11 @@ export default class Transition {
     if (aborted) return false
 
     // If this's a DROP transition, check if all explicit states has been dropped.
-    if (this.row[QueueRowFields.STATE_CHANGE_TYPE] === StateChangeTypes.DROP)
+    if (this.row[QueueRowFields.STATE_CHANGE_TYPE] === StateChangeTypes.DROP) {
       return machine.allStatesNotSet(this.row[QueueRowFields.STATES])
-    else return machine.every(...this.states)
+    } else {
+      return machine.every(...this.states)
+    }
   }
 
   setupAccepted() {
@@ -296,9 +303,11 @@ export default class Transition {
         // states) then make it a higher priority log msg
         let level = this.machine.is(name) ? 2 : 3
         this.machine.log(`[drop] ${name} by ${blocked_by.join(', ')}`, level)
-        if (this.machine.is(name))
+        if (this.machine.is(name)) {
           this.addStep(name, null, TransitionStepTypes.DROP)
-        else this.addStep(name, null, TransitionStepTypes.NO_SET)
+        } else {
+          this.addStep(name, null, TransitionStepTypes.NO_SET)
+        }
       }
       return !blocked_by.length
     })
@@ -329,7 +338,9 @@ export default class Transition {
       let is_blocked = () =>
         this.machine.is().some(current => {
           let relations = this.machine.get(current)
-          if (!relations.drop) return false
+          if (!relations.drop) {
+            return false
+          }
           return relations.drop.includes(state)
         })
 
@@ -338,7 +349,9 @@ export default class Transition {
       }
     }
 
-    if (add.length) return [StateChangeTypes.ADD, add, [], true, this.machine]
+    if (add.length) {
+      return [StateChangeTypes.ADD, add, [], true, this.machine]
+    }
 
     return null
   }
@@ -390,12 +403,15 @@ export default class Transition {
           if (!states.includes(req)) {
             not_found.push(req)
             this.addStep(name, null, TransitionStepTypes.NO_SET)
-            if (this.requested_states.includes(name))
+            if (this.requested_states.includes(name)) {
               this.addStep(req, null, TransitionStepTypes.CANCEL)
+            }
           }
         }
 
-        if (not_found.length) not_found_by_states[name] = not_found
+        if (not_found.length) {
+          not_found_by_states[name] = not_found
+        }
 
         return !not_found.length
       })
@@ -406,8 +422,9 @@ export default class Transition {
       for (let [state, not_found] of Object.entries(not_found_by_states))
         names.push(`${state}(-${not_found.join(' -')})`)
 
-      if (this.auto) this.machine.log(`[rejected:auto] ${names.join(' ')}`, 3)
-      else this.machine.log(`[rejected] ${names.join(' ')}`, 2)
+      if (this.auto) {
+        this.machine.log(`[rejected:auto] ${names.join(' ')}`, 3)
+      } else this.machine.log(`[rejected] ${names.join(' ')}`, 2)
     }
 
     return states
@@ -531,7 +548,9 @@ export default class Transition {
         throw new TransitionException(err, name)
       }
 
-      if (ret !== false) this.events.push([name, params])
+      if (ret !== false) {
+        this.events.push([name, params])
+      }
 
       if (ret === false) {
         this.machine.log(`[cancelled:self] ${state}`, 2)
@@ -554,7 +573,9 @@ export default class Transition {
   exit(from: string) {
     let transition_params: any[] = []
     // this means a 'drop' transition
-    if (this.requested_states.includes(from)) transition_params = this.params
+    if (this.requested_states.includes(from)) {
+      transition_params = this.params
+    }
 
     let ret = this.transitionExec_(
       from,
@@ -782,9 +803,12 @@ export default class Transition {
         }
         line += touch[fields.STATE][s.STATE_NAME]
         line += '   '
-        if (touch[fields.TYPE])
+        if (touch[fields.TYPE]) {
           line += types[touch[fields.TYPE] as TransitionStepTypes]
-        if (touch[fields.DATA]) line += '   ' + touch[fields.DATA]
+        }
+        if (touch[fields.DATA]) {
+          line += '   ' + touch[fields.DATA]
+        }
 
         return line
       })
