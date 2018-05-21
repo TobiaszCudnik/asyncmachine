@@ -554,7 +554,9 @@ export default class AsyncMachine<
       if (!this.get(state)) {
         console.error(`Missing state '${state}' in machine '${this.id()}'`)
       }
-      if (!this.states_all.includes(state)) this.states_all.push(state)
+      if (!this.states_all.includes(state)) {
+        this.states_all.push(state)
+      }
       this.clock_[state] = 0
     }
   }
@@ -642,7 +644,9 @@ export default class AsyncMachine<
     assert(target, 'First param required')
     if (!(target instanceof AsyncMachine)) {
       // TODO test for `states === 0`
-      if (states !== undefined) params = params ? [states, ...params] : [states]
+      if (states !== undefined) {
+        params = params ? [states, ...params] : [states]
+      }
       states = target
       target = this
     }
@@ -816,7 +820,9 @@ export default class AsyncMachine<
     assert(target, 'First param required')
     if (!(target instanceof AsyncMachine)) {
       // TODO test for `states === 0`
-      if (states !== undefined) params = params ? [states, ...params] : [states]
+      if (states !== undefined) {
+        params = params ? [states, ...params] : [states]
+      }
       states = target
       target = this
     }
@@ -990,7 +996,9 @@ export default class AsyncMachine<
   drop(target: any, states?: any, ...params: any[]): boolean {
     assert(target, 'First param required')
     if (!(target instanceof AsyncMachine)) {
-      if (states !== undefined) params = params ? [states, ...params] : [states]
+      if (states !== undefined) {
+        params = params ? [states, ...params] : [states]
+      }
       states = target
       target = this
     }
@@ -1198,11 +1206,16 @@ export default class AsyncMachine<
         pipes.splice(i, 1)
         // stay on the same index
         i--
-        if (!to_emit.includes(pipe.machine)) to_emit.push(pipe.machine)
-        if (!to_emit.includes(this as TAsyncMachine))
+        if (!to_emit.includes(pipe.machine)) {
+          to_emit.push(pipe.machine)
+        }
+        if (!to_emit.includes(this as TAsyncMachine)) {
           to_emit.push(this as TAsyncMachine)
+        }
       }
-      if (!pipes.length) delete this.piped[state]
+      if (!pipes.length) {
+        delete this.piped[state]
+      }
     }
     for (let machine of to_emit) {
       // TODO emit pipe-in-removed pipe-out-removed, passing the pipe binding
@@ -1305,10 +1318,11 @@ export default class AsyncMachine<
    * Requires [[duringTranstion]] to be true or it'll throw.
    */
   from(): (TStates | BaseStates)[] {
-    if (!this.transition || this.transition.machine !== this)
+    if (!this.transition || this.transition.machine !== this) {
       throw new Error(
         `[AsyncMachine] ${this.id()} not during an (own) transition`
       )
+    }
 
     // TODO dont return transition states from ANOTHER machine
     // TODO write a test
@@ -1321,10 +1335,11 @@ export default class AsyncMachine<
    * Requires [[duringTranstion]] to be true or it'll throw.
    */
   to(): (TStates | BaseStates)[] {
-    if (!this.transition || this.transition.machine !== this)
+    if (!this.transition || this.transition.machine !== this) {
       throw new Error(
         `[AsyncMachine] ${this.id()} not during an (own) transition`
       )
+    }
 
     // TODO dont return transition states from ANOTHER machine
     // TODO write a test
@@ -1397,7 +1412,9 @@ export default class AsyncMachine<
     let states_parsed = this.parseStates(states)
     return new Promise<null>(resolve => {
       // early resolve if all the states are currently set
-      if (this.is(states_parsed)) resolve()
+      if (this.is(states_parsed)) {
+        resolve()
+      }
       this.bindToStates(states_parsed, resolve, abort)
     })
   }
@@ -1410,7 +1427,9 @@ export default class AsyncMachine<
     let states_parsed = this.parseStates(states)
     return new Promise<null>(resolve => {
       // early resolve if all the states are NOT currently set
-      if (this.not(states_parsed)) resolve()
+      if (this.not(states_parsed)) {
+        resolve()
+      }
       this.bindToNotStates(states_parsed, resolve, abort)
     })
   }
@@ -1666,9 +1685,15 @@ export default class AsyncMachine<
       throw new Error('Cant pipe a negotiation into the local queue')
 
     let tags = ''
-    if (flags && flags & PipeFlags.INVERT) tags += ':invert'
-    if (flags && flags & PipeFlags.NEGOTIATION) tags += ':neg'
-    if (flags && flags & PipeFlags.NEGOTIATION_BOTH) tags += ':neg_both'
+    if (flags && flags & PipeFlags.INVERT) {
+      tags += ':invert'
+    }
+    if (flags && flags & PipeFlags.NEGOTIATION) {
+      tags += ':neg'
+    }
+    if (flags && flags & PipeFlags.NEGOTIATION_BOTH) {
+      tags += ':neg_both'
+    }
 
     if (parsed_states.length == 1 && requested_state)
       this.log(
@@ -1715,7 +1740,9 @@ export default class AsyncMachine<
         }
         // TODO extract
         // TODO check for duplicates
-        if (!this.piped[state]) this.piped[state] = []
+        if (!this.piped[state]) {
+          this.piped[state] = []
+        }
         // @ts-ignore
         this.piped[state].push({
           state: target_state,
@@ -1732,9 +1759,12 @@ export default class AsyncMachine<
         this.on(`${state}_${event_type}` as 'ts-dynamic', pipe_listener)
       }
 
-      if (!emit_on.includes(this)) emit_on.push(this)
-      if (machine !== (this as TAsyncMachine) && !emit_on.includes(machine))
+      if (!emit_on.includes(this)) {
+        emit_on.push(this)
+      }
+      if (machine !== (this as TAsyncMachine) && !emit_on.includes(machine)) {
         emit_on.push(machine)
+      }
     }
 
     for (let machine of emit_on) {
