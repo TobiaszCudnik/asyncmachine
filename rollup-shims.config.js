@@ -1,6 +1,8 @@
 import config from './rollup.config'
 
 config.input = 'src/shims.ts'
+// remove the exec plugin
+delete config.plugins[4]
 config.output = [
   {
     file: 'build/asyncmachine-shims.cjs.js',

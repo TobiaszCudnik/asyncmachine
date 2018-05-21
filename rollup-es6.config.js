@@ -2,6 +2,8 @@ import config from './rollup.config'
 import typescript from 'rollup-plugin-typescript2'
 import tsc from 'typescript'
 
+// remove the exec plugin
+delete config.plugins[4]
 config.plugins[0] = typescript({
   check: false,
   tsconfigDefaults: {

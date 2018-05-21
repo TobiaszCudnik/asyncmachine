@@ -4,6 +4,7 @@ import typescript from 'rollup-plugin-typescript2'
 import tsc from 'typescript'
 import uglify from 'rollup-plugin-uglify'
 import { minify } from 'uglify-es'
+import execute from 'rollup-plugin-execute'
 
 export default {
   input: 'src/asyncmachine.ts',
@@ -26,7 +27,21 @@ export default {
       include: 'node_modules/**',
       ignoreGlobal: true
     }),
-    uglify({}, minify)
+    uglify({}, minify),
+    // dirty dirty dirty
+    // propagate @ts-ignore statements to the generated definitions
+    execute([
+      `./node_modules/.bin/replace-in-file "  on(" "// @ts-ignore
+        /**/on(" build/asyncmachine.d.ts`,
+      `./node_modules/.bin/replace-in-file "  on: " "// @ts-ignore
+        /**/on: " build/asyncmachine.d.ts`,
+      `./node_modules/.bin/replace-in-file "  once: " "// @ts-ignore
+        /**/once: " build/asyncmachine.d.ts`,
+      `./node_modules/.bin/replace-in-file "  once(" "// @ts-ignore
+        /**/once(" build/asyncmachine.d.ts`,
+      `./node_modules/.bin/replace-in-file "  emit: " "// @ts-ignore
+        /**/emit: " build/asyncmachine.d.ts`,
+    ])
   ],
   exports: 'named',
   sourcemap: true,
