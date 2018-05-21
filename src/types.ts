@@ -37,6 +37,11 @@ export interface IBind {
 		(transition: Transition) => boolean | void, context?: Object): this;
 	(event: 'queue-changed', listener:
 		() => boolean | void, context?: Object): this;
+  (
+    event: 'queue-end',
+    listener: () => boolean | void,
+    context?: Object
+  ): this
 	// State events
 	// TODO optional params
 	(event: 'Exception_enter', listener: (err: Error, target_states: string[],
@@ -81,6 +86,7 @@ export interface IEmit {
 	(event: 'Exception_end'): boolean;
 	(event: 'Exception_Any'): boolean;
 	(event: 'Any_Exception'): boolean;
+  (event: 'queue-end'): boolean
 	// skip compiler errors for dynamic calls
 	(event: 'ts-dynamic', ...params: any[]): boolean;
 }
