@@ -3,10 +3,11 @@
  */
 class EE {
   constructor(
-    public fn: Function, 
-    public context: Object, 
-    public once: Boolean = false) {
-      // empty
+    public fn: Function,
+    public context: Object,
+    public once: Boolean = false
+  ) {
+    // empty
   }
 }
 
@@ -18,78 +19,72 @@ export default class EventEmitter {
   // @ts-ignore
   private _events: {
     [index: string]: EE[] | EE
-  };
-  
+  }
+
   /**
    * Return a list of assigned event listeners.
    */
   listeners(event: string): Function[] {
-    if (!this._events || !this._events[event])
-      return [];
-    
+    if (!this._events || !this._events[event]) return []
+
     let listeners = this._events[event]
-    if (listeners instanceof EE) 
-      return [listeners.fn];
+    if (listeners instanceof EE) return [listeners.fn]
     else {
       for (var i = 0, l = listeners.length, ee = new Array(l); i < l; i++) {
-        ee[i] = listeners[i].fn;
+        ee[i] = listeners[i].fn
       }
 
-      return ee;
+      return ee
     }
   }
-  
+
   /**
    * Emit an event to all registered event listeners.
    */
   emit(event: string, ...args: any[]): boolean {
-    if (!this._events || !this._events[event])
-      return true;
+    if (!this._events || !this._events[event]) return true
 
     let listeners = this._events[event]
     if (listeners instanceof EE) {
-      if (listeners.once)
-        this.removeListener(event, listeners.fn, true);
+      if (listeners.once) this.removeListener(event, listeners.fn, true)
 
       return this.callListener(listeners.fn, listeners.context, args)
     } else {
       for (let listener of listeners) {
-        if (listener.once)
-          this.removeListener(event, listener.fn, true);
+        if (listener.once) this.removeListener(event, listener.fn, true)
 
         if (false === this.callListener(listener.fn, listener.context, args))
           return false
       }
     }
 
-    return true;
+    return true
   }
-  
+
   /**
    * Callback executor for overriding.
    */
   protected callListener(listener: Function, context: Object, params: any[]) {
     return listener.apply(context, params)
   }
-  
-  
+
   /**
    * Remove event listeners.
    */
   removeListener(event: string, fn: Function, once: boolean = false): this {
-    if (!this._events || !this._events[event]) return this;
+    if (!this._events || !this._events[event]) return this
 
-    var listeners = this._events[event]
-        , events: EE[] = [];
+    var listeners = this._events[event],
+      events: EE[] = []
 
     if (fn) {
       if (listeners instanceof EE) {
         if (listeners.fn !== fn || (once && !listeners.once))
-          events.push(listeners);
+          events.push(listeners)
       } else {
         for (var i = 0, length = listeners.length; i < length; i++) {
           if (listeners[i].fn !== fn || (once && !listeners[i].once)) {
-            events.push(listeners[i]);
+            events.push(listeners[i])
           }
         }
       }
@@ -99,75 +94,63 @@ export default class EventEmitter {
     // Reset the array, or remove it completely if we have no more listeners.
     //
     if (events.length) {
-      this._events[event] = events.length === 1 ? events[0] : events;
+      this._events[event] = events.length === 1 ? events[0] : events
     } else {
-      delete this._events[event];
+      delete this._events[event]
     }
 
-    return this;
+    return this
   }
-  
+
   /**
    * Register a new EventListener for the given event.
    */
   on(event: string, fn: Function, context?: Object): this {
-    var listener = new EE(fn, context || this);
+    var listener = new EE(fn, context || this)
 
-    if (!this._events)
-      this._events = {};
-    if (!this._events[event])
-      this._events[event] = listener;
+    if (!this._events) this._events = {}
+    if (!this._events[event]) this._events[event] = listener
     else {
-      let listeners = this._events[event] 
-      if (listeners instanceof Array)
-        listeners.push(listener);
+      let listeners = this._events[event]
+      if (listeners instanceof Array) listeners.push(listener)
       else {
-        this._events[event] = [
-          listeners, listener
-        ]
+        this._events[event] = [listeners, listener]
       }
     }
 
-    return this;
+    return this
   }
-  
+
   /**
    * Add an EventListener that's only called once.
    */
   once(event: string, fn: Function, context?: Object): this {
-    var listener = new EE(fn, context || this, true);
+    var listener = new EE(fn, context || this, true)
 
-    if (!this._events)
-      this._events = {};
-    if (!this._events[event])
-      this._events[event] = listener;
+    if (!this._events) this._events = {}
+    if (!this._events[event]) this._events[event] = listener
     else {
       let listeners = this._events[event]
-      if (listeners instanceof Array)
-        listeners.push(listener);
-      else
-        this._events[event] = [
-          listeners, listener
-        ];
+      if (listeners instanceof Array) listeners.push(listener)
+      else this._events[event] = [listeners, listener]
     }
 
-    return this;
+    return this
   }
-  
-    
+
   /**
    * Remove all listeners or only the listeners for the specified event.
    */
   removeAllListeners(event: string): this {
-    if (!this._events) return this;
+    if (!this._events) return this
 
-    if (event) delete this._events[event];
-    else this._events = {};
+    if (event) delete this._events[event]
+    else this._events = {}
 
-    return this;
+    return this
   }
-  
-// class end
+
+  // class end
 }
 
 // TODO aliases
