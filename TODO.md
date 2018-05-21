@@ -1,10 +1,27 @@
 # TODO
 
-## 4.0
+## 3.x
+- wiki docs and tutorials
+  - demos on stackblitz
+  - missing JSDocs
+  - translate remaining jsdocs examples from coffeescript to ES6
+  - make a comparison of `pipe`, `pipe negotiation` to `add`, `add & require`
+- `State_end` is missing ` | Promise<boolean | void>` in am-types
+- console.warn for a cancelled transition in case of a busy machine
+  - include machine ID, source states and target states
+- rxjs integration parsing state sets coming from the network
+  - parse the stream of states and "mine" complex states eg user behavior
+  - demos on stackblitz
+- examples of how to use AM as a state manager for React
+  - demos on stackblitz
+- fix `createChild()`
+  - tests
+- implement `pipeRemoveBinding(binding)`
+
+## 4.x
 
 - TypeScript 2.9 compat (typed event emitter using Variadic Types)
   - align /bin/am-types
-  - `State_end` is missing ` | Promise<boolean | void>` in am-types
 - include prettier in the workflow
 - better npm package
   - export types.ts in main cjs bundle
@@ -14,6 +31,9 @@
 - state groups - `FooA`, `FooB`, `FooC`, when all in group `Foo` #engine #api
   - then only one can be active at a time
   - defined by `group` or `switch` or `switch_group`
+- `#now()` -> `{ state: clock, state2: clock }` #api
+  - `#wasLater(#now(), #now())` but with a better name
+  - `#is({A: 1, b: 34}): boolean`
 - move configs to ./configs
 - resolve relations using BFS/DFS to achieve full propagation
 - sideEffects: false in package.json
@@ -28,34 +48,25 @@
 - tests
   - align broken tests
   - handle all of those `// TODO write a test` places
-- translate remaining jsdocs examples from coffeescript to ES6
-- wiki docs and tutorials
+- manually specified queue for piping (piping from A to B using the queue from C)
+- ensure all the state lists and params are shallow copied #api #refactoring
 
-## TODO
+## Later
 
-- console.warn for a cancelled transition in case of a busy machine
-  - include machine ID, source states and target states
 - stop auto states when Exception is active
 - make it possible to serialize a machine to JSON
   - no instance refs, indirect addressing, binary format
 - `machine` factory when used without am-types highlights with an error
-- rxjs integration parsing state sets coming from the network
-  - parse the stream of states and "mine" complex states eg user behavior
 - FSM interface?
-- am-network as a separate module
 - TimeArray decorator for states, counting times with moment.js API
   - eg number of state sets in last 10 minutes
   - useful for counting request quota limits for API clients
   - separate npm module
   - support timezones
-- markdown in comments, translate old cs examples
 - investigate `[drop:implied]`
-- manually specified queue for piping (piping from A to B using the queue from C)
 - maybe: State_rejected() method, triggered when a certain state wasnt accepted
   - only for target, non-auto states
-- integrate cancellable generator functions with getAbort() and abort functions
-  - https://github.com/getify/CAF
-  - also provide abort.onAbort()
+- implement push signal for abort functions `abort.onAbort(listener)`
 - define machines as JSONs
   - state inheritance example (via object spread)
 - history API, optional #features
@@ -69,26 +80,17 @@
     - skip 2 stack frames from deferred
 - make Any state a real thing #engine
   - arguments?
-- make a comparison of `pipe`, `pipe negotiation` to `add`, `add & require` #docs
-- implement pipeRemoveBinding
 - synchronous throw when not in a promise #engine
-- states should be in order they were requested #2 #engine
 - edge case: piping negotiation, when a further state is cancelling
   - makes the piping inconsistent
   - for now, rely on the self transition
   - in the future, wait with the 3rd transition phase in the machine B
     till the negotiation is finished
-- `#now()` -> `{ state: clock, state2: clock }` #api
-  - `#wasLater(#now(), #now())` but with a better name
-  - `#is({A: 1, b: 34}): boolean`
 - GC and memory management #engine #api
   - track the context of all the bindings
   - auto unbinding unreachable transitions
   - auto unbinding unreachable promises' error handlers
   - memory leaks load tests
-- transition executing the queue via generator(?) iteration #?
-  - -2 stack frames
-  - possibly avoid nesting when piping in the future
 - extend the multi states which create new machines (eg for requests) #?
   - separate / mixin / util function / decorator
 - remote state machines #?
@@ -96,7 +98,4 @@
 - case insensitive state names (when strings) #api
 - state as an object (shorter API calls, like `states.A.add()`) #maybe #api
   - considers signals composed out of event emitters (per each signal)
-- closure compiler support (tsickle) #project
-- dynamic states (???) #engine #api
 - chai assertion helper #project #api
-- ensure all the state lists and params are shallow copied #api #refactoring
