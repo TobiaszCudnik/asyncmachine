@@ -142,6 +142,7 @@ export default class Transition {
 			machine.emit("transition-cancelled", this)
 			machine.emit("transition-end", this)
 			// TODO this should be a warning
+			// include machine ID, target states, source states
 			machine.log('[cancelled] Target machine already during a transition, ' +
 					'use a common queue', 1)
 			return false

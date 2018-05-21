@@ -1,42 +1,56 @@
 # TODO
 
-- return an ES6 Set when applicable
-- make it possible to serialize a machine to JSON
-  - no instance refs, indirect addressing, binary format
-- `State_end` is missing ` | Promise<boolean | void>` in am-types
+## 4.0
+
+- TypeScript 2.9 compat (typed event emitter using Variadic Types)
+  - align /bin/am-types
+  - `State_end` is missing ` | Promise<boolean | void>` in am-types
+- include prettier in the workflow
+- better npm package
+  - export types.ts in main cjs bundle
+  - publish only the /build dir
+  - include the tools, put in /bin
+  - examples should use es6 modules
+- state groups - `FooA`, `FooB`, `FooC`, when all in group `Foo` #engine #api
+  - then only one can be active at a time
+  - defined by `group` or `switch` or `switch_group`
+- move configs to ./configs
+- resolve relations using BFS/DFS to achieve full propagation
+- sideEffects: false in package.json
+- #toggle(name) #api
+- #has(name) #api
 - merge #when and #whenNot
   - #when(['Foo', 'Bar'], ['Baz']) fires when +Foo+Bar-Baz
 - #whenQueueDone - an async method returning when the whole queue got processed
   - used when `if (this.duringTransition()) await this.whenQueueDone();`
+- return an ES6 Set when applicable
+- #tick() triggers auto states but doesnt explicitly change anything
+- tests
+  - align broken tests
+  - handle all of those `// TODO write a test` places
+- translate remaining jsdocs examples from coffeescript to ES6
+- wiki docs and tutorials
+
+## TODO
+
+- console.warn for a cancelled transition in case of a busy machine
+  - include machine ID, source states and target states
+- stop auto states when Exception is active
+- make it possible to serialize a machine to JSON
+  - no instance refs, indirect addressing, binary format
 - `machine` factory when used without am-types highlights with an error
 - rxjs integration parsing state sets coming from the network
   - parse the stream of states and "mine" complex states eg user behavior
 - FSM interface?
-- sideEffects: false in package.json. 
 - am-network as a separate module
 - TimeArray decorator for states, counting times with moment.js API
   - eg number of state sets in last 10 minutes
   - useful for counting request quota limits for API clients
   - separate npm module
   - support timezones
-- implement types using variadic types TS 2.8
-- move configs to ./configs
 - markdown in comments, translate old cs examples
-- better npm package
-  - export types.ts in main cjs bundle
-  - publish only the /build dir
-  - include the tools, put in /bin
-  - examples should use es6 modules
 - investigate `[drop:implied]`
-- include prettier in the workflow
 - manually specified queue for piping (piping from A to B using the queue from C)
-- fix change events
-  - 'state-changed' (ignores tick per state changes)
-  - 'tick' (fired on any change) 
-  - instead of a single 'change'
-- TS type generator
-  - group by state, not declaration type
-  - ability to output to a different dir
 - maybe: State_rejected() method, triggered when a certain state wasnt accepted
   - only for target, non-auto states
 - integrate cancellable generator functions with getAbort() and abort functions
@@ -44,17 +58,10 @@
   - also provide abort.onAbort()
 - define machines as JSONs
   - state inheritance example (via object spread)
-- state validation when registering
-- stop auto states when Exception is active
-- #toggle(name) #api
-- #has(name) #api
 - history API, optional #features
   - logged as an used queue
   - add destination states
   - time?
-- state groups - `FooA`, `FooB`, `FooC`, when all in group `Foo` #engine #api
-  - then only one can be active at a time
-  - defined by `group` or `switch` or `switch_group`
 - improve logs #debug
   - more consistent
   - more levels and better assignments
@@ -63,6 +70,7 @@
 - make Any state a real thing #engine
   - arguments?
 - make a comparison of `pipe`, `pipe negotiation` to `add`, `add & require` #docs
+- implement pipeRemoveBinding
 - synchronous throw when not in a promise #engine
 - states should be in order they were requested #2 #engine
 - edge case: piping negotiation, when a further state is cancelling
