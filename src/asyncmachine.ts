@@ -1324,7 +1324,6 @@ export default class AsyncMachine<
       )
     }
 
-    // TODO dont return transition states from ANOTHER machine
     // TODO write a test
     return this.transition.before as (TStates | BaseStates)[]
   }
@@ -1341,7 +1340,6 @@ export default class AsyncMachine<
       )
     }
 
-    // TODO dont return transition states from ANOTHER machine
     // TODO write a test
     return this.transition.states as (TStates | BaseStates)[]
   }

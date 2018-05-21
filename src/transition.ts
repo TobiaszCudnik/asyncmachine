@@ -145,11 +145,11 @@ export default class Transition {
 
     machine.emit('transition-start', this)
 
-    // in case of using a local queue, we can hit a locked target machine
+    // check if the machine isnt already during a transition
     // TODO write a test
+    // TODO ideally we would postpone the transition instead of cancelling it
     if (machine.lock) {
-      // `null` here means that the step wasnt originated by
-      // any particular state
+      // null here means there's not source state for this step
       this.addStep(null, null, TransitionStepTypes.CANCEL)
       machine.emit('transition-cancelled', this)
       machine.emit('transition-end', this)
@@ -157,7 +157,7 @@ export default class Transition {
       // include machine ID, target states, source states
       machine.log(
         '[cancelled] Target machine already during a transition, ' +
-          'use a common queue',
+          'use a shared queue',
         1
       )
       return false
