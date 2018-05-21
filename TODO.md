@@ -1,7 +1,14 @@
 # TODO
 
 ## 3.x
+- add `// @ts-ignore` to the generated d.ts file
+- better npm package
+  - export types.ts in main cjs bundle
+  - publish only the /build dir
+  - include the tools, put in /bin
+  - examples should use es6 modules
 - wiki docs and tutorials
+  - update the old examples
   - demos on stackblitz
   - missing JSDocs
   - translate remaining jsdocs examples from coffeescript to ES6
@@ -9,7 +16,7 @@
 - `State_end` is missing ` | Promise<boolean | void>` in am-types
 - console.warn for a cancelled transition in case of a busy machine
   - include machine ID, source states and target states
-- rxjs integration parsing state sets coming from the network
+- rxjs integration examples - parsing state sets coming from a group of machines
   - parse the stream of states and "mine" complex states eg user behavior
   - demos on stackblitz
 - examples of how to use AM as a state manager for React
@@ -23,16 +30,11 @@
 - TypeScript 2.9 compat (typed event emitter using Variadic Types)
   - align /bin/am-types
 - include prettier in the workflow
-- better npm package
-  - export types.ts in main cjs bundle
-  - publish only the /build dir
-  - include the tools, put in /bin
-  - examples should use es6 modules
 - state groups - `FooA`, `FooB`, `FooC`, when all in group `Foo` #engine #api
   - then only one can be active at a time
   - defined by `group` or `switch` or `switch_group`
 - `#now()` -> `{ state: clock, state2: clock }` #api
-  - `#wasLater(#now(), #now())` but with a better name
+  - `#wasAfter(#now(), #now())` but with a better name
   - `#is({A: 1, b: 34}): boolean`
 - move configs to ./configs
 - resolve relations using BFS/DFS to achieve full propagation
