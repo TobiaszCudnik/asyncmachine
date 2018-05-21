@@ -27,6 +27,7 @@
     "chai": "^3.5.0",
     "core-js": "^2.4.1",
     "mocha": "^2.5.3",
+    "prettier": "^1.12.1",
     "replace-in-file": "^3.4.0",
     "rollup": "^0.51.8",
     "rollup-plugin-commonjs": "^8.3.0",
@@ -55,5 +56,9 @@
   },
   "bin": {
     "am-types": "./bin/am-types.js"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "semi": false
   }
 }
