@@ -82,7 +82,7 @@ interface IState {
     require?: string[];
     // State will try to set itself every time the state of the machine changes
     auto?: boolean;
-    // Multi states always triggers the "enter" and "state" transitions, plus
+    // Multi state always triggers "enter" and "state" transitions, plus
     // the clock is always incremented
     multi?: boolean;
     // Transition method of this state will be executed after the listed states
