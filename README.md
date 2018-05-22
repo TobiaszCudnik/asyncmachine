@@ -1,6 +1,6 @@
 # AsyncMachine
  
-Hybrid State Machine - a loose combination of the following concepts:
+**Hybrid State Machine** - a loose combination of the following concepts:
 - Actor Model
 - Declarative Dependency Graph
 - Non-Deterministic Automaton
@@ -16,7 +16,7 @@ Hybrid State Machine - a loose combination of the following concepts:
 npm i asyncmachine
 ```
 
-## Example ([edit live](https://stackblitz.com/edit/asyncmachine-example?file=index.ts))
+## Basic example
 
 ```typescript
 import { machine } from 'asyncmachine'
@@ -35,6 +35,10 @@ example.add('Water')
 example.is() // -> [ 'Wet', 'Water' ]
 ```
 
+Edit and inspect live on [stackblitz.com/edit/asyncmachine-example](https://stackblitz.com/edit/asyncmachine-example?file=index.ts).
+
+![example](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/example.gif)
+
 See more in a real world project [which uses AsyncMachine](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src).
 
 ## [API docs](https://tobiaszcudnik.github.io/asyncmachine/)
@@ -42,7 +46,7 @@ See more in a real world project [which uses AsyncMachine](https://github.com/To
 - [machine() factory](https://tobiaszcudnik.github.io/asyncmachine/index.html#machine)
 - [AsyncMachine class](https://tobiaszcudnik.github.io/asyncmachine/classes/asyncmachine.html)
 - [Transition class](https://tobiaszcudnik.github.io/asyncmachine/classes/transition.html)
-- [list of emitted events](https://tobiaszcudnik.github.io/asyncmachine/interfaces/iemit.html)
+- [List of emitted events](https://tobiaszcudnik.github.io/asyncmachine/interfaces/iemit.html)
 
 ## Features
  
@@ -92,8 +96,9 @@ interface IState {
 
 ## Transitions
  
-Order of transition methods for an example transition from `A` to `B`. All
-methods (and events) with the following names will be called (if defined).
+Order of transition methods for a sample transition `A -> B`.
+
+All **methods** (and **events**) with the following names will be called (when defined):
 
 - `A_exit`
 - `A_B`

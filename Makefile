@@ -74,6 +74,7 @@ test-grep-debug:
 		test/*.js
 
 docs:
+	@echo "Cleanup the ./docs folder, but keep ./docs/images"
 	$(BIN)/typedoc \
 		--out docs/ \
 		--ignoreCompilerErrors \
