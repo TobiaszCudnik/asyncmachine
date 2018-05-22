@@ -35,11 +35,11 @@ example.add('Water')
 example.is() // -> [ 'Wet', 'Water' ]
 ```
 
-Edit and inspect live on [stackblitz.com/edit/asyncmachine-example](https://stackblitz.com/edit/asyncmachine-example?file=index.ts).
+**Live and inspectable version** available on [stackblitz](https://stackblitz.com/edit/asyncmachine-example?file=index.ts).
 
-![example](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/example.gif)
+[![example](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/example.gif)](https://stackblitz.com/edit/asyncmachine-example?file=index.ts)
 
-See more in a real world project [which uses AsyncMachine](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src).
+For a real world usage example check [GTD bot](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src) (sync engine for Google APIs).
 
 ## [API docs](https://tobiaszcudnik.github.io/asyncmachine/)
 
@@ -98,7 +98,7 @@ interface IState {
  
 Order of transition methods for a sample transition `A -> B`.
 
-All **methods** (and **events**) with the following names will be called (when defined):
+All **methods** and **events** with the following names will be called (when defined):
 
 - `A_exit`
 - `A_B`
