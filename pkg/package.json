@@ -1,0 +1,37 @@
+{
+  "name": "asyncmachine",
+  "version": "3.3.0",
+  "description": "Hybrid State Machine",
+  "keywords": [
+    "async",
+    "statemachine",
+    "eventemitter",
+    "states",
+    "transition",
+    "eventloop",
+    "declarative",
+    "relational",
+    "aop",
+    "fsm",
+    "actor-model",
+    "dependency-graph"
+  ],
+  "author": "Tobiasz Cudnik <tobiasz.cudnik@gmail.com>",
+  "license": "MIT",
+  "url": "https://github.com/TobiaszCudnik/asyncmachine",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/TobiaszCudnik/asyncmachine.git"
+  },
+  "main": "asyncmachine.js",
+  "types": "asyncmachine.d.ts",
+  "module": "asyncmachine-es6.js",
+  "browser": "asyncmachine.umd.js",
+  "dependencies": {
+    "commander": "^2.14.1",
+    "simple-random-id": "^1.0.1"
+  },
+  "bin": {
+    "am-types": "./bin/am-types.js"
+  }
+}

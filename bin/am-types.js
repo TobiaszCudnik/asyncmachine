@@ -106,7 +106,7 @@ let output =
   IState as IStateBase,
   IBind as IBindBase,
   IEmit as IEmitBase
-} from 'asyncmachine/build/types'
+} from 'asyncmachine/types'
 import AsyncMachine from 'asyncmachine'
 
 export { IBindBase, IEmitBase, AsyncMachine }
@@ -151,7 +151,9 @@ output += `
 
 /** All the possible transition methods the machine can define */
 export interface ITransitions {${transitions
-  .map(t => `\n  ${t}?(): boolean | void;`)
+  .map(t => t.endsWith('_end')
+    ? `\n  ${t}?(): boolean | void | Promise<boolean | void>;`
+    : `\n  ${t}?(): boolean | void;`)
   .join('')}
 }
 

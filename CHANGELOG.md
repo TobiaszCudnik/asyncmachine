@@ -1,5 +1,10 @@
 ### CHANGELOG
 
+## v3.3
+- new npm package structure
+- fixed TS warnings
+- bundled d.ts files
+
 ## v3.2
 
 - better ./bin/am-types generator and type safety

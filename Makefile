@@ -8,6 +8,7 @@ build:
 	-make build-ts 
 	make dist-es6
 	make dist
+	make dist-dts
 
 build-dev:
 	$(BIN)/tsc --watch --isolatedModules
@@ -27,6 +28,13 @@ build-ts:
 build-ts-watch:
 	tsc --watch
 
+dist-dts:
+	# TODO move to dts-bundle.json
+	./node_modules/.bin/dts-bundle \
+		--name asyncmachine \
+		--main build/asyncmachine.d.ts \
+		--out asyncmachine-bundle.d.ts
+
 compile:
 	$(BIN)/tsc --noEmit --pretty
 
@@ -36,8 +44,9 @@ compile-watch:
 setup:
 	npm install
 
-jsdocs:
-	ts2jsdoc .
+publish:
+	make build
+	cd pkg && npm publish
 
 test:
 	./node_modules/mocha/bin/mocha \
