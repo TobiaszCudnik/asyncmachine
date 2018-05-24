@@ -1,5 +1,5 @@
 # AsyncMachine
- 
+
 **Hybrid State Machine** - a loose combination of the following concepts:
 - Actor Model
 - Declarative Dependency Graph
@@ -78,13 +78,13 @@ For a real world usage example check [GTD bot](https://github.com/TobiaszCudnik/
 
 ```typescript
 interface IState {
-    // Tries to set the listed states along with itself
+    // Tries to activate the listed states along with itself
     add?: string[];
-    // Prevents from setting or un-sets the listed states
+    // Prevents from activating or de-activates the listed states
     drop?: string[];
-    // States required for this one to be set
+    // States required for this one to be activated
     require?: string[];
-    // State will try to set itself every time the state of the machine changes
+    // State will try to activate itself every time the state of the machine changes
     auto?: boolean;
     // Multi state always triggers "enter" and "state" transitions, plus
     // the clock is always incremented
