@@ -634,13 +634,13 @@ export default class AsyncMachine<
     target: AsyncMachine<S, IBind, IEmit>,
     states: (S | BaseStates)[] | (S | BaseStates),
     ...params: any[]
-  ): boolean
+  ): boolean | null
   set(
     target: (TStates | BaseStates)[] | (TStates | BaseStates),
     states?: any,
     ...params: any[]
-  ): boolean
-  set(target: any, states?: any, ...params: any[]): boolean {
+  ): boolean | null
+  set(target: any, states?: any, ...params: any[]): boolean | null {
     assert(target, 'First param required')
     if (!(target instanceof AsyncMachine)) {
       // TODO test for `states === 0`
@@ -810,13 +810,13 @@ export default class AsyncMachine<
     target: AsyncMachine<S, IBind, IEmit>,
     states: (S | BaseStates)[] | (S | BaseStates),
     ...params: any[]
-  ): boolean
+  ): boolean | null
   add(
     target: (TStates | BaseStates)[] | (TStates | BaseStates),
     states?: any,
     ...params: any[]
-  ): boolean
-  add(target: any, states?: any, ...params: any[]): boolean {
+  ): boolean | null
+  add(target: any, states?: any, ...params: any[]): boolean | null {
     assert(target, 'First param required')
     if (!(target instanceof AsyncMachine)) {
       // TODO test for `states === 0`
@@ -987,13 +987,13 @@ export default class AsyncMachine<
     target: AsyncMachine<S, IBind, IEmit>,
     states: (S | BaseStates)[] | (S | BaseStates),
     ...params: any[]
-  ): boolean
+  ): boolean | null
   drop(
     target: (TStates | BaseStates)[] | (TStates | BaseStates),
     states?: any,
     ...params: any[]
-  ): boolean
-  drop(target: any, states?: any, ...params: any[]): boolean {
+  ): boolean | null
+  drop(target: any, states?: any, ...params: any[]): boolean | null {
     assert(target, 'First param required')
     if (!(target instanceof AsyncMachine)) {
       if (states !== undefined) {
@@ -1868,7 +1868,7 @@ export default class AsyncMachine<
   }
 
   // Goes through the whole queue collecting return values.
-  private processQueue_(): boolean {
+  private processQueue_(): boolean | null {
     if (!this.queue_.length) return false
     let queued = false
     if (this.lock_queue) {
@@ -1895,7 +1895,9 @@ export default class AsyncMachine<
     }
     if (queued) {
       this.emit('queue-changed')
-      return false
+      // queued mutation requests return `null`
+      // TODO write a test
+      return null
     }
     let ret: boolean[] = []
     this.lock_queue = true
