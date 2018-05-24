@@ -44,9 +44,19 @@ compile-watch:
 setup:
 	npm install
 
+# make version version=x.x.x
+version:
+	npm --no-git-tag-version --allow-same-version version $(version)
+
+	cd pkg && \
+		npm --no-git-tag-version --allow-same-version version $(version)
+
 publish:
 	make build
-	cd pkg && npm publish
+	rm -Rf pkg-tmp
+	cp -RL pkg pkg-tmp
+	cd pkg-tmp && \
+		npm publish
 
 test:
 	./node_modules/mocha/bin/mocha \
