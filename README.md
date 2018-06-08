@@ -1,14 +1,20 @@
-# AsyncMachine
+**AsyncMachine** is a modern state manager with intelligence built it.
 
-**Hybrid State Machine** - a loose combination of the following concepts:
-- Actor Model
-- Declarative Dependency Graph
-- Non-Deterministic Automaton
-- Async Control Flow
-- Declarative Scheduler
-- State Manager
-- Event Stream Processor
-- Aspect Oriented Programming
+Components:
+
+* states
+* transitions
+* relations
+* clocks
+* pipes
+* queues
+
+Features:
+
+* synchronous mutations
+* negotiation
+* cancellation
+* exception handling
 
 ## Install
 
@@ -16,7 +22,9 @@
 npm i asyncmachine
 ```
 
-## Basic example
+## Example
+
+This basic examples presents the following features: `states`, `transitions`, `relations` and `synchronous mutations`.
 
 ```typescript
 import { machine } from 'asyncmachine'
@@ -35,78 +43,32 @@ example.add('Water')
 example.is() // -> [ 'Wet', 'Water' ]
 ```
 
-**Live and inspectable version** available on [stackblitz](https://stackblitz.com/edit/asyncmachine-example?file=index.ts).
+**Live and visual demo** available on [stackblitz](https://stackblitz.com/edit/asyncmachine-example?file=index.ts).
 
 [![example](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/example.gif)](https://stackblitz.com/edit/asyncmachine-example?file=index.ts)
 
-For a real world usage example check [GTD bot](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src) (sync engine for Google APIs).
+For a real world example check [GTD bot](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src) (sync engine for Google APIs).
 
-## [API docs](https://tobiaszcudnik.github.io/asyncmachine/)
+## Documentation
 
-- [machine() factory](https://tobiaszcudnik.github.io/asyncmachine/index.html#machine)
-- [AsyncMachine class](https://tobiaszcudnik.github.io/asyncmachine/classes/asyncmachine.html)
-- [Transition class](https://tobiaszcudnik.github.io/asyncmachine/classes/transition.html)
-- [List of emitted events](https://tobiaszcudnik.github.io/asyncmachine/interfaces/iemit.html)
+* [AsyncMachine - The Definitive Guide](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide) (wiki)<br>
+  [PDF version](https://github.com/TobiaszCudnik/asyncmachine/raw/gh-pages/AsyncMachine-The-Definitive-Guide.pdf) (25 pages, 1.4mb)
+* [API docs](https://tobiaszcudnik.github.io/asyncmachine/) (TypeScript)
+  * [machine() factory](https://tobiaszcudnik.github.io/asyncmachine/index.html#machine)
+  * [AsyncMachine class](https://tobiaszcudnik.github.io/asyncmachine/classes/asyncmachine.html)
+  * [Transition class](https://tobiaszcudnik.github.io/asyncmachine/classes/transition.html)
+  * [List of emitted events](https://tobiaszcudnik.github.io/asyncmachine/interfaces/iemit.html)
 
-## Features
- 
-- relations between states
-- multiple states active simultaneously
-- auto states
-- transitions defined as class methods
-- state negotiation phase
-- state clocks
-- state piping between machines
-- nested transitions queuing
-- exception is a state
-- compatible with promises, callbacks and emitters
-- expressive logging system
-- [inspector / debugger available](https://github.com/TobiaszCudnik/asyncmachine-inspector)
-- OOP and functional APIs
-- TypeScript types generator
- 
-## What for?
+## Use cases
 
-- easy state management
-- async operations as a state
-- solving non-linear problems
-- fault tolerance
-- convenient resource disposal
-- avoiding race conditions
-
-## State definition
-
-```typescript
-interface IState {
-    // Tries to activate the listed states along with itself
-    add?: string[];
-    // Prevents from activating or de-activates the listed states
-    drop?: string[];
-    // States required for this one to be activated
-    require?: string[];
-    // State will try to activate itself every time the state of the machine changes
-    auto?: boolean;
-    // Multi state always triggers "enter" and "state" transitions, plus
-    // the clock is always incremented
-    multi?: boolean;
-    // Transition method of this state will be executed after the listed states
-    after?: string[];
-}
-```
-
-## Transitions
- 
-Order of transition methods for a sample transition `A -> B`.
-
-All **methods** and **events** with the following names will be called (when defined):
-
-- `A_exit`
-- `A_B`
-- `A_any`
-- `any_B`
-- `B_enter`
-- `A_end`
-- `B_state`
+* state management
+* thread pool
+* synchronizing async actions
+* solving non-linear problems
+* fault tolerance
+* resource allocation / disposal
+* avoiding race conditions
+* sync engines
 
 ## License
 

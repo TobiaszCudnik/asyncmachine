@@ -13,6 +13,7 @@
 - cancelled transition doesn't discard the transitions queued in the meantime
 - fixed piping without negotiation
 - better log handlers API
+- fixes for the `add` relation
 - bugfixes
 
 ## v3.1

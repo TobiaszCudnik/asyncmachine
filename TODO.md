@@ -1,12 +1,13 @@
 # TODO
 
 ## 3.x
-- better npm package
-  - export types.ts in main cjs bundle
-  - publish only the /build dir
-  - include the tools, put in /bin
-  - examples should use es6 modules
+- indicate "in transition" for statesToString()
+- export JSON from an instance (to easily paste into the inspector)
+- validate state names in relations
+- handle exceptions happening in an ASYNC Exception_state handler
+  - honor `this.machine.print_exception`
 - wiki docs and tutorials
+  - examples should use es6 modules
   - update the old examples
   - demos on stackblitz
   - missing JSDocs
@@ -26,6 +27,8 @@
 
 ## 4.x
 
+- new way of handling queue race conditions
+  - check for every queue entry instead of transition.ts
 - TypeScript 2.9 compat (typed event emitter using Variadic Types)
   - align /bin/am-types
 - include prettier in the workflow
@@ -35,6 +38,9 @@
 - `#now()` -> `{ state: clock, state2: clock }` #api
   - `#wasAfter(#now(), #now())` but with a better name
   - `#is({A: 1, b: 34}): boolean`
+- maybe: in case of an Exception all the target states should be set and then
+  - dropped, causing a Broken_Exception() transition handlers to kick in
+  - currently you have to define Exception_state and check target_states param
 - move configs to ./configs
 - resolve relations using BFS/DFS to achieve full propagation
 - sideEffects: false in package.json
@@ -54,6 +60,7 @@
 
 ## Later
 
+- mount submodules - gh-pages into /docs and wiki into /wiki
 - stop auto states when Exception is active
 - make it possible to serialize a machine to JSON
   - no instance refs, indirect addressing, binary format
