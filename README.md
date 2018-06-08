@@ -14,6 +14,7 @@ Features:
 * synchronous mutations
 * negotiation
 * cancellation
+* automatic states
 * exception handling
 
 ## Install
@@ -24,7 +25,7 @@ npm i asyncmachine
 
 ## Example
 
-This basic examples presents the following features: `states`, `transitions`, `relations` and `synchronous mutations`.
+This basic examples makes use of: `states`, `transitions`, `relations` and `synchronous mutations`.
 
 ```typescript
 import { machine } from 'asyncmachine'
@@ -43,7 +44,7 @@ example.add('Water')
 example.is() // -> [ 'Wet', 'Water' ]
 ```
 
-**Live and visual demo** available on [stackblitz](https://stackblitz.com/edit/asyncmachine-example?file=index.ts).
+**Editable visual demo** available on [stackblitz.com](https://stackblitz.com/edit/asyncmachine-example?file=index.ts).
 
 [![example](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/example.gif)](https://stackblitz.com/edit/asyncmachine-example?file=index.ts)
 
@@ -62,12 +63,12 @@ For a real world example check [GTD bot](https://github.com/TobiaszCudnik/gtd-bo
 ## Use cases
 
 * state management
-* thread pool
 * synchronizing async actions
 * solving non-linear problems
 * fault tolerance
 * resource allocation / disposal
 * avoiding race conditions
+* thread pools
 * sync engines
 
 ## License
