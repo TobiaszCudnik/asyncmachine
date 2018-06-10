@@ -95,7 +95,7 @@ test-grep-debug:
 docs:
 	@echo "Cleanup the ./docs folder, but keep ./docs/images"
 	$(BIN)/typedoc \
-		--out docs/ \
+		--out docs/api \
 		--ignoreCompilerErrors \
 		--name AsyncMachine \
 		--theme minimal \
