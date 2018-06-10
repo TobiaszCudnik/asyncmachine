@@ -40,8 +40,9 @@ cli
 cli.parse(process.argv)
 
 if (!cli_filename) {
-  console.error('Filename required')
-  process.exit()
+  // TODO this should show the help screen
+  console.error('Filename required, try --help')
+  process.exit(1)
 }
 const filename = path.join(process.cwd(), cli_filename)
 const export_name = cli.export
