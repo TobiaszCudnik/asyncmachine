@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "description": "Hybrid State Machine",
   "keywords": [
     "async",
@@ -27,7 +27,7 @@
     "chai": "^3.5.0",
     "core-js": "^2.4.1",
     "dts-bundle": "^0.7.3",
-    "mocha": "^2.5.3",
+    "mocha": "^5.2.0",
     "prettier": "^1.12.1",
     "replace-in-file": "^3.4.0",
     "rollup": "^0.51.8",

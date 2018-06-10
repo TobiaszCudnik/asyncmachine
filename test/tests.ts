@@ -12,7 +12,6 @@ import {
 	FooMachine, 
 	EventMachine, 
 	Sub, 
-	SubCrossBlockedByImplied,
 	CrossBlocked,
 	SubClassRegisterAll,
 	mock_states,
@@ -412,7 +411,7 @@ describe("asyncmachine", function () {
 			this.machine
 				.id('')
 				.logLevel(3)
-				.logHandler(this.log.push.bind(this.log));
+			this.machine.log_handlers.push(this.log.push.bind(this.log))
 			// mock
 			mock_states(this.machine, ['A', 'B', 'C', 'D']);
 			this.machine.C = { drop: ['D'] };
@@ -539,7 +538,7 @@ describe("asyncmachine", function () {
 				this.machine
 					.id('')
 					.logLevel(3)
-					.logHandler(this.log.push.bind(this.log));
+				this.machine.log_handlers.push(this.log.push.bind(this.log))
 				this.machine.set(['C', 'A']);
 			});
 
@@ -592,7 +591,7 @@ describe("asyncmachine", function () {
 				this.machine
 					.id('')
 					.logLevel(3)
-					.logHandler(this.log.push.bind(this.log));
+				this.machine.log_handlers.push(this.log.push.bind(this.log))
 			});
 
 			describe('when setting a new state', function () {
