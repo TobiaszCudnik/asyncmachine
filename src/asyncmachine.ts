@@ -21,7 +21,8 @@ import {
   IEmit,
   BaseStates,
   // @ts-ignore
-  TAsyncMachine
+  TAsyncMachine,
+  TransitionException
 } from './types'
 
 export {
@@ -50,12 +51,16 @@ const assert = function(cond: boolean, msg: string) {
 }
 
 /**
- * Creates an AsyncMachine instance (not a constructor) with specified states.
- * States properties are empty, so you'd need to set it by yourself.
+ * Factory function which creates an AsyncMachine instance with specified
+ * states.
+ *
+ * States properties are empty, so you'd need to define the relations by
+ * yourself.
  *
  * @param states List of state names to register on the new instance or a map
- *   of state names and their properties.
- * @return
+ *   of state names and their attributes.
+ * @return The machine instance. You can inherit from it by [[createChild]] to
+ * make more copies, which are efficient.
  *
  * Using a list of names:
  * ```
@@ -118,9 +123,9 @@ export function machine<
 }
 
 /**
- * Base class to extend. Define states as prototype properties or
- * inside of the constructor. Remember to call this.registerAll() afterwards
- * in the latter case.
+ * Base class to extend. Define states as prototype attributes or
+ * inside of the constructor. In the latter case remember to call
+ * this.registerAll() afterwards (for every sub constructor).
  *
  * The [[Exception]] state is already provided.
  *
@@ -258,7 +263,7 @@ export default class AsyncMachine<
    * @param target_states Target states of the transition during
    * 	which the exception was thrown.
    * @param base_states Base states in which the transition orginated.
-   * @param exception_transition The explicit state which thrown the exception.
+   * @param exception_src_handler The explicit state which thrown the exception.
    * @param async_target_states Only for async transitions like
    * [[addByCallback]], these are states which we're supposed to be set by the
    * callback.
@@ -284,10 +289,10 @@ export default class AsyncMachine<
    * TODO make the log easier to read
    */
   Exception_state(
-    err: Error,
+    err: Error | TransitionException,
     target_states: string[],
     base_states: string[],
-    exception_transition: string,
+    exception_src_handler: string,
     async_target_states?: string[]
   ): void {
     if (this.print_exception) console.error('EXCEPTION from AsyncMachine')
@@ -309,9 +314,9 @@ export default class AsyncMachine<
           `${async_target_states.join(', ')}`
       )
     }
-    if (exception_transition) {
+    if (exception_src_handler) {
       console.error(
-        `The call which caused the exception was ` + exception_transition
+        `The call which caused the exception was ` + exception_src_handler
       )
     }
     // if the exception param was passed, print and throw (but outside of the
@@ -1913,8 +1918,11 @@ export default class AsyncMachine<
     this.lock_queue = true
     let row: IQueueRow | undefined
     while ((row = this.queue_.shift())) {
-      if (!row[QueueRowFields.TARGET]) row[QueueRowFields.TARGET] = this
+      if (!row[QueueRowFields.TARGET]) {
+        row[QueueRowFields.TARGET] = this
+      }
       this.transition = new Transition(this, row)
+      // TODO do the queue checks here, per each entry and postpone if busy
       // expose the current transition also on the target machine
       row[QueueRowFields.TARGET].transition = this.transition
       ret.push(this.transition.exec())

@@ -27,9 +27,12 @@ interface IEvent {
 }
 
 /**
- * TODO
- * - refactor the execution of calls to sth structured instead of strings
- * - multi-step (keep couple of steps as one step)
+ * The Transition class is responsible for encapsulating a single mutation
+ * for a single machine. In can be created by a different machine than it's
+ * mutating. End users usually don't have to deal with it at all, as the most
+ * important data it carries for them is exposed as `instance.to()` and
+ * `instance.from()` methods and it's events are also emitted on the
+ * machine itself.
  */
 export default class Transition {
   id = uuid()
