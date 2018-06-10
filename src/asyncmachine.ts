@@ -1277,11 +1277,21 @@ export default class AsyncMachine<
    * TODO this is for sure seriously broken
    */
   createChild(): this {
+    // TODO check if during a transition
     var child = Object.create(this)
     child.states_active = []
+    child.states_all = Object.assign({}, this.states_all)
     child.clock_ = {}
     child.queue_ = []
-    for (let state of this.states_all) child.clock[state as string] = 0
+    child.lock = false
+    child.lock_queue = false
+    child.postponed_queue = false
+    child._events = null
+    child.piped = {}
+    child.transition = null
+    for (let state of this.states_all) {
+      child.clock[state as string] = 0
+    }
     return child
   }
 
