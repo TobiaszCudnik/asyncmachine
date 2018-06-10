@@ -14,7 +14,7 @@
 /test/**/*.js.map
 /test/**/*.d.ts
 /tsickle_externs.js
-/docs/
+/docs
 /typings/
 /.rpt2_cache/
 /wiki

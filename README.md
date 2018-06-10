@@ -54,11 +54,11 @@ For a real world example check [GTD bot](https://github.com/TobiaszCudnik/gtd-bo
 
 * [AsyncMachine - The Definitive Guide](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide) (wiki)<br>
   [PDF version](https://github.com/TobiaszCudnik/asyncmachine/raw/gh-pages/AsyncMachine-The-Definitive-Guide.pdf) (25 pages, 1.4mb)
-* [API docs](https://tobiaszcudnik.github.io/asyncmachine/) (TypeScript)
-  * [machine() factory](https://tobiaszcudnik.github.io/asyncmachine/index.html#machine)
-  * [AsyncMachine class](https://tobiaszcudnik.github.io/asyncmachine/classes/asyncmachine.html)
-  * [Transition class](https://tobiaszcudnik.github.io/asyncmachine/classes/transition.html)
-  * [List of emitted events](https://tobiaszcudnik.github.io/asyncmachine/interfaces/iemit.html)
+* [API docs](https://tobiaszcudnik.github.io/asyncmachine/api) (TypeScript)
+  * [machine() factory](https://tobiaszcudnik.github.io/asyncmachine/api/index.html#machine)
+  * [AsyncMachine class](https://tobiaszcudnik.github.io/asyncmachine/api/classes/asyncmachine.html)
+  * [Transition class](https://tobiaszcudnik.github.io/asyncmachine/api/classes/transition.html)
+  * [List of emitted events](https://tobiaszcudnik.github.io/asyncmachine/api/interfaces/iemit.html)
 
 ## Use cases
 
