@@ -107,3 +107,8 @@
 - state as an object (shorter API calls, like `states.A.add()`) #maybe #api
   - considers signals composed out of event emitters (per each signal)
 - chai assertion helper #project #api
+
+## Transition
+
+ * refactor the execution of calls to sth structured instead of strings
+ * multi-step (keep couple of steps as one step)

@@ -105,4 +105,9 @@ docs:
 		--mode file \
 		src/asyncmachine.ts
 
+pdf:
+	cp \
+		wiki/AsyncMachine-The-Definitive-Guide.pdf \
+		docs/AsyncMachine-The-Definitive-Guide.pdf
+
 .PHONY: build test docs
