@@ -258,11 +258,12 @@ export default class Transition {
 
     if (aborted) return false
 
-    // If this's a DROP transition, check if all explicit states has been dropped.
+    // If this's a DROP transition, check if all explicit states has been
+    // dropped.
     if (this.row[QueueRowFields.STATE_CHANGE_TYPE] === StateChangeTypes.DROP) {
-      return machine.allStatesNotSet(this.row[QueueRowFields.STATES])
+      return machine.not(this.row[QueueRowFields.STATES])
     } else {
-      return machine.every(...this.states)
+      return machine.is(this.states)
     }
   }
 

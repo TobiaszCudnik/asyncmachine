@@ -60,7 +60,7 @@ const assert = function(cond: boolean, msg: string) {
  * @param states List of state names to register on the new instance or a map
  *   of state names and their attributes.
  * @return The machine instance. You can inherit from it by [[createChild]] to
- * make more copies, which are efficient.
+ *   make more copies, which are efficient.
  *
  * Using a list of names:
  * ```
@@ -168,7 +168,7 @@ export default class AsyncMachine<
   TEmit extends IEmit
 > extends EventEmitter {
   /**
-   * Empty Exception state properties. See [[Exception_state]] transition
+   * Exception state's properties. See [[Exception_state]] final transition
    * handler.
    * @type {IState}
    */
@@ -178,9 +178,11 @@ export default class AsyncMachine<
   /** List of all registered state names */
   states_all: (TStates | BaseStates)[] = []
   /**
-   * Promise created by calling one of `...ByCallback` or `...ByListener`
-   * methods, eg `addByListener`. Resolved once the callback/listener gets
-   * called.
+   * Promise created by one of the delayed mutation methods:
+   * - `...ByCallback`
+   * - `...ByListener`
+   *
+   * Resolved once the callback/listener gets called.
    */
   last_promise: Promise<any> | null = null
   /** Map of piped states and their targets. */
@@ -235,14 +237,16 @@ export default class AsyncMachine<
   private id_: string = uuid()
 
   /**
-   * Creates a new instance with only state one registered, which is the
-   * Exception.
-   * When extending the class, you should register your states by using either
-   * [[registerAll]] or [[register]].
+   * Creates a new instance with only one registered state - Exception.
    *
-   * @param target Target object for the transitions, useful when composing the
-   * 	states instance.
-   * @param register_all Automatically registers all defined states.
+   * When extending the class, you should register your states by using either
+   * the [[registerAll]] or [[register]] methods at the end of every sub
+   * constructor.
+   *
+   * @param target Target object for the transitions, useful when composing a
+   *   machine.
+   * @param register_all Automatically registers all defined states. Works
+   *   only in case there no other attributes defined on the prototype.
    * @see [[AsyncMachine]] for the usage example.
    */
   constructor(target?: {}, register_all: boolean = true) {
@@ -255,38 +259,40 @@ export default class AsyncMachine<
 
   /**
    * All exceptions are caught into this state, including both synchronous and
-   * asynchronous from promises and callbacks. You can overcreateride it and
-   * handle exceptions based on their type and target states of the transition
-   * during which they appeared.
+   * asynchronous ones, coming from async methods and callbacks. You can
+   * override it with your own and handle exceptions based on passed state
+   * data and the actual state.
    *
    * @param err The exception object.
    * @param target_states Target states of the transition during
-   * 	which the exception was thrown.
-   * @param base_states Base states in which the transition orginated.
-   * @param exception_src_handler The explicit state which thrown the exception.
-   * @param async_target_states Only for async transitions like
-   * [[addByCallback]], these are states which we're supposed to be set by the
-   * callback.
+   * 	 which the exception was thrown.
+   * @param base_states Base states in which the transition originated.
+   * @param exception_src_handler The handler state which thrown the exception.
+   * @param async_target_states Only for delayed mutations like
+   *   [[addByCallback]], these are states which we're supposed to be activated
+   *   by the callback.
    *
-   * Example of exception handling
+   * Example of a custom exception handler
    * ```
    * states = machine(['A', 'B', 'C'])
-   * states.Exception_state = (err, target_states) ->
-   * 	# Re-adds state 'C' in case of an exception if A is set.
-   * 	if exception_states.some((state) -> state is 'C') and @is 'A'
-   * 		states.add 'C'
-   * ```
-   * Example of a manual exception triggering
-   * ```
-   * states.A_state = (states) ->
-   * 	foo = new SomeAsyncTask
-   * 	foo.start()
-   * 	foo.once 'error', (error) =>
-   * 		this.add 'Exception', error, states
+   * states.Exception_state = function(err, target_states) {
+   *   // Re-adds state 'C' in case of an exception when A is active.
+   *   if (exception_states.some((state) => state == 'C') && this.is('A')) {
+   *     states.add 'C'
+   *   }
+   * }
    * ```
    *
-   * TODO update the docs
-   * TODO make the log easier to read
+   * Example of a manually thrown exception
+   * ```
+   * states.A_state = function(states) {
+   *   foo = new SomeAsyncTask()
+   *   foo.start()
+   *   foo.once('error', (error) => {
+   *     this.add('Exception', error, states)
+   *   }
+   * }
+   * ```
    */
   Exception_state(
     err: Error | TransitionException,
@@ -295,7 +301,9 @@ export default class AsyncMachine<
     exception_src_handler: string,
     async_target_states?: string[]
   ): void {
-    if (this.print_exception) console.error('EXCEPTION from AsyncMachine')
+    if (this.print_exception) {
+      console.error('EXCEPTION from AsyncMachine')
+    }
     if (target_states && target_states.length > 0) {
       this.log(
         `Exception \"${err}\" when setting states:\n` +
@@ -322,7 +330,9 @@ export default class AsyncMachine<
     // if the exception param was passed, print and throw (but outside of the
     // current stack trace)
     if (err) {
-      if (this.print_exception) console.error(err)
+      if (this.print_exception) {
+        console.error(err)
+      }
       this.setImmediate(() => {
         throw err
       })
@@ -330,22 +340,25 @@ export default class AsyncMachine<
   }
 
   /**
-   * Sets the target for the transition handlers. Useful to keep all you methods in
-   * in one class while the states class is composed as an attribute of the main
-   * object. There's also a shorthand for this method as
-   * [[AsyncMachine.constructor]]'s param.
+   * Sets the target for the transition handlers. Useful to keep all your
+   * methods in in one class while the states class is composed as an
+   * attribute of the target object. There's also a shorthand for this method
+   * as a [[AsyncMachine.constructor]]'s param.
    *
    * @param target Target object.
    *
    * ```
-   * class Foo
-   * 	constructor: ->
-   * 		this.states = machine(['A', 'B', 'C'])
-   * 		this.states.setTarget this
-   * 		this.states.add 'A'
+   * class Foo {
+   *   constructor() {
+   *     this.states = machine(['A', 'B', 'C'])
+   *     this.states.setTarget(this)
+   *     this.states.add('A')
+   *   }
    *
-   * 	A_state: ->
-   * 		console.log 'State A set'
+   *   A_state() {
+   *     console.log('State A set')
+   *   }
+   * }
    * ```
    */
   setTarget(target: {}): this {
@@ -355,9 +368,9 @@ export default class AsyncMachine<
 
   /**
    * Registers all defined states. Use it only if you don't define any other
-   * attributes on the object (or it's prototype). If you do, register the states
-   * manually with the [[register]] method. There's also a shorthand for this
-   * method as [[AsyncMachine.constructor]]'s param.
+   * attributes on the object (or it's prototype). If you do, register the
+   * states manually with the [[register]] method. There's also a shorthand
+   * for this method as [[AsyncMachine.constructor]]'s param.
    *
    * ```
    * class States extends AsyncMachine {
@@ -407,6 +420,13 @@ export default class AsyncMachine<
     // TODO validate relations
   }
 
+  /**
+   * Returns defined relations between two registered states.
+   *
+   * @param from_state
+   * @param to_state
+   * @returns List of relations.
+   */
   getRelationsOf(
     from_state: TStates | BaseStates,
     to_state?: TStates | BaseStates
@@ -429,16 +449,17 @@ export default class AsyncMachine<
   }
 
   /**
-   * If no states passed, returns all the current states.
+   * Without any params passed, returns all of the current states.
    *
-   * If states passed, returns a boolean if all of them are set.
+   * When a list of states is provided, returns a boolean if all of them are
+   * currently active.
    *
-   * If only one state is passed, one can assert on a certain tick of the given
+   * If only one state is passed, you can assert on a certain tick of that
    * state (see [[clock]]).
    *
-   * @param state One or more state names.
-   * @param tick For one state, additionally checks if state's clock is at the same
-   * moment.
+   * @param states One or more state names.
+   * @param tick When checking only one state, additionally asserts the clock
+   *   value for that state.
    *
    * ```
    * states = machine(['A', 'B'])
@@ -463,7 +484,7 @@ export default class AsyncMachine<
       return this.states_active
     }
     let states_parsed = this.parseStates(states)
-    var active = states_parsed.every(state => {
+    const active = states_parsed.every(state => {
       return Boolean(this.states_active.includes(state))
     })
     if (!active) {
@@ -475,73 +496,85 @@ export default class AsyncMachine<
     return true
   }
 
-  // TODO docs
-  not(
-    states: (TStates | BaseStates) | (TStates | BaseStates)[],
-    tick?: number
-  ): boolean {
+  /**
+   * Returns `true` in case of all of the passed states aren't active.
+   *
+   * Example:
+   *
+   * ```
+   * const example = machine(['A', 'B', 'C', 'D'])
+   * example.add(['A', 'B'])
+   *
+   * // not(A) and not(C)
+   * example.not(['A', 'C']) // -> false
+   * // not(C) and not(D)
+   * example.not(['C', 'D']) // -> true
+   * ```
+   *
+   * @param states
+   * @return
+   */
+  not(states: (TStates | BaseStates) | (TStates | BaseStates)[]): boolean {
     let states_parsed = this.parseStates(states)
-    const inactive: boolean = states_parsed.every(state => {
+    return states_parsed.every(state => {
       return Boolean(!this.states_active.includes(state))
     })
-    if (!inactive) {
-      return false
-    }
-    return true
   }
 
   /**
-   * Checks if any of the passed states is set. State can also be an array, then
-   * all states from this param has to be set.
+   * Checks if any of the passed states is active. State can also be an array,
+   * then all states from this param has to be active.
    *
    * @param states State names and/or lists of state names.
    * @return
    *
    * ```
    * states = machine(['A', 'B', 'C'])
-   * states.add ['A', 'B']
+   * states.add(['A', 'B'])
    *
-   * states.any 'A', 'C' // -> true
-   * states.any ['A', 'C'], 'C' // -> false
+   * states.any('A', 'C') // -> true
+   * states.any(['A', 'C'], 'C') // -> false
    * ```
    */
   any(...states: (TStates | BaseStates)[]): boolean
   any(...states: (TStates | BaseStates)[][]): boolean
   any(...states: any[]): boolean {
     return states.some(name => {
-      if (Array.isArray(name)) return this.every(...name)
-      else return this.is(name)
+      return this.is(name)
     })
   }
 
   /**
-   * Returns the current queue. For struct's meaning, see [[QUEUE]].
+   * Returns the current queue. To understand the returned format, refer to
+   * [[IQueueRow]].
    */
   queue(): IQueueRow[] {
     return this.queue_
   }
 
   /**
-   * Register the passed state names. State properties should be already defined.
+   * Register passed state names. State properties should be already defined.
    *
    * @param states State names.
    * @return
    *
    * ```
-   * states = new AsyncMachine
-   * states.Enabled = {}
-   * states.Disposed = drop: 'Enabled'
+   * const example = machine()
+   * example.Enabled = {}
+   * example.Disposed = { drop: ['Enabled'] }
    *
-   * states.register 'Enabled', 'Disposed'
+   * states.register('Enabled', 'Disposed')
    *
-   * states.add 'Enabled'
+   * states.add('Enabled')
    * states.is() // -> 'Enabled'
    * ```
    */
   register(...states: (TStates | BaseStates)[]) {
     // TODO dont register during a transition
     for (let state of this.parseStates(states)) {
-      if (!this.get(state)) {
+      // @ts-ignore Cant use this.get() here
+      const exists = this[state]
+      if (!exists) {
         console.error(`Missing state '${state}' in machine '${this.id()}'`)
       }
       if (!this.states_all.includes(state)) {
@@ -559,65 +592,72 @@ export default class AsyncMachine<
    */
   unregister(name: string) {
     throw new Error(`Not implemented - unregister('${name}')`)
-    // TODO
-    // TODO dont deregister during a transition
+    // TODO dont unregister during a transition
   }
 
   /**
-   * Returns state's properties.
+   * Returns state's properties and relations.
    *
    * @param state State name.
-   * @return
    *
    * ```
    * states = machine(['A', 'B', 'C'])
-   * states.A = drop: ['B']
+   * states.A = { drop: ['B'] }
    *
    * states.get('A') // -> { drop: ['B'] }
    * ```
    */
   get(state: TStates | BaseStates): IState<TStates> {
+    if (!this.states_all.includes(state)) {
+      throw new NonExistingStateError(state)
+    }
     return this[state as string]
   }
 
   /**
-   * Sets specified states and deactivate all the other which are currently set.
+   * Activates only the specified states and de-activates all the other ones
+   * which are currently active.
    *
    * @param target OPTIONAL. Pass it if you want to execute a transition on an
-   *   external machine, but using the local queue.
+   *   external machine, but using this machine's queue.
    * @param states Array of state names or a single state name.
-   * @param params Params to be passed to the transition handlers (only ones from
-   *   the specified states, not implied or auto states).
-   * @return Result of the transition. FALSE means that states weren't accepted,
-   *   or some of implied or auto states dropped some of the requested states
-   *   after the transition.
+   * @param params Params to be passed to the transition handlers (only the ones
+   *   belonging to the explicitly requested states, not implied or auto
+   *   states).
+   * @return Result of the transition. `false` can mean that either the
+   *   requested states weren't accepted or that the transition has been aborted
+   *   by one of the negotiation handlers. `null` means that the machine is busy
+   *   and the mutation has been queued.
    *
    * Basic usage
    * ```
-   * states = machine(['A', 'B', 'C'])
-   * states.set('A')
-   * states.is() // -> ['A']
-   * states.set('B')
-   * states.is() // -> ['B']
+   * const example = machine(['A', 'B', 'C'])
+   * example.set('A') // -> true
+   * example.is() // -> ['A']
+   * example.set('B') // -> true
+   * example.is() // -> ['B']
    * ```
    *
    * State negotiation
    * ```
-   * states = machine ['A', 'B']
-   * # Transition enter negotiation
-   * states.A_enter = -> no
-   * states.add 'A' // -> false
+   * const example = machine(['A', 'B'])
+   * // reject the transition with a negotiation handler
+   * example.A_enter = function() {
+   *   return false
+   * }
+   * example.add('A') // -> false
    * ```
    *
-   * Setting a state on an external machine
+   * Activating a state on an external machine
    * ```
-   * states1 = machine ['A', 'B']
-   * states2 = machine ['C', 'D']
+   * const m1 = machine(['A', 'B'])
+   * const m2 = machine(['C', 'D'])
    *
-   * states1.A_enter ->
-   * 	# this transition will be queued and executed after the current transition
-   * 	# is fully finished
-   * 	states1.add states2, 'B'
+   * m1.A_enter = function() {
+   *   // this transition will be queued and executed after the current
+   *   // transition is completed
+   *   m1.add(m2, 'C') // -> null
+   * }
    * ```
    */
   set<S extends string>(
@@ -658,8 +698,8 @@ export default class AsyncMachine<
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
-   * setTimeout states.setByCallback('B')
+   * const example = machine(['A', 'B', 'C'])
+   * setTimeout(example.setByCallback('B'))
    * ```
    *
    */
@@ -686,8 +726,9 @@ export default class AsyncMachine<
   }
 
   /**
-   * Deferred version of [[set]], returning a listener for setting
-   * the state. Errors need to be handled manually by binding the exception
+   * Deferred version of [[set]], returning a listener for setting the state.
+   *
+   * Errors need to be handled manually by binding the exception
    * state to the 'error' event (or equivalent).
    *
    * After the call, the related promise object is available as the
@@ -697,10 +738,10 @@ export default class AsyncMachine<
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
+   * const example = machine(['A', 'B', 'C'])
    * emitter = new EventEmitter
-   * emitter.on 'ready', states.setByListener('A')
-   * emitter.on 'error', states.addByListener('Exception')
+   * emitter.on('ready', states.setByListener('A'))
+   * emitter.on('error', states.addByListener('Exception'))
    * ```
    */
   setByListener<S extends string>(
@@ -726,8 +767,8 @@ export default class AsyncMachine<
   }
 
   /**
-   * Deferred version of [[set]], setting the requested states on the next event
-   * loop's tick. Useful if you want to start with a fresh stack trace.
+   * Deferred version of [[set]], setting the requested states on the next
+   * event loop's tick. Useful if you want to start with a fresh stack trace.
    *
    * See [[set]] for the params description.
    *
@@ -757,43 +798,48 @@ export default class AsyncMachine<
   }
 
   /**
-   * Adds specified states to the currently set ones.
+   * Adds specified states to the currently active ones.
    *
    * @param target OPTIONAL. Pass it if you want to execute a transition on an
-   *   external machine, but using the local queue.
+   *   external machine, but using this machine's queue.
    * @param states Array of state names or a single state name.
-   * @param params Params to be passed to the transition handlers (only ones from
-   *   the specified states, not implied or auto states).
-   * @return Result of the transition. FALSE means that states weren't accepted,
-   *   or some of implied or auto states dropped some of the requested states
-   *   after the transition.
+   * @param params Params to be passed to the transition handlers (only the ones
+   *   belonging to the explicitly requested states, not implied or auto
+   *   states).
+   * @return Result of the transition. `false` can mean that either the
+   *   requested states weren't accepted or that the transition has been aborted
+   *   by one of the negotiation handlers. `null` means that the machine is busy
+   *   and the mutation has been queued.
    *
    * Basic usage
    * ```
-   * states = machine(['A', 'B', 'C'])
-   * states.add 'A'
-   * states.is() // -> ['A']
-   * states.add('B')
-   * states.is() // -> ['B']
+   * const example = machine(['A', 'B', 'C'])
+   * example.add 'A'
+   * example.is() // -> ['A']
+   * example.add('B')
+   * example.is() // -> ['B']
    * ```
    *
    * State negotiation
    * ```
-   * states = machine ['A', 'B']
-   * # Transition enter negotiation
-   * states.A_enter = -> no
-   * states.add('A' )// -> false
+   * const example = machine(['A', 'B'])
+   * // reject the transition with a negotiation handler
+   * example.A_enter = function() {
+   *   return false
+   * }
+   * example.add('A' ) // -> false
    * ```
    *
    * Adding a state on an external machine
    * ```
-   * states1 = machine ['A', 'B']
-   * states2 = machine ['C', 'D']
+   * const m1 = machine(['A', 'B'])
+   * const m2 = machine(['C', 'D'])
    *
-   * states1.A_enter ->
-   * 	# this transition will be queued and executed after the current transition
-   * 	# fully finishes
-   * 	states1.add states2, 'B'
+   * m1.A_enter = function() {
+   *   // this transition will be queued and executed after the current
+   *   // transition is completed
+   *   m1.add(m2, 'C') // -> null
+   * }
    * ```
    */
   add<S extends string>(
@@ -834,8 +880,8 @@ export default class AsyncMachine<
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
-   * someNodeCallback 'foo.com', states.addByCallback('B')
+   * const example = machine(['A', 'B', 'C'])
+   * someNodeCallback('foo.com', example.addByCallback('B'))
    * ```
    *
    */
@@ -862,8 +908,9 @@ export default class AsyncMachine<
   }
 
   /**
-   * Deferred version of [[add]], returning a listener for adding
-   * the state. Errors need to be handled manually by binding the exception
+   * Deferred version of [[add]], returning a listener for adding the state.
+   *
+   * Errors need to be handled manually by binding the exception
    * state to the 'error' event (or equivalent).
    *
    * After the call, the related promise object is available as the
@@ -873,10 +920,10 @@ export default class AsyncMachine<
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
+   * const example = machine(['A', 'B', 'C'])
    * emitter = new EventEmitter
-   * emitter.on 'ready', states.addByListener('A')
-   * emitter.on 'error', states.addByListener('Exception')
+   * emitter.on('ready', example.addByListener('A'))
+   * emitter.on('error', example.addByListener('Exception'))
    * ```
    */
   addByListener<S extends string>(
@@ -909,10 +956,10 @@ export default class AsyncMachine<
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
-   * states.add('A')
-   * states.addNext('B')
-   * states.is() // -> ['A', 'B']
+   * const example = machine(['A', 'B', 'C'])
+   * example.add('A')
+   * example.addNext('B')
+   * example.is() // -> ['A', 'B']
    * ```
    */
   addNext<S extends string>(
@@ -933,20 +980,22 @@ export default class AsyncMachine<
   }
 
   /**
-   * Drops specified states if they are currently set.
+   * De-activates specified states if any of them is currently active.
    *
    * @param target OPTIONAL. Pass it if you want to execute a transition on an
-   *   external machine, but using the local queue.
+   *   external machine, but using this machine's queue.
    * @param states Array of state names or a single state name.
-   * @param params Params to be passed to the transition handlers (only ones from
-   *   the specified states, not implied or auto states).
-   * @return Result of the transition. FALSE means that dropping the states
-   *   wasn't accepted, or some of implied or auto states added some of the
-   *   requested states after the transition.
+   * @param params Params to be passed to the transition handlers (only the ones
+   *   belonging to the explicitly requested states, not implied or auto
+   *   states).
+   * @return Result of the transition. `false` can mean that either the
+   *   requested states weren't accepted or that the transition has been aborted
+   *   by one of the negotiation handlers. `null` means that the machine is busy
+   *   and the mutation has been queued.
    *
    * Basic usage
    * ```
-   * states = machine(['A', 'B', 'C'])
+   * const example = machine(['A', 'B', 'C'])
    * states.drop('A')
    * states.is() // -> ['A']
    * states.drop('B')
@@ -955,21 +1004,23 @@ export default class AsyncMachine<
    *
    * State negotiation
    * ```
-   * states = machine ['A', 'B']
-   * # Transition enter negotiation
-   * states.A_enter = -> no
-   * states.add('A' )// -> false
+   * const example = machine(['A', 'B'])
+   * // reject the transition with a negotiation handler
+   * states.A_enter = function() {
+   *   return false
+   * }
+   * states.add('A') // -> false
    * ```
    *
    * Dropping a state on an external machine
    * ```
-   * states1 = machine(['A', 'B'])
-   * states2 = machine(['C', 'D'])
+   * const m1 = machine(['A', 'B'])
+   * const m2 = machine(['C', 'D'])
    *
-   * states1.A_enter = function() {
-   * 	 // the transition below will be queued and executed after the current
-   * 	 // transition fully finishes
-   * 	 states1.add(states2, 'B')
+   * m1.A_enter = function() {
+   *   // this transition will be queued and executed after the current
+   *   // transition is completed
+   *   m1.drop(m2, 'C') // -> null
    * }
    * ```
    */
@@ -1010,8 +1061,8 @@ export default class AsyncMachine<
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
-   * someNodeCallback 'foo.com', states.dropByCallback('B')
+   * const example = machine(['A', 'B', 'C'])
+   * someNodeCallback('foo.com', states.dropByCallback('B'))
    * ```
    *
    */
@@ -1038,8 +1089,9 @@ export default class AsyncMachine<
   }
 
   /**
-   * Deferred version of [[drop]], returning a listener for dropping
-   * the state. Errors need to be handled manually by binding the exception
+   * Deferred version of [[drop]], returning a listener for dropping the state.
+   *
+   * Errors need to be handled manually by binding the exception
    * state to the 'error' event (or equivalent).
    *
    * After the call, the related promise object is available as the
@@ -1049,10 +1101,10 @@ export default class AsyncMachine<
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
+   * const example = machine(['A', 'B', 'C'])
    * emitter = new EventEmitter
-   * emitter.on 'ready', states.dropByListener('A')
-   * emitter.on 'error', states.setByListener('Exception')
+   * emitter.on('ready', example.dropByListener('A'))
+   * emitter.on('error', example.setByListener('Exception'))
    * ```
    */
   dropByListener<S extends string>(
@@ -1085,7 +1137,7 @@ export default class AsyncMachine<
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
+   * const example = machine(['A', 'B', 'C'])
    * states.add('A')
    * states.dropNext('A')
    * states.is('A') // -> true
@@ -1109,34 +1161,35 @@ export default class AsyncMachine<
   }
 
   /**
-   * Pipes (forwards) a state to another state machine.
+   * Pipes (forwards) a state to another machine.
    *
    * @param state Name of the state to pipe.
-   * @param machine Target machine to which the state should be forwarded.
+   * @param machine Target machine to which the state should be forwarded to.
    * @param target_state If the target state name should be different, this is
-   *   the name. Applicable if only one state is piped.
+   *   that name. Applicable if only one state is being piped.
    * @param flags Different modes of piping. See [[PipeFlags]].
    *
    * Piping without negotiation
    * ```
-   * states1 = machine(['A', 'B', 'C'])
-   * states2 = machine(['A', 'B', 'C'])
-   * states1.pipe('A', states2)
-   * states1.add('A')
-   * states2.is('A') // -> true
+   * const m1 = machine(['A', 'B', 'C'])
+   * const m2 = machine(['A', 'B', 'C'])
+   * m1.pipe('A', m2)
+   * m1.add('A')
+   * m2.is('A') // -> true
    * ```
    *
    * Piping with negotiation
    * ```
-   * states1 = machine(['A', 'B', 'C'])
-   * states2 = machine(['A', 'B', 'C'])
-   * states2.A_enter = -> no
-   * states1.pipe('A', states2, null, asyncmachine.PipeFlags.NEGOTIATION)
-   * states1.add('A')
-   * states2.is('A') // -> false
+   * import { PipeFlags } from 'asyncmachine'
+   * const m1 = machine(['A', 'B', 'C'])
+   * const m2 = machine(['A', 'B', 'C'])
+   * m2.A_enter = function() {
+   *   return false
+   * }
+   * m1.pipe('A', m2, null, PipeFlags.NEGOTIATION)
+   * m1.add('A')
+   * m2.is('A') // -> false
    * ```
-   *
-   * TODO tighter typing for state names
    */
   pipe<S extends string>(
     state: (TStates | BaseStates) | (TStates | BaseStates)[],
@@ -1148,17 +1201,18 @@ export default class AsyncMachine<
   }
 
   /**
-   * Pipes all the states from this machine to the passed one.
+   * Pipes all the states from this machine to the `target`. Doesn't pipe the
+   * `Exception` state.
    *
    * The exception state is never piped.
    *
-   * @param machine Target machine to which the state should be forwarded.
+   * @param target Target machine to which the state should be forwarded.
    */
-  pipeAll(machine: AsyncMachine<any, IBind, IEmit>, flags?: PipeFlags) {
+  pipeAll(target: AsyncMachine<any, IBind, IEmit>, flags?: PipeFlags) {
     // Do not forward the Exception state
     let states_all = this.states_all.filter(state => state !== 'Exception')
 
-    this.pipeBind(states_all, machine, null, flags)
+    this.pipeBind(states_all, target, null, flags)
   }
 
   /**
@@ -1223,9 +1277,9 @@ export default class AsyncMachine<
   /**
    * Returns the current tick of the passed state.
    *
-   * State's clock starts with 0 and on each (successful) set it's incremented
+   * State's clock starts with 0 and on each activation gets incremented
    * by 1. Ticks lets you keep control flow's integrity across async listeners,
-   * by aborting it once the state had changed. Easiest way to get the tick
+   * by aborting them once the state changes. Easiest way to get the tick-based
    * abort function is to use [[getAbort]].
    *
    * @param state Name of the state
@@ -1233,13 +1287,13 @@ export default class AsyncMachine<
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
-   * states.add('A')
-   * states.add('A')
-   * states.clock('A') // -> 1
-   * states.drop('A')
-   * states.add('A')
-   * states.clock('A') // -> 2
+   * const example = machine(['A', 'B', 'C'])
+   * example.add('A')
+   * example.add('A')
+   * example.clock('A') // -> 1
+   * example.drop('A')
+   * example.add('A')
+   * example.clock('A') // -> 2
    * ````
    */
   clock(state: TStates | BaseStates): number {
@@ -1248,23 +1302,23 @@ export default class AsyncMachine<
   }
 
   /**
-   * Creates a prototype child with dedicated active states, a clock and
-   * a queue.
+   * Creates a prototype child with it's own active states, clock, queue and
+   * locks.
    *
-   * Useful for creating new instances of dynamic classes (or factory created
-   * instances).
+   * Useful for creating new instances of machines created using the
+   * [[machine]] factory in an efficient manner.
    *
    * Example
    * ```
-   * states1 = machine(['A', 'B', 'C'])
-   * states2 = states1.createChild()
+   * const parent = machine(['A', 'B', 'C'])
+   * const child = parent.createChild()
    *
-   * states2.add('A')
-   * states2.is() // -> ['A']
-   * states1.is() // -> []
+   * child.add('A')
+   * child.is() // -> ['A']
+   * parent.is() // -> []
    * ````
    *
-   * TODO this is for sure seriously broken
+   * // TODO write a test
    */
   createChild(): this {
     // TODO check if during a transition
@@ -1286,7 +1340,7 @@ export default class AsyncMachine<
   }
 
   /**
-   * Indicates if this instance is currently during a state transition.
+   * Indicates if this instance is currently during a transition.
    *
    * When a machine is during a transition, all state changes will be queued
    * and executed once the transition and the previously queued state
@@ -1294,26 +1348,26 @@ export default class AsyncMachine<
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
+   * const example = machine(['A', 'B', 'C'])
    *
-   * states.A_enter = ->
+   * example.A_enter = function() {
    *   this.duringTransition() // -> true
+   * }
    *
-   * states.A_state = ->
+   * example.A_state = function() {
    *   this.duringTransition() // -> true
+   * }
    *
-   * states.add('A')
+   * example.add('A')
    * ````
-   *
-   * TODO distuinguish transition of this machine and sole queue processing and
-   *   transitioning of an external machine
    */
   duringTransition(): boolean {
     return this.lock
   }
 
   /**
-   * Returns the list of states from which the current transition started.
+   * Returns the list of active states from which the current transition
+   * started.
    *
    * Requires [[duringTranstion]] to be true or it'll throw.
    */
@@ -1329,7 +1383,8 @@ export default class AsyncMachine<
   }
 
   /**
-   * Returns the list of states to which the current transition is heading.
+   * Returns the list of target states which are about to be active after the
+   * transition finishes.
    *
    * Requires [[duringTranstion]] to be true or it'll throw.
    */
@@ -1345,19 +1400,19 @@ export default class AsyncMachine<
   }
 
   /**
-   * Returns the abort function, based on the current [[clock]] tick of the
-   * passed state. Optionally allows to compose an existing abort function.
+   * Returns an abort function, based on the current [[clock]] tick of the
+   * passed state. Optionally allows to next an existing abort function.
    *
-   * The abort function is a boolean function returning TRUE once the flow
-   * for the specific state should be aborted, because:
-   * -the state has been unset (at least once)
-   * -the composed abort function returns TRUE
+   * The abort function return a boolean `true` in case the flow for the
+   * specific state should be aborted, because:
+   * - the state has been de-activated (at least once)
+   * - the nested abort function returns `true`
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
+   * const example = machine(['A', 'B', 'C'])
    *
-   * states.A_state = function() {
+   * example.A_state = function() {
    *   const abort = this.getAbort('A')
    *   setTimeout( () => {
    *     if (abort()) return
@@ -1365,12 +1420,11 @@ export default class AsyncMachine<
    *   }, 0)
    * }
    *
-   * states.add('A')
-   * states.drop('A')
+   * example.add('A')
+   * example.drop('A')
    * ````
    *
    * TODO support multiple states
-   * TODO support default values for state names
    *
    * @param state Name of the state
    * @param abort Existing abort function (optional)
@@ -1383,23 +1437,23 @@ export default class AsyncMachine<
   }
 
   /**
-   * Resolves the returned promise when all passed states are set (at the same
-   * time). Accepts an optional abort function.
+   * Resolves the returned promise when all of the passed states are active
+   * (at the same time). Accepts an optional abort function.
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
-   * states.when(['A', 'B']).then( () => {
+   * const example = machine(['A', 'B', 'C'])
+   * example.when(['A', 'B']).then( () => {
    *   console.log('A, B')
    * }
    *
-   * states.add('A')
-   * states.add('B') // prints 'A, B'
+   * example.add('A')
+   * example.add('B') // prints 'A, B'
    * ```
    *
    * TODO support push cancellation
    *
-   * @param state List of state names
+   * @param states List of state names
    * @param abort Existing abort function (optional)
    * @return Promise resolved once all states are set simultaneously.
    */
@@ -1417,7 +1471,28 @@ export default class AsyncMachine<
     })
   }
 
-  // TODO docs
+  /**
+   * Resolves the returned promise when all of the passed states are NOT active
+   * (at the same time). Accepts an optional abort function.
+   *
+   * Example
+   * ```
+   * const example = machine(['A', 'B', 'C'])
+   * example.when(['A', 'B']).then( () => {
+   *   console.log('A, B')
+   * }
+   *
+   * example.add('A')
+   * example.add('B') // prints 'A, B'
+   * ```
+   *
+   * TODO support push cancellation
+   * TODO merge with `when(active, inactive)`
+   *
+   * @param states List of state names
+   * @param abort Existing abort function (optional)
+   * @return Promise resolved once all states are set simultaneously.
+   */
   whenNot(
     states: (TStates | BaseStates) | (TStates | BaseStates)[],
     abort?: TAbortFunction
@@ -1433,7 +1508,7 @@ export default class AsyncMachine<
   }
 
   /**
-   * Enabled debug messages sent to the console (or the custom handler).
+   * Enables debug messages sent to the console (or the custom handler).
    *
    * There's 4 log levels:
    * - 0: logging is off
@@ -1441,13 +1516,13 @@ export default class AsyncMachine<
    * - 2: displays all operations which happened along with rejected state
    *   changes
    * - 3: displays more decision logic
-   * - 4: displays everything, including all possible operations
+   * - 4: displays everything, including all possible handlers
    *
    * Example
    * ```
-   * states = machine(['A', 'B', 'C'])
-   * states.logLevel(1)
-   * states.add('A')
+   * const example = machine(['A', 'B', 'C'])
+   * example.logLevel(1)
+   * example.add('A')
    * // -> [add] state Enabled
    * // -> [states] +Enabled
    * ````
@@ -1462,23 +1537,25 @@ export default class AsyncMachine<
       this.print_exception = Boolean(log_level)
       this.log_level_ = parseInt(log_level as string, 10)
       return this
-    } else return this.log_level_
+    } else {
+      return this.log_level_
+    }
   }
 
   /**
-   * Managed the ID of the machine.
+   * Managed the ID of a machine.
    *
    * Sets or gets and also support returning a normalized version.
    *
    * Example
    * ```
-   * machine = factory()
+   * const example = machine()
    * // set
-   * machine.id('a b c')
+   * example.id('a b c')
    * // get
-   * machine.id() // -> 'a b c'
+   * example.id() // -> 'a b c'
    * // get normalized
-   * machine.id(true) // -> 'a-b-c'
+   * example.id(true) // -> 'a-b-c'
    * ```
    */
   id(id: string): this
@@ -1567,7 +1644,7 @@ export default class AsyncMachine<
   // TODO type all the emit calls
 
   /**
-   * Bind the Exception state to the promise error handler. Handy when working
+   * Binds the Exception state to the promise error handler. Handy when working
    * with promises.
    *
    * See [[Exception_state]].
@@ -1587,11 +1664,12 @@ export default class AsyncMachine<
   }
 
   /**
-   * Diffs two state sets and returns the ones present only in the 1st one.
+   * Diffs two state sets and returns the ones present only in the first one.
    *
-   * @param states1 Source states list.
-   * @param states2 Set to diff against (picking up the non existing ones).
-   * @return List of states in states1 but not in states2.
+   * @param states1 List of source states.
+   * @param states2 List of states to diff against (picking up the non
+   *   existing ones).
+   * @return List of states in states1, but not in states2.
    */
   diffStates(
     states1: (TStates | BaseStates)[],
@@ -1600,6 +1678,12 @@ export default class AsyncMachine<
     return states1.filter(name => !states2.includes(name))
   }
 
+  /**
+   * Push a new message to the log with an optional level (defaults to 1).
+   *
+   * @param {string} msg
+   * @param {number} level
+   */
   log(msg: string, level: number = 1) {
     for (const handler of this.log_handlers) {
       handler(msg, level)
@@ -1612,10 +1696,20 @@ export default class AsyncMachine<
     console.log(msg)
   }
 
+  /**
+   * Returns a string representation of the machine using the [[statesToString]]
+   * method.
+   */
   toString() {
     return this.statesToString()
   }
 
+  /**
+   * Returns a string representation of the machine (name and the list of
+   * states), optionally including the in-active states.
+   *
+   * @param include_inactive
+   */
   statesToString(include_inactive = false): string {
     let ret = `${this.id()}\n`
     let footer = ''
@@ -1798,6 +1892,11 @@ export default class AsyncMachine<
     }
   }
 
+  /**
+   * Return `true` if the current state differs from the `states_before`.
+   *
+   * @param states_before List of previously active states.
+   */
   hasStateChanged(states_before: (TStates | BaseStates)[]): boolean {
     var length_equals = this.is().length === states_before.length
 
@@ -1807,14 +1906,23 @@ export default class AsyncMachine<
     )
   }
 
+  /**
+   * Parse state names, check if they exist and always return an array. Throws
+   * in of an error.
+   *
+   * @param states State names to check
+   * @return An array of valid state names.
+   */
   parseStates(
     states: (TStates | BaseStates) | (TStates | BaseStates)[]
   ): (TStates | BaseStates)[] {
     // TODO remove duplicates
-    var states_parsed = (<(TStates | BaseStates)[]>[]).concat(states)
+    const states_parsed = (<(TStates | BaseStates)[]>[]).concat(states)
 
     return states_parsed.filter(state => {
-      if (typeof state !== 'string' || !this.get(state)) {
+      // @ts-ignore Cant use this.get() here
+      const exists = this[state]
+      if (typeof state !== 'string' || !exists) {
         let id = this.id() ? ` in the machine "${this.id()}"` : ''
         throw new NonExistingStateError(`State "${state}" doesn't exist${id}`)
       }
@@ -1825,10 +1933,15 @@ export default class AsyncMachine<
 
   /**
    * Returns the JSON structure of states along with their relations.
+   *
+   * @return JSON version of the current machine. Valid input for the
+   *   [[machine]] factory.
    */
   states(): { [K in TStates | BaseStates]: IState<TStates> } {
     let ret: { [K in TStates | BaseStates]?: IState<TStates> } = {}
-    for (let state of this.states_all) ret[state] = this.get(state)
+    for (let state of this.states_all) {
+      ret[state] = this.get(state)
+    }
     return ret as { [K in TStates | BaseStates]: IState<TStates> }
   }
 
@@ -1921,10 +2034,6 @@ export default class AsyncMachine<
     return ret[0] || false
   }
 
-  allStatesNotSet(states: (TStates | BaseStates)[]): boolean {
-    return states.every(state => !this.is(state))
-  }
-
   private createDeferred(
     fn: Function,
     target:
@@ -1997,8 +2106,9 @@ export default class AsyncMachine<
   }
 
   /**
-   * Sets the new active states bumping the counters. Returns an array of
-   * previously active states.
+   * Sets the new active states incrementing the counters.
+   *
+   * @return An array of previously active states.
    */
   setActiveStates_(
     explicite_states: (TStates | BaseStates)[],
@@ -2042,6 +2152,10 @@ export default class AsyncMachine<
     return previous
   }
 
+  /**
+   * Returns an object for a given handler.
+   * @param name Handler's name
+   */
   getMethodContext(name: string): Object | null {
     if (
       this.target &&
