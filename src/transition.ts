@@ -151,20 +151,19 @@ export default class Transition {
     machine.emit('transition-start', this)
 
     // check if the machine isnt already during a transition
-    // TODO write a test
     // TODO ideally we would postpone the transition instead of cancelling it
+    // TODO move to parseQueue()
     if (machine.lock) {
-      // null here means there's not source state for this step
-      this.addStep(null, null, TransitionStepTypes.CANCEL)
+      this.addStepsFor(this.requested_states, null, TransitionStepTypes.CANCEL)
       machine.emit('transition-cancelled', this)
       machine.emit('transition-end', this)
+      const msg = `[cancelled:${this.source_machine.is(true)
+        }] Target machine "${machine.id()
+        }" already during a transition, use a shared queue`
+      console.warn(msg)
       // TODO this should be a warning
       // include machine ID, target states, source states
-      machine.log(
-        '[cancelled] Target machine already during a transition, ' +
-          'use a shared queue',
-        1
-      )
+      machine.log(msg, 1)
       return false
     }
 
@@ -222,6 +221,7 @@ export default class Transition {
         (err.transition.match(/^Exception_/) ||
           err.transition.match(/_Exception$/))
       ) {
+        // TODO honor this.machine.print_exception
         machine.setImmediate(() => {
           throw err.err
         })
@@ -427,7 +427,9 @@ export default class Transition {
 
       if (this.auto) {
         this.machine.log(`[rejected:auto] ${names.join(' ')}`, 3)
-      } else this.machine.log(`[rejected] ${names.join(' ')}`, 2)
+      } else {
+        this.machine.log(`[rejected] ${names.join(' ')}`, 2)
+      }
     }
 
     return states
@@ -723,7 +725,7 @@ export default class Transition {
    * Marks a steps relation between two states during the transition.
    */
   addStep(
-    target: string | IStateStruct | null,
+    target: string | IStateStruct,
     source?: string | IStateStruct | null,
     type?: TransitionStepTypes,
     data?: any
@@ -736,7 +738,7 @@ export default class Transition {
    * Marks a steps relation between two states during the transition.
    */
   addStepData(
-    target: string | IStateStruct | null,
+    target: string | IStateStruct,
     source?: string | IStateStruct | null,
     type?: TransitionStepTypes,
     data?: any
