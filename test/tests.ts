@@ -38,7 +38,6 @@ describe("asyncmachine", function () {
 	it('should allow to check if multiple states are active', function () {
 		this.machine.add('B');
 		expect(this.machine.is(['A', 'B'])).to.be.ok;
-		expect(this.machine.every('A', 'B')).to.be.ok;
 	});
 
 

@@ -515,21 +515,6 @@ export default class AsyncMachine<
   }
 
   /**
-   * Checks if all the passed states are set.
-   *
-   * ```
-   * states = machine(['A', 'B', 'C'])
-   * states.add ['A', 'B']
-   *
-   * states.every 'A', 'B' // -> true
-   * states.every 'A', 'B', 'C' // -> false
-   * ```
-   */
-  every(...states: (TStates | BaseStates)[]): boolean {
-    return states.every(name => Boolean(~this.states_active.indexOf(name)))
-  }
-
-  /**
    * Returns the current queue. For struct's meaning, see [[QUEUE]].
    */
   queue(): IQueueRow[] {
