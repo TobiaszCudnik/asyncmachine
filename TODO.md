@@ -1,6 +1,7 @@
 # TODO
 
 ## 3.x
+- ability to disable the default log handler
 - indicate "in transition" for statesToString()
 - export JSON from an instance (to easily paste into the inspector)
 - validate state names in relations
@@ -24,6 +25,7 @@
 - fix `createChild()`
   - tests
 - implement `pipeRemoveBinding(binding)`
+- implement `unregister(state)`
 
 ## 4.x
 

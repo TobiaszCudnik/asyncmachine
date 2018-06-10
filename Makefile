@@ -1,4 +1,5 @@
 BIN=./node_modules/.bin
+MOCHA=./node_modules/mocha/bin/mocha
 
 all:
 	make build
@@ -59,7 +60,7 @@ publish:
 		npm publish
 
 test:
-	./node_modules/mocha/bin/mocha \
+	$(MOCHA) \
 		test/*.js
 
 test-build:
@@ -76,18 +77,18 @@ test-build-watch:
 		-p test
 
 test-grep:
-	$(BIN)/mocha \
+	$(MOCHA) \
 		--grep "$(GREP)"
 		test/*.js
 
 test-debug:
-	$(BIN)/mocha \
-		--debug-brk \
+	$(MOCHA) \
+		--inspect-brk \
 		--grep "$(GREP)" \
 		test/*.js
 
 test-grep-debug:
-	$(BIN)/mocha \
+	$(MOCHA) \
 		--debug-brk \
 		--grep "$(GREP)" \
 		test/*.js
