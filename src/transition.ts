@@ -572,7 +572,7 @@ export default class Transition {
     let ret = this.transitionExec_('Any', to, 'any_' + to, params)
     if (ret === false) return false
 
-    return this.transitionExec_(to, null, to + '_enter', this.params)
+    return this.transitionExec_(to, null, to + '_enter', params)
   }
 
   // Exit transition handles state-to-state methods.
