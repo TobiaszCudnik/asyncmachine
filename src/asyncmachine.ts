@@ -1322,9 +1322,9 @@ export default class AsyncMachine<
    */
   createChild(): this {
     // TODO check if during a transition
-    var child = Object.create(this)
+    const child = Object.create(this)
     child.states_active = []
-    child.states_all = Object.assign({}, this.states_all)
+    child.states_all = [...this.states_all]
     child.clock_ = {}
     child.queue_ = []
     child.lock = false
