@@ -276,7 +276,7 @@ export default class AsyncMachine<
    * ```
    * states = machine(['A', 'B', 'C'])
    * states.Exception_state = function(err, target_states) {
-   *   // Re-adds state 'C' in case of an exception when A is active.
+   *   // Re-adds the state 'C' in case of an exception when A is active
    *   if (exception_states.some((state) => state == 'C') && this.is('A')) {
    *     states.add 'C'
    *   }
@@ -879,11 +879,11 @@ export default class AsyncMachine<
    * See [[add]] for the params description.
    *
    * Example
+   *
    * ```
    * const example = machine(['A', 'B', 'C'])
    * someNodeCallback('foo.com', example.addByCallback('B'))
    * ```
-   *
    */
   addByCallback<S extends string>(
     target: AsyncMachine<S, IBind, IEmit>,
@@ -1060,11 +1060,11 @@ export default class AsyncMachine<
    * See [[drop]] for the params description.
    *
    * Example
+   *
    * ```
    * const example = machine(['A', 'B', 'C'])
    * someNodeCallback('foo.com', states.dropByCallback('B'))
    * ```
-   *
    */
   dropByCallback<S extends string>(
     target: AsyncMachine<S, IBind, IEmit>,
@@ -1294,7 +1294,7 @@ export default class AsyncMachine<
    * example.drop('A')
    * example.add('A')
    * example.clock('A') // -> 2
-   * ````
+   * ```
    */
   clock(state: TStates | BaseStates): number {
     // @ts-ignore
@@ -1316,7 +1316,7 @@ export default class AsyncMachine<
    * child.add('A')
    * child.is() // -> ['A']
    * parent.is() // -> []
-   * ````
+   * ```
    *
    * // TODO write a test
    */
@@ -1359,7 +1359,7 @@ export default class AsyncMachine<
    * }
    *
    * example.add('A')
-   * ````
+   * ```
    */
   duringTransition(): boolean {
     return this.lock
@@ -1422,7 +1422,7 @@ export default class AsyncMachine<
    *
    * example.add('A')
    * example.drop('A')
-   * ````
+   * ```
    *
    * TODO support multiple states
    *
@@ -1525,7 +1525,7 @@ export default class AsyncMachine<
    * example.add('A')
    * // -> [add] state Enabled
    * // -> [states] +Enabled
-   * ````
+   * ```
    *
    * @param prefix Prefix before all console messages.
    * @param level Error level (1-3).
