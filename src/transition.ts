@@ -33,6 +33,8 @@ interface IEvent {
  * important data it carries for them is exposed as `instance.to()` and
  * `instance.from()` methods and it's events are also emitted on the
  * machine itself.
+ *
+ * TODO freeze the attributes
  */
 export default class Transition {
   id = uuid()
@@ -157,9 +159,9 @@ export default class Transition {
       this.addStepsFor(this.requested_states, null, TransitionStepTypes.CANCEL)
       machine.emit('transition-cancelled', this)
       machine.emit('transition-end', this)
-      const msg = `[cancelled:${this.source_machine.id(true)
-        }] Target machine "${machine.id()
-        }" already during a transition, use a shared queue`
+      const msg = `[cancelled:${this.source_machine.id(
+        true
+      )}] Target machine "${machine.id()}" already during a transition, use a shared queue`
       console.warn(msg)
       // TODO this should be a warning
       // include machine ID, target states, source states
@@ -541,7 +543,9 @@ export default class Transition {
           this.addStep(state, state, TransitionStepTypes.TRANSITION, name)
           ret = context[name](...params)
           this.machine.catchPromise(ret, this.states)
-        } else this.machine.log('[transition] ' + name, 4)
+        } else {
+          this.machine.log('[transition] ' + name, 4)
+        }
 
         if (ret === false) {
           this.machine.log(`[cancelled:self] ${state}`, 2)
@@ -611,12 +615,14 @@ export default class Transition {
     method: string,
     params: string[] = []
   ) {
-    let context = this.machine.getMethodContext(method)
+    const context = this.machine.getMethodContext(method)
+    let ret
+
     try {
       if (context) {
         this.machine.log('[transition] ' + method, 2)
         this.addStep(from, to, TransitionStepTypes.TRANSITION, method)
-        var ret = context[method](...params)
+        ret = context[method](...params)
         this.machine.catchPromise(ret, this.states)
       } else this.machine.log('[transition] ' + method, 4)
 
@@ -671,7 +677,7 @@ export default class Transition {
       }
 
       try {
-        var context = this.machine.getMethodContext(method)
+        const context = this.machine.getMethodContext(method)
         if (context) {
           this.machine.log('[transition] ' + method, 2)
           this.addStep(state, null, TransitionStepTypes.TRANSITION, name)
@@ -684,6 +690,7 @@ export default class Transition {
         this.machine.emit(method as 'ts-dynamic', ...params)
       } catch (err) {
         err = new TransitionException(err, method)
+        // TODO addStep for TransitionStepTypes.EXCEPTION
         this.processPostTransitionException(state, is_enter)
         throw err
       }
@@ -717,9 +724,9 @@ export default class Transition {
     // override the active states, reverting the un-executed transitions
     this.machine.states_active = states_active
     this.machine.log(
-      `[exception] from ${state}, ` +
-        `forced states to ${states_active.join(', ')}`
+      `[exception] from ${state}, forced states to ${states_active.join(', ')}`
     )
+    this.machine.log('[state:force] ' + states_active.join(', '), 1)
   }
 
   /**

@@ -313,7 +313,7 @@ export default class AsyncMachine<
     if (Array.isArray(base_states)) {
       this.log(
         `Source states of the transition were:\n` +
-          `${base_states.join(', ') || '-----'}`
+          `${base_states.join(', ') || '--EMPTY--'}`
       )
     }
     if (async_target_states && async_target_states.length > 0) {
@@ -1524,7 +1524,7 @@ export default class AsyncMachine<
    * example.logLevel(1)
    * example.add('A')
    * // -> [add] state Enabled
-   * // -> [states] +Enabled
+   * // -> [state] +Enabled
    * ```
    *
    * @param prefix Prefix before all console messages.
@@ -2132,8 +2132,10 @@ export default class AsyncMachine<
     }
 
     // construct a logging msg
-    var log_msg: string[] = []
-    if (new_states.length) log_msg.push('+' + new_states.join(' +'))
+    const log_msg: string[] = []
+    if (new_states.length) {
+      log_msg.push('+' + new_states.join(' +'))
+    }
 
     if (removed_states.length) {
       log_msg.push('-' + removed_states.join(' -'))
@@ -2146,7 +2148,7 @@ export default class AsyncMachine<
       log_msg.push(nochange_states.join(', '))
     }
     if (log_msg.length) {
-      this.log('[states] ' + log_msg.join(' '), 1)
+      this.log('[state] ' + log_msg.join(' '), 1)
     }
 
     return previous
