@@ -24,6 +24,8 @@
   - demos on stackblitz
 - provide MJS build
 - test `createChild()`
+- test `Exception_state` params
+- test params for requested state handlers
 - implement `pipeRemoveBinding(binding)`
 - implement `unregister(state)`
 - fix / correct the broken tests
