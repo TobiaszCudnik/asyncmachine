@@ -22,6 +22,7 @@
   - demos on stackblitz
 - examples of how to use AM as a state manager for React
   - demos on stackblitz
+- provide MJS build
 - test `createChild()`
 - implement `pipeRemoveBinding(binding)`
 - implement `unregister(state)`

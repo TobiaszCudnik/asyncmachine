@@ -1,6 +1,6 @@
 {
   "name": "asyncmachine",
-  "version": "3.3.3",
+  "version": "3.3.5",
   "description": "Hybrid State Machine",
   "keywords": [
     "async",
@@ -25,8 +25,8 @@
   },
   "main": "asyncmachine.js",
   "types": "asyncmachine.d.ts",
-  "module": "asyncmachine-es6.js",
-  "browser": "asyncmachine.umd.js",
+  "module": "dist/asyncmachine.es6.js",
+  "browser": "dist/asyncmachine.umd.js",
   "dependencies": {
     "commander": "^2.14.1",
     "simple-random-id": "^1.0.1"
