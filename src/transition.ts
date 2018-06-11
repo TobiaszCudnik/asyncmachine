@@ -692,7 +692,7 @@ export default class Transition {
 
   // TODO REFACTOR
   processPostTransitionException(state: string, is_enter: boolean) {
-    var states_active = this.machine.states_active
+    const states_active = [...this.machine.states_active]
     let transition: IEvent | undefined
     // remove non transitioned states from the active list
     // in case there was an exception thrown while settings them
