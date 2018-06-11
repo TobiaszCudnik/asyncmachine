@@ -23,7 +23,9 @@ Features:
 npm i asyncmachine
 ```
 
-## Example
+## Examples
+
+### Dry Wet
 
 This basic examples makes use of: `states`, `transitions`, `relations` and `synchronous mutations`.
 
@@ -48,7 +50,14 @@ example.is() // -> [ 'Wet', 'Water' ]
 
 [![example](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/example.gif)](https://stackblitz.com/edit/asyncmachine-example?file=index.ts)
 
-For a real world example check [GTD bot](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src) (sync engine for Google APIs).
+### TodoMVC
+
+Classic TodoMCV example using AsyncMachine as a controller and React as the view:<br>
+[TobiaszCudnik/todomvc-asyncmachine](https://github.com/TobiaszCudnik/todomvc-asyncmachine)
+
+### GTD Bot
+
+For a real world example check [GTD bot](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src) - a sync engine for Google APIs.
 
 ## Documentation
 
@@ -59,6 +68,7 @@ For a real world example check [GTD bot](https://github.com/TobiaszCudnik/gtd-bo
   * [AsyncMachine class](https://tobiaszcudnik.github.io/asyncmachine/api/classes/asyncmachine.html)
   * [Transition class](https://tobiaszcudnik.github.io/asyncmachine/api/classes/transition.html)
   * [List of emitted events](https://tobiaszcudnik.github.io/asyncmachine/api/interfaces/iemit.html)
+* [Roadmap](https://github.com/TobiaszCudnik/asyncmachine/blob/master/TODO.md)
 
 ## Use cases
 
