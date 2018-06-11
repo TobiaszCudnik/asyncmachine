@@ -13,7 +13,7 @@
  * The handlers are using `this.to()` and `this.is()` methods fetch the Target
  * States of transitions.
  *
- * Scroll down to see log outputs.
+ * Scroll down to see the log output.
  *
  * @link https://github.com/TobiaszCudnik/asyncmachine
  */

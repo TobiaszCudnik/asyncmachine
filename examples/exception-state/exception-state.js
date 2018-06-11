@@ -1,12 +1,12 @@
 /**
- * AsyncMachine Exception Example
+AsyncMachine Exception Example
  *
- * This example presents a simple fault tolerance (retrying) using the
- * Exception state
- *
- * Scroll down to see the log output.
- *
- * @link https://github.com/TobiaszCudnik/asyncmachine
+This example presents a simple fault tolerance (retrying) using the
+Exception state
+
+Scroll down to see the log output.
+
+@link https://github.com/TobiaszCudnik/asyncmachine
  */
 
 const { machine } = require('asyncmachine')

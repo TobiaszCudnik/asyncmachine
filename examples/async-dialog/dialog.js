@@ -1,22 +1,22 @@
 /**
- * AsyncMachine Async Dialog Example
- *
- * Scenario:
- * 1. User clicks the button
- * 2. Data download begins
- * 3. Pre-loader appears
- * 4. Once data is fetched, the dialog replaces the preloader
- *
- * This example presents following concepts:
- * - automatic states
- * - synchronous mutations
- * - delayed mutations
- * - loose coupling (data downloading logic doesnt know anything about
- *   the preloader)
- *
- * Scroll down to see log outputs.
- *
- * @link https://github.com/TobiaszCudnik/asyncmachine
+AsyncMachine Async Dialog Example
+
+Scenario:
+1. User clicks the button
+2. Data download begins
+3. Pre-loader appears
+4. Once data is fetched, the dialog replaces the preloader
+
+This example presents the following concepts:
+- automatic states
+- synchronous mutations
+- delayed mutations
+- loose coupling (logic responsible for downloading data doesn't know
+  anything about the pre-loader)
+
+Scroll down to see log outputs.
+
+@link https://github.com/TobiaszCudnik/asyncmachine
  */
 
 const { machine } = require('asyncmachine')

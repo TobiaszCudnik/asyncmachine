@@ -636,13 +636,13 @@ export default class Transition {
         ret = this.machine.emit(method as 'ts-dynamic', ...params)
         if (ret === false) {
           this.machine.log(
-            `[cancelled] ${this.states.join(', ')} by ` + `the event ${method}`,
+            `[cancelled] ${this.states.join(', ')} by the event ${method}`,
             2
           )
         }
       } else {
         this.machine.log(
-          `[cancelled] ${this.states.join(', ')} by the ` + `method ${method}`,
+          `[cancelled] ${this.states.join(', ')} by the method ${method}`,
           2
         )
       }

@@ -3,7 +3,7 @@
  *
  * This example shows how piping states between machines works.
  *
- * Scroll down to see log outputs.
+ * Scroll down to see log the output.
  *
  * @link https://github.com/TobiaszCudnik/asyncmachine
  */
@@ -42,3 +42,37 @@ console.log('\n start mutating [foo] only, and others will follow \n')
 foo.add('A')
 foo.add('B')
 foo.drop('B')
+
+/*
+Console output:
+
+create the pipes (and sync the state)
+
+[foo] [pipe] 'A' as 'AA' to 'bar'
+[bar] [drop] AA
+[foo] [pipe:invert] 'B' as 'NotB' to 'baz'
+[baz] [add] NotB
+[baz] [state] +NotB
+[baz] [pipe] 'NotB' as 'NotB' to 'bar'
+[bar] [add] NotB
+[bar] [state] +NotB
+
+ start mutating [foo] only, and others will follow
+
+[foo] [add] A
+[foo] [state] +A
+[bar] [add] AA
+[bar] [state] +AA
+[foo] [add] B
+[foo] [state] +B
+[baz] [drop] NotB
+[baz] [state] -NotB
+[bar] [drop] NotB
+[bar] [state] -NotB
+[foo] [drop] B
+[foo] [state] -B
+[baz] [add] NotB
+[baz] [state] +NotB
+[bar] [add] NotB
+[bar] [state] +NotB
+ */

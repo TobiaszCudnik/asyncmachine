@@ -1,4 +1,4 @@
-**AsyncMachine** is a modern state manager with intelligence built in. It's a combination of several different concepts, while still being a minimalistic (**7.5**kb gzip) library. It was born slowly over the years of writing complex JavaScript apps and other asynchronous systems. Most of all, it's a state machine, thus the label _Hybrid State Machine_.
+**AsyncMachine** is a modern state manager with intelligence built in. It's a combination of several different concepts, while still being a minimalistic (**7.5**kb gzipped) library. It was born slowly over the years of writing complex JavaScript apps and other asynchronous systems. Most of all, it's a state machine, thus the label _Hybrid State Machine_.
 
 Components:
 
@@ -46,14 +46,60 @@ example.add('Water')
 example.is() // -> [ 'Wet', 'Water' ]
 ```
 
-**Editable visual demo** available on [stackblitz.com](https://stackblitz.com/edit/asyncmachine-example?file=index.ts).
+* [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1edd421eaec500126c11ce)
+* [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-dry-wet?file=index.ts)
 
-[![example](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/example.gif)](https://stackblitz.com/edit/asyncmachine-example?file=index.ts)
+[![example](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/example.gif)](https://stackblitz.com/edit/asyncmachine-example-dry-wet?file=index.ts)
+
+### Async Dialog
+
+Presents the following concepts: `Automatic States`, `Synchronous Mutations`, `Delayed Mutations` and loose coupling.
+
+* [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ede5f62717e0013877cdc)
+* [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-async-dialog?file=index.ts)
+
+### Negotiation
+
+Presents how the `State Negotiation` works.
+
+* [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ed850c6dc1f0012db1346)
+* [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-negotiation?file=index.ts)
+
+### Exceptions
+
+A simple fault tolerance (retrying) using the `Exception` state.
+
+* [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ee7113321180012ebafcf)
+* [Inspect on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-exception?file=index.ts)
+
+### Piping
+
+Shows how `Pipes` forward states between machines.
+
+* [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1eea671eaec500126c1be7)
+* [Inspect on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-piping?file=index.ts)
+
+### Transitions
+
+Shows various types of `Transition Handlers` and the way params get passed to them.
+
+* [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1eeaba3b97b60012c83ec0)
+* [Inspect on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-transitions?file=index.ts)
 
 ### TodoMVC
 
-Classic TodoMCV example using AsyncMachine as the controller and React as the view:<br>
-[TobiaszCudnik/todomvc-asyncmachine](https://github.com/TobiaszCudnik/todomvc-asyncmachine)
+Classic TodoMCV example using **AsyncMachine** as the controller and **React** as the view.
+
+* [Edit on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-todomvc?file=src/controller.js)
+* [Code on GitHub](https://github.com/TobiaszCudnik/todomvc-asyncmachine)
+
+### Restaurant
+
+Complex example showing how to solve a producer / consumer problem using AsyncMachine.
+
+* [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-inspector-restaurant)
+
+[![inspector view](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/restaurant.png)](https://stackblitz.com/edit/asyncmachine-inspector-restaurant)
 
 ### GTD Bot
 
