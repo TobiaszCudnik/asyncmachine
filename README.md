@@ -1,4 +1,4 @@
-**AsyncMachine** is a modern state manager with intelligence built in. It's a combination of several different concepts, while still being a minimalistic library. It was born slowly over the years of writing complex JavaScript apps and other asynchronous systems. Most of all, it's a state machine, thus the label _Hybrid State Machine_.
+**AsyncMachine** is a modern state manager with intelligence built in. It's a combination of several different concepts, while still being a minimalistic (7.5kb gzip) library. It was born slowly over the years of writing complex JavaScript apps and other asynchronous systems. Most of all, it's a state machine, thus the label _Hybrid State Machine_.
 
 Components:
 
@@ -52,7 +52,7 @@ example.is() // -> [ 'Wet', 'Water' ]
 
 ### TodoMVC
 
-Classic TodoMCV example using AsyncMachine as a controller and React as the view:<br>
+Classic TodoMCV example using AsyncMachine as the controller and React as the view:<br>
 [TobiaszCudnik/todomvc-asyncmachine](https://github.com/TobiaszCudnik/todomvc-asyncmachine)
 
 ### GTD Bot
