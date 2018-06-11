@@ -964,6 +964,9 @@ img { max-width: 100%; }
 					<a href="transition.html#exits" class="tsd-kind-icon">exits</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
+					<a href="transition.html#id" class="tsd-kind-icon">id</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
 					<a href="transition.html#row" class="tsd-kind-icon">row</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-external">
@@ -1113,11 +1116,12 @@ img { max-width: 100%; }
 		<section class="tsd-panel tsd-comment">
 			<div class="tsd-comment tsd-typography">
 				<div class="lead">
-					<p>TODO</p>
-					<ul>
-						<li>refactor the execution of calls to sth structured instead of strings</li>
-						<li>multi-step (keep couple of steps as one step)</li>
-					</ul>
+					<p>The Transition class is responsible for encapsulating a single mutation
+						for a single machine. In can be created by a different machine than it&#39;s
+						mutating. End users usually don&#39;t have to deal with it at all, as the most
+						important data it carries for them is exposed as <code>instance.to()</code> and
+						<code>instance.from()</code> methods and it&#39;s events are also emitted on the
+					machine itself.</p>
 				</div>
 			</div>
 		</section>
@@ -1147,6 +1151,7 @@ img { max-width: 100%; }
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="transition.html#cancelled" class="tsd-kind-icon">cancelled</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="transition.html#enters" class="tsd-kind-icon">enters</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="transition.html#exits" class="tsd-kind-icon">exits</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="transition.html#id" class="tsd-kind-icon">id</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="transition.html#row" class="tsd-kind-icon">row</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="transition.html#source_machine" class="tsd-kind-icon">source_<wbr>machine</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-class tsd-is-external"><a href="transition.html#states" class="tsd-kind-icon">states</a></li>
@@ -1203,7 +1208,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L73">transition.ts:73</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L79">transition.ts:79</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1228,7 +1233,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">accepted<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L46">transition.ts:46</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L52">transition.ts:52</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1238,7 +1243,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">before<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L38">transition.ts:38</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L44">transition.ts:44</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1248,7 +1253,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">cancelled<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L52">transition.ts:52</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L58">transition.ts:58</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1258,7 +1263,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">enters<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L42">transition.ts:42</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L48">transition.ts:48</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1268,7 +1273,17 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">exits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L44">transition.ts:44</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L50">transition.ts:50</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-external">
+				<a name="id" class="tsd-anchor"></a>
+				<h3>id</h3>
+				<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> =&nbsp;uuid()</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L38">transition.ts:38</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1278,7 +1293,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">row<span class="tsd-signature-symbol">:</span> <a href="../interfaces/iqueuerow.html" class="tsd-signature-type">IQueueRow</a></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L48">transition.ts:48</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L54">transition.ts:54</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1288,7 +1303,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">source_<wbr>machine<span class="tsd-signature-symbol">:</span> <a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L34">transition.ts:34</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L40">transition.ts:40</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1298,7 +1313,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">states<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L40">transition.ts:40</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L46">transition.ts:46</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1308,7 +1323,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">steps<span class="tsd-signature-symbol">:</span> <a href="../interfaces/itransitionstep.html" class="tsd-signature-type">ITransitionStep</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L50">transition.ts:50</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L56">transition.ts:56</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1321,7 +1336,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">auto<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L59">transition.ts:59</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L65">transition.ts:65</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1331,7 +1346,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">machine<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L55">transition.ts:55</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L61">transition.ts:61</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1341,7 +1356,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">params<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L71">transition.ts:71</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L77">transition.ts:77</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1351,7 +1366,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">requested_<wbr>states<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L67">transition.ts:67</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L73">transition.ts:73</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1361,7 +1376,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> </div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L63">transition.ts:63</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L69">transition.ts:69</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1378,7 +1393,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L630">transition.ts:630</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L728">transition.ts:728</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1415,7 +1430,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L639">transition.ts:639</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L741">transition.ts:741</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1452,7 +1467,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L658">transition.ts:658</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L766">transition.ts:766</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1489,7 +1504,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L485">transition.ts:485</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L570">transition.ts:570</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1512,7 +1527,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L127">transition.ts:127</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L146">transition.ts:146</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -1529,7 +1544,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L495">transition.ts:495</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L579">transition.ts:579</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1552,9 +1567,14 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L370">transition.ts:370</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L442">transition.ts:442</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Returns the subset of states which block the state name.</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
@@ -1578,7 +1598,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L384">transition.ts:384</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L460">transition.ts:460</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1601,7 +1621,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L305">transition.ts:305</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L364">transition.ts:364</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1624,7 +1644,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L329">transition.ts:329</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L391">transition.ts:391</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1647,7 +1667,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L281">transition.ts:281</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L337">transition.ts:337</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <a href="../interfaces/iqueuerow.html" class="tsd-signature-type">IQueueRow</a>
@@ -1667,7 +1687,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L556">transition.ts:556</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L652">transition.ts:652</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1684,7 +1704,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L598">transition.ts:598</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L694">transition.ts:694</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1710,7 +1730,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L405">transition.ts:405</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L489">transition.ts:489</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1733,7 +1753,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L242">transition.ts:242</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L286">transition.ts:286</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1756,7 +1776,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L440">transition.ts:440</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L527">transition.ts:527</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -1773,7 +1793,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L229">transition.ts:229</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L270">transition.ts:270</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1790,7 +1810,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L416">transition.ts:416</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L499">transition.ts:499</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1807,7 +1827,7 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L686">transition.ts:686</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L798">transition.ts:798</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1841,7 +1861,7 @@ E   DROP
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/transition.ts#L519">transition.ts:519</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/transition.ts#L608">transition.ts:608</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>

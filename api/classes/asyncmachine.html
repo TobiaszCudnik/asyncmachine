@@ -1006,9 +1006,6 @@ img { max-width: 100%; }
 					<a href="asyncmachine.html#addnext" class="tsd-kind-icon">add<wbr>Next</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
-					<a href="asyncmachine.html#allstatesnotset" class="tsd-kind-icon">all<wbr>States<wbr>Not<wbr>Set</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="asyncmachine.html#any" class="tsd-kind-icon">any</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected">
@@ -1040,9 +1037,6 @@ img { max-width: 100%; }
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="asyncmachine.html#duringtransition" class="tsd-kind-icon">during<wbr>Transition</a>
-				</li>
-				<li class=" tsd-kind-method tsd-parent-kind-class">
-					<a href="asyncmachine.html#every" class="tsd-kind-icon">every</a>
 				</li>
 				<li class=" tsd-kind-method tsd-parent-kind-class">
 					<a href="asyncmachine.html#from" class="tsd-kind-icon">from</a>
@@ -1236,9 +1230,9 @@ img { max-width: 100%; }
 		<section class="tsd-panel tsd-comment">
 			<div class="tsd-comment tsd-typography">
 				<div class="lead">
-					<p>Base class to extend. Define states as prototype properties or
-						inside of the constructor. Remember to call this.registerAll() afterwards
-					in the latter case.</p>
+					<p>Base class to extend. Define states as prototype attributes or
+						inside of the constructor. In the latter case remember to call
+					this.registerAll() afterwards (for every sub constructor).</p>
 				</div>
 				<p>The <a href="asyncmachine.html#exception">Exception</a> state is already provided.</p>
 				<pre><code><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FooStates</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AsyncMachine</span> </span>{
@@ -1281,10 +1275,10 @@ img { max-width: 100%; }
 					<h4>TStates<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h4>
 				</li>
 				<li>
-					<h4>TBind</h4>
+					<h4>TBind<span class="tsd-signature-symbol">: </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a></h4>
 				</li>
 				<li>
-					<h4>TEmit</h4>
+					<h4>TEmit<span class="tsd-signature-symbol">: </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a></h4>
 				</li>
 			</ul>
 		</section>
@@ -1342,7 +1336,6 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="asyncmachine.html#addbycallback" class="tsd-kind-icon">add<wbr>ByCallback</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="asyncmachine.html#addbylistener" class="tsd-kind-icon">add<wbr>ByListener</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="asyncmachine.html#addnext" class="tsd-kind-icon">add<wbr>Next</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class"><a href="asyncmachine.html#allstatesnotset" class="tsd-kind-icon">all<wbr>States<wbr>Not<wbr>Set</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="asyncmachine.html#any" class="tsd-kind-icon">any</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-protected"><a href="asyncmachine.html#calllistener" class="tsd-kind-icon">call<wbr>Listener</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="asyncmachine.html#catchpromise" class="tsd-kind-icon">catch<wbr>Promise</a></li>
@@ -1354,7 +1347,6 @@ img { max-width: 100%; }
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="asyncmachine.html#dropbylistener" class="tsd-kind-icon">drop<wbr>ByListener</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="asyncmachine.html#dropnext" class="tsd-kind-icon">drop<wbr>Next</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="asyncmachine.html#duringtransition" class="tsd-kind-icon">during<wbr>Transition</a></li>
-							<li class="tsd-kind-method tsd-parent-kind-class"><a href="asyncmachine.html#every" class="tsd-kind-icon">every</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="asyncmachine.html#from" class="tsd-kind-icon">from</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="asyncmachine.html#get" class="tsd-kind-icon">get</a></li>
 							<li class="tsd-kind-method tsd-parent-kind-class"><a href="asyncmachine.html#getabort" class="tsd-kind-icon">get<wbr>Abort</a></li>
@@ -1416,16 +1408,16 @@ img { max-width: 100%; }
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L213">asyncmachine.ts:213</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L237">asyncmachine.ts:237</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Creates a new instance with only state one registered, which is the
-									Exception.
-									When extending the class, you should register your states by using either
-								<a href="asyncmachine.html#registerall">registerAll</a> or <a href="asyncmachine.html#register">register</a>.</p>
+								<p>Creates a new instance with only one registered state - Exception.</p>
 							</div>
+							<p>When extending the class, you should register your states by using either
+								the <a href="asyncmachine.html#registerall">registerAll</a> or <a href="asyncmachine.html#register">register</a> methods at the end of every sub
+							constructor.</p>
 							<dl class="tsd-comment-tags">
 								<dt>see</dt>
 								<dd><p><a href="asyncmachine.html">AsyncMachine</a> for the usage example.</p>
@@ -1438,8 +1430,8 @@ img { max-width: 100%; }
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> target: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">__type</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<div class="lead">
-										<p>Target object for the transitions, useful when composing the
-										states instance.</p>
+										<p>Target object for the transitions, useful when composing a
+										machine.</p>
 									</div>
 								</div>
 							</li>
@@ -1447,7 +1439,8 @@ img { max-width: 100%; }
 								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> register_all: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<div class="lead">
-										<p>Automatically registers all defined states.</p>
+										<p>Automatically registers all defined states. Works
+										only in case there no other attributes defined on the prototype.</p>
 									</div>
 								</div>
 							</li>
@@ -1465,7 +1458,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">clock_<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L192">asyncmachine.ts:192</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L203">asyncmachine.ts:203</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1486,17 +1479,17 @@ img { max-width: 100%; }
 				<aside class="tsd-sources">
 					<p>Overrides <a href="eventemitter.html">EventEmitter</a>.<a href="eventemitter.html#emit">emit</a></p>
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1384">asyncmachine.ts:1384</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1642">asyncmachine.ts:1642</a></li>
 					</ul>
 				</aside>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
 				<a name="internal_fields" class="tsd-anchor"></a>
 				<h3><span class="tsd-flag ts-flagProtected">Protected</span> internal_<wbr>fields</h3>
-				<div class="tsd-signature tsd-kind-icon">internal_<wbr>fields<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[&quot;states_all&quot;, &quot;lock_queue&quot;,&quot;states_active&quot;, &quot;queue_&quot;, &quot;lock&quot;, &quot;last_promise&quot;,&quot;log_level_&quot;, &quot;clock_&quot;, &quot;target&quot;, &quot;internal_fields&quot;,&quot;piped&quot;, &#x27;id_&#x27;, &#x27;print_exception&#x27;, &#x27;transition&#x27;, &#x27;log_handlers&#x27;,&#x27;postponed_queue&#x27;]</span></div>
+				<div class="tsd-signature tsd-kind-icon">internal_<wbr>fields<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[&#x27;states_all&#x27;,&#x27;lock_queue&#x27;,&#x27;states_active&#x27;,&#x27;queue_&#x27;,&#x27;lock&#x27;,&#x27;last_promise&#x27;,&#x27;log_level_&#x27;,&#x27;clock_&#x27;,&#x27;target&#x27;,&#x27;internal_fields&#x27;,&#x27;piped&#x27;,&#x27;id_&#x27;,&#x27;print_exception&#x27;,&#x27;transition&#x27;,&#x27;log_handlers&#x27;,&#x27;postponed_queue&#x27;]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L208">asyncmachine.ts:208</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L219">asyncmachine.ts:219</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1506,15 +1499,18 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">last_<wbr>promise<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> =&nbsp;null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L176">asyncmachine.ts:176</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L187">asyncmachine.ts:187</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Promise created by calling one of <code>...ByCallback</code> or <code>...ByListener</code>
-							methods, eg <code>addByListener</code>. Resolved once the callback/listener gets
-						called.</p>
+						<p>Promise created by one of the delayed mutation methods:</p>
+						<ul>
+							<li><code>...ByCallback</code></li>
+							<li><code>...ByListener</code></li>
+						</ul>
 					</div>
+					<p>Resolved once the callback/listener gets called.</p>
 				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
@@ -1523,7 +1519,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">lock<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L188">asyncmachine.ts:188</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L199">asyncmachine.ts:199</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1538,7 +1534,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">lock_<wbr>queue<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L190">asyncmachine.ts:190</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L201">asyncmachine.ts:201</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1553,7 +1549,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">log_<wbr>handlers<span class="tsd-signature-symbol">:</span> <a href="../index.html#tloghandler" class="tsd-signature-type">TLogHandler</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L202">asyncmachine.ts:202</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L213">asyncmachine.ts:213</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1568,7 +1564,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">log_<wbr>level_<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;0</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L198">asyncmachine.ts:198</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L209">asyncmachine.ts:209</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1583,7 +1579,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="eventemitter.html">EventEmitter</a>.<a href="eventemitter.html#on">on</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1343">asyncmachine.ts:1343</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1589">asyncmachine.ts:1589</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1620,7 +1616,7 @@ img { max-width: 100%; }
 						<aside class="tsd-sources">
 							<p>Overrides <a href="eventemitter.html">EventEmitter</a>.<a href="eventemitter.html#once">once</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1366">asyncmachine.ts:1366</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1618">asyncmachine.ts:1618</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1652,7 +1648,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">piped<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L178">asyncmachine.ts:178</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L189">asyncmachine.ts:189</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1672,7 +1668,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">postponed_<wbr>queue<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L207">asyncmachine.ts:207</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L218">asyncmachine.ts:218</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1688,7 +1684,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">print_<wbr>exception<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L183">asyncmachine.ts:183</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L194">asyncmachine.ts:194</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1704,7 +1700,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">queue_<span class="tsd-signature-symbol">:</span> <a href="../interfaces/iqueuerow.html" class="tsd-signature-type">IQueueRow</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L186">asyncmachine.ts:186</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L197">asyncmachine.ts:197</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -1714,7 +1710,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">states_<wbr>active<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L185">asyncmachine.ts:185</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L196">asyncmachine.ts:196</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1729,7 +1725,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">states_<wbr>all<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L170">asyncmachine.ts:170</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L179">asyncmachine.ts:179</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1744,7 +1740,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">target<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">__type</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> =&nbsp;null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L197">asyncmachine.ts:197</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L208">asyncmachine.ts:208</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1760,7 +1756,7 @@ img { max-width: 100%; }
 				<div class="tsd-signature tsd-kind-icon">transition<span class="tsd-signature-symbol">:</span> <a href="transition.html" class="tsd-signature-type">Transition</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> =&nbsp;null</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L200">asyncmachine.ts:200</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L211">asyncmachine.ts:211</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -1776,27 +1772,27 @@ img { max-width: 100%; }
 				<a name="exception_state" class="tsd-anchor"></a>
 				<h3>Exception_<wbr>state</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">Exception_<wbr>state<span class="tsd-signature-symbol">(</span>err<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Error</span>, target_states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, base_states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, exception_transition<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, async_target_states<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">Exception_<wbr>state<span class="tsd-signature-symbol">(</span>err<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Error</span><span class="tsd-signature-symbol"> | </span><a href="transitionexception.html" class="tsd-signature-type">TransitionException</a>, target_states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, base_states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, exception_src_handler<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, async_target_states<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L271">asyncmachine.ts:271</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L297">asyncmachine.ts:297</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
 								<p>All exceptions are caught into this state, including both synchronous and
-									asynchronous from promises and callbacks. You can overcreateride it and
-									handle exceptions based on their type and target states of the transition
-								during which they appeared.</p>
+									asynchronous ones, coming from async methods and callbacks. You can
+									override it with your own and handle exceptions based on passed state
+								data and the actual state.</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>err: <span class="tsd-signature-type">Error</span></h5>
+								<h5>err: <span class="tsd-signature-type">Error</span><span class="tsd-signature-symbol"> | </span><a href="transitionexception.html" class="tsd-signature-type">TransitionException</a></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>The exception object.</p>
 								</div>
@@ -1811,35 +1807,38 @@ img { max-width: 100%; }
 							<li>
 								<h5>base_states: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>Base states in which the transition orginated.</p>
+									<p>Base states in which the transition originated.</p>
 								</div>
 							</li>
 							<li>
-								<h5>exception_transition: <span class="tsd-signature-type">string</span></h5>
+								<h5>exception_src_handler: <span class="tsd-signature-type">string</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>The explicit state which thrown the exception.</p>
+									<p>The handler state which thrown the exception.</p>
 								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> async_target_states: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>Only for async transitions like
-										<a href="asyncmachine.html#addbycallback">addByCallback</a>, these are states which we&#39;re supposed to be set by the
-									callback.</p>
-									<p>Example of exception handling</p>
-									<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states.Exception_state = <span class="hljs-function"><span class="hljs-params">(err, target_states)</span> -&gt;</span>
-    <span class="hljs-comment"># Re-adds state 'C' in case of an exception if A is set.</span>
-    <span class="hljs-keyword">if</span> exception_states.some(<span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> state <span class="hljs-keyword">is</span> <span class="hljs-string">'C'</span>) <span class="hljs-keyword">and</span> @is <span class="hljs-string">'A'</span>
-        states.add <span class="hljs-string">'C'</span>
-</code></pre><p>Example of a manual exception triggering</p>
-									<pre><code>states.A_state = <span class="hljs-function"><span class="hljs-params">(states)</span> -&gt;</span>
-    foo = <span class="hljs-keyword">new</span> SomeAsyncTask
-    foo.start()
-    foo.once <span class="hljs-string">'error'</span>, <span class="hljs-function"><span class="hljs-params">(error)</span> =&gt;</span>
-        <span class="hljs-keyword">this</span>.add <span class="hljs-string">'Exception'</span>, error, states
-</code></pre><p>TODO update the docs
-									TODO make the log easier to read</p>
+									<p>Only for delayed mutations like
+										<a href="asyncmachine.html#addbycallback">addByCallback</a>, these are states which we&#39;re supposed to be activated
+									by the callback.</p>
+									<p>Example of a custom exception handler</p>
+									<pre><code>states = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+states.Exception_state = <span class="hljs-keyword">function</span>(err, target_states) {
+  // Re-adds state <span class="hljs-string">'C'</span> <span class="hljs-keyword">in</span> <span class="hljs-keyword">case</span> <span class="hljs-keyword">of</span> an <span class="hljs-keyword">exception</span> <span class="hljs-keyword">when</span> A <span class="hljs-keyword">is</span> active.
+  <span class="hljs-keyword">if</span> (exception_states.<span class="hljs-keyword">some</span>((state) =&gt; state == <span class="hljs-string">'C'</span>) &amp;&amp; this.<span class="hljs-keyword">is</span>(<span class="hljs-string">'A'</span>)) {
+    states.add <span class="hljs-string">'C'</span>
+  }
+}
+</code></pre><p>Example of a manually thrown exception</p>
+									<pre><code>states.A_state = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">states</span>) </span>{
+  foo = <span class="hljs-keyword">new</span> SomeAsyncTask()
+  foo.start()
+  foo.once(<span class="hljs-string">'error'</span>, <span class="hljs-function">(<span class="hljs-params">error</span>) =&gt;</span> {
+    <span class="hljs-keyword">this</span>.add(<span class="hljs-string">'Exception'</span>, error, states)
+  }
+}
+</code></pre>
 								</div>
 							</li>
 						</ul>
@@ -1851,19 +1850,19 @@ states.Exception_state = <span class="hljs-function"><span class="hljs-params">(
 				<a name="add" class="tsd-anchor"></a>
 				<h3>add</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">add&lt;S&gt;<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span>, states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-					<li class="tsd-signature tsd-kind-icon">add<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span>, states<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					<li class="tsd-signature tsd-kind-icon">add&lt;S&gt;<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span>, states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+					<li class="tsd-signature tsd-kind-icon">add<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span>, states<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L739">asyncmachine.ts:739</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L845">asyncmachine.ts:845</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Adds specified states to the currently set ones.</p>
+								<p>Adds specified states to the currently active ones.</p>
 							</div>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -1878,7 +1877,7 @@ states.Exception_state = <span class="hljs-function"><span class="hljs-params">(
 								<h5>target: <a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>OPTIONAL. Pass it if you want to execute a transition on an
-									external machine, but using the local queue.</p>
+									external machine, but using this machine&#39;s queue.</p>
 								</div>
 							</li>
 							<li>
@@ -1890,40 +1889,48 @@ states.Exception_state = <span class="hljs-function"><span class="hljs-params">(
 							<li>
 								<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>params: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>Params to be passed to the transition handlers (only ones from
-									the specified states, not implied or auto states).</p>
+									<p>Params to be passed to the transition handlers (only the ones
+										belonging to the explicitly requested states, not implied or auto
+									states).</p>
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-						<p>Result of the transition. FALSE means that states weren&#39;t accepted,
-							or some of implied or auto states dropped some of the requested states
-						after the transition.</p>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span>
+							<span class="tsd-signature-symbol"> | </span>
+							<span class="tsd-signature-type">null</span>
+						</h4>
+						<p>Result of the transition. <code>false</code> can mean that either the
+							requested states weren&#39;t accepted or that the transition has been aborted
+							by one of the negotiation handlers. <code>null</code> means that the machine is busy
+						and the mutation has been queued.</p>
 						<p>Basic usage</p>
-						<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states.add <span class="hljs-string">'A'</span>
-<span class="hljs-function"><span class="hljs-title">states</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'A'</span>]
-states.add(<span class="hljs-string">'B'</span>)
-<span class="hljs-function"><span class="hljs-title">states</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'B'</span>]
+						<pre><code>const example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+example.add <span class="hljs-string">'A'</span>
+<span class="hljs-function"><span class="hljs-title">example</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'A'</span>]
+example.add(<span class="hljs-string">'B'</span>)
+<span class="hljs-function"><span class="hljs-title">example</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'B'</span>]
 </code></pre><p>State negotiation</p>
-						<pre><code>states = asyncmachine.factory [<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]
-<span class="hljs-comment"># Transition enter negotiation</span>
-states.A_enter = <span class="hljs-function">-&gt;</span> <span class="hljs-literal">no</span>
-states.add(<span class="hljs-string">'A'</span> )<span class="hljs-regexp">//</span> -&gt; <span class="hljs-literal">false</span>
+						<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
+<span class="hljs-comment">// reject the transition with a negotiation handler</span>
+example.A_enter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+}
+example.add(<span class="hljs-string">'A'</span> ) <span class="hljs-comment">// -&gt; false</span>
 </code></pre><p>Adding a state on an external machine</p>
-						<pre><code>states1 = asyncmachine.factory [<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]
-states2 = asyncmachine.factory [<span class="hljs-string">'C'</span>, <span class="hljs-string">'D'</span>]
+						<pre><code><span class="hljs-keyword">const</span> m1 = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
+<span class="hljs-keyword">const</span> m2 = machine([<span class="hljs-string">'C'</span>, <span class="hljs-string">'D'</span>])
 
-states1.A_enter -&gt;
-    <span class="hljs-comment"># this transition will be queued and executed after the current transition</span>
-    <span class="hljs-comment"># fully finishes</span>
-    states1.add states2, <span class="hljs-string">'B'</span>
+m1.A_enter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-comment">// this transition will be queued and executed after the current</span>
+  <span class="hljs-comment">// transition is completed</span>
+  m1.add(m2, <span class="hljs-string">'C'</span>) <span class="hljs-comment">// -&gt; null</span>
+}
 </code></pre>
 					</li>
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L740">asyncmachine.ts:740</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L850">asyncmachine.ts:850</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1938,7 +1945,10 @@ states1.A_enter -&gt;
 								<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>params: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span>
+							<span class="tsd-signature-symbol"> | </span>
+							<span class="tsd-signature-type">null</span>
+						</h4>
 					</li>
 				</ul>
 			</section>
@@ -1953,7 +1963,7 @@ states1.A_enter -&gt;
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L773">asyncmachine.ts:773</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L888">asyncmachine.ts:888</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -1966,8 +1976,8 @@ states1.A_enter -&gt;
 							<a href="asyncmachine.html#last_promise">last_promise</a> attribute.</p>
 							<p>See <a href="asyncmachine.html#add">add</a> for the params description.</p>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.<span class="hljs-keyword">factory</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-someNodeCallback <span class="hljs-string">'foo.com'</span>, states.addByCallback(<span class="hljs-string">'B'</span>)
+							<pre><code>const example = machine([&#39;A&#39;, &#39;B&#39;, &#39;C&#39;])
+someNodeCallback(&#39;foo.com&#39;, example.addByCallback(&#39;B&#39;))
 </code></pre>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -2014,7 +2024,7 @@ someNodeCallback <span class="hljs-string">'foo.com'</span>, states.addByCallbac
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L776">asyncmachine.ts:776</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L893">asyncmachine.ts:893</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2065,23 +2075,23 @@ someNodeCallback <span class="hljs-string">'foo.com'</span>, states.addByCallbac
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L804">asyncmachine.ts:804</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L929">asyncmachine.ts:929</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Deferred version of <a href="asyncmachine.html#add">add</a>, returning a listener for adding
-									the state. Errors need to be handled manually by binding the exception
-								state to the &#39;error&#39; event (or equivalent).</p>
+								<p>Deferred version of <a href="asyncmachine.html#add">add</a>, returning a listener for adding the state.</p>
 							</div>
+							<p>Errors need to be handled manually by binding the exception
+							state to the &#39;error&#39; event (or equivalent).</p>
 							<p>After the call, the related promise object is available as the
 							<a href="asyncmachine.html#last_promise">last_promise</a> attribute.</p>
 							<p>See <a href="asyncmachine.html#add">add</a> for the params description.</p>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-emitter = new EventEmitter
-emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'ready'</span>, states.addByListener(<span class="hljs-string">'A'</span>)
-emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'error'</span>, states.addByListener(<span class="hljs-string">'Exception'</span>)
+							<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+emitter = <span class="hljs-keyword">new</span> EventEmitter
+emitter.<span class="hljs-keyword">on</span>(<span class="hljs-string">'ready'</span>, example.addByListener(<span class="hljs-string">'A'</span>))
+emitter.<span class="hljs-keyword">on</span>(<span class="hljs-string">'error'</span>, example.addByListener(<span class="hljs-string">'Exception'</span>))
 </code></pre>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -2125,7 +2135,7 @@ emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'e
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L807">asyncmachine.ts:807</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L934">asyncmachine.ts:934</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2173,7 +2183,7 @@ emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'e
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L831">asyncmachine.ts:831</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L965">asyncmachine.ts:965</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2183,10 +2193,10 @@ emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'e
 							</div>
 							<p>See <a href="asyncmachine.html#add">add</a> for the params description.</p>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states.add(<span class="hljs-string">'A'</span>)
-states.addNext(<span class="hljs-string">'B'</span>)
-<span class="hljs-function"><span class="hljs-title">states</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]
+							<pre><code>const example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+example.add(<span class="hljs-string">'A'</span>)
+example.addNext(<span class="hljs-string">'B'</span>)
+<span class="hljs-function"><span class="hljs-title">example</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]
 </code></pre>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -2212,7 +2222,7 @@ states.addNext(<span class="hljs-string">'B'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L832">asyncmachine.ts:832</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L970">asyncmachine.ts:970</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2232,29 +2242,6 @@ states.addNext(<span class="hljs-string">'B'</span>)
 				</ul>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-				<a name="allstatesnotset" class="tsd-anchor"></a>
-				<h3>all<wbr>States<wbr>Not<wbr>Set</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">all<wbr>States<wbr>Not<wbr>Set<span class="tsd-signature-symbol">(</span>states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1699">asyncmachine.ts:1699</a></li>
-							</ul>
-						</aside>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5>states: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
-							</li>
-						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 				<a name="any" class="tsd-anchor"></a>
 				<h3>any</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -2265,13 +2252,13 @@ states.addNext(<span class="hljs-string">'B'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L467">asyncmachine.ts:467</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L539">asyncmachine.ts:539</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Checks if any of the passed states is set. State can also be an array, then
-								all states from this param has to be set.</p>
+								<p>Checks if any of the passed states is active. State can also be an array,
+								then all states from this param has to be active.</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2284,17 +2271,17 @@ states.addNext(<span class="hljs-string">'B'</span>)
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-						<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states<span class="hljs-selector-class">.add</span> [<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]
+						<pre><code>states = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+states.<span class="hljs-built_in">add</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
 
-states<span class="hljs-selector-class">.any</span> <span class="hljs-string">'A'</span>, <span class="hljs-string">'C'</span> <span class="hljs-comment">// -&gt; true</span>
-states<span class="hljs-selector-class">.any</span> [<span class="hljs-string">'A'</span>, <span class="hljs-string">'C'</span>], <span class="hljs-string">'C'</span> <span class="hljs-comment">// -&gt; false</span>
+states.<span class="hljs-keyword">any</span>(<span class="hljs-string">'A'</span>, <span class="hljs-string">'C'</span>)<span class="hljs-comment"> // -&gt; true</span>
+states.<span class="hljs-keyword">any</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'C'</span>], <span class="hljs-string">'C'</span>)<span class="hljs-comment"> // -&gt; false</span>
 </code></pre>
 					</li>
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L468">asyncmachine.ts:468</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L540">asyncmachine.ts:540</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2318,7 +2305,7 @@ states<span class="hljs-selector-class">.any</span> [<span class="hljs-string">'
 						<aside class="tsd-sources">
 							<p>Overrides <a href="eventemitter.html">EventEmitter</a>.<a href="eventemitter.html#calllistener">callListener</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1574">asyncmachine.ts:1574</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1875">asyncmachine.ts:1875</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2354,12 +2341,12 @@ states<span class="hljs-selector-class">.any</span> [<span class="hljs-string">'
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1399">asyncmachine.ts:1399</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1657">asyncmachine.ts:1657</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Bind the Exception state to the promise error handler. Handy when working
+								<p>Binds the Exception state to the promise error handler. Handy when working
 								with promises.</p>
 							</div>
 							<p>See <a href="asyncmachine.html#exception_state">Exception_state</a>.</p>
@@ -2395,28 +2382,28 @@ states<span class="hljs-selector-class">.any</span> [<span class="hljs-string">'
 				<a name="clock" class="tsd-anchor"></a>
 				<h3>clock</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">clock<span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					<li class="tsd-signature tsd-kind-icon">clock<span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><a href="../index.html#basestates" class="tsd-signature-type">BaseStates</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1103">asyncmachine.ts:1103</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1299">asyncmachine.ts:1299</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
 								<p>Returns the current tick of the passed state.</p>
 							</div>
-							<p>State&#39;s clock starts with 0 and on each (successful) set it&#39;s incremented
+							<p>State&#39;s clock starts with 0 and on each activation gets incremented
 								by 1. Ticks lets you keep control flow&#39;s integrity across async listeners,
-								by aborting it once the state had changed. Easiest way to get the tick
+								by aborting them once the state changes. Easiest way to get the tick-based
 							abort function is to use <a href="asyncmachine.html#getabort">getAbort</a>.</p>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>state: <span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span></h5>
+								<h5>state: <span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><a href="../index.html#basestates" class="tsd-signature-type">BaseStates</a></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>Name of the state</p>
 								</div>
@@ -2425,13 +2412,13 @@ states<span class="hljs-selector-class">.any</span> [<span class="hljs-string">'
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 						<p>Current tick of the passed state</p>
 						<p>Example</p>
-						<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states.<span class="hljs-keyword">add</span>(<span class="hljs-string">'A'</span>)
-states.<span class="hljs-keyword">add</span>(<span class="hljs-string">'A'</span>)
-states.clock(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; 1</span>
-states.drop(<span class="hljs-string">'A'</span>)
-states.<span class="hljs-keyword">add</span>(<span class="hljs-string">'A'</span>)
-states.clock(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; 2</span>
+						<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+example.<span class="hljs-keyword">add</span>(<span class="hljs-string">'A'</span>)
+example.<span class="hljs-keyword">add</span>(<span class="hljs-string">'A'</span>)
+example.clock(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; 1</span>
+example.drop(<span class="hljs-string">'A'</span>)
+example.<span class="hljs-keyword">add</span>(<span class="hljs-string">'A'</span>)
+example.clock(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; 2</span>
 `
 </code></pre>
 					</li>
@@ -2447,28 +2434,27 @@ states.clock(<span class="hljs-string">'A'</span>) <span class="hljs-comment">//
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1129">asyncmachine.ts:1129</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1323">asyncmachine.ts:1323</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Creates a prototype child with dedicated active states, a clock and
-								a queue.</p>
+								<p>Creates a prototype child with it&#39;s own active states, clock, queue and
+								locks.</p>
 							</div>
-							<p>Useful for creating new instances of dynamic classes (or factory created
-							instances).</p>
+							<p>Useful for creating new instances of machines created using the
+							<a href="../interfaces/ipipedstatetarget.html#machine">machine</a> factory in an efficient manner.</p>
+							<p>Example</p>
+							<pre><code><span class="hljs-keyword">const</span> <span class="hljs-keyword">parent</span> = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+<span class="hljs-keyword">const</span> child = <span class="hljs-keyword">parent</span>.createChild()
+
+child.add(<span class="hljs-string">'A'</span>)
+child.is() <span class="hljs-comment">// -&gt; ['A']</span>
+<span class="hljs-keyword">parent</span>.is() <span class="hljs-comment">// -&gt; []</span>
+`
+</code></pre><p>// TODO write a test</p>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">this</span></h4>
-						<p>Current tick of the passed state</p>
-						<p>Example</p>
-						<pre><code>states1 = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states2 = states1.createChild()
-
-states2.add(<span class="hljs-string">'A'</span>)
-<span class="hljs-function"><span class="hljs-title">states2</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'A'</span>]
-<span class="hljs-function"><span class="hljs-title">states1</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> []
-`
-</code></pre><p>TODO this is for sure seriously broken</p>
 					</li>
 				</ul>
 			</section>
@@ -2482,12 +2468,12 @@ states2.add(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1415">asyncmachine.ts:1415</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1674">asyncmachine.ts:1674</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Diffs two state sets and returns the ones present only in the 1st one.</p>
+								<p>Diffs two state sets and returns the ones present only in the first one.</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2495,18 +2481,19 @@ states2.add(<span class="hljs-string">'A'</span>)
 							<li>
 								<h5>states1: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>Source states list.</p>
+									<p>List of source states.</p>
 								</div>
 							</li>
 							<li>
 								<h5>states2: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>Set to diff against (picking up the non existing ones).</p>
+									<p>List of states to diff against (picking up the non
+									existing ones).</p>
 								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h4>
-						<p>List of states in states1 but not in states2.</p>
+						<p>List of states in states1, but not in states2.</p>
 					</li>
 				</ul>
 			</section>
@@ -2514,19 +2501,19 @@ states2.add(<span class="hljs-string">'A'</span>)
 				<a name="drop" class="tsd-anchor"></a>
 				<h3>drop</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">drop&lt;S&gt;<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span>, states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-					<li class="tsd-signature tsd-kind-icon">drop<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span>, states<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					<li class="tsd-signature tsd-kind-icon">drop&lt;S&gt;<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span>, states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+					<li class="tsd-signature tsd-kind-icon">drop<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span>, states<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L881">asyncmachine.ts:881</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1027">asyncmachine.ts:1027</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Drops specified states if they are currently set.</p>
+								<p>De-activates specified states if any of them is currently active.</p>
 							</div>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -2541,7 +2528,7 @@ states2.add(<span class="hljs-string">'A'</span>)
 								<h5>target: <a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>OPTIONAL. Pass it if you want to execute a transition on an
-									external machine, but using the local queue.</p>
+									external machine, but using this machine&#39;s queue.</p>
 								</div>
 							</li>
 							<li>
@@ -2553,41 +2540,48 @@ states2.add(<span class="hljs-string">'A'</span>)
 							<li>
 								<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>params: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>Params to be passed to the transition handlers (only ones from
-									the specified states, not implied or auto states).</p>
+									<p>Params to be passed to the transition handlers (only the ones
+										belonging to the explicitly requested states, not implied or auto
+									states).</p>
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-						<p>Result of the transition. FALSE means that dropping the states
-							wasn&#39;t accepted, or some of implied or auto states added some of the
-						requested states after the transition.</p>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span>
+							<span class="tsd-signature-symbol"> | </span>
+							<span class="tsd-signature-type">null</span>
+						</h4>
+						<p>Result of the transition. <code>false</code> can mean that either the
+							requested states weren&#39;t accepted or that the transition has been aborted
+							by one of the negotiation handlers. <code>null</code> means that the machine is busy
+						and the mutation has been queued.</p>
 						<p>Basic usage</p>
-						<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+						<pre><code>const example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
 states.drop(<span class="hljs-string">'A'</span>)
 <span class="hljs-function"><span class="hljs-title">states</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'A'</span>]
 states.drop(<span class="hljs-string">'B'</span>)
 <span class="hljs-function"><span class="hljs-title">states</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'B'</span>]
 </code></pre><p>State negotiation</p>
-						<pre><code>states = asyncmachine.factory [<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]
-<span class="hljs-comment"># Transition enter negotiation</span>
-states.A_enter = <span class="hljs-function">-&gt;</span> <span class="hljs-literal">no</span>
-states.add(<span class="hljs-string">'A'</span> )<span class="hljs-regexp">//</span> -&gt; <span class="hljs-literal">false</span>
+						<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
+<span class="hljs-comment">// reject the transition with a negotiation handler</span>
+states.A_enter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+}
+states.add(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; false</span>
 </code></pre><p>Dropping a state on an external machine</p>
-						<pre><code>states1 = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
-states2 = asyncmachine.factory([<span class="hljs-string">'C'</span>, <span class="hljs-string">'D'</span>])
+						<pre><code><span class="hljs-keyword">const</span> m1 = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
+<span class="hljs-keyword">const</span> m2 = machine([<span class="hljs-string">'C'</span>, <span class="hljs-string">'D'</span>])
 
-states1.A_enter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
-     <span class="hljs-comment">// the transition below will be queued and executed after the current</span>
-     <span class="hljs-comment">// transition fully finishes</span>
-     states1.add(states2, <span class="hljs-string">'B'</span>)
+m1.A_enter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-comment">// this transition will be queued and executed after the current</span>
+  <span class="hljs-comment">// transition is completed</span>
+  m1.drop(m2, <span class="hljs-string">'C'</span>) <span class="hljs-comment">// -&gt; null</span>
 }
 </code></pre>
 					</li>
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L882">asyncmachine.ts:882</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1032">asyncmachine.ts:1032</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2602,7 +2596,10 @@ states1.A_enter = <span class="hljs-function"><span class="hljs-keyword">functio
 								<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>params: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span>
+							<span class="tsd-signature-symbol"> | </span>
+							<span class="tsd-signature-type">null</span>
+						</h4>
 					</li>
 				</ul>
 			</section>
@@ -2617,7 +2614,7 @@ states1.A_enter = <span class="hljs-function"><span class="hljs-keyword">functio
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L914">asyncmachine.ts:914</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1069">asyncmachine.ts:1069</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2630,8 +2627,8 @@ states1.A_enter = <span class="hljs-function"><span class="hljs-keyword">functio
 							<a href="asyncmachine.html#last_promise">last_promise</a> attribute.</p>
 							<p>See <a href="asyncmachine.html#drop">drop</a> for the params description.</p>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.<span class="hljs-keyword">factory</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-someNodeCallback <span class="hljs-string">'foo.com'</span>, states.dropByCallback(<span class="hljs-string">'B'</span>)
+							<pre><code>const example = machine([&#39;A&#39;, &#39;B&#39;, &#39;C&#39;])
+someNodeCallback(&#39;foo.com&#39;, states.dropByCallback(&#39;B&#39;))
 </code></pre>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -2678,7 +2675,7 @@ someNodeCallback <span class="hljs-string">'foo.com'</span>, states.dropByCallba
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L917">asyncmachine.ts:917</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1074">asyncmachine.ts:1074</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2729,23 +2726,23 @@ someNodeCallback <span class="hljs-string">'foo.com'</span>, states.dropByCallba
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L944">asyncmachine.ts:944</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1110">asyncmachine.ts:1110</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Deferred version of <a href="asyncmachine.html#drop">drop</a>, returning a listener for dropping
-									the state. Errors need to be handled manually by binding the exception
-								state to the &#39;error&#39; event (or equivalent).</p>
+								<p>Deferred version of <a href="asyncmachine.html#drop">drop</a>, returning a listener for dropping the state.</p>
 							</div>
+							<p>Errors need to be handled manually by binding the exception
+							state to the &#39;error&#39; event (or equivalent).</p>
 							<p>After the call, the related promise object is available as the
 							<a href="asyncmachine.html#last_promise">last_promise</a> attribute.</p>
 							<p>See <a href="asyncmachine.html#drop">drop</a> for the params description.</p>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-emitter = new EventEmitter
-emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'ready'</span>, states.dropByListener(<span class="hljs-string">'A'</span>)
-emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'error'</span>, states.setByListener(<span class="hljs-string">'Exception'</span>)
+							<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+emitter = <span class="hljs-keyword">new</span> EventEmitter
+emitter.<span class="hljs-keyword">on</span>(<span class="hljs-string">'ready'</span>, example.dropByListener(<span class="hljs-string">'A'</span>))
+emitter.<span class="hljs-keyword">on</span>(<span class="hljs-string">'error'</span>, example.setByListener(<span class="hljs-string">'Exception'</span>))
 </code></pre>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -2789,7 +2786,7 @@ emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'e
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L947">asyncmachine.ts:947</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1115">asyncmachine.ts:1115</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2837,7 +2834,7 @@ emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'e
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L971">asyncmachine.ts:971</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1146">asyncmachine.ts:1146</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2847,7 +2844,7 @@ emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'e
 							</div>
 							<p>See <a href="asyncmachine.html#drop">drop</a> for the params description.</p>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+							<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
 states.<span class="hljs-keyword">add</span>(<span class="hljs-string">'A'</span>)
 states.dropNext(<span class="hljs-string">'A'</span>)
 states.<span class="hljs-keyword">is</span>(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; true</span>
@@ -2876,7 +2873,7 @@ states.<span class="hljs-keyword">is</span>(<span class="hljs-string">'A'</span>
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L972">asyncmachine.ts:972</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1151">asyncmachine.ts:1151</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -2905,63 +2902,31 @@ states.<span class="hljs-keyword">is</span>(<span class="hljs-string">'A'</span>
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1161">asyncmachine.ts:1161</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1364">asyncmachine.ts:1364</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Indicates if this instance is currently during a state transition.</p>
+								<p>Indicates if this instance is currently during a transition.</p>
 							</div>
 							<p>When a machine is during a transition, all state changes will be queued
-							and executed as a queue. See <a href="asyncmachine.html#queue">queue</a>.</p>
+								and executed once the transition and the previously queued state
+							changes are finished. See <a href="asyncmachine.html#queue">queue</a>.</p>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+							<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
 
-<span class="hljs-function"><span class="hljs-title">states</span>.A_enter = -&gt;</span>
-  <span class="hljs-function"><span class="hljs-title">this</span>.duringTransition() // -&gt;</span> <span class="hljs-literal">true</span>
+example.A_enter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">this</span>.duringTransition() <span class="hljs-comment">// -&gt; true</span>
+}
 
-<span class="hljs-function"><span class="hljs-title">states</span>.A_state = -&gt;</span>
-  <span class="hljs-function"><span class="hljs-title">this</span>.duringTransition() // -&gt;</span> <span class="hljs-literal">true</span>
+example.A_state = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">this</span>.duringTransition() <span class="hljs-comment">// -&gt; true</span>
+}
 
-states.add(<span class="hljs-string">'A'</span>)
+example.add(<span class="hljs-string">'A'</span>)
 `
-</code></pre><p>TODO distuinguish transition of this machine and sole queue processing and
-							transitioning of an external machine</p>
-						</div>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-					</li>
-				</ul>
-			</section>
-			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-				<a name="every" class="tsd-anchor"></a>
-				<h3>every</h3>
-				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">every<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-				</ul>
-				<ul class="tsd-descriptions">
-					<li class="tsd-description">
-						<aside class="tsd-sources">
-							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L489">asyncmachine.ts:489</a></li>
-							</ul>
-						</aside>
-						<div class="tsd-comment tsd-typography">
-							<div class="lead">
-								<p>Checks if all the passed states are set.</p>
-							</div>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states<span class="hljs-selector-class">.add</span> [<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]
-
-states<span class="hljs-selector-class">.every</span> <span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span> <span class="hljs-comment">// -&gt; true</span>
-states<span class="hljs-selector-class">.every</span> <span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span> <span class="hljs-comment">// -&gt; false</span>
 </code></pre>
 						</div>
-						<h4 class="tsd-parameters-title">Parameters</h4>
-						<ul class="tsd-parameters">
-							<li>
-								<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>states: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
-							</li>
-						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 					</li>
 				</ul>
@@ -2976,12 +2941,13 @@ states<span class="hljs-selector-class">.every</span> <span class="hljs-string">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1170">asyncmachine.ts:1170</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1374">asyncmachine.ts:1374</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Returns the list of states from which the current transition started.</p>
+								<p>Returns the list of active states from which the current transition
+								started.</p>
 							</div>
 							<p>Requires [[duringTranstion]] to be true or it&#39;ll throw.</p>
 						</div>
@@ -2993,35 +2959,35 @@ states<span class="hljs-selector-class">.every</span> <span class="hljs-string">
 				<a name="get" class="tsd-anchor"></a>
 				<h3>get</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">get<span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/istate.html" class="tsd-signature-type">IState</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><a href="../index.html#basestates" class="tsd-signature-type">BaseStates</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/istate.html" class="tsd-signature-type">IState</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L554">asyncmachine.ts:554</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L610">asyncmachine.ts:610</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Returns state&#39;s properties.</p>
+								<p>Returns state&#39;s properties and relations.</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>state: <span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span></h5>
+								<h5>state: <span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><a href="../index.html#basestates" class="tsd-signature-type">BaseStates</a></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>State name.</p>
+									<pre><code>states = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+states.<span class="hljs-symbol">A</span> = { drop: [<span class="hljs-string">'B'</span>] }
+
+states.get(<span class="hljs-string">'A'</span>) // -&gt; { drop: [<span class="hljs-string">'B'</span>] }
+</code></pre>
 								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="../interfaces/istate.html" class="tsd-signature-type">IState</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states.<span class="hljs-symbol">A</span> = drop: [<span class="hljs-string">'B'</span>]
-
-states.get(<span class="hljs-string">'A'</span>) // -&gt; { drop: [<span class="hljs-string">'B'</span>] }
-</code></pre>
 					</li>
 				</ul>
 			</section>
@@ -3029,44 +2995,46 @@ states.get(<span class="hljs-string">'A'</span>) // -&gt; { drop: [<span class="
 				<a name="getabort" class="tsd-anchor"></a>
 				<h3>get<wbr>Abort</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Abort<span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span>, abort<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Abort<span class="tsd-signature-symbol">(</span>state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><a href="../index.html#basestates" class="tsd-signature-type">BaseStates</a>, abort<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1224">asyncmachine.ts:1224</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1433">asyncmachine.ts:1433</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Returns the abort function, based on the current <a href="asyncmachine.html#clock">clock</a> tick of the
-								passed state. Optionally allows to compose an existing abort function.</p>
+								<p>Returns an abort function, based on the current <a href="asyncmachine.html#clock">clock</a> tick of the
+								passed state. Optionally allows to next an existing abort function.</p>
 							</div>
-							<p>The abort function is a boolean function returning TRUE once the flow
-								for the specific state should be aborted, because:
-								-the state has been unset (at least once)
-							-the composed abort function returns TRUE</p>
+							<p>The abort function return a boolean <code>true</code> in case the flow for the
+							specific state should be aborted, because:</p>
+							<ul>
+								<li>the state has been de-activated (at least once)</li>
+								<li>the nested abort function returns <code>true</code></li>
+							</ul>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+							<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
 
-states.A_state = <span class="hljs-function">-&gt;</span>
-  abort = @getAbort <span class="hljs-string">'A'</span>
-  setTimeout (<span class="hljs-function">-&gt;</span>
-      <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> abort()
-      <span class="hljs-built_in">console</span>.log <span class="hljs-string">'never reached'</span>
-    ), <span class="hljs-number">0</span>
+example.A_state = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">const</span> abort = <span class="hljs-keyword">this</span>.getAbort(<span class="hljs-string">'A'</span>)
+  setTimeout( <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-keyword">if</span> (abort()) <span class="hljs-keyword">return</span>
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'never reached'</span>)
+  }, <span class="hljs-number">0</span>)
+}
 
-states.add(<span class="hljs-string">'A'</span>)
-states.drop(<span class="hljs-string">'A'</span>)
-`<span class="javascript"></span>
-</code></pre><p>TODO support multiple states
-							TODO support default values for state names</p>
+example.add(<span class="hljs-string">'A'</span>)
+example.drop(<span class="hljs-string">'A'</span>)
+<span class="hljs-string">`</span>
+</code></pre><p>TODO support multiple states</p>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>state: <span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span></h5>
+								<h5>state: <span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><a href="../index.html#basestates" class="tsd-signature-type">BaseStates</a></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>Name of the state</p>
 								</div>
@@ -3105,13 +3073,21 @@ states.drop(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1813">asyncmachine.ts:1813</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L2159">asyncmachine.ts:2159</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Returns an object for a given handler.</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>name: <span class="tsd-signature-type">string</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Handler&#39;s name</p>
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Object</span>
@@ -3131,7 +3107,7 @@ states.drop(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1453">asyncmachine.ts:1453</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1729">asyncmachine.ts:1729</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3148,25 +3124,31 @@ states.drop(<span class="hljs-string">'A'</span>)
 				<a name="getrelationsof" class="tsd-anchor"></a>
 				<h3>get<wbr>Relations<wbr>Of</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Relations<wbr>Of<span class="tsd-signature-symbol">(</span>from_state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span>, to_state<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../enums/staterelations.html" class="tsd-signature-type">StateRelations</a><span class="tsd-signature-symbol">[]</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Relations<wbr>Of<span class="tsd-signature-symbol">(</span>from_state<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><a href="../index.html#basestates" class="tsd-signature-type">BaseStates</a>, to_state<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><a href="../index.html#basestates" class="tsd-signature-type">BaseStates</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../enums/staterelations.html" class="tsd-signature-type">StateRelations</a><span class="tsd-signature-symbol">[]</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L375">asyncmachine.ts:375</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L430">asyncmachine.ts:430</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Returns defined relations between two registered states.</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>from_state: <span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span></h5>
+								<h5>from_state: <span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><a href="../index.html#basestates" class="tsd-signature-type">BaseStates</a></h5>
 							</li>
 							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> to_state: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span></h5>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> to_state: <span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><a href="../index.html#basestates" class="tsd-signature-type">BaseStates</a></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="../enums/staterelations.html" class="tsd-signature-type">StateRelations</a><span class="tsd-signature-symbol">[]</span></h4>
+						<p>List of relations.</p>
 					</li>
 				</ul>
 			</section>
@@ -3180,13 +3162,21 @@ states.drop(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1591">asyncmachine.ts:1591</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1900">asyncmachine.ts:1900</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Return <code>true</code> if the current state differs from the <code>states_before</code>.</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>states_before: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>List of previously active states.</p>
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -3205,22 +3195,22 @@ states.drop(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1316">asyncmachine.ts:1316</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1561">asyncmachine.ts:1561</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Managed the ID of the machine.</p>
+								<p>Managed the ID of a machine.</p>
 							</div>
 							<p>Sets or gets and also support returning a normalized version.</p>
 							<p>Example</p>
-							<pre><code>machine = factory()
+							<pre><code>const example = machine()
 <span class="hljs-comment">// set</span>
-machine.id(<span class="hljs-string">'a b c'</span>)
+example.id(<span class="hljs-string">'a b c'</span>)
 <span class="hljs-comment">// get</span>
-<span class="hljs-function"><span class="hljs-title">machine</span>.id() // -&gt;</span> <span class="hljs-string">'a b c'</span>
+<span class="hljs-function"><span class="hljs-title">example</span>.id() // -&gt;</span> <span class="hljs-string">'a b c'</span>
 <span class="hljs-comment">// get normalized</span>
-<span class="hljs-function"><span class="hljs-title">machine</span>.id(<span class="hljs-literal">true</span>) // -&gt;</span> <span class="hljs-string">'a-b-c'</span>
+<span class="hljs-function"><span class="hljs-title">example</span>.id(<span class="hljs-literal">true</span>) // -&gt;</span> <span class="hljs-string">'a-b-c'</span>
 </code></pre>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3234,7 +3224,7 @@ machine.id(<span class="hljs-string">'a b c'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1317">asyncmachine.ts:1317</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1562">asyncmachine.ts:1562</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3248,7 +3238,7 @@ machine.id(<span class="hljs-string">'a b c'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1318">asyncmachine.ts:1318</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1563">asyncmachine.ts:1563</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -3266,28 +3256,32 @@ machine.id(<span class="hljs-string">'a b c'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L418">asyncmachine.ts:418</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L477">asyncmachine.ts:477</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>If no states passed, returns all the current states.</p>
+								<p>Without any params passed, returns all of the current states.</p>
 							</div>
-							<p>If states passed, returns a boolean if all of them are set.</p>
-							<p>If only one state is passed, one can assert on a certain tick of the given
+							<p>When a list of states is provided, returns a boolean if all of them are
+							currently active.</p>
+							<p>If only one state is passed, you can assert on a certain tick of that
 							state (see <a href="asyncmachine.html#clock">clock</a>).</p>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>states: <span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>One or more state names.</p>
+								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> tick: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>For one state, additionally checks if state&#39;s clock is at the same
-									moment.</p>
-									<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
+									<p>When checking only one state, additionally asserts the clock
+									value for that state.</p>
+									<pre><code>states = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
 states.add(<span class="hljs-string">'A'</span>)
 <span class="hljs-function"><span class="hljs-title">states</span>.<span class="hljs-keyword">is</span>('A') // -&gt;</span> <span class="hljs-literal">true</span>
 <span class="hljs-function"><span class="hljs-title">states</span>.<span class="hljs-keyword">is</span>(['A']) // -&gt;</span> <span class="hljs-literal">true</span>
@@ -3306,7 +3300,7 @@ states.add(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L419">asyncmachine.ts:419</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L481">asyncmachine.ts:481</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h4>
@@ -3324,7 +3318,7 @@ states.add(<span class="hljs-string">'A'</span>)
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="eventemitter.html">EventEmitter</a>.<a href="eventemitter.html#listeners">listeners</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/ee.ts#L26">ee.ts:26</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/ee.ts#L27">ee.ts:27</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3352,9 +3346,14 @@ states.add(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1420">asyncmachine.ts:1420</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1687">asyncmachine.ts:1687</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Push a new message to the log with an optional level (defaults to 1).</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
@@ -3362,6 +3361,8 @@ states.add(<span class="hljs-string">'A'</span>)
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> level: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;1</span></h5>
+								<div class="tsd-comment tsd-typography">
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -3379,12 +3380,12 @@ states.add(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1289">asyncmachine.ts:1289</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1533">asyncmachine.ts:1533</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Enabled debug messages sent to the console (or the custom handler).</p>
+								<p>Enables debug messages sent to the console (or the custom handler).</p>
 							</div>
 							<p>There&#39;s 4 log levels:</p>
 							<ul>
@@ -3393,12 +3394,12 @@ states.add(<span class="hljs-string">'A'</span>)
 								<li>2: displays all operations which happened along with rejected state
 								changes</li>
 								<li>3: displays more decision logic</li>
-								<li>4: displays everything, including all possible operations</li>
+								<li>4: displays everything, including all possible handlers</li>
 							</ul>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states.logLevel(<span class="hljs-number">1</span>)
-states.add(<span class="hljs-string">'A'</span>)
+							<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+example.logLevel(<span class="hljs-number">1</span>)
+example.<span class="hljs-keyword">add</span>(<span class="hljs-string">'A'</span>)
 <span class="hljs-comment">// -&gt; [add] state Enabled</span>
 <span class="hljs-comment">// -&gt; [states] +Enabled</span>
 `
@@ -3415,7 +3416,7 @@ states.add(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1290">asyncmachine.ts:1290</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1534">asyncmachine.ts:1534</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -3426,22 +3427,33 @@ states.add(<span class="hljs-string">'A'</span>)
 				<a name="not" class="tsd-anchor"></a>
 				<h3>not</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">not<span class="tsd-signature-symbol">(</span>states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span>, tick<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					<li class="tsd-signature tsd-kind-icon">not<span class="tsd-signature-symbol">(</span>states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L438">asyncmachine.ts:438</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L517">asyncmachine.ts:517</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Returns <code>true</code> in case of all of the passed states aren&#39;t active.</p>
+							</div>
+							<p>Example:</p>
+							<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>, <span class="hljs-string">'D'</span>])
+example.add([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
+
+// <span class="hljs-literal">not</span>(A) <span class="hljs-literal">and</span> <span class="hljs-literal">not</span>(C)
+example.<span class="hljs-literal">not</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'C'</span>]) // -&gt; <span class="hljs-literal">false</span>
+// <span class="hljs-literal">not</span>(C) <span class="hljs-literal">and</span> <span class="hljs-literal">not</span>(D)
+example.<span class="hljs-literal">not</span>([<span class="hljs-string">'C'</span>, <span class="hljs-string">'D'</span>]) // -&gt; <span class="hljs-literal">true</span>
+</code></pre>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>states: <span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
-							</li>
-							<li>
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> tick: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -3458,16 +3470,26 @@ states.add(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1597">asyncmachine.ts:1597</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1916">asyncmachine.ts:1916</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Parse state names, check if they exist and always return an array. Throws
+								in of an error.</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>states: <span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>State names to check</p>
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h4>
+						<p>An array of valid state names.</p>
 					</li>
 				</ul>
 			</section>
@@ -3481,12 +3503,12 @@ states.add(<span class="hljs-string">'A'</span>)
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1010">asyncmachine.ts:1010</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1194">asyncmachine.ts:1194</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Pipes (forwards) a state to another state machine.</p>
+								<p>Pipes (forwards) a state to another machine.</p>
 							</div>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -3506,14 +3528,14 @@ states.add(<span class="hljs-string">'A'</span>)
 							<li>
 								<h5>machine: <a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>Target machine to which the state should be forwarded.</p>
+									<p>Target machine to which the state should be forwarded to.</p>
 								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> target_state: <a href="" class="tsd-signature-type">S</a></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>If the target state name should be different, this is
-									the name. Applicable if only one state is piped.</p>
+									that name. Applicable if only one state is being piped.</p>
 								</div>
 							</li>
 							<li>
@@ -3521,19 +3543,22 @@ states.add(<span class="hljs-string">'A'</span>)
 								<div class="tsd-comment tsd-typography">
 									<p>Different modes of piping. See <a href="../enums/pipeflags.html">PipeFlags</a>.</p>
 									<p>Piping without negotiation</p>
-									<pre><code>states1 = asyncmachine.<span class="hljs-keyword">factory</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states2 = asyncmachine.<span class="hljs-keyword">factory</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states1.pipe(<span class="hljs-string">'A'</span>, states2)
-states1.add(<span class="hljs-string">'A'</span>)
-states2.<span class="hljs-keyword">is</span>(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; true</span>
+									<pre><code><span class="hljs-keyword">const</span> m1 = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+<span class="hljs-keyword">const</span> m2 = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+m1.pipe(<span class="hljs-string">'A'</span>, m2)
+m1.<span class="hljs-keyword">add</span>(<span class="hljs-string">'A'</span>)
+m2.<span class="hljs-keyword">is</span>(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; true</span>
 </code></pre><p>Piping with negotiation</p>
-									<pre><code>states1 = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states2 = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states2<span class="hljs-selector-class">.A_enter</span> = -&gt; no
-states1.pipe(<span class="hljs-string">'A'</span>, states2, null, asyncmachine<span class="hljs-selector-class">.PipeFlags</span><span class="hljs-selector-class">.NEGOTIATION</span>)
-states1.add(<span class="hljs-string">'A'</span>)
-states2.is(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; false</span>
-</code></pre><p>TODO tighter typing for state names</p>
+									<pre><code><span class="hljs-keyword">import</span> { PipeFlags } <span class="hljs-keyword">from</span> <span class="hljs-string">'asyncmachine'</span>
+<span class="hljs-keyword">const</span> m1 = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+<span class="hljs-keyword">const</span> m2 = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+m2.A_enter = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+}
+m1.pipe(<span class="hljs-string">'A'</span>, m2, <span class="hljs-literal">null</span>, PipeFlags.NEGOTIATION)
+m1.add(<span class="hljs-string">'A'</span>)
+m2.is(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; false</span>
+</code></pre>
 								</div>
 							</li>
 						</ul>
@@ -3545,25 +3570,26 @@ states2.is(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -
 				<a name="pipeall" class="tsd-anchor"></a>
 				<h3>pipe<wbr>All</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-					<li class="tsd-signature tsd-kind-icon">pipe<wbr>All<span class="tsd-signature-symbol">(</span>machine<span class="tsd-signature-symbol">: </span><a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span>, flags<span class="tsd-signature-symbol">?: </span><a href="../enums/pipeflags.html" class="tsd-signature-type">PipeFlags</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">pipe<wbr>All<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span>, flags<span class="tsd-signature-symbol">?: </span><a href="../enums/pipeflags.html" class="tsd-signature-type">PipeFlags</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1022">asyncmachine.ts:1022</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1211">asyncmachine.ts:1211</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Pipes all the states from this machine to the passed one.</p>
+								<p>Pipes all the states from this machine to the <code>target</code>. Doesn&#39;t pipe the
+								<code>Exception</code> state.</p>
 							</div>
 							<p>The exception state is never piped.</p>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>machine: <a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								<h5>target: <a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>Target machine to which the state should be forwarded.</p>
 								</div>
@@ -3586,7 +3612,7 @@ states2.is(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1484">asyncmachine.ts:1484</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1760">asyncmachine.ts:1760</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -3624,7 +3650,7 @@ states2.is(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1038">asyncmachine.ts:1038</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1227">asyncmachine.ts:1227</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3668,7 +3694,7 @@ states2.is(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1077">asyncmachine.ts:1077</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1273">asyncmachine.ts:1273</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3690,12 +3716,13 @@ states2.is(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L496">asyncmachine.ts:496</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L551">asyncmachine.ts:551</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Returns the current queue. For struct&#39;s meaning, see [[QUEUE]].</p>
+								<p>Returns the current queue. To understand the returned format, refer to
+								<a href="../interfaces/iqueuerow.html">IQueueRow</a>.</p>
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <a href="../interfaces/iqueuerow.html" class="tsd-signature-type">IQueueRow</a><span class="tsd-signature-symbol">[]</span></h4>
@@ -3712,12 +3739,12 @@ states2.is(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L517">asyncmachine.ts:517</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L572">asyncmachine.ts:572</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Register the passed state names. State properties should be already defined.</p>
+								<p>Register passed state names. State properties should be already defined.</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3730,13 +3757,13 @@ states2.is(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						<pre><code>states = new AsyncMachine
-states<span class="hljs-selector-class">.Enabled</span> = {}
-states<span class="hljs-selector-class">.Disposed</span> = drop: <span class="hljs-string">'Enabled'</span>
+						<pre><code>const example = machine()
+example<span class="hljs-selector-class">.Enabled</span> = {}
+example<span class="hljs-selector-class">.Disposed</span> = { drop: [<span class="hljs-string">'Enabled'</span>] }
 
-states<span class="hljs-selector-class">.register</span> <span class="hljs-string">'Enabled'</span>, <span class="hljs-string">'Disposed'</span>
+states.register(<span class="hljs-string">'Enabled'</span>, <span class="hljs-string">'Disposed'</span>)
 
-states<span class="hljs-selector-class">.add</span> <span class="hljs-string">'Enabled'</span>
+states.add(<span class="hljs-string">'Enabled'</span>)
 states.is() <span class="hljs-comment">// -&gt; 'Enabled'</span>
 </code></pre>
 					</li>
@@ -3752,15 +3779,15 @@ states.is() <span class="hljs-comment">// -&gt; 'Enabled'</span>
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L342">asyncmachine.ts:342</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L387">asyncmachine.ts:387</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
 								<p>Registers all defined states. Use it only if you don&#39;t define any other
-									attributes on the object (or it&#39;s prototype). If you do, register the states
-									manually with the <a href="asyncmachine.html#register">register</a> method. There&#39;s also a shorthand for this
-								method as <a href="asyncmachine.html#constructor">AsyncMachine.constructor</a>&#39;s param.</p>
+									attributes on the object (or it&#39;s prototype). If you do, register the
+									states manually with the <a href="asyncmachine.html#register">register</a> method. There&#39;s also a shorthand
+								for this method as <a href="asyncmachine.html#constructor">AsyncMachine.constructor</a>&#39;s param.</p>
 							</div>
 							<pre><code><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">States</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AsyncMachine</span> </span>{
   constructor() {
@@ -3788,7 +3815,7 @@ states.is() <span class="hljs-comment">// -&gt; 'Enabled'</span>
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="eventemitter.html">EventEmitter</a>.<a href="eventemitter.html#removealllisteners">removeAllListeners</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/ee.ts#L161">ee.ts:161</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/ee.ts#L144">ee.ts:144</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3817,7 +3844,7 @@ states.is() <span class="hljs-comment">// -&gt; 'Enabled'</span>
 						<aside class="tsd-sources">
 							<p>Inherited from <a href="eventemitter.html">EventEmitter</a>.<a href="eventemitter.html#removelistener">removeListener</a></p>
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/ee.ts#L79">ee.ts:79</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/ee.ts#L74">ee.ts:74</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3845,19 +3872,20 @@ states.is() <span class="hljs-comment">// -&gt; 'Enabled'</span>
 				<a name="set" class="tsd-anchor"></a>
 				<h3>set</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-					<li class="tsd-signature tsd-kind-icon">set&lt;S&gt;<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span>, states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-					<li class="tsd-signature tsd-kind-icon">set<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span>, states<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					<li class="tsd-signature tsd-kind-icon">set&lt;S&gt;<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span>, states<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">S</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
+					<li class="tsd-signature tsd-kind-icon">set<span class="tsd-signature-symbol">(</span>target<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span>, states<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span>, <span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L598">asyncmachine.ts:598</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L663">asyncmachine.ts:663</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Sets specified states and deactivate all the other which are currently set.</p>
+								<p>Activates only the specified states and de-activates all the other ones
+								which are currently active.</p>
 							</div>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -3872,7 +3900,7 @@ states.is() <span class="hljs-comment">// -&gt; 'Enabled'</span>
 								<h5>target: <a href="asyncmachine.html" class="tsd-signature-type">AsyncMachine</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">S</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/ibind.html" class="tsd-signature-type">IBind</a><span class="tsd-signature-symbol">, </span><a href="../interfaces/iemit.html" class="tsd-signature-type">IEmit</a><span class="tsd-signature-symbol">&gt;</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>OPTIONAL. Pass it if you want to execute a transition on an
-									external machine, but using the local queue.</p>
+									external machine, but using this machine&#39;s queue.</p>
 								</div>
 							</li>
 							<li>
@@ -3884,40 +3912,48 @@ states.is() <span class="hljs-comment">// -&gt; 'Enabled'</span>
 							<li>
 								<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>params: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 								<div class="tsd-comment tsd-typography">
-									<p>Params to be passed to the transition handlers (only ones from
-									the specified states, not implied or auto states).</p>
+									<p>Params to be passed to the transition handlers (only the ones
+										belonging to the explicitly requested states, not implied or auto
+									states).</p>
 								</div>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-						<p>Result of the transition. FALSE means that states weren&#39;t accepted,
-							or some of implied or auto states dropped some of the requested states
-						after the transition.</p>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span>
+							<span class="tsd-signature-symbol"> | </span>
+							<span class="tsd-signature-type">null</span>
+						</h4>
+						<p>Result of the transition. <code>false</code> can mean that either the
+							requested states weren&#39;t accepted or that the transition has been aborted
+							by one of the negotiation handlers. <code>null</code> means that the machine is busy
+						and the mutation has been queued.</p>
 						<p>Basic usage</p>
-						<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states.set(<span class="hljs-string">'A'</span>)
-<span class="hljs-function"><span class="hljs-title">states</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'A'</span>]
-states.set(<span class="hljs-string">'B'</span>)
-<span class="hljs-function"><span class="hljs-title">states</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'B'</span>]
+						<pre><code>const example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+<span class="hljs-function"><span class="hljs-title">example</span>.set('A') // -&gt;</span> <span class="hljs-literal">true</span>
+<span class="hljs-function"><span class="hljs-title">example</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'A'</span>]
+<span class="hljs-function"><span class="hljs-title">example</span>.set('B') // -&gt;</span> <span class="hljs-literal">true</span>
+<span class="hljs-function"><span class="hljs-title">example</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'B'</span>]
 </code></pre><p>State negotiation</p>
-						<pre><code>states = asyncmachine.factory [<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]
-<span class="hljs-comment"># Transition enter negotiation</span>
-states.A_enter = <span class="hljs-function">-&gt;</span> <span class="hljs-literal">no</span>
-states.add <span class="hljs-string">'A'</span> <span class="hljs-regexp">//</span> -&gt; <span class="hljs-literal">false</span>
-</code></pre><p>Setting a state on an external machine</p>
-						<pre><code>states1 = asyncmachine.factory [<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]
-states2 = asyncmachine.factory [<span class="hljs-string">'C'</span>, <span class="hljs-string">'D'</span>]
+						<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
+<span class="hljs-comment">// reject the transition with a negotiation handler</span>
+example.A_enter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+}
+example.add(<span class="hljs-string">'A'</span>) <span class="hljs-comment">// -&gt; false</span>
+</code></pre><p>Activating a state on an external machine</p>
+						<pre><code><span class="hljs-keyword">const</span> m1 = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>])
+<span class="hljs-keyword">const</span> m2 = machine([<span class="hljs-string">'C'</span>, <span class="hljs-string">'D'</span>])
 
-states1.A_enter -&gt;
-    <span class="hljs-comment"># this transition will be queued and executed after the current transition</span>
-    <span class="hljs-comment"># is fully finished</span>
-    states1.add states2, <span class="hljs-string">'B'</span>
+m1.A_enter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-comment">// this transition will be queued and executed after the current</span>
+  <span class="hljs-comment">// transition is completed</span>
+  m1.add(m2, <span class="hljs-string">'C'</span>) <span class="hljs-comment">// -&gt; null</span>
+}
 </code></pre>
 					</li>
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L599">asyncmachine.ts:599</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L668">asyncmachine.ts:668</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3932,7 +3968,10 @@ states1.A_enter -&gt;
 								<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>params: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 							</li>
 						</ul>
-						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span>
+							<span class="tsd-signature-symbol"> | </span>
+							<span class="tsd-signature-type">null</span>
+						</h4>
 					</li>
 				</ul>
 			</section>
@@ -3946,13 +3985,12 @@ states1.A_enter -&gt;
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1775">asyncmachine.ts:1775</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L2113">asyncmachine.ts:2113</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Sets the new active states bumping the counters. Returns an array of
-								previously active states.</p>
+								<p>Sets the new active states incrementing the counters.</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -3965,6 +4003,7 @@ states1.A_enter -&gt;
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h4>
+						<p>An array of previously active states.</p>
 					</li>
 				</ul>
 			</section>
@@ -3979,7 +4018,7 @@ states1.A_enter -&gt;
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L632">asyncmachine.ts:632</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L706">asyncmachine.ts:706</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3992,8 +4031,8 @@ states1.A_enter -&gt;
 							<a href="asyncmachine.html#last_promise">last_promise</a> attribute.</p>
 							<p>See <a href="asyncmachine.html#set">set</a> for the params description.</p>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-<span class="hljs-built_in">setTimeout</span> states.setByCallback(<span class="hljs-string">'B'</span>)
+							<pre><code>const example = machine(['A', 'B', 'C'])
+setTimeout(<span class="hljs-name">example</span>.setByCallback('B'))
 </code></pre>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -4040,7 +4079,7 @@ states1.A_enter -&gt;
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L635">asyncmachine.ts:635</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L711">asyncmachine.ts:711</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4091,23 +4130,23 @@ states1.A_enter -&gt;
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L663">asyncmachine.ts:663</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L747">asyncmachine.ts:747</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Deferred version of <a href="asyncmachine.html#set">set</a>, returning a listener for setting
-									the state. Errors need to be handled manually by binding the exception
-								state to the &#39;error&#39; event (or equivalent).</p>
+								<p>Deferred version of <a href="asyncmachine.html#set">set</a>, returning a listener for setting the state.</p>
 							</div>
+							<p>Errors need to be handled manually by binding the exception
+							state to the &#39;error&#39; event (or equivalent).</p>
 							<p>After the call, the related promise object is available as the
 							<a href="asyncmachine.html#last_promise">last_promise</a> attribute.</p>
 							<p>See <a href="asyncmachine.html#set">set</a> for the params description.</p>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-emitter = new EventEmitter
-emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'ready'</span>, states.setByListener(<span class="hljs-string">'A'</span>)
-emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'error'</span>, states.addByListener(<span class="hljs-string">'Exception'</span>)
+							<pre><code><span class="hljs-keyword">const</span> example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+emitter = <span class="hljs-keyword">new</span> EventEmitter
+emitter.<span class="hljs-keyword">on</span>(<span class="hljs-string">'ready'</span>, states.setByListener(<span class="hljs-string">'A'</span>))
+emitter.<span class="hljs-keyword">on</span>(<span class="hljs-string">'error'</span>, states.addByListener(<span class="hljs-string">'Exception'</span>))
 </code></pre>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -4151,7 +4190,7 @@ emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'e
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L666">asyncmachine.ts:666</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L752">asyncmachine.ts:752</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4198,7 +4237,7 @@ emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'e
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1583">asyncmachine.ts:1583</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1887">asyncmachine.ts:1887</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4225,20 +4264,20 @@ emitter<span class="hljs-selector-class">.on</span> <span class="hljs-string">'e
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L690">asyncmachine.ts:690</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L783">asyncmachine.ts:783</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Deferred version of <a href="asyncmachine.html#set">set</a>, setting the requested states on the next event
-								loop&#39;s tick. Useful if you want to start with a fresh stack trace.</p>
+								<p>Deferred version of <a href="asyncmachine.html#set">set</a>, setting the requested states on the next
+								event loop&#39;s tick. Useful if you want to start with a fresh stack trace.</p>
 							</div>
 							<p>See <a href="asyncmachine.html#set">set</a> for the params description.</p>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.<span class="hljs-keyword">factory</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states.<span class="hljs-keyword">set</span>(<span class="hljs-string">'A'</span>)
+							<pre><code>states = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+states.set(<span class="hljs-string">'A'</span>)
 states.setNext(<span class="hljs-string">'B'</span>)
-states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt; ['A']</span>
+<span class="hljs-function"><span class="hljs-title">states</span>.<span class="hljs-keyword">is</span>() // -&gt;</span> [<span class="hljs-string">'A'</span>]
 </code></pre>
 						</div>
 						<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -4264,7 +4303,7 @@ states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L691">asyncmachine.ts:691</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L788">asyncmachine.ts:788</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4293,15 +4332,15 @@ states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L319">asyncmachine.ts:319</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L364">asyncmachine.ts:364</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Sets the target for the transition handlers. Useful to keep all you methods in
-									in one class while the states class is composed as an attribute of the main
-									object. There&#39;s also a shorthand for this method as
-								<a href="asyncmachine.html#constructor">AsyncMachine.constructor</a>&#39;s param.</p>
+								<p>Sets the target for the transition handlers. Useful to keep all your
+									methods in in one class while the states class is composed as an
+									attribute of the target object. There&#39;s also a shorthand for this method
+								as a <a href="asyncmachine.html#constructor">AsyncMachine.constructor</a>&#39;s param.</p>
 							</div>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
@@ -4310,14 +4349,17 @@ states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt
 								<h5>target: <span class="tsd-signature-type">__type</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>Target object.</p>
-									<pre><code><span class="hljs-keyword">class</span> Foo
-    <span class="hljs-function"><span class="hljs-keyword">constructor</span>:</span> -&gt;
-        this.states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-        this.states.setTarget this
-        this.states.add <span class="hljs-string">'A'</span>
+									<pre><code><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Foo</span> </span>{
+  <span class="hljs-keyword">constructor</span>() {
+    <span class="hljs-keyword">this</span>.states = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+    <span class="hljs-keyword">this</span>.states.setTarget(<span class="hljs-keyword">this</span>)
+    <span class="hljs-keyword">this</span>.states.add(<span class="hljs-string">'A'</span>)
+  }
 
-    A_state: -&gt;
-        console.log <span class="hljs-string">'State A set'</span>
+  A_state() {
+    console.log(<span class="hljs-string">'State A set'</span>)
+  }
+}
 </code></pre>
 								</div>
 							</li>
@@ -4336,7 +4378,7 @@ states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1614">asyncmachine.ts:1614</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1940">asyncmachine.ts:1940</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -4345,6 +4387,8 @@ states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt
 							</div>
 						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4>
+						<p>JSON version of the current machine. Valid input for the
+						<a href="../interfaces/ipipedstatetarget.html#machine">machine</a> factory.</p>
 						<ul class="tsd-parameters">
 						</ul>
 					</li>
@@ -4360,13 +4404,21 @@ states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1437">asyncmachine.ts:1437</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1713">asyncmachine.ts:1713</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Returns a string representation of the machine (name and the list of
+								states), optionally including the in-active states.</p>
+							</div>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> include_inactive: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
+								<div class="tsd-comment tsd-typography">
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -4383,12 +4435,13 @@ states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1184">asyncmachine.ts:1184</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1391">asyncmachine.ts:1391</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Returns the list of states to which the current transition is heading.</p>
+								<p>Returns the list of target states which are about to be active after the
+								transition finishes.</p>
 							</div>
 							<p>Requires [[duringTranstion]] to be true or it&#39;ll throw.</p>
 						</div>
@@ -4406,9 +4459,15 @@ states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1433">asyncmachine.ts:1433</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1703">asyncmachine.ts:1703</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Returns a string representation of the machine using the <a href="asyncmachine.html#statestostring">statesToString</a>
+								method.</p>
+							</div>
+						</div>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 					</li>
 				</ul>
@@ -4423,7 +4482,7 @@ states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L535">asyncmachine.ts:535</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L593">asyncmachine.ts:593</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -4455,28 +4514,31 @@ states.<span class="hljs-keyword">is</span>() <span class="hljs-comment">// -&gt
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1251">asyncmachine.ts:1251</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1460">asyncmachine.ts:1460</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
 							<div class="lead">
-								<p>Resolves the returned promise when all passed states are set (at the same
-								time). Accepts an optional abort function.</p>
+								<p>Resolves the returned promise when all of the passed states are active
+								(at the same time). Accepts an optional abort function.</p>
 							</div>
 							<p>Example</p>
-							<pre><code>states = asyncmachine.factory([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
-states.<span class="hljs-keyword">when</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]).<span class="hljs-keyword">then</span>( <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
-  <span class="hljs-built_in">console</span>.log()<span class="hljs-string">'A, B'</span>)
+							<pre><code>const example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+example.<span class="hljs-keyword">when</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]).<span class="hljs-keyword">then</span>( <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'A, B'</span>)
 }
 
-states.add(<span class="hljs-string">'A'</span>)
-states.add(<span class="hljs-string">'B'</span>) <span class="hljs-regexp">//</span> prints <span class="hljs-string">'A, B'</span>
+example.add(<span class="hljs-string">'A'</span>)
+example.add(<span class="hljs-string">'B'</span>) <span class="hljs-regexp">//</span> prints <span class="hljs-string">'A, B'</span>
 </code></pre><p>TODO support push cancellation</p>
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>states: <span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>List of state names</p>
+								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> abort: <a href="../index.html#tabortfunction" class="tsd-signature-type">TAbortFunction</a></h5>
@@ -4500,19 +4562,42 @@ states.add(<span class="hljs-string">'B'</span>) <span class="hljs-regexp">//</s
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L1259">asyncmachine.ts:1259</a></li>
+								<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L1496">asyncmachine.ts:1496</a></li>
 							</ul>
 						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Resolves the returned promise when all of the passed states are NOT active
+								(at the same time). Accepts an optional abort function.</p>
+							</div>
+							<p>Example</p>
+							<pre><code>const example = machine([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'C'</span>])
+example.<span class="hljs-keyword">when</span>([<span class="hljs-string">'A'</span>, <span class="hljs-string">'B'</span>]).<span class="hljs-keyword">then</span>( <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'A, B'</span>)
+}
+
+example.add(<span class="hljs-string">'A'</span>)
+example.add(<span class="hljs-string">'B'</span>) <span class="hljs-regexp">//</span> prints <span class="hljs-string">'A, B'</span>
+</code></pre><p>TODO support push cancellation
+							TODO merge with <code>when(active, inactive)</code></p>
+						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
 								<h5>states: <span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-type">"Exception"</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">TStates</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[]</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>List of state names</p>
+								</div>
 							</li>
 							<li>
 								<h5><span class="tsd-flag ts-flagOptional">Optional</span> abort: <a href="../index.html#tabortfunction" class="tsd-signature-type">TAbortFunction</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Existing abort function (optional)</p>
+								</div>
 							</li>
 						</ul>
 						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						<p>Promise resolved once all states are set simultaneously.</p>
 					</li>
 				</ul>
 			</section>
@@ -4525,12 +4610,12 @@ states.add(<span class="hljs-string">'B'</span>) <span class="hljs-regexp">//</s
 				<div class="tsd-signature tsd-kind-icon">Exception<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L166">asyncmachine.ts:166</a></li>
+						<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L175">asyncmachine.ts:175</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Empty Exception state properties. See <a href="asyncmachine.html#exception_state">Exception_state</a> transition
+						<p>Exception state&#39;s properties. See <a href="asyncmachine.html#exception_state">Exception_state</a> final transition
 						handler.</p>
 					</div>
 					<dl class="tsd-comment-tags">
@@ -4545,7 +4630,7 @@ states.add(<span class="hljs-string">'B'</span>) <span class="hljs-regexp">//</s
 					<div class="tsd-signature tsd-kind-icon">multi<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">true</span><span class="tsd-signature-symbol"> =&nbsp;true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/4e53017/src/asyncmachine.ts#L167">asyncmachine.ts:167</a></li>
+							<li>Defined in <a href="https://github.com/TobiaszCudnik/asyncmachine/blob/18bee98/src/asyncmachine.ts#L176">asyncmachine.ts:176</a></li>
 						</ul>
 					</aside>
 				</section>
