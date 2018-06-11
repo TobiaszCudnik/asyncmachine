@@ -1,108 +1,153 @@
-const asyncmachine = require('../../build/asyncmachine.cjs.js')
-const assert = require('assert')
-require('source-map-support').install()
-
-
 /**
- * This example presents a simple fault tolerance (retrying) using the Exception state.
- * 
- * Log level 2 output:
-[add] A
-[add:implied] SometimesBroken
-[transition] SometimesBroken_enter
-clock 0
-[states] +A +SometimesBroken
-[transition] SometimesBroken_state
-[exception] from SometimesBroken, forced states to A
-[add] Exception
-[add:implied] SometimesBroken
-[transition] SometimesBroken_enter
-clock 0
-[states] +Exception +SometimesBroken
-[transition] Exception_state
-[transition] SometimesBroken_state
-[exception] from SometimesBroken, forced states to Exception, A
-[add] Exception
-[add:implied] SometimesBroken
-[transition] SometimesBroken_enter
-clock 1
-[states] +SometimesBroken
-[transition] Exception_state
-[transition] SometimesBroken_state
-[exception] from SometimesBroken, forced states to Exception, A
-[add] Exception
-[add:implied] SometimesBroken
-[transition] SometimesBroken_enter
-clock 2
-[states] +SometimesBroken
-[transition] Exception_state
-[transition] SometimesBroken_state
-[exception] from SometimesBroken, forced states to Exception, A
-[add] Exception
-[add:implied] SometimesBroken
-[transition] SometimesBroken_enter
-clock 3                                                                                                                                                        
-[states] +SometimesBroken                                                                                                                                      
-[transition] Exception_state                                                                                                                                   
-[transition] SometimesBroken_state                                                                                                                             
-[exception] from SometimesBroken, forced states to Exception, A                                                                                                
-[add] Exception                                                                                                                                                
-[add:implied] SometimesBroken                                                                                                                                  
-[transition] SometimesBroken_enter                                                                                                                             
-clock 4                                                                                                                                                        
-[states] +SometimesBroken                                                                                                                                      
-[transition] Exception_state                                                                                                                                   
-[transition] SometimesBroken_state                                                                                                                             
-[exception] from SometimesBroken, forced states to Exception, A                                                                                                
-[add] Exception                                                                                                                                                
-[add:implied] SometimesBroken                                                                                                                                  
-[transition] SometimesBroken_enter                                                                                                                             
-clock 5                                                                                                                                                        
-[states] +SometimesBroken                                                                                                                                      
-[transition] Exception_state                                                                                                                                   
-[transition] SometimesBroken_state                                                                                                                             
-[exception] from SometimesBroken, forced states to Exception, A                                                                                                
-[add] Exception                                                                                                                                                
-[add:implied] SometimesBroken                                                                                                                                  
-[transition] SometimesBroken_enter                                                                                                                             
-clock 6                                                                                                                                                        
-Too many errors, quitting                                                                                                                                      
-[cancelled] Exception, A, SometimesBroken by the method SometimesBroken_enter                                                                                  
-states [ 'Exception', 'A' ]
+ * AsyncMachine Exception Example
+ *
+ * This example presents a simple fault tolerance (retrying) using the
+ * Exception state
+ *
+ * Scroll down to see the log output.
+ *
+ * @link https://github.com/TobiaszCudnik/asyncmachine
  */
 
-const states = asyncmachine.factory({
-  SometimesBroken: {},
-  A: { add: ['SometimesBroken'] },
-  B: {}
-})
+const { machine } = require('asyncmachine')
+require('source-map-support').install()
 
-states.id('').logLevel(2)
+const example = machine(['Stable', 'Broken'])
+  .id('')
+  .logLevel(2)
 
 // state negotiation
-states.SometimesBroken_enter = function() {
-  console.log('clock', this.clock('Exception'))
-  if (this.clock('Exception') > 5) {
+example.Broken_enter = function() {
+  let clock = this.clock('Exception')
+  console.log('Exception clock ==', clock)
+  if (clock > 5) {
     console.log('Too many errors, quitting')
     return false
   }
 }
 
 // state set
-states.SometimesBroken_state = function() {
+example.Broken_state = function() {
   throw Error('random exception')
 }
 
 // use the state negotiation for fault tolerance
-states.Exception_state = function(err, target_states, base_states, 
-    exception_transition, async_target_states) {
-  // try to rescue the SometimesBroken state
-  if (~target_states.indexOf('SometimesBroken')) {
-    console.log('Retrying the SometimesBroken state')
-    this.add('SometimesBroken')
+example.Exception_state = function(
+  err,
+  target_states,
+  base_states,
+  exception_src_handler,
+  async_target_states
+) {
+  // try to rescue the Broken state
+  if (target_states.includes('Broken')) {
+    console.log('Retrying the Broken state')
     this.drop('Exception')
+    this.add('Broken')
   }
 }
 
-states.add('A')
-console.log('states', states.is())
+example.add(['Stable', 'Broken'])
+console.log('state', example.is())
+
+/*
+Log output (level 2):
+
+[add] Stable, Broken
+[transition] Broken_enter
+Exception clock == 0
+[state] +Stable +Broken
+[transition] Broken_state
+[exception] from Broken, forced states to Stable
+[state:force] Stable
+[add] Exception
+[state] +Exception
+[transition] Exception_state
+Retrying the Broken state
+[queue:drop] Exception
+[queue:add] Broken
+[drop] Exception
+[state] -Exception
+[add] Broken
+[transition] Broken_enter
+Exception clock == 1
+[state] +Broken
+[transition] Broken_state
+[exception] from Broken, forced states to Stable
+[state:force] Stable
+[add] Exception
+[state] +Exception
+[transition] Exception_state
+Retrying the Broken state
+[queue:drop] Exception
+[queue:add] Broken
+[drop] Exception
+[state] -Exception
+[add] Broken
+[transition] Broken_enter
+Exception clock == 2
+[state] +Broken
+[transition] Broken_state
+[exception] from Broken, forced states to Stable
+[state:force] Stable
+[add] Exception
+[state] +Exception
+[transition] Exception_state
+Retrying the Broken state
+[queue:drop] Exception
+[queue:add] Broken
+[drop] Exception
+[state] -Exception
+[add] Broken
+[transition] Broken_enter
+Exception clock == 3
+[state] +Broken
+[transition] Broken_state
+[exception] from Broken, forced states to Stable
+[state:force] Stable
+[add] Exception
+[state] +Exception
+[transition] Exception_state
+Retrying the Broken state
+[queue:drop] Exception
+[queue:add] Broken
+[drop] Exception
+[state] -Exception
+[add] Broken
+[transition] Broken_enter
+Exception clock == 4
+[state] +Broken
+[transition] Broken_state
+[exception] from Broken, forced states to Stable
+[state:force] Stable
+[add] Exception
+[state] +Exception
+[transition] Exception_state
+Retrying the Broken state
+[queue:drop] Exception
+[queue:add] Broken
+[drop] Exception
+[state] -Exception
+[add] Broken
+[transition] Broken_enter
+Exception clock == 5
+[state] +Broken
+[transition] Broken_state
+[exception] from Broken, forced states to Stable
+[state:force] Stable
+[add] Exception
+[state] +Exception
+[transition] Exception_state
+Retrying the Broken state
+[queue:drop] Exception
+[queue:add] Broken
+[drop] Exception
+[state] -Exception
+[add] Broken
+[transition] Broken_enter
+Exception clock == 6
+Too many errors, quitting
+[cancelled] Broken, Stable by the method Broken_enter
+state [ 'Stable' ]
+
+*/

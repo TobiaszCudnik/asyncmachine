@@ -1,59 +1,43 @@
-const asyncmachine = require('../../build/asyncmachine.js')
+/**
+ * AsyncMachine Piping Example
+ *
+ * This example shows how piping states between machines works.
+ *
+ * Scroll down to see log outputs.
+ *
+ * @link https://github.com/TobiaszCudnik/asyncmachine
+ */
+
+const { machine, PipeFlags } = require('asyncmachine')
 require('source-map-support').install()
 
+const foo = machine({
+  A: {},
+  B: {}
+})
+  .id('foo')
+  .logLevel(2)
 
-/**
- * This example presents how piping works between machines.
- * 
- * Log output (mixed levels)
-create the pipes (and sync the state)
+const bar = machine({
+  AA: {},
+  NotB: {}
+})
+  .id('bar')
+  .logLevel(2)
 
-[foo] [pipe] A as AA to bar
-[bar] [drop] AA
-[foo] [pipe:invert] B as NotB to baz
-[baz] [add] NotB
-[baz] [states] +NotB
-[baz] [pipe] NotB as NotB to bar
-[bar] [add] NotB
-[bar] [states] +NotB
+const baz = machine({
+  NotB: {}
+})
+  .id('baz')
+  .logLevel(2)
 
-play with [foo] a bit
-
-[foo] [states] +A
-[bar] [states] +AA
-[foo] [states] +B
-[baz] [states] -NotB
-[bar] [states] -NotB
-[foo] [states] -B
-[baz] [states] +NotB
-[bar] [states] +NotB
-*/
-
-const foo = asyncmachine.factory({
-	A: {},
-	B: {}
-}).id('foo').logLevel(2)
-
-const bar = asyncmachine.factory({
-	AA: {},
-	NotB: {}
-}).id('bar').logLevel(2)
-
-const baz = asyncmachine.factory({
-	NotB: {},
-}).id('baz').logLevel(2)
-
-
-console.log("\ncreate the pipes (and sync the state)\n")
+console.log('\ncreate the pipes (and sync the state)\n')
 
 foo.pipe('A', bar, 'AA')
-foo.pipe('B', baz, 'NotB', asyncmachine.PipeFlags.INVERT)
+foo.pipe('B', baz, 'NotB', PipeFlags.INVERT)
 baz.pipe('NotB', bar, 'NotB')
 
-console.log("\nplay with [foo] a bit\n")
-foo.logLevel(1)
-bar.logLevel(1)
-baz.logLevel(1)
+console.log('\n start mutating [foo] only, and others will follow \n')
 
 foo.add('A')
 foo.add('B')
