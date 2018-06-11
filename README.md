@@ -1,4 +1,4 @@
-**AsyncMachine** is a modern state manager with intelligence built it. It's a loose combination of several different concepts, while still being a pretty minimalistic library. It was born slowly over the years of writing complex JavaScript apps and other asynchronous systems. Most of all, it's a state machine, thus the label _Hybrid State Machine_.
+**AsyncMachine** is a modern state manager with intelligence built in. It's a combination of several different concepts, while still being a minimalistic library. It was born slowly over the years of writing complex JavaScript apps and other asynchronous systems. Most of all, it's a state machine, thus the label _Hybrid State Machine_.
 
 Components:
 

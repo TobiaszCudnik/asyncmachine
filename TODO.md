@@ -22,10 +22,10 @@
   - demos on stackblitz
 - examples of how to use AM as a state manager for React
   - demos on stackblitz
-- fix `createChild()`
-  - tests
+- test `createChild()`
 - implement `pipeRemoveBinding(binding)`
 - implement `unregister(state)`
+- fix / correct the broken tests
 
 ## 4.x
 

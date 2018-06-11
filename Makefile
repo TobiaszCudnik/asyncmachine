@@ -94,6 +94,7 @@ test-grep-debug:
 		test/*.js
 
 docs:
+	rm -R docs/api
 	mkdir -p docs/api
 	$(BIN)/typedoc \
 		--out docs/api \
