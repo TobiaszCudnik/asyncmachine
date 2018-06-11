@@ -203,7 +203,7 @@ export default class Transition {
       // STATE CALLS PHASE (non cancellable)
       if (!aborted) {
         // TODO extract
-        machine.setActiveStates_(this.requested_states, this.states)
+        machine.setActiveStates_(this.requested_states, [...this.states])
         this.processPostTransition()
         hasStateChanged = machine.hasStateChanged(this.before)
         if (hasStateChanged) {
