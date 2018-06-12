@@ -3,26 +3,15 @@
 ## 3.x
 - ability to disable the default log handler
 - indicate "in transition" for statesToString()
-- export JSON from an instance (to easily paste into the inspector)
 - validate state names in relations
 - handle exceptions happening in an ASYNC Exception_state handler
   - honor `this.machine.print_exception`
-- wiki docs and tutorials
-  - examples should use es6 modules
-  - update the old examples
-  - demos on stackblitz
-  - missing JSDocs
-  - translate remaining jsdocs examples from coffeescript to ES6
+- def guide
   - make a comparison of `pipe`, `pipe negotiation` to `add`, `add & require`
-- `State_end` is missing ` | Promise<boolean | void>` in am-types
-- console.warn for a cancelled transition in case of a busy machine
-  - include machine ID, source states and target states
-- rxjs integration examples - parsing state sets coming from a group of machines
+- rxjs integration examples
+  - parsing state sets coming from a group of machines
   - parse the stream of states and "mine" complex states eg user behavior
   - demos on stackblitz
-- examples of how to use AM as a state manager for React
-  - demos on stackblitz
-- provide MJS build
 - test `createChild()`
 - test `Exception_state` params
 - test params for requested state handlers

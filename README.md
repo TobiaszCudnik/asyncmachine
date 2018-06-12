@@ -101,7 +101,7 @@ Classic TodoMCV example using **AsyncMachine** as the controller and **React** a
 
 ### State streams with RxJS
 
-Observe state changes and navigate through specific paths with RxJS, then feed the result back to the machine as a state.
+Observe state changes and navigate through specific paths with RxJS, then feed the result back as a state.
 
 * Comming soon!
 
