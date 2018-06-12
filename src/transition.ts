@@ -159,12 +159,13 @@ export default class Transition {
       this.addStepsFor(this.requested_states, null, TransitionStepTypes.CANCEL)
       machine.emit('transition-cancelled', this)
       machine.emit('transition-end', this)
-      const msg = `[cancelled:${this.source_machine.id(
-        true
-      )}] Target machine "${machine.id()}" already during a transition, use a shared queue`
+      const msg =
+        `[cancelled:${this.source_machine.id(true)}] Target machine` +
+        `"${machine.id()}" already during a transition, use a shared` +
+        `queue. Requested states: ${this.requested_states.join(
+          ', '
+        )}, source states: ${this.before.join(', ')}`
       console.warn(msg)
-      // TODO this should be a warning
-      // include machine ID, target states, source states
       machine.log(msg, 1)
       return false
     }
