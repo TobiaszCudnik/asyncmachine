@@ -52,14 +52,6 @@ example.is() // -> [ 'Wet', 'Water' ]
 
 [![example](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/example.gif)](https://stackblitz.com/edit/asyncmachine-example-dry-wet?file=index.ts)
 
-### Async Dialog
-
-Presents the following concepts: `automatic states`, `synchronous mutations`, `delayed mutations` and loose coupling.
-
-* [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ede5f62717e0013877cdc)
-* [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-async-dialog?file=index.ts)
-* [Code on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/async-dialog)
-
 ### Negotiation
 
 Presents how the `state negotiation` works.
@@ -67,6 +59,14 @@ Presents how the `state negotiation` works.
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ed850c6dc1f0012db1346)
 * [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-negotiation?file=index.ts)
 * [Code on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/negotiation)
+
+### Async Dialog
+
+Presents the following concepts: `automatic states`, `synchronous mutations`, `delayed mutations` and loose coupling.
+
+* [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ede5f62717e0013877cdc)
+* [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-async-dialog?file=index.ts)
+* [Code on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/async-dialog)
 
 ### Exception State
 
@@ -92,12 +92,18 @@ Shows various types of `transition handlers` and the way params get passed to th
 * [Inspect on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-transitions?file=index.ts)
 * [Code on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/transitions)
 
-### TodoMVC
+### TodoMVC and React
 
 Classic TodoMCV example using **AsyncMachine** as the controller and **React** as the view.
 
 * [Edit on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-todomvc?file=src/controller.js)
 * [Code on GitHub](https://github.com/TobiaszCudnik/todomvc-asyncmachine)
+
+### State streams with RxJS
+
+Observe state changes and navigate through specific paths with RxJS, then feed the result back to the machine as a state.
+
+* Comming soon!
 
 ### Restaurant
 
@@ -110,14 +116,14 @@ A complex example showing how to solve the **producer / consumer problem** using
 
 ### GTD Bot
 
-For a real world example check [GTD bot](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src) - a sync engine for Google APIs.
+For a real world example check [GTD Bot](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src) - a sync engine for Google APIs.
 
 [![Preview](http://tobiaszcudnik.github.io/asyncmachine-inspector/sample.png)](http://tobiaszcudnik.github.io/asyncmachine-inspector/sample.mp4)
 
 ## Documentation
 
 * [AsyncMachine - The Definitive Guide](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide) (wiki)<br>
-  [PDF version](https://github.com/TobiaszCudnik/asyncmachine/raw/gh-pages/AsyncMachine-The-Definitive-Guide.pdf) (25 pages, 1.4mb)
+  [PDF version](https://github.com/TobiaszCudnik/asyncmachine/raw/gh-pages/AsyncMachine-The-Definitive-Guide.pdf) (25 pages, 1.5mb)
 * [API docs](https://tobiaszcudnik.github.io/asyncmachine/api) (TypeScript)
   * [machine() factory](https://tobiaszcudnik.github.io/asyncmachine/api/index.html#machine)
   * [AsyncMachine class](https://tobiaszcudnik.github.io/asyncmachine/api/classes/asyncmachine.html)
