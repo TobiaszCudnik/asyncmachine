@@ -58,7 +58,7 @@ Presents how the `state negotiation` works.
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ed850c6dc1f0012db1346)
 * [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-negotiation?file=index.ts)
-* [Code on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/negotiation)
+* [Source on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/negotiation)
 
 ### Async Dialog
 
@@ -66,7 +66,7 @@ Presents the following concepts: `automatic states`, `synchronous mutations`, `d
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ede5f62717e0013877cdc)
 * [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-async-dialog?file=index.ts)
-* [Code on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/async-dialog)
+* [Source on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/async-dialog)
 
 ### Exception State
 
@@ -74,7 +74,7 @@ A simple fault tolerance (retrying) using the `Exception` state.
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ee7113321180012ebafcf)
 * [Inspect on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-exception?file=index.ts)
-* [Code on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/exception-state)
+* [Source on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/exception-state)
 
 ### Piping
 
@@ -82,7 +82,7 @@ Shows how `pipes` forward states between machines.
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1eea671eaec500126c1be7)
 * [Inspect on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-piping?file=index.ts)
-* [Code on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/piping)
+* [Source on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/piping)
 
 ### Transitions
 
@@ -90,14 +90,14 @@ Shows various types of `transition handlers` and the way params get passed to th
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1eeaba3b97b60012c83ec0)
 * [Inspect on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-transitions?file=index.ts)
-* [Code on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/transitions)
+* [Source on GitHub](https://github.com/TobiaszCudnik/asyncmachine/tree/master/examples/transitions)
 
 ### TodoMVC and React
 
 Classic TodoMCV example using **AsyncMachine** as the controller and **React** as the view.
 
 * [Edit on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-todomvc?file=src/controller.js)
-* [Code on GitHub](https://github.com/TobiaszCudnik/todomvc-asyncmachine)
+* [Source on GitHub](https://github.com/TobiaszCudnik/todomvc-asyncmachine)
 
 ### State streams with RxJS
 
@@ -110,7 +110,7 @@ Observe state changes and navigate through specific paths with RxJS, then feed t
 A complex example showing how to solve the **producer / consumer problem** using AsyncMachine.
 
 * [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-inspector-restaurant)
-* [Code on GitHub](https://github.com/TobiaszCudnik/asyncmachine-inspector/tree/master/examples/restaurant)
+* [Source on GitHub](https://github.com/TobiaszCudnik/asyncmachine-inspector/tree/master/examples/restaurant)
 
 [![inspector view](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/restaurant.png)](https://stackblitz.com/edit/asyncmachine-inspector-restaurant)
 
