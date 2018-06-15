@@ -22,7 +22,8 @@ import {
   BaseStates,
   // @ts-ignore
   TAsyncMachine,
-  TransitionException
+  TransitionException,
+  PipeFlagsLabels
 } from './types'
 
 export {
@@ -443,6 +444,7 @@ export default class AsyncMachine<
 
     return relations.filter(relation => {
       if (!state[relation]) return false
+      // @ts-ignore
       if (to_state && !state[relation].includes(to_state)) return false
       return true
     })
@@ -1195,7 +1197,7 @@ export default class AsyncMachine<
     state: (TStates | BaseStates) | (TStates | BaseStates)[],
     machine: AsyncMachine<S, IBind, IEmit>,
     target_state?: S,
-    flags?: PipeFlags
+    flags = PipeFlags.FINAL
   ) {
     this.pipeBind(state, machine, target_state, flags)
   }
@@ -1208,7 +1210,7 @@ export default class AsyncMachine<
    *
    * @param target Target machine to which the state should be forwarded.
    */
-  pipeAll(target: AsyncMachine<any, IBind, IEmit>, flags?: PipeFlags) {
+  pipeAll(target: AsyncMachine<any, IBind, IEmit>, flags = PipeFlags.FINAL) {
     // Do not forward the Exception state
     let states_all = this.states_all.filter(state => state !== 'Exception')
 
@@ -1227,7 +1229,7 @@ export default class AsyncMachine<
   pipeRemove(
     states?: (TStates | BaseStates) | (TStates | BaseStates)[],
     machine?: AsyncMachine<any, IBind, IEmit>,
-    flags?: PipeFlags
+    flags = PipeFlags.FINAL
   ) {
     let bindings = flags ? this.getPipeBindings(flags) : null
     let event_types = flags && bindings ? Object.keys(bindings) : null
@@ -1725,35 +1727,48 @@ export default class AsyncMachine<
 
   // PRIVATES
 
-  // TODO use enums
-  protected getPipeBindings(flags?: PipeFlags): TPipeBindings {
-    if (flags && flags & PipeFlags.INVERT && flags & PipeFlags.NEGOTIATION) {
-      return {
-        enter: 'drop',
-        exit: 'add'
+  protected getPipeBindings(flags = PipeFlags.FINAL): TPipeBindings {
+    const pf = PipeFlags
+    flags = flags || pf.FINAL
+    const bindings = {}
+    if (flags & pf.INVERT) {
+      if (flags & pf.FINAL) {
+        bindings['state'] = 'drop'
+        bindings['end'] = 'add'
       }
-    } else if (flags && flags & PipeFlags.NEGOTIATION_BOTH) {
-      return {
-        enter: 'add',
-        exit: 'drop',
-        state: 'add',
-        end: 'drop'
+      if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_ENTER) {
+        bindings['enter'] = 'drop'
       }
-    } else if (flags && flags & PipeFlags.NEGOTIATION) {
-      return {
-        enter: 'add',
-        exit: 'drop'
+      if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_EXIT) {
+        bindings['exit'] = 'add'
       }
-    } else if (flags && flags & PipeFlags.INVERT) {
-      return {
-        state: 'drop',
-        end: 'add'
+    } else {
+      if (flags & pf.FINAL) {
+        bindings['state'] = 'add'
+        bindings['end'] = 'drop'
+      }
+      if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_ENTER) {
+        bindings['enter'] = 'add'
+      }
+      if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_EXIT) {
+        bindings['exit'] = 'drop'
       }
     }
-    return {
-      state: 'add',
-      end: 'drop'
+    // @ts-ignore
+    return bindings
+  }
+
+  protected getPipeFlagsLabels(flags: PipeFlags) {
+    const names = Object.keys(PipeFlags).filter(
+      key => !isNaN(Number(PipeFlags[key]))
+    )
+    const ret = []
+    for (const flag of names) {
+      if (flags & PipeFlags[flag]) {
+        ret.push(PipeFlagsLabels[flag])
+      }
     }
+    return ret
   }
 
   // TODO overload signatures for the optional requested_state
@@ -1761,42 +1776,33 @@ export default class AsyncMachine<
     states: (TStates | BaseStates) | (TStates | BaseStates)[],
     machine: AsyncMachine<S, IBind, IEmit>,
     requested_state?: S | null,
-    flags?: PipeFlags
+    flags = PipeFlags.FINAL
   ) {
+    const pf = PipeFlags
     let bindings = this.getPipeBindings(flags)
     let parsed_states = this.parseStates(states)
 
     if (requested_state && typeof requested_state !== 'string')
       throw new Error('target_state has to be string or null')
 
-    if (
-      flags &&
-      (flags & PipeFlags.NEGOTIATION || flags & PipeFlags.NEGOTIATION_BOTH) &&
-      flags & PipeFlags.LOCAL_QUEUE
-    )
-      throw new Error('Cant pipe a negotiation into the local queue')
+    const is_negotiation = bindings['enter'] || bindings['exit']
 
-    let tags = ''
-    if (flags && flags & PipeFlags.INVERT) {
-      tags += ':invert'
-    }
-    if (flags && flags & PipeFlags.NEGOTIATION) {
-      tags += ':neg'
-    }
-    if (flags && flags & PipeFlags.NEGOTIATION_BOTH) {
-      tags += ':neg_both'
+    if (is_negotiation && flags & pf.LOCAL_QUEUE) {
+      throw new Error('Cant pipe with negotiation into a local queue')
     }
 
-    if (parsed_states.length == 1 && requested_state)
+    let tags = this.getPipeFlagsLabels(flags).join(':')
+
+    if (parsed_states.length == 1 && parsed_states[0] == requested_state)
       this.log(
-        `[pipe${tags}] '${
+        `[pipe:${tags}] '${
           parsed_states[0]
         }' as '${requested_state}' to '${machine.id()}'`,
         2
       )
     else
       this.log(
-        `[pipe${tags}] '${parsed_states.join(', ')}' to '${machine.id()}'`,
+        `[pipe:${tags}] '${parsed_states.join(', ')}' to '${machine.id()}'`,
         2
       )
 
@@ -1819,12 +1825,8 @@ export default class AsyncMachine<
           }
 
           const ret = target[method_name](machine, target_state)
-          // return only when negotiation requested
-          if (
-            flags &&
-            (flags & PipeFlags.NEGOTIATION ||
-              flags & PipeFlags.NEGOTIATION_BOTH)
-          ) {
+          // return only for negotiation pipes
+          if (['enter', 'exit'].includes(event_type)) {
             // TODO add a canceled step in case of negotiation and a negative
             // result
             return ret
@@ -1868,7 +1870,7 @@ export default class AsyncMachine<
 
   /**
    * Override for EventEmitter method calling a specific listener. Binds to
-   * a promis if returned by the listener.
+   * a promise if returned by the listener.
    *
    * TODO incorporate into EE, saving one call stack frame
    */
@@ -1898,7 +1900,7 @@ export default class AsyncMachine<
    * @param states_before List of previously active states.
    */
   hasStateChanged(states_before: (TStates | BaseStates)[]): boolean {
-    var length_equals = this.is().length === states_before.length
+    const length_equals = this.is().length === states_before.length
 
     return (
       !length_equals ||

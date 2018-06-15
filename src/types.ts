@@ -221,10 +221,10 @@ export class Deferred {
 }
 
 export enum StateRelations {
-  AFTER = <any>'after',
-  ADD = <any>'add',
-  REQUIRE = <any>'require',
-  DROP = <any>'drop'
+  AFTER = 'after',
+  ADD = 'add',
+  REQUIRE = 'require',
+  DROP = 'drop'
 }
 
 export enum TransitionStepTypes {
@@ -297,20 +297,36 @@ export interface IPipedStateTarget {
 /**
  * By default piped are "_state" and "_end" methods, not the negotiation ones.
  * Use the PipeFlags.NEGOTIATION flag to pipe "_enter" and "_exit" methods, and
- * thus, to participate in the state negotiation. This mode DOES NOT guarantee, that
- * the state was successfuly negotiated in the source machine.
+ * thus, to participate in the state negotiation. This mode DOES NOT guarantee,
+ * that the state was successfully negotiated in the source machine.
  *
  * To invert the state, use the PipeFlags.INVERT flag.
  *
- * To append the transition to the local queue (instead of the target machine's one),
- * use the PipeFlags.LOCAL_QUEUE. This will alter the transition order.
+ * To append the transition to the local queue (instead of the target
+ * machine's one), use the PipeFlags.LOCAL_QUEUE. This will alter the
+ * transition order.
  */
 export enum PipeFlags {
   NEGOTIATION = 1,
   INVERT = 1 << 2,
   LOCAL_QUEUE = 1 << 3,
-  // TODO write tests for this
-  NEGOTIATION_BOTH = 1 << 4
+  // TODO write tests for those
+  FINAL = 1 << 4,
+  NEGOTIATION_ENTER = 1 << 5,
+  NEGOTIATION_EXIT = 1 << 6,
+  FINAL_ENTER = 1 << 7,
+  FINAL_EXIT = 1 << 8,
+}
+
+export const PipeFlagsLabels = {
+  NEGOTIATION: 'neg',
+  INVERT: 'inv',
+  LOCAL_QUEUE: 'loc',
+  FINAL: 'fin',
+  NEGOTIATION_ENTER: 'neg_enter',
+  NEGOTIATION_EXIT: 'neg_exit',
+  FINAL_ENTER: 'fin_enter',
+  FINAL_EXIT: 'fin_exit',
 }
 
 export class TransitionException extends Error {

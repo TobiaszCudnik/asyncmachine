@@ -309,7 +309,7 @@ export default class Transition {
         // if state wasn't implied by another state (was one of the current
         // states) then make it a higher priority log msg
         let level = this.machine.is(name) ? 2 : 3
-        this.machine.log(`[drop] ${name} by ${blocked_by.join(', ')}`, level)
+        this.machine.log(`[rel:drop] ${name} by ${blocked_by.join(', ')}`, level)
         if (this.machine.is(name)) {
           this.addStep(name, null, TransitionStepTypes.DROP)
         } else {
@@ -625,7 +625,9 @@ export default class Transition {
         this.addStep(from, to, TransitionStepTypes.TRANSITION, method)
         ret = context[method](...params)
         this.machine.catchPromise(ret, this.states)
-      } else this.machine.log('[transition] ' + method, 4)
+      } else {
+        this.machine.log('[transition] ' + method, 4)
+      }
 
       if (ret !== false) {
         let is_exit = method.slice(-5) === '_exit'
