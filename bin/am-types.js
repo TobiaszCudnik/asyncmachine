@@ -11,7 +11,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const asyncmachine = require('../build/asyncmachine')
+const asyncmachine = require('../asyncmachine')
 const cli = require('commander')
 
 let cli_filename
