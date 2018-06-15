@@ -1,6 +1,11 @@
 ### CHANGELOG
 
+## 3.4
+
+- more granular piping
+
 ## v3.3
+
 - new npm package structure
 - fixed TS warnings
 - bundled d.ts files

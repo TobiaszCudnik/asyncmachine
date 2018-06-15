@@ -51,6 +51,10 @@
   - handle all of those `// TODO write a test` places
 - manually specified queue for piping (piping from A to B using the queue from C)
 - ensure all the state lists and params are shallow copied #api #refactoring
+- `ins.implements(JSONState | AsyncMachine)`
+  - return true if
+  - all the states are implemented
+  - relations BETWEEN THEM are the same
 
 ## Later
 

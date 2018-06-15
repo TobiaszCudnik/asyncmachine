@@ -52,10 +52,13 @@ version:
 	cd pkg && \
 		npm --no-git-tag-version --allow-same-version version $(version)
 
-publish:
+package:
 	make build
 	rm -Rf pkg-tmp
 	cp -RL pkg pkg-tmp
+
+publish:
+	make package
 	cd pkg-tmp && \
 		npm publish
 
