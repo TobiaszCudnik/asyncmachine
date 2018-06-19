@@ -288,7 +288,7 @@ export default class Transition {
 
   resolveRelations(states: string[]): void {
     states = this.machine.parseStates(states)
-    states = this.parseImplies_(states)
+    states = this.parseAddRelation(states)
     states = this.removeDuplicateStates_(states)
 
     // Check if state is blocked or excluded
@@ -319,7 +319,7 @@ export default class Transition {
       return !blocked_by.length
     })
 
-    // states dropped by the states which about to be set
+    // states dropped by the states which are about to be set
     const to_drop = states.reduce((ret: string[], name: string) => {
       const state = this.machine.get(name)
       if (state.drop) {
@@ -327,7 +327,7 @@ export default class Transition {
       }
       return ret
     }, [])
-    states = this.parseImplies_(states).filter(n => !to_drop.includes(n))
+    states = this.parseAddRelation(states).filter(n => !to_drop.includes(n))
     states = this.removeDuplicateStates_(states)
     // Parsing required states allows to avoid cross-dropping of states
     this.states = this.parseRequires_(states.reverse())
@@ -364,13 +364,15 @@ export default class Transition {
   }
 
   // Collect implied states
-  parseImplies_(states: string[]): string[] {
+  protected parseAddRelation(states: string[]): string[] {
     let ret = [...states]
     let changed = true
     let visited: string[] = []
     while (changed) {
       changed = false
       for (let name of ret) {
+        // get implied states only from states which are about to be activated
+        if (this.before.includes(name)) continue
         let state = this.machine.get(name)
         if (visited.includes(name) || !state.add) continue
         this.addStepsFor(

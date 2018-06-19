@@ -3,6 +3,7 @@
 ## 3.4
 
 - more granular piping
+- `add` relation parsed only for new states
 
 ## v3.3
 

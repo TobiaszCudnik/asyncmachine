@@ -445,7 +445,9 @@ export default class AsyncMachine<
     return relations.filter(relation => {
       if (!state[relation]) return false
       // @ts-ignore
-      if (to_state && !state[relation].includes(to_state)) return false
+      if (to_state && !state[relation].includes(to_state)) {
+        return false
+      }
       return true
     })
   }
@@ -1642,8 +1644,6 @@ export default class AsyncMachine<
   }
   // @ts-ignore
   emit: TEmit & IEmit
-
-  // TODO type all the emit calls
 
   /**
    * Binds the Exception state to the promise error handler. Handy when working
