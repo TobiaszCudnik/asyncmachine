@@ -1,6 +1,11 @@
 # TODO
 
 ## 3.x
+- pipe listeners
+  - check if a transition is already queued
+  - also check if a counter transition isnt
+- ability to `npm link` directly from /build
+  - move the dist files to /build/dist
 - ability to disable the default log handler
 - indicate "in transition" for statesToString()
 - validate state names in relations
@@ -20,7 +25,11 @@
 - fix / correct the broken tests
 
 ## 4.x
-
+- `debug` method
+  - uses queries and if they match goes into `debugger`
+  - `debug(DEBUG.ADD, [machine_id], ['Foo'])`
+  - `debug(DEBUG.LOG, [machine_id], '[bind:on] HistoryIdFetched')`
+- easy way to wait on a drained queue from >1 machine
 - new way of handling queue race conditions
   - check for every queue entry instead of transition.ts
 - TypeScript 2.9 compat (typed event emitter using Variadic Types)

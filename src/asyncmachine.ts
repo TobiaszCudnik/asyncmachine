@@ -23,7 +23,8 @@ import {
   // @ts-ignore
   TAsyncMachine,
   TransitionException,
-  PipeFlagsLabels
+  PipeFlagsLabels,
+  NamesToStateChangeTypes
 } from './types'
 
 export {
@@ -1469,7 +1470,7 @@ export default class AsyncMachine<
     return new Promise<null>(resolve => {
       // early resolve if all the states are currently set
       if (this.is(states_parsed)) {
-        resolve()
+        return resolve()
       }
       this.bindToStates(states_parsed, resolve, abort)
     })
@@ -1505,7 +1506,7 @@ export default class AsyncMachine<
     return new Promise<null>(resolve => {
       // early resolve if all the states are NOT currently set
       if (this.not(states_parsed)) {
-        resolve()
+        return resolve()
       }
       this.bindToNotStates(states_parsed, resolve, abort)
     })
@@ -1814,8 +1815,24 @@ export default class AsyncMachine<
         (parsed_states.length == 1 && requested_state) || (state as S)
 
       for (let [event_type, method_name] of Object.entries(bindings)) {
+        // TODO extract
         let pipe_listener = () => {
           let target = flags && flags & PipeFlags.LOCAL_QUEUE ? this : machine
+          // TODO extract
+          const is_scheduled = (method_name: string, start_index = 0) => {
+            return target.queue().findIndex(
+              (r, index) =>
+                index >= start_index &&
+                // @ts-ignore
+                r[QueueRowFields.STATE_CHANGE_TYPE] ==
+                  NamesToStateChangeTypes[method_name] &&
+                r[QueueRowFields.TARGET] == machine &&
+                r[QueueRowFields.STATES].length == 1 &&
+                r[QueueRowFields.STATES][0] == target_state
+            )
+            // TODO get the index and look for the counter one later in
+            // the queue
+          }
           if (this.transition) {
             this.transition.addStep(
               [machine.id(true), target_state as string],
@@ -1823,10 +1840,31 @@ export default class AsyncMachine<
               TransitionStepTypes.PIPE
             )
           }
-
+          // avoid duplications
+          // TODO extract
+          // check if this mutation is scheduled
+          const index = is_scheduled(method_name)
+          if (
+            index != -1 &&
+            // and check if the opposite isn't scheduled after the found one
+            is_scheduled(method_name == 'add' ? 'drop' : 'add', index + 1) == -1
+          ) {
+            this.log(
+              `[pipe] Skipping [${method_name}] for '${target_state}' - already queued`
+            )
+            return
+          }
           const ret = target[method_name](machine, target_state)
           // return only for negotiation pipes
           if (['enter', 'exit'].includes(event_type)) {
+            // TODO check both lock of both of the machines
+            if (target.duringTransition()) {
+              this.log(
+                `[pipe] Negotiation not possible, machine ${target.id(
+                  true
+                )} during a transition`
+              )
+            }
             // TODO add a canceled step in case of negotiation and a negative
             // result
             return ret

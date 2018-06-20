@@ -4,6 +4,8 @@
 
 - more granular piping
 - `add` relation parsed only for new states
+- fixed early resolve for `when()` and `whenNot()`
+- avoid duplicates when executing a pipe
 
 ## v3.3
 

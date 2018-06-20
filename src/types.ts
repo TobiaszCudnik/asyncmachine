@@ -150,7 +150,7 @@ export interface IEmit {
     base_states: string[],
     exception_transition: string,
     async_target_states?: string[]
-  ): boolean
+  ): any
   (event: 'Exception_exit'): boolean
   (event: 'Exception_end'): boolean
   (event: 'Exception_Any'): boolean
@@ -182,6 +182,12 @@ export enum StateChangeTypes {
   DROP,
   ADD,
   SET
+}
+
+export enum NamesToStateChangeTypes {
+  add = StateChangeTypes.ADD,
+  drop = StateChangeTypes.DROP,
+  set = StateChangeTypes.SET
 }
 
 /**
