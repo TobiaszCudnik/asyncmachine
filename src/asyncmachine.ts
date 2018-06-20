@@ -1850,7 +1850,8 @@ export default class AsyncMachine<
             is_scheduled(method_name == 'add' ? 'drop' : 'add', index + 1) == -1
           ) {
             this.log(
-              `[pipe] Skipping [${method_name}] for '${target_state}' - already queued`
+              `[pipe] Skipping [${method_name}] for '${target_state}' - already queued`,
+              3
             )
             return
           }
@@ -1862,7 +1863,8 @@ export default class AsyncMachine<
               this.log(
                 `[pipe] Negotiation not possible, machine ${target.id(
                   true
-                )} during a transition`
+                )} during a transition`,
+                2
               )
             }
             // TODO add a canceled step in case of negotiation and a negative
