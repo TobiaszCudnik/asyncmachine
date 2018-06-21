@@ -1,7 +1,7 @@
 import AsyncMachine from './asyncmachine'
 import {
   TransitionException,
-  StateChangeTypes,
+  MutationTypes,
   IQueueRow,
   QueueRowFields,
   TransitionStepTypes,
@@ -68,7 +68,7 @@ export default class Transition {
     return this.row[QueueRowFields.AUTO] || false
   }
   // type of the transition
-  get type(): StateChangeTypes {
+  get type(): MutationTypes {
     return this.row[QueueRowFields.STATE_CHANGE_TYPE]
   }
   // explicitly requested states
@@ -91,7 +91,7 @@ export default class Transition {
     let states = this.requested_states
     this.addStepsFor(states, null, TransitionStepTypes.REQUESTED)
 
-    const types = StateChangeTypes
+    const types = MutationTypes
     const type_label = types[type].toLowerCase()
     if (this.auto)
       this.machine.log(`[${type_label}:auto] state ${states.join(', ')}`, 3)
@@ -178,7 +178,7 @@ export default class Transition {
       // NEGOTIATION CALLS PHASE (cancellable)
 
       // self transitions
-      if (!aborted && this.type != StateChangeTypes.DROP) {
+      if (!aborted && this.type != MutationTypes.DROP) {
         aborted = this.self() === false
       }
 
@@ -230,7 +230,7 @@ export default class Transition {
         })
       } else {
         let queued_exception: IQueueRow = [
-          StateChangeTypes.ADD,
+          MutationTypes.ADD,
           ['Exception'],
           [err.err, this.states, this.before, err.transition],
           false,
@@ -263,7 +263,7 @@ export default class Transition {
 
     // If this's a DROP transition, check if all explicit states has been
     // dropped.
-    if (this.row[QueueRowFields.STATE_CHANGE_TYPE] === StateChangeTypes.DROP) {
+    if (this.row[QueueRowFields.STATE_CHANGE_TYPE] === MutationTypes.DROP) {
       return machine.not(this.row[QueueRowFields.STATES])
     } else {
       return machine.is(this.states)
@@ -273,7 +273,7 @@ export default class Transition {
   setupAccepted() {
     // Dropping states doesn't require an acceptance
     // Auto-states can be set partially
-    if (this.type !== StateChangeTypes.DROP && !this.auto) {
+    if (this.type !== MutationTypes.DROP && !this.auto) {
       let not_accepted = this.machine.diffStates(
         this.requested_states,
         this.states
@@ -357,7 +357,7 @@ export default class Transition {
     }
 
     if (add.length) {
-      return [StateChangeTypes.ADD, add, [], true, this.machine]
+      return [MutationTypes.ADD, add, [], true, this.machine]
     }
 
     return null
