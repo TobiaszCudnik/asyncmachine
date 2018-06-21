@@ -213,6 +213,11 @@ export default class AsyncMachine<
   /** List of handlers receiving log messeges */
   log_handlers: TLogHandler[] = []
   /**
+   * If true, the default log handler will be disabled - no `console.log`
+   * messages.
+   */
+  def_log_handler_off = false
+  /**
    * Queue execution got postponed, because this machine is currently during
    * a transition from another machine's queue.
    */
@@ -1697,7 +1702,7 @@ export default class AsyncMachine<
     for (const handler of this.log_handlers) {
       handler(msg, level)
     }
-    if (level > this.log_level_) return
+    if (level > this.log_level_ || this.def_log_handler_off) return
 
     let prefix = this.id() ? `[${this.id()}] ` : ''
     msg = prefix + msg
