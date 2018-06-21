@@ -564,6 +564,62 @@ export default class AsyncMachine<
   }
 
   /**
+   * Simple method to check if a particular mutation has been queued. Returns
+   * an index of the match or -1 in not found.
+   *
+   * All 3 params are checked and only the first match is returned, thus
+   * this is not a full flaged solution for quering the queue.
+   *
+   * Example - check if `this.add('Bar')` is currently queued:
+   * ```typescipt
+   * import { machine, MutationTypes } from 'asyncmachine'
+   * const example = machine(['Foo', 'Bar'])
+   * example.Foo_state = function() {
+   *   this.add('Bar') // -> null
+   *   this.isQueued(MutationTypes.ADD, ['Bar']) // -> true
+   * }
+   * example.add('Foo') // -> true
+   * ```
+   *
+   * @param mutation_type Type: add, drop or set
+   * @param states List of states used in the mutation
+   * @param target_machine Target to mutate. Defaults to `this.
+   * @param without_params_only Matches only mutation without params.
+   * @param states_strict_equal States of the mutation have to be exactly like
+   *   `states`. If `false`, sets wider than (containing all of) the passed
+   *   `states` will also be accepted.
+   * @param start_index Start index for the lookup (in the queue)
+   * @return Found index of -1
+   *
+   * TODO write a test
+   */
+  isQueued(
+    mutation_type: MutationTypes,
+    states: string[],
+    target_machine: TAsyncMachine = this,
+    without_params_only = true,
+    states_strict_equal = true,
+    start_index = 0
+  ): number {
+    return this.queue().findIndex(
+      (r, index) =>
+        index >= start_index &&
+        r[QueueRowFields.STATE_CHANGE_TYPE] == mutation_type &&
+        r[QueueRowFields.TARGET] == target_machine &&
+        ((without_params_only && !r[QueueRowFields.PARAMS].length) ||
+          !without_params_only) &&
+        // target states have to be at least as long as the checked ones
+        // or exactly the same in case of a strict_equal
+        ((states_strict_equal &&
+          [QueueRowFields.STATES].length == states.length) ||
+          (!states_strict_equal &&
+            [QueueRowFields.STATES].length >= states.length)) &&
+        // and all the checked ones have to be included in the target ones
+        states.every(s => r[QueueRowFields.STATES].includes(s))
+    )
+  }
+
+  /**
    * Register passed state names. State properties should be already defined.
    *
    * @param states State names.
@@ -1989,6 +2045,20 @@ export default class AsyncMachine<
     const type_label = MutationTypes[type].toLowerCase()
     const states_parsed = target.parseStates(states)
 
+    // Detect duplicates and avoid queueing them.
+    if (
+      !params.length &&
+      this.detectQueueDuplicates_(target, type, states_parsed as string[])
+    ) {
+      this.log(
+        `[queue:skipped] Duplicate detected for [${
+          MutationTypes[type]
+        }] '${states_parsed.join(', ')}'`,
+        2
+      )
+      return
+    }
+
     let queue = this.queue_
     if (this.duringTransition()) {
       if (this.transition && this.transition.source_machine !== this) {
@@ -2007,6 +2077,56 @@ export default class AsyncMachine<
     }
 
     queue.push([type, states_parsed, params, false, target])
+  }
+
+  /**
+   * Detect queue duplicates for mutations without params.
+   *
+   * 1. Check if a mutation is scheduled
+   * 2. Check if a counter mutation isn't scheduled later
+   *
+   * @param machine The machine which queue is being checked
+   * @param target Target to mutate
+   * @param mutation_type
+   * @param states
+   * @private
+   *
+   * TODO write a test
+   */
+  private detectQueueDuplicates_(
+    target: TAsyncMachine,
+    mutation_type: MutationTypes,
+    states: string[]
+  ) {
+    // check if this mutation is already scheduled
+    const index = this.isQueued(mutation_type, states, target)
+    if (index == -1) {
+      return false
+    }
+    let counter_mutation_type: MutationTypes
+    switch (mutation_type) {
+      case MutationTypes.ADD:
+        counter_mutation_type = MutationTypes.DROP
+        break
+      case MutationTypes.DROP:
+        counter_mutation_type = MutationTypes.ADD
+        break
+      default:
+      case MutationTypes.SET:
+        // avoid duplicating `set` only if at the end of the queue
+        return index && this.queue().length - 1
+    }
+    // Check if a counter mutation is scheduled and broaden the match
+    // - with or without params
+    // - state sets same or bigger than `states`
+    return this.isQueued(
+      counter_mutation_type,
+      states,
+      target,
+      false,
+      false,
+      index + 1
+    )
   }
 
   // Goes through the whole queue collecting return values.
