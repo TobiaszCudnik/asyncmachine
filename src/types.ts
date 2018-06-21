@@ -178,16 +178,10 @@ export interface IState<T extends string> {
   multi?: boolean
 }
 
-export enum StateChangeTypes {
+export enum MutationTypes {
   DROP,
   ADD,
   SET
-}
-
-export enum NamesToStateChangeTypes {
-  add = StateChangeTypes.ADD,
-  drop = StateChangeTypes.DROP,
-  set = StateChangeTypes.SET
 }
 
 /**
@@ -202,7 +196,7 @@ export enum QueueRowFields {
 }
 
 export interface IQueueRow {
-  0: StateChangeTypes
+  0: MutationTypes
   1: string[]
   2: any[]
   3: boolean

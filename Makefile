@@ -79,6 +79,7 @@ test-build-watch:
 		--watch \
 		-p test
 
+# make test-grep GREP="test name"
 test-grep:
 	$(MOCHA) \
 		--grep "$(GREP)"

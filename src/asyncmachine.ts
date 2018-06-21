@@ -1,30 +1,28 @@
-import Transition from './transition'
-import EventEmitter from './ee'
 // @ts-ignore
 import * as uuidProxy from 'simple-random-id'
+import EventEmitter from './ee'
+import Transition from './transition'
 import {
-  StateChangeTypes,
+  BaseStates,
   Deferred,
-  PipeFlags,
-  IQueueRow,
-  IPipedStateTarget,
-  IState,
-  TPipeBindings,
-  TStateMethod,
-  TLogHandler,
-  NonExistingStateError,
-  StateRelations,
-  QueueRowFields,
-  TAbortFunction,
-  TransitionStepTypes,
   IBind,
   IEmit,
-  BaseStates,
-  // @ts-ignore
-  TAsyncMachine,
-  TransitionException,
+  IPipedStateTarget,
+  IQueueRow,
+  IState,
+  NonExistingStateError,
+  PipeFlags,
   PipeFlagsLabels,
-  NamesToStateChangeTypes
+  QueueRowFields,
+  MutationTypes,
+  StateRelations,
+  TAbortFunction,
+  TAsyncMachine,
+  TLogHandler,
+  TPipeBindings,
+  TransitionException,
+  TransitionStepTypes,
+  TStateMethod
 } from './types'
 
 export {
@@ -32,6 +30,7 @@ export {
   StateStructFields,
   TransitionStepTypes,
   TransitionStepFields,
+  MutationTypes,
   StateRelations,
   // needed for factory()
   IBind,
@@ -234,7 +233,8 @@ export default class AsyncMachine<
     'print_exception',
     'transition',
     'log_handlers',
-    'postponed_queue'
+    'postponed_queue',
+    'def_log_handler_off'
   ]
   private id_: string = uuid()
 
@@ -550,8 +550,9 @@ export default class AsyncMachine<
   }
 
   /**
-   * Returns the current queue. To understand the returned format, refer to
-   * [[IQueueRow]].
+   * Returns the current queue.
+   *
+   * To understand the returned format, refer to [[IQueueRow]].
    */
   queue(): IQueueRow[] {
     return this.queue_
@@ -686,7 +687,7 @@ export default class AsyncMachine<
       target = this
     }
 
-    this.enqueue_(StateChangeTypes.SET, states, params, target)
+    this.enqueue_(MutationTypes.SET, states, params, target)
 
     return this.processQueue_()
   }
@@ -868,7 +869,7 @@ export default class AsyncMachine<
       target = this
     }
 
-    this.enqueue_(StateChangeTypes.ADD, states, params, target)
+    this.enqueue_(MutationTypes.ADD, states, params, target)
 
     return this.processQueue_()
   }
@@ -1049,7 +1050,7 @@ export default class AsyncMachine<
       target = this
     }
 
-    this.enqueue_(StateChangeTypes.DROP, states, params, target)
+    this.enqueue_(MutationTypes.DROP, states, params, target)
 
     return this.processQueue_()
   }
@@ -1234,6 +1235,11 @@ export default class AsyncMachine<
     machine?: AsyncMachine<any, IBind, IEmit>,
     flags = PipeFlags.FINAL
   ) {
+    assert(!!flags, `Flags can't be 0`)
+    // Add defaults when a sole INVERT requested
+    if (flags == PipeFlags.INVERT) {
+      flags = PipeFlags.INVERT | PipeFlags.FINAL
+    }
     let bindings = flags ? this.getPipeBindings(flags) : null
     let event_types = flags && bindings ? Object.keys(bindings) : null
     let parsed_states = states ? this.parseStates(states) : null
@@ -1773,6 +1779,7 @@ export default class AsyncMachine<
   }
 
   // TODO overload signatures for the optional requested_state
+  // TODO rename machine to target and target to machine, as its confusing
   protected pipeBind<S extends string>(
     states: (TStates | BaseStates) | (TStates | BaseStates)[],
     machine: AsyncMachine<S, IBind, IEmit>,
@@ -1780,6 +1787,11 @@ export default class AsyncMachine<
     flags = PipeFlags.FINAL
   ) {
     const pf = PipeFlags
+    assert(!!flags, `Flags can't be 0`)
+    // Add defaults when a sole INVERT requested
+    if (flags == pf.INVERT) {
+      flags = pf.INVERT | pf.FINAL
+    }
     let bindings = this.getPipeBindings(flags)
     let parsed_states = this.parseStates(states)
 
@@ -1818,42 +1830,12 @@ export default class AsyncMachine<
         // TODO extract
         let pipe_listener = () => {
           let target = flags && flags & PipeFlags.LOCAL_QUEUE ? this : machine
-          // TODO extract
-          const is_scheduled = (method_name: string, start_index = 0) => {
-            return target.queue().findIndex(
-              (r, index) =>
-                index >= start_index &&
-                // @ts-ignore
-                r[QueueRowFields.STATE_CHANGE_TYPE] ==
-                  NamesToStateChangeTypes[method_name] &&
-                r[QueueRowFields.TARGET] == machine &&
-                r[QueueRowFields.STATES].length == 1 &&
-                r[QueueRowFields.STATES][0] == target_state
-            )
-            // TODO get the index and look for the counter one later in
-            // the queue
-          }
           if (this.transition) {
             this.transition.addStep(
               [machine.id(true), target_state as string],
               [this.id(true), state as string],
               TransitionStepTypes.PIPE
             )
-          }
-          // avoid duplications
-          // TODO extract
-          // check if this mutation is scheduled
-          const index = is_scheduled(method_name)
-          if (
-            index != -1 &&
-            // and check if the opposite isn't scheduled after the found one
-            is_scheduled(method_name == 'add' ? 'drop' : 'add', index + 1) == -1
-          ) {
-            this.log(
-              `[pipe] Skipping [${method_name}] for '${target_state}' - already queued`,
-              3
-            )
-            return
           }
           const ret = target[method_name](machine, target_state)
           // return only for negotiation pipes
@@ -1994,12 +1976,12 @@ export default class AsyncMachine<
 	 * TODO generic for the machine param?
 	 */
   private enqueue_(
-    type: number,
+    type: MutationTypes,
     states: (TStates | BaseStates)[] | (TStates | BaseStates),
     params: any[] = [],
     target: AsyncMachine<any, IBind, IEmit> = this
   ): void {
-    const type_label = StateChangeTypes[type].toLowerCase()
+    const type_label = MutationTypes[type].toLowerCase()
     const states_parsed = target.parseStates(states)
 
     let queue = this.queue_
