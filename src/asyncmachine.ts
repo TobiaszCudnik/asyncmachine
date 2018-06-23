@@ -1781,13 +1781,13 @@ export default class AsyncMachine<
    * @param include_inactive
    */
   statesToString(include_inactive = false): string {
-    let ret = `${this.id()}\n`
+    let ret = `${this.id()}`
     let footer = ''
     for (const state of this.states_all) {
       if (this.states_active.includes(state)) {
-        ret += `    ${state} (${this.clock(state)})\n`
+        ret += `\n    ${state} (${this.clock(state)})`
       } else if (include_inactive) {
-        footer += `    -${state} (${this.clock(state)})\n`
+        footer += `\n    -${state} (${this.clock(state)})`
       }
     }
     return ret + footer
