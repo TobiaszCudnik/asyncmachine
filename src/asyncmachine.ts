@@ -1912,6 +1912,12 @@ export default class AsyncMachine<
             }
             // TODO add a canceled step in case of negotiation and a negative
             // result
+            if (ret === false) {
+              this.log(
+                `[pipe:cancelled] State '${state}' not accepted by the ` +
+                  `machine '${target.id()}'`
+              )
+            }
             return ret
           }
         }
@@ -2051,9 +2057,9 @@ export default class AsyncMachine<
       this.detectQueueDuplicates_(target, type, states_parsed as string[])
     ) {
       this.log(
-        `[queue:skipped] Duplicate detected for [${
-          MutationTypes[type]
-        }] '${states_parsed.join(', ')}'`,
+        `[queue:skipped] Duplicate detected for [${MutationTypes[
+          type
+        ].toLowerCase()}] '${states_parsed.join(', ')}'`,
         2
       )
       return
