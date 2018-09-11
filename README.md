@@ -1,4 +1,16 @@
-**AsyncMachine** is a modern state manager with intelligence built in. It's a combination of several different concepts, while still being a minimalistic library (**7.5**kb gzipped). It was born slowly over the years of writing complex JavaScript apps and other asynchronous systems. Most of all, it's a state machine, thus the label _Hybrid State Machine_.
+**AsyncMachine** is a relational state machine made for declarative flow control. It supports multiple states simultaneously, executes methods based on a dependency graph and provides an event emitter.
+
+It allows for easy:
+
+* state management
+* parallel tasks
+* loose coupling
+* resource allocation / disposal
+* exception handling
+* fault tolerance
+* method cancellation
+
+It supports forming a network of state machines and can also be used as a simple state management library. Gzipped code is 7.5kb.
 
 Components:
 
