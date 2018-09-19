@@ -12,6 +12,23 @@ It allows for easy:
 
 It supports forming a network of state machines and can also be used as a simple state management library. Gzipped code is 7.5kb.
 
+## Install
+
+```
+npm i asyncmachine
+```
+
+## Documentation
+
+* [AsyncMachine - The Definitive Guide](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide) (wiki)<br>
+  [PDF version](https://github.com/TobiaszCudnik/asyncmachine/raw/gh-pages/AsyncMachine-The-Definitive-Guide.pdf) (25 pages, 1.5mb)
+* [API docs](https://tobiaszcudnik.github.io/asyncmachine/api) (TypeScript)
+  * [machine() factory](https://tobiaszcudnik.github.io/asyncmachine/api/index.html#machine)
+  * [AsyncMachine class](https://tobiaszcudnik.github.io/asyncmachine/api/classes/asyncmachine.html)
+  * [Transition class](https://tobiaszcudnik.github.io/asyncmachine/api/classes/transition.html)
+  * [List of emitted events](https://tobiaszcudnik.github.io/asyncmachine/api/interfaces/iemit.html)
+* [Roadmap](https://github.com/TobiaszCudnik/asyncmachine/blob/master/TODO.md)
+
 Components:
 
 * states
@@ -29,12 +46,6 @@ Features:
 * automatic states
 * exception handling
 * [visual inspector / debugger](https://github.com/TobiaszCudnik/asyncmachine-inspector)
-
-## Install
-
-```
-npm i asyncmachine
-```
 
 ## Examples
 
@@ -131,17 +142,6 @@ A complex example showing how to solve the **producer / consumer problem** using
 For a real world example check [GTD Bot](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src) - a sync engine for Google APIs.
 
 [![Preview](http://tobiaszcudnik.github.io/asyncmachine-inspector/sample.png)](http://tobiaszcudnik.github.io/asyncmachine-inspector/sample.mp4)
-
-## Documentation
-
-* [AsyncMachine - The Definitive Guide](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide) (wiki)<br>
-  [PDF version](https://github.com/TobiaszCudnik/asyncmachine/raw/gh-pages/AsyncMachine-The-Definitive-Guide.pdf) (25 pages, 1.5mb)
-* [API docs](https://tobiaszcudnik.github.io/asyncmachine/api) (TypeScript)
-  * [machine() factory](https://tobiaszcudnik.github.io/asyncmachine/api/index.html#machine)
-  * [AsyncMachine class](https://tobiaszcudnik.github.io/asyncmachine/api/classes/asyncmachine.html)
-  * [Transition class](https://tobiaszcudnik.github.io/asyncmachine/api/classes/transition.html)
-  * [List of emitted events](https://tobiaszcudnik.github.io/asyncmachine/api/interfaces/iemit.html)
-* [Roadmap](https://github.com/TobiaszCudnik/asyncmachine/blob/master/TODO.md)
 
 ## Use cases
 

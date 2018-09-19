@@ -1,4 +1,4 @@
-BIN=./node_modules/.bin
+./node_modules/.bin
 MOCHA=./node_modules/mocha/bin/mocha
 
 all:
@@ -112,6 +112,7 @@ docs:
 		src/asyncmachine.ts
 
 pdf:
+	cd wiki && make pdf
 	cp \
 		wiki/AsyncMachine-The-Definitive-Guide.pdf \
 		docs/AsyncMachine-The-Definitive-Guide.pdf
