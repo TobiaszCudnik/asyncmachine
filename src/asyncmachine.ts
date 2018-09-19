@@ -2394,10 +2394,14 @@ export default class AsyncMachine<
       }
 
       if (quit) {
-        this.log(
-          `[abort] ${state}; reason - ${msg}\n\t${this.is().join(', ')}`,
-          1
-        )
+        const full_msg = `[abort] ${state}; reason - ${msg}\n\t${this.is().join(
+          ', '
+        )}`
+        this.log(full_msg, 1)
+        if (this.log_level_ > 2 || this.log_handlers.length) {
+          this.log(new Error().stack!)
+          console.trace(full_msg)
+        }
         return true
       }
 
