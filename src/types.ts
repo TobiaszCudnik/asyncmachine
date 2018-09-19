@@ -315,7 +315,7 @@ export enum PipeFlags {
   NEGOTIATION_ENTER = 1 << 5,
   NEGOTIATION_EXIT = 1 << 6,
   FINAL_ENTER = 1 << 7,
-  FINAL_EXIT = 1 << 8,
+  FINAL_EXIT = 1 << 8
 }
 
 export const PipeFlagsLabels = {
@@ -326,7 +326,7 @@ export const PipeFlagsLabels = {
   NEGOTIATION_ENTER: 'neg_enter',
   NEGOTIATION_EXIT: 'neg_exit',
   FINAL_ENTER: 'fin_enter',
-  FINAL_EXIT: 'fin_exit',
+  FINAL_EXIT: 'fin_exit'
 }
 
 export class TransitionException extends Error {
@@ -335,6 +335,10 @@ export class TransitionException extends Error {
   }
 }
 
-export class NonExistingStateError extends Error {}
+export class NonExistingStateError extends Error {
+  constructor(name: string) {
+    super('NonExistingStateError: ' + name)
+  }
+}
 
 export type TLogHandler = (msg: string, level?: number) => any
