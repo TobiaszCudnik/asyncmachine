@@ -676,7 +676,7 @@ export default class AsyncMachine<
    */
   get(state: TStates | BaseStates): IState<TStates> {
     if (!this.states_all.includes(state)) {
-      throw new NonExistingStateError(state)
+      throw new NonExistingStateError(this.id(true) + ':' + state)
     }
     return this[state as string]
   }
