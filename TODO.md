@@ -1,13 +1,15 @@
 # TODO
 
 ## 3.x
-- pipe listeners
-  - check if a transition is already queued
-  - also check if a counter transition isnt
+- handle exceptions happening in an ASYNC Exception_state handler
+  - honor `this.machine.print_exception`
+- indicate "in transition" for statesToString()
+- fix the ts-ignore injection for d.ts files
 - ability to `npm link` directly from /build
   - move the dist files to /build/dist
 - validate state names in relations
 - def guide
+  - describe all the new pipe flags
   - make a comparison of `pipe`, `pipe negotiation` to `add`, `add & require`
 - rxjs integration examples
   - parsing state sets coming from a group of machines
@@ -28,7 +30,7 @@
 - easy way to wait on a drained queue from >1 machine
 - new way of handling queue race conditions
   - check for every queue entry instead of transition.ts
-- TypeScript 2.9 compat (typed event emitter using Variadic Types)
+- TypeScript 3.0 compat
   - align /bin/am-types
 - include prettier in the workflow
 - state groups - `FooA`, `FooB`, `FooC`, when all in group `Foo` #engine #api
@@ -111,7 +113,14 @@
   - considers signals composed out of event emitters (per each signal)
 - chai assertion helper #project #api
 
+## WIKI
+
+* Queue duplicates detection
+  * For all mutations
+  * Mention in the docs - pipes, mutations
+* Examples on stackblitz
+
 ## Transition
 
- * refactor the execution of calls to sth structured instead of strings
- * multi-step (keep couple of steps as one step)
+* refactor the execution of calls to sth structured instead of strings
+* multi-step (keep couple of steps as one step)

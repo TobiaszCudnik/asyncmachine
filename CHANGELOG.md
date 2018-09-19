@@ -5,7 +5,7 @@
 - more granular piping
 - `add` relation parsed only for new states
 - fixed early resolve for `when()` and `whenNot()`
-- avoid duplicates when executing a pipe
+- avoid of queuing duplicate mutations
 
 ## v3.3
 
