@@ -1800,29 +1800,33 @@ export default class AsyncMachine<
     flags = flags || pf.FINAL
     const bindings = {}
     if (flags & pf.INVERT || flags & pf.FINAL_ENTER) {
-      // enter (drop)
-      if (flags & pf.FINAL) {
-        bindings['state'] = 'drop'
-      } else if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_ENTER) {
+      // enter
+      if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_ENTER) {
         bindings['enter'] = 'drop'
       }
-      // exit (add)
+      if (flags & pf.FINAL || flags & pf.FINAL_ENTER) {
+        bindings['state'] = 'drop'
+      }
+      // exit
       if (flags & pf.FINAL || flags & pf.FINAL_EXIT) {
         bindings['end'] = 'add'
-      } else if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_EXIT) {
+      }
+      if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_EXIT) {
         bindings['exit'] = 'add'
       }
     } else {
-      // enter (add)
-      if (flags & pf.FINAL || flags & pf.FINAL_ENTER) {
-        bindings['state'] = 'add'
-      } else if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_ENTER) {
+      // enter
+      if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_ENTER) {
         bindings['enter'] = 'add'
       }
-      // exit (drop)
+      if (flags & pf.FINAL || flags & pf.FINAL_ENTER) {
+        bindings['state'] = 'add'
+      }
+      // exit
       if (flags & pf.FINAL || flags & pf.FINAL_EXIT) {
         bindings['end'] = 'drop'
-      } else if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_EXIT) {
+      }
+      if (flags & pf.NEGOTIATION || flags & pf.NEGOTIATION_EXIT) {
         bindings['exit'] = 'drop'
       }
     }

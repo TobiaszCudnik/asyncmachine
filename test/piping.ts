@@ -60,9 +60,9 @@ describe('piping', function() {
     expect(target.is()).to.eql([])
   })
 
-  it('should work for both negotiation and set', function() {
-    // piping negotiation-only phrase does not give you certantity,
-    // that the state was actually sucesfully set in the machine A
+  it('should work for both negotiation and final', function() {
+    // piping negotiation-only phrase does not give you certainty,
+    // that the state was actually set for the machine A
     // in that case, fow now, assert the success via the self-transition
     const source = machine<ABCD>(['A', 'B', 'C', 'D']).id('source')
     const target_1 = machine<ABCD>(['A', 'B', 'C', 'D']).id('target-1')
