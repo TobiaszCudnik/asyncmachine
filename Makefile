@@ -1,4 +1,4 @@
-./node_modules/.bin
+BIN=./node_modules/.bin
 MOCHA=./node_modules/mocha/bin/mocha
 
 all:
@@ -63,6 +63,7 @@ publish:
 		npm publish
 
 test:
+	@echo "Dont forget to build tests with `make test-build`"
 	$(MOCHA) \
 		test/*.js
 

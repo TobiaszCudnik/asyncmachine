@@ -23,6 +23,8 @@
 - fix / correct the broken tests
 
 ## 4.x
+- rename `PipeFlags` to match the event names
+  - eg `NEGOTIATION_ENTER` is `enter`, `FINAL_EXIT` is `end` 
 - `debug` method
   - uses queries and if they match goes into `debugger`
   - `debug(DEBUG.ADD, [machine_id], ['Foo'])`
