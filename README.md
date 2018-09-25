@@ -137,9 +137,9 @@ A complex example showing how to solve the **producer / consumer problem** using
 
 [![inspector view](https://raw.githubusercontent.com/TobiaszCudnik/asyncmachine/gh-pages/images/restaurant.png)](https://stackblitz.com/edit/asyncmachine-inspector-restaurant)
 
-### GTD Bot
+### TaskBot
 
-For a real world example check [GTD Bot](https://github.com/TobiaszCudnik/gtd-bot/tree/master/src) - a sync engine for Google APIs.
+For a real world example check [TaskBot](https://github.com/TaskSync/TaskBot.app/tree/master/src) - a real-time sync engine for Google APIs.
 
 [![Preview](http://tobiaszcudnik.github.io/asyncmachine-inspector/sample.png)](http://tobiaszcudnik.github.io/asyncmachine-inspector/sample.mp4)
 
