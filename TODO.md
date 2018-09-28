@@ -1,16 +1,15 @@
 # TODO
 
 ## 3.x
+- add more comments to the initial example in the readme
 - handle exceptions happening in an ASYNC Exception_state handler
   - honor `this.machine.print_exception`
+- accept transition handlers in the `machine()` param
 - indicate "in transition" for statesToString()
-- fix the ts-ignore injection for d.ts files
+- fix the `@ts-ignore` injection for d.ts files
 - ability to `npm link` directly from /build
   - move the dist files to /build/dist
 - validate state names in relations
-- def guide
-  - describe all the new pipe flags
-  - make a comparison of `pipe`, `pipe negotiation` to `add`, `add & require`
 - rxjs integration examples
   - parsing state sets coming from a group of machines
   - parse the stream of states and "mine" complex states eg user behavior
@@ -23,6 +22,9 @@
 - fix / correct the broken tests
 
 ## 4.x
+- alias `is()` as `currentState()`
+- rename `transition()` to `get transition()`
+  - and alias a `get current_transition`
 - rename `PipeFlags` to match the event names
   - eg `NEGOTIATION_ENTER` is `enter`, `FINAL_EXIT` is `end` 
 - `debug` method
@@ -115,11 +117,11 @@
   - considers signals composed out of event emitters (per each signal)
 - chai assertion helper #project #api
 
-## WIKI
+## WIKI / Def Guide
 
 * Queue duplicates detection
-  * For all mutations
   * Mention in the docs - pipes, mutations
+* Make a comparison of `pipe`, `pipe negotiation` to `add`, `add & require`
 * Examples on stackblitz
 
 ## Transition
