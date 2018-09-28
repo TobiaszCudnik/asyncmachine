@@ -22,6 +22,7 @@
 - fix / correct the broken tests
 
 ## 4.x
+- alias `add`/`drop` to `activate`/`deactivate`
 - alias `is()` as `currentState()`
 - rename `transition()` to `get transition()`
   - and alias a `get current_transition`

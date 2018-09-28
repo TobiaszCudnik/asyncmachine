@@ -1,4 +1,4 @@
-**AsyncMachine** is a relational state machine made for declarative flow control. It supports multiple states simultaneously, executes methods based on a dependency graph and provides an event emitter.
+**AsyncMachine** is a **relational state machine** made for declarative flow control. It supports **multiple states simultaneously**, executes methods based on a dependency graph and provides an event emitter.
 
 It allows for easy:
 
@@ -60,16 +60,35 @@ This basic examples makes use of: `states`, `transitions`, `relations` and `sync
 import { machine } from 'asyncmachine'
 // define
 const state = {
-  Wet: { require: ['Water'] },
-  Dry: { drop: ['Wet'] },
-  Water: { add: ['Wet'], drop: ['Dry'] }
+  // state Wet when activated, requires state Water to be active
+  Wet: {
+    require: ['Water']
+  },
+  // state Dry when activated, will drop (de-activate) state Wet
+  Dry: {
+    drop: ['Wet']
+  },
+  // state Water when activated, will add (activate) state Wet and
+  // drop (de-activate) state Dry
+  Water: {
+    add: ['Wet'],
+    drop: ['Dry']
+  }
 }
 // initialize
 const example = machine(state)
-// make changes
+// initially the machine has no active states
+example.is() // -> []
+// activate state Dry
 example.add('Dry')
+example.is() // -> [ 'Dry' ]
+// activate state Water, which will resolve the relations:
+// 1. Water activates Wet
+// 2. Wet requires Water
+// 3. Dry de-activates Wet
+// 4. Water de-activates Dry
+// 5. Water activates Wet
 example.add('Water')
-// check the state
 example.is() // -> [ 'Wet', 'Water' ]
 ```
 
