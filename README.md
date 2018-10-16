@@ -31,27 +31,27 @@ npm i asyncmachine
 
 Components:
 
-* states
-* transitions
-* relations
-* clocks
-* pipes
-* queues
+* [states](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#states)
+* [transitions](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#transitions)
+* [relations](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#state-relations)
+* [clocks](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#state-clocks)
+* [pipes](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#pipes---connections-between-machines)
+* [queues](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#queue-and-machine-locks)
 
 Features:
 
-* synchronous mutations
-* negotiation
-* cancellation
-* automatic states
-* exception handling
+* [synchronous mutations](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#mutating-the-state)
+* [state negotiation](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#aborting-by-negotiation-handlers)
+* [cancellation](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#abort-functions)
+* [automatic states](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#auto-states)
+* [exception handling](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#exception-as-a-state)
 * [visual inspector / debugger](https://github.com/TobiaszCudnik/asyncmachine-inspector)
 
 ## Examples
 
 ### Dry Wet
 
-This basic examples makes use of: `states`, `transitions`, `relations` and `synchronous mutations`.
+This basic examples makes use of: [states](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#states), [transitions](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#transitions), [relations](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#state-relations) and [synchronous mutations](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#mutating-the-state).
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1edd421eaec500126c11ce)
 * [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-dry-wet?file=index.ts)
@@ -96,7 +96,7 @@ example.is() // -> [ 'Wet', 'Water' ]
 
 ### Negotiation
 
-Presents how the `state negotiation` works.
+Presents how the [state negotiation](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#aborting-by-negotiation-handlers) works.
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ed850c6dc1f0012db1346)
 * [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-negotiation?file=index.ts)
@@ -104,7 +104,7 @@ Presents how the `state negotiation` works.
 
 ### Async Dialog
 
-Presents the following concepts: `automatic states`, `synchronous mutations`, `delayed mutations` and loose coupling.
+Presents the following concepts: [automatic states](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#auto-states), [synchronous mutations](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#mutating-the-state), [delayed mutations](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#delayed-mutations) and loose coupling.
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ede5f62717e0013877cdc)
 * [Inspect on StackBlitz](https://stackblitz.com/edit/asyncmachine-example-async-dialog?file=index.ts)
@@ -112,7 +112,7 @@ Presents the following concepts: `automatic states`, `synchronous mutations`, `d
 
 ### Exception State
 
-A simple fault tolerance (retrying) using the `Exception` state.
+A simple fault tolerance (retrying) using the [Exception state](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#exception-as-a-state).
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1ee7113321180012ebafcf)
 * [Inspect on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-exception?file=index.ts)
@@ -120,7 +120,7 @@ A simple fault tolerance (retrying) using the `Exception` state.
 
 ### Piping
 
-Shows how `pipes` forward states between machines.
+Shows how [pipes](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#pipes---connections-between-machines) forward states between machines.
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1eea671eaec500126c1be7)
 * [Inspect on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-piping?file=index.ts)
@@ -128,7 +128,7 @@ Shows how `pipes` forward states between machines.
 
 ### Transitions
 
-Shows various types of `transition handlers` and the way params get passed to them.
+Shows various types of [transition handlers](https://github.com/TobiaszCudnik/asyncmachine/wiki/AsyncMachine-The-Definitive-Guide#transition-handlers) and the way params get passed to them.
 
 * [Edit on RunKit](https://runkit.com/tobiaszcudnik/5b1eeaba3b97b60012c83ec0)
 * [Inspect on Stackblitz](https://stackblitz.com/edit/asyncmachine-example-transitions?file=index.ts)

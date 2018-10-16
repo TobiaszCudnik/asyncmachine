@@ -1,7 +1,7 @@
 {
   "name": "asyncmachine",
-  "version": "3.4.0",
-  "description": "Hybrid State Machine",
+  "version": "3.4.1",
+  "description": "Relational State Machine",
   "keywords": [
     "async",
     "statemachine",
