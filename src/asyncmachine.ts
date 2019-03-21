@@ -439,7 +439,9 @@ export default class AsyncMachine<
     to_state?: TStates | BaseStates
   ): StateRelations[] {
     this.parseStates(from_state)
-    if (to_state) this.parseStates(to_state)
+    if (to_state) {
+      this.parseStates(to_state)
+    }
     let state = this.get(from_state)
     let relations = [
       StateRelations.AFTER,
@@ -449,7 +451,9 @@ export default class AsyncMachine<
     ]
 
     return relations.filter(relation => {
-      if (!state[relation]) return false
+      if (!state[relation]) {
+        return false
+      }
       // @ts-ignore
       if (to_state && !state[relation].includes(to_state)) {
         return false

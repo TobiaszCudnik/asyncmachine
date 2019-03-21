@@ -20,12 +20,22 @@
 - implement `pipeRemoveBinding(binding)`
 - implement `unregister(state)`
 - fix / correct the broken tests
+- option to throw in case the queue is being used
+  - used when every mutation is expected to be synchronous
+- managed child-machines
+  - cant mutate the state directly, only the parent machine can (one parent)
+  - parent mutates the state via piping only
+  - this way the mutations is ALWAYS synchronous
 
 ## 4.x
+- state aliases - same state called by >1 name
+- ability to change the name of the transition handler per state
+  - eg state `Foo_55: {handler: 'Foo'}`
+  - allows to define dynamic state (eg many elements) with a predefined handler
 - alias `add`/`drop` to `activate`/`deactivate`
 - alias `is()` as `currentState()`
 - rename `transition()` to `get transition()`
-  - and alias a `get current_transition`
+  - and alias as `get current_transition`
 - rename `PipeFlags` to match the event names
   - eg `NEGOTIATION_ENTER` is `enter`, `FINAL_EXIT` is `end` 
 - `debug` method
