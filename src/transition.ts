@@ -234,7 +234,8 @@ export default class Transition {
           ['Exception'],
           [err.err, this.states, this.before, err.transition],
           false,
-          machine
+          machine,
+          uuid()
         ]
         // drop the queue created during the transition
         // @ts-ignore
@@ -357,7 +358,7 @@ export default class Transition {
     }
 
     if (add.length) {
-      return [MutationTypes.ADD, add, [], true, this.machine]
+      return [MutationTypes.ADD, add, [], true, this.machine, uuid()]
     }
 
     return null

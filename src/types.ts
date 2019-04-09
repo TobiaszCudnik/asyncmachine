@@ -192,7 +192,8 @@ export enum QueueRowFields {
   STATES,
   PARAMS,
   AUTO,
-  TARGET
+  TARGET,
+  ID
 }
 
 export interface IQueueRow {
@@ -201,6 +202,8 @@ export interface IQueueRow {
   2: any[]
   3: boolean
   4: TAsyncMachine
+  // ID
+  5: string
 }
 
 export class Deferred {

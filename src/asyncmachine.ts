@@ -1989,6 +1989,7 @@ export default class AsyncMachine<
   // TODO make it cancellable
   setImmediate(fn: Function, ...params: any[]) {
     if (setImmediate) {
+      // @ts-ignore
       return setImmediate.apply(null, [fn].concat(params))
     } else {
       return setTimeout(fn.apply(null, params), 0)
@@ -2094,7 +2095,7 @@ export default class AsyncMachine<
       }
     }
 
-    queue.push([type, states_parsed, params, false, target])
+    queue.push([type, states_parsed, params, false, target, uuid])
   }
 
   /**
