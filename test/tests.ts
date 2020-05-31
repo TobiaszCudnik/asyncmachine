@@ -1,5 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
-
 import AsyncMachine, { machine, StateRelations } from '../src/asyncmachine'
 import * as chai from 'chai'
 import * as sinon from 'sinon'

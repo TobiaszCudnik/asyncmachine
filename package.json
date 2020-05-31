@@ -54,6 +54,7 @@
   "module": "build/asyncmachine.es6.js",
   "browser": "build/asyncmachine.umd.js",
   "dependencies": {
+    "@types/mocha": "^7.0.2",
     "commander": "^2.14.1",
     "simple-random-id": "^1.0.1"
   },
