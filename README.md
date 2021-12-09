@@ -162,17 +162,6 @@ For a real world example check [TaskBot](https://github.com/TaskSync/TaskBot.app
 
 [![Preview](http://tobiaszcudnik.github.io/asyncmachine-inspector/sample.png)](http://tobiaszcudnik.github.io/asyncmachine-inspector/sample.mp4)
 
-## Use cases
-
-* state management
-* synchronizing async actions
-* solving non-linear problems
-* fault tolerance
-* resource allocation / disposal
-* avoiding race conditions
-* thread pools
-* sync engines
-
 ## License
 
 MIT
