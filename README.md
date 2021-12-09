@@ -1,6 +1,6 @@
-**AsyncMachine** is a **relational state machine** made for declarative flow control. It supports **multiple states simultaneously**, executes methods based on a **dependency graph** and provides an event emitter.
+**AsyncMachine** is a **relational state machine** (dependency graph) for a declarative flow control.
 
-It allows for easy:
+Usages:
 
 * state management
 * parallel tasks
@@ -10,7 +10,7 @@ It allows for easy:
 * fault tolerance
 * method cancellation
 
-It supports forming a network of state machines and can also be used as a simple state management library. Gzipped code is 7.5kb.
+It can be used as a single state machine, or a network composed of many. Gzipped code is 7.5kb.
 
 ## Install
 
